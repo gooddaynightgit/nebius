@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SILVER_LINING_NOTE } from "@/lib/prompts";
+import { proposeSpokenLine } from "@/lib/care";
+import { SILVER_LINING_NOTE, displayMoment } from "@/lib/prompts";
 import type { CaptureKind, CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
 
 type Mode = CaptureKind;
@@ -50,6 +51,43 @@ function readLocalCaptures(day: string): CaptureRecord[] {
   }
 }
 
+type SpellPending = {
+  field: "text" | "transcript" | "caption";
+  original: string;
+  corrected: string;
+  fields: Record<string, string>;
+  file?: Blob | File | null;
+  filename?: string;
+};
+
+function spokenField(fields: Record<string, string>): "text" | "transcript" | "caption" {
+  if (fields.transcript) return "transcript";
+  if (fields.text) return "text";
+  return "caption";
+}
+
+async function fetchProposal(original: string) {
+  const local = proposeSpokenLine(original);
+  try {
+    const res = await fetch("/api/spellfix", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: original }),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as {
+        original: string;
+        corrected: string;
+        changed: boolean;
+      };
+      if (data.corrected) return data;
+    }
+  } catch {
+    // Local proposal is enough.
+  }
+  return local;
+}
+
 function writeLocalCaptures(day: string, captures: CaptureRecord[]) {
   try {
     window.sessionStorage.setItem(`gdn.captures.${day}`, JSON.stringify(captures));
@@ -78,6 +116,7 @@ export default function CaptureStudio() {
   const [transcript, setTranscript] = useState("");
   const [story, setStory] = useState<StoryRecord | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [spellPending, setSpellPending] = useState<SpellPending | null>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const recordingRef = useRef(false);
@@ -147,13 +186,35 @@ export default function CaptureStudio() {
       }
       if (file) form.set("file", file, filename ?? "moment.bin");
       const res = await fetch("/api/captures", { method: "POST", body: form });
-      const data = await readJson<{ capture: CaptureRecord; session: SessionState }>(res);
+      const data = (await res.json()) as {
+        capture?: CaptureRecord;
+        session?: SessionState;
+        error?: string;
+        needsConfirm?: boolean;
+        original?: string;
+        corrected?: string;
+      };
+      if (res.status === 409 && data.needsConfirm && data.original && data.corrected) {
+        setSpellPending({
+          field: spokenField(fields),
+          original: data.original,
+          corrected: data.corrected,
+          fields,
+          file,
+          filename,
+        });
+        return;
+      }
+      if (!res.ok || !data.capture || !data.session) {
+        throw new Error(data.error || "Something went sideways.");
+      }
       setSession(data.session);
       setCaptures((prev) => {
-        const next = [...prev, data.capture];
+        const next = [...prev, data.capture as CaptureRecord];
         writeLocalCaptures(day, next);
         return next;
       });
+      setSpellPending(null);
       setText("");
       setCaption("");
       setTranscript("");
@@ -168,14 +229,55 @@ export default function CaptureStudio() {
     }
   }
 
+  async function beginSave(
+    fields: Record<string, string>,
+    file?: Blob | File | null,
+    filename?: string,
+  ) {
+    setCaptureError(null);
+    const field = spokenField(fields);
+    const original = (fields[field] || "").trim();
+    if (original) {
+      setBusy("capture");
+      const proposal = await fetchProposal(original);
+      setBusy(null);
+      if (proposal.changed) {
+        setSpellPending({
+          field,
+          original: proposal.original,
+          corrected: proposal.corrected,
+          fields,
+          file,
+          filename,
+        });
+        return;
+      }
+    }
+    await saveCapture({ ...fields, spellDecision: "none" }, file, filename);
+  }
+
+  async function confirmSpell(decision: "corrected" | "keep") {
+    if (!spellPending) return;
+    const next = { ...spellPending.fields };
+    if (decision === "corrected") {
+      next[spellPending.field] = spellPending.corrected;
+    }
+    setSpellPending(null);
+    await saveCapture(
+      { ...next, spellDecision: decision },
+      spellPending.file,
+      spellPending.filename,
+    );
+  }
+
   async function onTextSubmit(event: FormEvent) {
     event.preventDefault();
-    await saveCapture({ text });
+    await beginSave({ text });
   }
 
   async function onPhotoSubmit(event: FormEvent) {
     event.preventDefault();
-    await saveCapture({ caption }, photo, photo?.name ?? "moment.jpg");
+    await beginSave({ caption }, photo, photo?.name ?? "moment.jpg");
   }
 
   async function onVoiceSubmit(event: FormEvent) {
@@ -187,7 +289,7 @@ export default function CaptureStudio() {
       );
       return;
     }
-    await saveCapture({ transcript: spoken }, voiceBlob, "moment.webm");
+    await beginSave({ transcript: spoken }, voiceBlob, "moment.webm");
   }
 
   function attachSpeechRecognition() {
@@ -499,6 +601,39 @@ export default function CaptureStudio() {
             </form>
           )}
 
+          {spellPending && (
+            <div className="spell-confirm" role="dialog" aria-labelledby="spell-heading">
+              <h3 id="spell-heading">Save corrected version?</h3>
+              <p className="spell-confirm__pair">
+                <span>Typed</span>
+                {spellPending.original}
+              </p>
+              <p className="spell-confirm__pair">
+                <span>Corrected</span>
+                {spellPending.corrected}
+              </p>
+              <div className="actions">
+                <button
+                  className="btn btn--lime"
+                  type="button"
+                  onClick={() => confirmSpell("corrected")}
+                  disabled={Boolean(busy)}
+                >
+                  Yes, save this
+                </button>
+                <button
+                  className="btn"
+                  type="button"
+                  onClick={() => confirmSpell("keep")}
+                  disabled={Boolean(busy)}
+                  style={{ color: "var(--cream)", borderColor: "rgba(247,244,232,0.28)" }}
+                >
+                  Keep as typed
+                </button>
+              </div>
+            </div>
+          )}
+
           {captureError && <p className="error">{captureError}</p>}
         </section>
 
@@ -510,13 +645,16 @@ export default function CaptureStudio() {
             </p>
           ) : (
             <div className="moment-list">
-              {captures.map((capture) => (
-                <article className="moment" key={capture.id}>
-                  <span className="moment__kind">{capture.kind}</span>
-                  <p>{capture.goodMoment || capture.text || capture.transcript || capture.caption}</p>
-                  {capture.reframed && <p className="moment__note">{SILVER_LINING_NOTE}</p>}
-                </article>
-              ))}
+              {captures.map((capture) => {
+                const shown = displayMoment(capture);
+                return (
+                  <article className="moment" key={capture.id}>
+                    <span className="moment__kind">{capture.kind}</span>
+                    <p>{shown.line}</p>
+                    {shown.reframed && <p className="moment__note">{SILVER_LINING_NOTE}</p>}
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>

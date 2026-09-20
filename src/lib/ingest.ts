@@ -1,7 +1,7 @@
-import { cleanSpokenLine, isSelfNegating, isSilverLiningLine, prepareSpoken } from "./care";
+import { cleanSpokenLine, isSelfNegating, isSilverLiningLine } from "./care";
 import { hasTokenFactoryKey } from "./config";
 import { completeWithFallback, nanoModels, type ChatMessage } from "./nebius";
-import { NANO_INGEST_SYSTEM, mockGoodMoment } from "./prompts";
+import { NANO_INGEST_SYSTEM, mockGoodMoment, spokenWords } from "./prompts";
 import type { CaptureKind, CaptureRecord } from "./types";
 
 function parseGood(text: string): { good: string | null; reframed: boolean } {
@@ -18,13 +18,21 @@ function parseGood(text: string): { good: string | null; reframed: boolean } {
   }
 }
 
+function chosenSpoken(input: {
+  text?: string;
+  transcript?: string;
+  caption?: string;
+}): string {
+  return spokenWords(input).replace(/\s+/g, " ").trim();
+}
+
 function fallbackIngest(input: {
   kind: CaptureKind;
   text?: string;
   transcript?: string;
   caption?: string;
 }): { goodMoment: string; reframed: boolean } {
-  const spoken = prepareSpoken(input);
+  const spoken = chosenSpoken(input);
   const goodMoment = mockGoodMoment(input);
   return { goodMoment, reframed: Boolean(spoken && isSelfNegating(spoken)) };
 }
@@ -34,7 +42,7 @@ function guardIngestedGood(
   nanoGood: string | null,
   fallback: { goodMoment: string; reframed: boolean },
 ): { goodMoment: string; reframed: boolean } {
-  const spoken = prepareSpoken(input);
+  const spoken = chosenSpoken(input);
   if (spoken && isSelfNegating(spoken)) {
     if (nanoGood && !isSelfNegating(nanoGood) && nanoGood.length >= 8) {
       return { goodMoment: cleanSpokenLine(nanoGood), reframed: true };

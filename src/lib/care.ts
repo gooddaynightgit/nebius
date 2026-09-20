@@ -29,6 +29,13 @@ const TYPOS: Array<[RegExp, string]> = [
   [/\badn\b/gi, "and"],
   [/\bwaht\b/gi, "what"],
   [/\baboutt\b/gi, "about"],
+  [/\baboute\b/gi, "about"],
+  [/\bdoung\b/gi, "doing"],
+  [/\bdooing\b/gi, "doing"],
+  [/\bdoign\b/gi, "doing"],
+  [/\bdiong\b/gi, "doing"],
+  [/\bdonig\b/gi, "doing"],
+  [/\bidoing\b/gi, "I'm doing"],
   [/\bim\b/gi, "I'm"],
   [/\bi'm\b/g, "I'm"],
   [/\bive\b/gi, "I've"],
@@ -114,4 +121,137 @@ export function prepareSpoken(input: {
   caption?: string;
 }): string {
   return cleanSpokenLine(input.transcript || input.caption || input.text || "");
+}
+
+export type SpellProposal = {
+  original: string;
+  corrected: string;
+  changed: boolean;
+};
+
+const COMMON_WORDS = new Set(
+  [
+    "doing",
+    "about",
+    "friend",
+    "friends",
+    "happy",
+    "happiness",
+    "enquired",
+    "enquired",
+    "inquired",
+    "someone",
+    "somebody",
+    "cares",
+    "care",
+    "caring",
+    "reached",
+    "reach",
+    "find",
+    "found",
+    "today",
+    "tonight",
+    "because",
+    "really",
+    "think",
+    "thought",
+    "little",
+    "quiet",
+    "laugh",
+    "smile",
+    "smiled",
+    "texted",
+    "contacted",
+    "checked",
+    "asking",
+    "asked",
+    "worth",
+    "worthy",
+    "lonely",
+    "alone",
+    "nobody",
+    "nothing",
+    "myself",
+    "people",
+    "person",
+    "grateful",
+    "glad",
+    "joy",
+    "love",
+    "loved",
+    "lovely",
+    "morning",
+    "evening",
+    "how",
+    "am",
+  ].map((word) => word.toLowerCase()),
+);
+
+function levenshtein(a: string, b: string): number {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const grid = Array.from({ length: rows }, () => Array<number>(cols).fill(0));
+  for (let i = 0; i < rows; i += 1) grid[i][0] = i;
+  for (let j = 0; j < cols; j += 1) grid[0][j] = j;
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      grid[i][j] = Math.min(
+        grid[i - 1][j] + 1,
+        grid[i][j - 1] + 1,
+        grid[i - 1][j - 1] + cost,
+      );
+    }
+  }
+  return grid[a.length][b.length];
+}
+
+function closestCommonWord(word: string): string | null {
+  const lower = word.toLowerCase();
+  if (lower.length < 4 || COMMON_WORDS.has(lower)) return null;
+  let best: string | null = null;
+  let bestDistance = 99;
+  let ties = 0;
+  for (const candidate of COMMON_WORDS) {
+    const max = candidate.length <= 4 ? 1 : 2;
+    const distance = levenshtein(lower, candidate);
+    if (distance === 0 || distance > max) continue;
+    if (distance < bestDistance) {
+      best = candidate;
+      bestDistance = distance;
+      ties = 1;
+    } else if (distance === bestDistance && candidate !== best) {
+      ties += 1;
+    }
+  }
+  return ties === 1 ? best : null;
+}
+
+function fuzzyCorrectWords(value: string): string {
+  return value.replace(/[A-Za-z']+/g, (word) => {
+    const match = closestCommonWord(word);
+    if (!match) return word;
+    return preserveCase(match, word);
+  });
+}
+
+export function proposeSpokenLine(value: string | undefined): SpellProposal {
+  const original = (value ?? "").replace(/\s+/g, " ").trim();
+  if (!original) return { original: "", corrected: "", changed: false };
+  const corrected = fuzzyCorrectWords(cleanSpokenLine(original));
+  return {
+    original,
+    corrected,
+    changed: original !== corrected,
+  };
+}
+
+export function chooseSpokenLine(
+  original: string,
+  decision: "corrected" | "keep" | "none" | string | undefined,
+  corrected = proposeSpokenLine(original).corrected,
+): string {
+  if (decision === "keep") return original.replace(/\s+/g, " ").trim();
+  if (decision === "corrected") return corrected;
+  return original.replace(/\s+/g, " ").trim();
 }

@@ -507,6 +507,36 @@ a {
   color: var(--lime);
 }
 
+.spell-confirm {
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1.1rem;
+  background: rgba(247, 244, 232, 0.1);
+}
+
+.spell-confirm h3 {
+  margin: 0 0 0.7rem;
+  color: var(--cream);
+  font-size: 1.05rem;
+}
+
+.spell-confirm__pair {
+  margin: 0 0 0.55rem;
+  color: var(--cream);
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.spell-confirm__pair span {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--lime);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .error {
   margin: 0;
   color: #ffe7b0;
