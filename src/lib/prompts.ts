@@ -113,9 +113,14 @@ export function weavableMoments(captures: Array<{
   reframed?: boolean;
 }>): StoryMoment[] {
   const moments: StoryMoment[] = [];
+  const seen = new Set<string>();
   for (const capture of captures) {
     const moment = storyMomentFromCapture(capture);
-    if (moment) moments.push(moment);
+    if (!moment) continue;
+    const key = moment.line.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    moments.push(moment);
   }
   return moments;
 }
