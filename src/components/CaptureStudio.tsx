@@ -22,6 +22,40 @@ async function readJson<T>(res: Response): Promise<T> {
   return data;
 }
 
+function capturePayload(capture: CaptureRecord) {
+  return {
+    id: capture.id,
+    kind: capture.kind,
+    createdAt: capture.createdAt,
+    day: capture.day,
+    text: capture.text,
+    transcript: capture.transcript,
+    caption: capture.caption,
+    goodMoment: capture.goodMoment,
+    ingestStatus: capture.ingestStatus,
+    ingestModel: capture.ingestModel,
+  };
+}
+
+function readLocalCaptures(day: string): CaptureRecord[] {
+  try {
+    const raw = window.sessionStorage.getItem(`gdn.captures.${day}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as CaptureRecord[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalCaptures(day: string, captures: CaptureRecord[]) {
+  try {
+    window.sessionStorage.setItem(`gdn.captures.${day}`, JSON.stringify(captures));
+  } catch {
+    // Private mode should not break capture.
+  }
+}
+
 export default function CaptureStudio() {
   const [mode, setMode] = useState<Mode>("text");
   const [session, setSession] = useState<SessionState | null>(null);
@@ -32,8 +66,10 @@ export default function CaptureStudio() {
   const [email, setEmail] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [captureError, setCaptureError] = useState<string | null>(null);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [weaveError, setWeaveError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<"capture" | "unlock" | "weave" | null>(null);
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
@@ -57,13 +93,23 @@ export default function CaptureStudio() {
       captureRes,
     );
     setSession(captureData.session);
-    setCaptures(captureData.captures);
+    const local = readLocalCaptures(day);
+    const fromServer = captureData.captures;
+    const merged =
+      fromServer.length >= local.length
+        ? fromServer
+        : [
+            ...fromServer,
+            ...local.filter((item) => !fromServer.some((row) => row.id === item.id)),
+          ];
+    setCaptures(merged);
+    writeLocalCaptures(day, merged);
     setStory(captureData.session.lastStory);
     if (sessionData.health) setHealth(sessionData.health);
   }, [day]);
 
   useEffect(() => {
-    refresh().catch((err: Error) => setError(err.message));
+    refresh().catch((err: Error) => setCaptureError(err.message));
   }, [refresh]);
 
   useEffect(() => {
@@ -74,9 +120,13 @@ export default function CaptureStudio() {
     };
   }, [photoUrl]);
 
-  async function saveCapture(fields: Record<string, string>, file?: Blob | File | null, filename?: string) {
-    setBusy(true);
-    setError(null);
+  async function saveCapture(
+    fields: Record<string, string>,
+    file?: Blob | File | null,
+    filename?: string,
+  ) {
+    setBusy("capture");
+    setCaptureError(null);
     try {
       const form = new FormData();
       form.set("kind", mode);
@@ -88,7 +138,11 @@ export default function CaptureStudio() {
       const res = await fetch("/api/captures", { method: "POST", body: form });
       const data = await readJson<{ capture: CaptureRecord; session: SessionState }>(res);
       setSession(data.session);
-      setCaptures((prev) => [...prev, data.capture]);
+      setCaptures((prev) => {
+        const next = [...prev, data.capture];
+        writeLocalCaptures(day, next);
+        return next;
+      });
       setText("");
       setCaption("");
       setTranscript("");
@@ -97,9 +151,9 @@ export default function CaptureStudio() {
       if (photoUrl) URL.revokeObjectURL(photoUrl);
       setPhotoUrl(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save that moment.");
+      setCaptureError(err instanceof Error ? err.message : "Could not save that moment.");
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -115,22 +169,18 @@ export default function CaptureStudio() {
 
   async function onVoiceSubmit(event: FormEvent) {
     event.preventDefault();
-    await saveCapture(
-      { transcript, caption },
-      voiceBlob,
-      "moment.webm",
-    );
+    await saveCapture({ transcript, caption }, voiceBlob, "moment.webm");
   }
 
   async function startRecording() {
-    setError(null);
+    setCaptureError(null);
     setVoiceBlob(null);
     setTranscript("");
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setError("Microphone permission is needed for a voice note.");
+      setCaptureError("Microphone permission is needed for a voice note.");
       return;
     }
     const recorder = new MediaRecorder(stream);
@@ -176,51 +226,47 @@ export default function CaptureStudio() {
 
   async function unlockEmail(event: FormEvent) {
     event.preventDefault();
-    setBusy(true);
-    setError(null);
+    setBusy("unlock");
+    setUnlockError(null);
     try {
       const res = await fetch("/api/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email,
+          day,
+          captures: captures.map(capturePayload),
+        }),
       });
       const data = await readJson<{ session: SessionState }>(res);
       setSession(data.session);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save email.");
+      setUnlockError(err instanceof Error ? err.message : "Could not save email.");
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
   async function weaveNow() {
-    setBusy(true);
-    setError(null);
+    setBusy("weave");
+    setWeaveError(null);
     try {
       const res = await fetch("/api/weave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           day,
-          captures: captures.map((c) => ({
-            id: c.id,
-            kind: c.kind,
-            createdAt: c.createdAt,
-            text: c.text,
-            transcript: c.transcript,
-            caption: c.caption,
-            goodMoment: c.goodMoment,
-            ingestStatus: c.ingestStatus,
-          })),
+          email: session?.email || email,
+          captures: captures.map(capturePayload),
         }),
       });
       const data = await readJson<{ story: StoryRecord; session: SessionState }>(res);
       setStory(data.story);
       setSession(data.session);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Weave failed.");
+      setWeaveError(err instanceof Error ? err.message : "Weave failed.");
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -253,8 +299,9 @@ export default function CaptureStudio() {
     setPlaying(false);
   }
 
-  const showEmail = Boolean(session && session.captureCount >= 1 && !session.email);
-  const canHear = Boolean(session?.canHearStory);
+  const unlocked = Boolean(session?.email);
+  const showEmail = !unlocked && captures.length >= 1;
+  const canHear = unlocked && captures.length >= 1;
 
   return (
     <div className="page">
@@ -306,8 +353,8 @@ export default function CaptureStudio() {
                 placeholder="the laugh, the small win, the quiet moment"
                 required
               />
-              <button className="btn btn--lime" type="submit" disabled={busy}>
-                Save this moment
+              <button className="btn btn--lime" type="submit" disabled={Boolean(busy)}>
+                {busy === "capture" ? "Saving…" : "Save this moment"}
               </button>
             </form>
           )}
@@ -337,8 +384,8 @@ export default function CaptureStudio() {
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="What was good here? (optional)"
               />
-              <button className="btn btn--lime" type="submit" disabled={busy || !photo}>
-                Keep this photo
+              <button className="btn btn--lime" type="submit" disabled={Boolean(busy) || !photo}>
+                {busy === "capture" ? "Saving…" : "Keep this photo"}
               </button>
             </form>
           )}
@@ -369,13 +416,17 @@ export default function CaptureStudio() {
                 }}
                 placeholder="Transcript or a line about the sound (optional)"
               />
-              <button className="btn btn--lime" type="submit" disabled={busy || (!voiceBlob && !transcript)}>
-                Save this voice note
+              <button
+                className="btn btn--lime"
+                type="submit"
+                disabled={Boolean(busy) || (!voiceBlob && !transcript)}
+              >
+                {busy === "capture" ? "Saving…" : "Save this voice note"}
               </button>
             </form>
           )}
 
-          {error && <p className="error">{error}</p>}
+          {captureError && <p className="error">{captureError}</p>}
         </section>
 
         <section className="card card--cream card--compact" aria-labelledby="today-heading">
@@ -418,8 +469,13 @@ export default function CaptureStudio() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
               />
-              <button className="btn btn--lime" type="submit" disabled={busy}>
-                Unlock my story
+              {unlockError && (
+                <p className="error" role="alert">
+                  {unlockError}
+                </p>
+              )}
+              <button className="btn btn--lime" type="submit" disabled={Boolean(busy)}>
+                {busy === "unlock" ? "Unlocking…" : "Unlock my story"}
               </button>
             </form>
           </section>
@@ -433,9 +489,9 @@ export default function CaptureStudio() {
                 className="btn btn--lime"
                 type="button"
                 onClick={weaveNow}
-                disabled={busy || captures.length === 0}
+                disabled={Boolean(busy) || captures.length === 0}
               >
-                Weave now
+                {busy === "weave" ? "Weaving…" : "Weave now"}
               </button>
               {story && (
                 <button
@@ -448,6 +504,11 @@ export default function CaptureStudio() {
                 </button>
               )}
             </div>
+            {weaveError && (
+              <p className="error" role="alert">
+                {weaveError}
+              </p>
+            )}
             {story && (
               <div className="story-body" style={{ marginTop: "1.1rem" }}>
                 <h3 style={{ margin: 0 }}>{story.title}</h3>

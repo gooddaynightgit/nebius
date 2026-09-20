@@ -1,13 +1,16 @@
-import { canUnlockStory, todayStamp } from "@/lib/identity";
+import { canUnlockStory, isValidEmail, normalizeEmail, todayStamp } from "@/lib/identity";
 import { badRequest, forbidden, json, unauthorized } from "@/lib/http";
-import { loadSessionVault, toPublicSession } from "@/lib/session";
+import { loadSessionVault, setGateEmail, toPublicSession } from "@/lib/session";
 import { weaveCronSecret } from "@/lib/config";
 import {
   addStory,
+  attachEmail,
   capturesForDay,
   lastStory as latest,
   lastStoryForDay,
   listEmailVaults,
+  mergeCapturesIntoVault,
+  saveVault,
 } from "@/lib/vault";
 import { weaveStory } from "@/lib/weave";
 import type { CaptureRecord } from "@/lib/types";
@@ -18,6 +21,7 @@ export const maxDuration = 60;
 
 type WeaveBody = {
   day?: string;
+  email?: string;
   captures?: Array<Partial<CaptureRecord>>;
 };
 
@@ -28,9 +32,19 @@ export async function POST(request: Request) {
     return weaveAll(request);
   }
 
-  const { sessionId, vault } = await loadSessionVault();
+  let { sessionId, vault } = await loadSessionVault();
   const body = ((await request.json().catch(() => ({}))) ?? {}) as WeaveBody;
   const day = body.day || todayStamp();
+  const added = mergeCapturesIntoVault(vault, body.captures, day);
+  if (added) await saveVault(vault);
+
+  if (!vault.email) {
+    const email = normalizeEmail(body.email ?? "");
+    if (isValidEmail(email) && vault.captures.length >= 1) {
+      vault = await attachEmail(sessionId, email);
+      await setGateEmail(email);
+    }
+  }
 
   if (!canUnlockStory(vault.captures.length, vault.email ?? null)) {
     if (vault.captures.length < 1) {
@@ -39,21 +53,7 @@ export async function POST(request: Request) {
     return forbidden("Enter your email to hear your story.");
   }
 
-  let captures = capturesForDay(vault, day);
-  if (!captures.length && body.captures?.length) {
-    captures = body.captures.map((c, i) => ({
-      id: c.id ?? `inline_${i}`,
-      vaultId: vault.id,
-      kind: c.kind ?? "text",
-      createdAt: c.createdAt ?? new Date().toISOString(),
-      day,
-      text: c.text,
-      transcript: c.transcript,
-      caption: c.caption,
-      goodMoment: c.goodMoment,
-      ingestStatus: c.ingestStatus ?? "ok",
-    }));
-  }
+  const captures = capturesForDay(vault, day);
   if (!captures.length) return badRequest("No moments for this day yet.");
 
   const story = await weaveStory({

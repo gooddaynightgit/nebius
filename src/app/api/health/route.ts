@@ -1,4 +1,4 @@
-import { MODELS, hasNebiusObjectStorage, hasTokenFactoryKey } from "@/lib/config";
+import { MODELS, hasNebiusObjectStorage, hasTokenFactoryKey, hasVercelBlob } from "@/lib/config";
 import { json } from "@/lib/http";
 import { storageBackend } from "@/lib/storage";
 
@@ -9,6 +9,7 @@ export async function GET() {
     ok: true,
     tokenFactory: hasTokenFactoryKey(),
     storage: storageBackend(),
+    vercelBlob: hasVercelBlob(),
     objectStorage: hasNebiusObjectStorage(),
     models: {
       nano: MODELS.nano,

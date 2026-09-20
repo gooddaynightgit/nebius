@@ -13,6 +13,9 @@ describe("private vault", () => {
     process.env.NEBIUS_S3_ACCESS_KEY_ID = "";
     process.env.NEBIUS_S3_SECRET_ACCESS_KEY = "";
     process.env.NEBIUS_S3_ENDPOINT = "";
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+    delete process.env.BLOB_STORE_ID;
+    delete process.env.VERCEL;
   });
 
   afterEach(() => {
@@ -40,5 +43,32 @@ describe("private vault", () => {
     expect(emailVault.captures).toHaveLength(1);
     expect(emailVault.captures[0].text).toMatch(/kitchen light/);
     expect(emailVault.id).not.toContain("amy@");
+  });
+
+  it("merges client captures into an empty vault so unlock can proceed", async () => {
+    const { getOrCreateAnonVault, mergeCapturesIntoVault } = await import("./vault");
+    const vault = await getOrCreateAnonVault("session-empty");
+    expect(vault.captures).toHaveLength(0);
+
+    const added = mergeCapturesIntoVault(
+      vault,
+      [
+        {
+          id: "cap_voice_1",
+          kind: "voice",
+          createdAt: "2026-09-20T08:00:00.000Z",
+          day: "2026-09-20",
+          transcript: "the kettle clicked off",
+          goodMoment: "You kept the click of the kettle.",
+          ingestStatus: "mock",
+        },
+      ],
+      "2026-09-20",
+    );
+
+    expect(added).toBe(true);
+    expect(vault.captures).toHaveLength(1);
+    expect(vault.captures[0].kind).toBe("voice");
+    expect(mergeCapturesIntoVault(vault, vault.captures, "2026-09-20")).toBe(false);
   });
 });
