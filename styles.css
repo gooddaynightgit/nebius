@@ -315,9 +315,16 @@ a {
   width: 2.7rem;
   height: 2.7rem;
   border-radius: 0.7rem;
-  background:
-    linear-gradient(135deg, #16324a 50%, transparent 50% 51%, var(--lime) 51%),
-    var(--lime);
+  background: var(--lime-badge);
+  box-shadow: 0 0 0 3px rgba(22, 50, 74, 0.06);
+}
+
+.card__mark::after {
+  content: "";
+  position: absolute;
+  inset: 0.55rem;
+  border-radius: 50%;
+  background: var(--navy);
 }
 
 .card__wash {
