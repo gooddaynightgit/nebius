@@ -93,6 +93,8 @@ a {
 .site-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.35rem 0 1rem;
 }
 
@@ -108,6 +110,12 @@ a {
   letter-spacing: -0.03em;
   line-height: 1;
   text-decoration: none;
+}
+
+.header-meta {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .card {
@@ -211,6 +219,11 @@ a {
   outline-color: var(--lime);
 }
 
+.card--compact {
+  min-height: 0;
+  padding-bottom: 1.5rem;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -222,48 +235,17 @@ a {
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  cursor: pointer;
 }
 
-.signup.is-success + .pill,
-.card--dark:has(.signup.is-success) .pill {
-  display: none;
-}
-
-.signup__live {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.signup input {
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  padding: 0.9rem 1.1rem;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-.signup input::placeholder {
-  color: rgba(244, 247, 251, 0.62);
-}
-
-.signup input:hover,
-.signup input:focus {
-  border-color: rgba(212, 255, 0, 0.7);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.signup__error {
-  margin: 0;
-  color: #ffe7b0;
-  font-size: 0.92rem;
+.card--dark .pill {
+  cursor: default;
 }
 
 .btn {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   border: 1.5px solid rgba(255, 255, 255, 0.78);
   border-radius: 999px;
@@ -274,6 +256,7 @@ a {
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
+  text-decoration: none;
   cursor: pointer;
   transition: background 160ms var(--ease), color 160ms var(--ease), transform 160ms var(--ease);
 }
@@ -288,17 +271,36 @@ a {
   transform: translateY(1px);
 }
 
-.signup__success {
-  margin: 0.4rem 0 0;
-  color: var(--lime);
-  font-size: clamp(1.7rem, 6vw, 2.15rem);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.15;
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.signup.is-success .signup__live {
-  display: none;
+.btn--lime {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+}
+
+.btn--lime:hover {
+  background: #eaff6a;
+  border-color: #eaff6a;
+  color: var(--navy);
+}
+
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cta-copy {
+  position: relative;
+  z-index: 1;
+  margin: 0.85rem 0 0;
+  max-width: 22rem;
+  color: rgba(244, 247, 251, 0.78);
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .card__mark,
@@ -409,6 +411,194 @@ a {
   color: var(--navy);
 }
 
+.mode-row {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+}
+
+.mode-row button {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.55rem 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 247, 251, 0.88);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-row button[aria-pressed="true"] {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+}
+
+.studio {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.studio textarea,
+.studio input[type="email"],
+.studio input[type="text"] {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 1.2rem;
+  padding: 0.9rem 1.1rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.studio textarea {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+.studio input::placeholder,
+.studio textarea::placeholder {
+  color: rgba(244, 247, 251, 0.62);
+}
+
+.studio input:hover,
+.studio input:focus,
+.studio textarea:hover,
+.studio textarea:focus {
+  border-color: rgba(212, 255, 0, 0.7);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.record {
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+  padding: 0.4rem 0 0.2rem;
+}
+
+.record__btn {
+  width: 5.4rem;
+  height: 5.4rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--lime);
+  color: var(--navy);
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 0 8px rgba(212, 255, 0, 0.12);
+}
+
+.record__btn.is-live {
+  animation: pulse 1.3s var(--ease) infinite;
+}
+
+.record__time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--lime);
+}
+
+.error {
+  margin: 0;
+  color: #ffe7b0;
+  font-size: 0.92rem;
+}
+
+.moment-list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.moment {
+  border-radius: 1rem;
+  padding: 0.8rem 0.9rem;
+  background: rgba(22, 50, 74, 0.06);
+}
+
+.moment__kind {
+  display: inline-flex;
+  margin-bottom: 0.28rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.moment p {
+  margin: 0;
+  font-weight: 550;
+}
+
+.photo-preview {
+  width: 100%;
+  max-height: 12rem;
+  object-fit: cover;
+  border-radius: 1rem;
+}
+
+.story-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.story-body p {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 500;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.4rem 0 0;
+}
+
+.chip {
+  display: inline-flex;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(22, 50, 74, 0.08);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.card--dark .chip {
+  background: rgba(255, 255, 255, 0.1);
+  color: #dce7ee;
+}
+
+.actions {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.65rem;
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow: 0 0 0 16px rgba(212, 255, 0, 0.08);
+    transform: scale(0.97);
+  }
+}
+
 @media (min-width: 640px) {
   .page {
     padding: 1.35rem 1.35rem 3rem;
@@ -420,9 +610,14 @@ a {
   }
 
   .card--dark,
-  .card--lime {
+  .card--lime,
+  .card--compact {
     min-height: 14.5rem;
     padding-bottom: 1.85rem;
+  }
+
+  .card--compact {
+    min-height: 0;
   }
 
   .card h1,
@@ -437,7 +632,9 @@ a {
     scroll-behavior: auto;
   }
 
-  .btn {
+  .btn,
+  .record__btn {
     transition: none;
+    animation: none;
   }
 }
