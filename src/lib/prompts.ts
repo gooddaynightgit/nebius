@@ -39,9 +39,7 @@ export function mockGoodMoment(input: {
 }
 
 export function mockStory(moments: string[], day: string): { title: string; body: string } {
-  const lines = moments.length
-    ? moments.map((m) => m.replace(/^You\s+/i, "")).join(" ")
-    : "a quiet pause you chose to keep";
+  const lines = moments.length ? moments.join(" ") : "a quiet pause you chose to keep";
   const title = "The day you actually had";
   const body = `The noise of the day thins out. What remains is yours.
 

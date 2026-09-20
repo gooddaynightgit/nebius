@@ -52,7 +52,7 @@ describe("ingest and weave fallbacks", () => {
   it("writes a bedtime story from moments without an API key", () => {
     const story = mockStory(["You laughed on the stairs."], "2026-09-20");
     expect(story.title).toBeTruthy();
-    expect(story.body).toMatch(/laughed on the stairs/);
+    expect(story.body).toMatch(/You laughed on the stairs/);
     expect(story.body).toMatch(/Something good already happened/);
   });
 

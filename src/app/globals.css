@@ -575,7 +575,8 @@ a {
   display: inline-flex;
   padding: 0.22rem 0.55rem;
   border-radius: 999px;
-  background: rgba(22, 50, 74, 0.08);
+  background: rgba(22, 50, 74, 0.12);
+  color: var(--navy);
   font-size: 0.75rem;
   font-weight: 700;
 }
