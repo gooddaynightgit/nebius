@@ -583,7 +583,7 @@ export default function CaptureStudio() {
                 <p>{story.body}</p>
                 <div className="status-row">
                   <span className="chip">
-                    {story.mock ? "Warm stand-in (add NEBIUS_API_KEY for Super)" : story.weaveModel}
+                    {story.mock ? "Joyful stand-in (add NEBIUS_API_KEY for Super)" : story.weaveModel}
                   </span>
                   <span className="chip">
                     {story.tts.status === "sonic" ? "Sonic voice" : "Browser voice (Sonic coming)"}
