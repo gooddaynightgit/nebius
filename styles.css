@@ -85,10 +85,10 @@ a {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 90% 55% at 85% -8%, rgba(230, 192, 122, 0.14), transparent 52%),
-    radial-gradient(ellipse 70% 45% at 8% 0%, rgba(88, 108, 186, 0.16), transparent 55%),
-    radial-gradient(ellipse 80% 40% at 50% 110%, rgba(62, 38, 18, 0.45), transparent 55%),
-    var(--night);
+    radial-gradient(ellipse 80% 50% at 88% -6%, rgba(230, 192, 122, 0.2), transparent 50%),
+    radial-gradient(ellipse 70% 48% at 6% 4%, rgba(72, 92, 168, 0.22), transparent 52%),
+    radial-gradient(ellipse 90% 42% at 50% 112%, rgba(92, 48, 18, 0.38), transparent 58%),
+    linear-gradient(180deg, #101226 0%, var(--night) 42%, #0c0d14 100%);
 }
 
 .night__glow {
@@ -102,7 +102,7 @@ a {
   right: -2rem;
   width: min(42vw, 22rem);
   height: min(42vw, 22rem);
-  background: rgba(230, 192, 122, 0.16);
+  background: rgba(230, 192, 122, 0.2);
 }
 
 .night__glow--horizon {
@@ -111,7 +111,7 @@ a {
   width: min(90vw, 40rem);
   height: 16rem;
   transform: translateX(-50%);
-  background: rgba(213, 154, 76, 0.08);
+  background: rgba(213, 154, 76, 0.12);
 }
 
 .night__stars {
@@ -128,18 +128,11 @@ a {
     radial-gradient(1.2px 1.2px at 6% 62%, rgba(244, 239, 228, 0.3) 50%, transparent 51%);
 }
 
-.night__moon {
+.night__grain {
   position: absolute;
-  top: 4.75rem;
-  right: clamp(1rem, 6vw, 4.5rem);
-  width: clamp(3.5rem, 12vw, 6.5rem);
-  height: clamp(3.5rem, 12vw, 6.5rem);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 34% 32%, #f7ecd4 0%, #e6c07a 38%, #b8893e 72%, #7a5724 100%);
-  box-shadow:
-    0 0 48px 10px rgba(230, 192, 122, 0.28),
-    inset -10px -8px 20px rgba(60, 36, 10, 0.25);
+  inset: 0;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .site-header,
@@ -153,6 +146,12 @@ main,
   display: flex;
   align-items: center;
   padding: 1.15rem var(--space) 0;
+}
+
+@media (min-width: 720px) {
+  .site-header {
+    padding-inline: clamp(2.5rem, 8vw, 6rem);
+  }
 }
 
 .wordmark {
@@ -182,9 +181,24 @@ main,
 }
 
 .hero {
-  min-height: calc(100svh - 4.5rem);
-  padding: clamp(3.75rem, 12vh, 7.5rem) var(--space) 3.25rem;
+  position: relative;
+  padding: clamp(2.75rem, 8vh, 5.5rem) var(--space) 3.75rem;
   max-width: 46rem;
+}
+
+.hero__moon {
+  position: absolute;
+  top: -2.6rem;
+  right: clamp(0.4rem, 5vw, 3.5rem);
+  width: clamp(4.25rem, 14vw, 7.25rem);
+  height: clamp(4.25rem, 14vw, 7.25rem);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 32%, #f7ecd4 0%, #e6c07a 38%, #b8893e 72%, #7a5724 100%);
+  box-shadow:
+    0 0 56px 14px rgba(230, 192, 122, 0.3),
+    inset -10px -8px 20px rgba(60, 36, 10, 0.25);
+  pointer-events: none;
 }
 
 .hero__title,
@@ -250,6 +264,10 @@ main,
 
 .btn:active {
   transform: translateY(0);
+}
+
+.btn:focus-visible {
+  outline-color: var(--cream);
 }
 
 .signup__affordance {
@@ -329,18 +347,17 @@ main,
 }
 
 .passage {
-  padding: 4.5rem var(--space);
+  padding: clamp(3.25rem, 8vh, 5.5rem) var(--space);
   border-top: 1px solid var(--line);
-  animation-delay: 0.08s;
 }
 
 .passage--gold {
-  background: linear-gradient(180deg, transparent, rgba(230, 192, 122, 0.04) 40%, transparent);
+  background: linear-gradient(180deg, transparent, rgba(230, 192, 122, 0.05) 40%, transparent);
 }
 
 .passage__text,
 .closing__text {
-  margin: 0 auto;
+  margin: 0;
   max-width: 38rem;
   font-family: var(--serif);
   font-weight: 400;
@@ -350,12 +367,13 @@ main,
 }
 
 .closing {
-  padding: 5.5rem var(--space) 6rem;
+  padding: clamp(4.5rem, 10vh, 6.5rem) var(--space) 4.5rem;
   text-align: center;
   border-top: 1px solid var(--line);
 }
 
 .closing__text {
+  margin-inline: auto;
   max-width: 22ch;
   color: var(--gold);
   font-style: italic;
@@ -367,6 +385,35 @@ main,
   padding: 0 var(--space) 2.4rem;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+@media (min-width: 720px) {
+  .hero {
+    max-width: none;
+    padding: clamp(3.5rem, 10vh, 6.5rem) clamp(2.5rem, 8vw, 6rem) 4.5rem;
+  }
+
+  .hero__title,
+  .hero__subhead,
+  .signup {
+    max-width: 40rem;
+  }
+
+  .passage {
+    padding-inline: clamp(2.5rem, 8vw, 6rem);
+  }
+
+  .passage__text {
+    max-width: 34rem;
+  }
+
+  .btn {
+    padding-inline: 1.55rem;
+  }
+
+  .site-footer {
+    padding-inline: clamp(2.5rem, 8vw, 6rem);
+  }
 }
 
 .site-footer a {
@@ -387,17 +434,6 @@ main,
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-@media (min-width: 720px) {
-  .hero {
-    max-width: 52rem;
-    padding-right: 8rem;
-  }
-
-  .btn {
-    padding-inline: 1.55rem;
   }
 }
 
