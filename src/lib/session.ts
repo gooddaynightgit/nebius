@@ -1,0 +1,49 @@
+import { cookies } from "next/headers";
+import { randomUUID } from "node:crypto";
+import { canUnlockStory, todayStamp } from "./identity";
+import { capturesForDay, getOrCreateAnonVault, lastStory } from "./vault";
+import type { SessionState, VaultRecord } from "./types";
+
+export const SESSION_COOKIE = "gdn_sid";
+
+export async function readSessionId(): Promise<string> {
+  const jar = await cookies();
+  const existing = jar.get(SESSION_COOKIE)?.value;
+  if (existing) return existing;
+  const sessionId = randomUUID();
+  jar.set(SESSION_COOKIE, sessionId, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 370,
+  });
+  return sessionId;
+}
+
+export function toPublicSession(
+  vault: VaultRecord,
+  sessionId: string,
+  day: string,
+): SessionState {
+  const today = capturesForDay(vault, day);
+  return {
+    sessionId,
+    vaultId: vault.id,
+    email: vault.email ?? null,
+    captureCount: vault.captures.length,
+    todayCount: today.length,
+    canHearStory: canUnlockStory(vault.captures.length, vault.email ?? null),
+    lastStory: lastStory(vault),
+  };
+}
+
+export async function loadSessionVault(): Promise<{
+  sessionId: string;
+  vault: VaultRecord;
+  day: string;
+}> {
+  const sessionId = await readSessionId();
+  const vault = await getOrCreateAnonVault(sessionId);
+  return { sessionId, vault, day: todayStamp() };
+}
