@@ -5,12 +5,18 @@ import {
   ULTRA_CONTINUITY_SYSTEM,
   WEAVE_NEEDS_WORDS,
   mockStory,
-  weavableLines,
+  weavableMoments,
 } from "./prompts";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
 import { putBytes } from "./storage";
+
+function celebratesDespair(text: string): boolean {
+  return /no\s*one cares about me|nobody cares about me|nobody loves me|i(?:'m| am) worthless/i.test(
+    text,
+  );
+}
 
 export class WeaveNeedsWordsError extends Error {
   constructor() {
@@ -64,7 +70,7 @@ async function continuityThread(
 }
 
 async function weaveWithSuper(
-  moments: string[],
+  moments: Array<{ line: string; reframed: boolean }>,
   day: string,
   thread: string,
 ): Promise<{ title: string; body: string; model: string } | null> {
@@ -75,8 +81,11 @@ async function weaveWithSuper(
       content: [
         `Day: ${day}`,
         thread ? `Quiet continuity from last night: ${thread}` : "",
-        "Good moments (quote these lines exactly — they are the brightest part. Then praise them for this moment, say why it landed, and the implied why — e.g. a friend reached out because they are lovable / caring / worthy. No invented biography):",
-        ...moments.map((moment, index) => `${index + 1}. ${moment}`),
+        "Good moments (quote true-good lines exactly — they are the brightest part. [silver lining] lines are hope, never despair. Then praise them, say why it landed, and the implied why — e.g. a friend reached out because they are lovable / caring / worthy. No invented biography. Never celebrate 'no one cares about me'):",
+        ...moments.map(
+          (moment, index) =>
+            `${index + 1}. ${moment.reframed ? "[silver lining] " : ""}${moment.line}`,
+        ),
       ]
         .filter(Boolean)
         .join("\n"),
@@ -90,7 +99,7 @@ async function weaveWithSuper(
         maxTokens: 700,
       });
       const parsed = parseTitleBody(result.text);
-      if (parsed.body.length > 80) {
+      if (parsed.body.length > 80 && !celebratesDespair(parsed.body)) {
         return { ...parsed, model: result.model };
       }
     } catch {
@@ -106,10 +115,11 @@ export async function weaveStory(options: {
   captures: CaptureRecord[];
   lastNight: StoryRecord | null;
 }): Promise<StoryRecord> {
-  const moments = weavableLines(options.captures);
+  const moments = weavableMoments(options.captures);
   if (!moments.length) {
     throw new WeaveNeedsWordsError();
   }
+  const lines = moments.map((moment) => moment.line);
 
   let title: string;
   let body: string;
@@ -118,7 +128,7 @@ export async function weaveStory(options: {
   let continuityModel: string | undefined;
 
   if (hasTokenFactoryKey()) {
-    const { thread, model } = await continuityThread(options.lastNight, moments);
+    const { thread, model } = await continuityThread(options.lastNight, lines);
     continuityModel = model;
     const live = await weaveWithSuper(moments, options.day, thread);
     if (live) {

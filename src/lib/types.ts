@@ -10,6 +10,7 @@ export type CaptureRecord = {
   transcript?: string;
   caption?: string;
   goodMoment?: string;
+  reframed?: boolean;
   mediaKey?: string;
   mediaContentType?: string;
   ingestModel?: string;

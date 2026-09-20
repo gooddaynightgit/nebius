@@ -1,3 +1,4 @@
+import { cleanSpokenLine } from "@/lib/care";
 import { ingestGood } from "@/lib/ingest";
 import { todayStamp, newId } from "@/lib/identity";
 import { badRequest, json } from "@/lib/http";
@@ -29,9 +30,9 @@ export async function POST(request: Request) {
   if (!KINDS.has(kind)) return badRequest("kind must be voice, photo, or text");
 
   const day = String(form.get("day") ?? todayStamp());
-  const text = String(form.get("text") ?? "").trim() || undefined;
-  const transcript = String(form.get("transcript") ?? "").trim() || undefined;
-  const caption = String(form.get("caption") ?? "").trim() || undefined;
+  const text = cleanSpokenLine(String(form.get("text") ?? "")) || undefined;
+  const transcript = cleanSpokenLine(String(form.get("transcript") ?? "")) || undefined;
+  const caption = cleanSpokenLine(String(form.get("caption") ?? "")) || undefined;
   const file = form.get("file");
 
   if (kind === "text" && !text) return badRequest("Write a moment first.");
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
     transcript,
     caption,
     goodMoment: ingest.goodMoment,
+    reframed: ingest.reframed,
     mediaKey,
     mediaContentType,
     ingestModel: ingest.model,

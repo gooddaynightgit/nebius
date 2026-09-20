@@ -1,11 +1,20 @@
+import {
+  cleanSpokenLine,
+  isSelfNegating,
+  isSilverLiningLine,
+  silverLiningFor,
+  type StoryMoment,
+} from "./care";
+
 export const NANO_INGEST_SYSTEM = `You extract one true good moment from a private daily capture.
-Return ONLY compact JSON: {"good":"one warm joyful sentence","tags":["optional"]}
+Return ONLY compact JSON: {"good":"one warm joyful sentence","tags":["optional"],"reframed":false}
 Rules:
 - Use only facts present in the capture. Never invent people, places, or outcomes.
-- If there is a voice transcript or note, KEEP their exact wording and emotional charge (happy, cares, glad, a friend). Near-quote them. Never flatten a vivid line into a cooler narrator summary.
+- Lightly fix obvious spelling/grammar so the line can be read aloud. Do not rewrite their voice into formal or corporate English.
+- If there is a true good (a friend, happiness, care, a laugh), KEEP their cleaned wording and emotional charge. Near-quote them. Never flatten a vivid line into a cooler narrator summary.
+- If the capture is sad, lonely, harsh, or self-negating (e.g. "no one cares about me"), do NOT return the wound as the good. Never celebrate despair. Return one compassionate silver-lining sentence: naming loneliness can be the first step toward noticing care; the wish to be cared for reveals a heart that loves connection. Set "reframed": true. Bedtime-soft. No lecture.
 - Never replace a rich transcript with a vague "you left a voice" or "a small sound".
 - Prefer the smallest specific detail they named (a laugh, a friend's enquiry, someone cares, light, taste).
-- If the capture is thin, still keep the words they gave.
 - No advice. No morale. No tomorrow. No bleakness. No "not as a task" or other negation-as-reassurance.`;
 
 export const SUPER_WEAVE_SYSTEM = `You are Gooddaynight, a private bedtime storyteller.
@@ -13,16 +22,17 @@ Write a joyful, uplifting, emotionally warm story the listener hears as they flo
 Strong feeling, soft delivery: a smile in the chest, never a hype yell, never calm-clinical.
 
 Rules:
-- Second person ("you") around their words — their sentence stays the brightest thing in the story.
+- Second person ("you") around their words — their true good stays the brightest thing in the story.
 - 180–280 words.
-- LEAD with their exact good moment. Quote or near-quote their words early, linger on them, and return to them. Light golden threads only — never replace their sentence with a weaker paraphrase. If they said they felt happy a friend enquired how they are doing, someone cares — those words must shine, un-diluted.
+- LEAD with their exact good moment when it is truly good. Quote or near-quote those cleaned words early, linger on them, and return to them. Light golden threads only — never replace their sentence with a weaker paraphrase. If they said they felt happy a friend enquired how they are doing, someone cares — those words must shine, un-diluted.
+- If a moment is marked [silver lining], that lining IS the good. Lead with the hope/care/worth. NEVER quote, repeat, or celebrate despair ("no one cares about me", "nobody loves me", worthlessness). Do not praise the pain. Praise the courage of naming the wish; why it matters (a heart that loves connection); implied worth (lovable, worthy of care).
 - Narrative spine (every story, in this order):
-  1. Something good happened — their words lead.
+  1. Something good happened — their true-good words lead, or the silver lining if the capture was a cloud.
   2. Praise them for it: warm, specific, earned from THIS moment (they felt it, named it, let the good in). Never a generic "you are amazing."
   3. Gentle cause and effect: why did this good land with them? Stay inside the moment.
   4. The implied why behind the good. Example: a friend reached out, caring how she is → praise her for feeling that → why would a friend reach out? Because she is a lovable / good / caring / worthy person — inferred only from this moment. Never invent biography, jobs, childhood, or unrelated traits.
 - Do not add people, plots, or events that are not in the moments.
-- Tone: glad, tender, glowing. The listener should feel the joy they named. Soft wonder — never cheesy self-help, pep-talk slogans, or a worksheet.
+- Tone: glad, tender, glowing. Soft wonder — never cheesy self-help, pep-talk slogans, or a worksheet.
 - Ban bleak or empty imagery: "darker", "the noise of the day thins", void, emptiness, hollow, unperformed, nobody, "put the day down" as gloom.
 - Ban bland narrator filler that could have been anyone's day. Ban productivity framing, self-improvement, "remember to", to-do language.
 - Ban negation-as-reassurance: "not as a task", "not a to-do", "not a chore", "not something you have to", "just as something true" after a not-clause. Do not apologize for the feeling.
@@ -43,6 +53,8 @@ const EMPTY_VOICE_RE =
 export const WEAVE_NEEDS_WORDS =
   "Add a line about what you said — a voice without words isn't enough to tell your story.";
 
+export const SILVER_LINING_NOTE = "We kept the silver lining";
+
 export function spokenWords(input: {
   text?: string;
   transcript?: string;
@@ -62,11 +74,50 @@ export function isWeavableMoment(input: {
   transcript?: string;
   caption?: string;
   goodMoment?: string;
+  reframed?: boolean;
 }): boolean {
-  const spoken = spokenWords(input);
-  if (spoken.length >= 8 && !isEmptyVoicePlaceholder(spoken)) return true;
-  const good = (input.goodMoment || "").trim();
-  return good.length >= 8 && !isEmptyVoicePlaceholder(good);
+  return Boolean(storyMomentFromCapture(input));
+}
+
+export function storyMomentFromCapture(input: {
+  text?: string;
+  transcript?: string;
+  caption?: string;
+  goodMoment?: string;
+  reframed?: boolean;
+}): StoryMoment | null {
+  const spoken = cleanSpokenLine(spokenWords(input)).slice(0, 240);
+  if (spoken && isSelfNegating(spoken)) {
+    const good = (input.goodMoment || "").trim();
+    const lining =
+      good && !isSelfNegating(good) && !isEmptyVoicePlaceholder(good)
+        ? good
+        : silverLiningFor(spoken);
+    return { line: lining, reframed: true };
+  }
+  if (spoken && !isEmptyVoicePlaceholder(spoken)) {
+    return { line: spoken, reframed: false };
+  }
+  const good = cleanSpokenLine(input.goodMoment).slice(0, 240);
+  if (good && !isEmptyVoicePlaceholder(good) && !isSelfNegating(good)) {
+    return { line: good, reframed: Boolean(input.reframed) || isSilverLiningLine(good) };
+  }
+  return null;
+}
+
+export function weavableMoments(captures: Array<{
+  text?: string;
+  transcript?: string;
+  caption?: string;
+  goodMoment?: string;
+  reframed?: boolean;
+}>): StoryMoment[] {
+  const moments: StoryMoment[] = [];
+  for (const capture of captures) {
+    const moment = storyMomentFromCapture(capture);
+    if (moment) moments.push(moment);
+  }
+  return moments;
 }
 
 export function weavableLines(captures: Array<{
@@ -74,16 +125,9 @@ export function weavableLines(captures: Array<{
   transcript?: string;
   caption?: string;
   goodMoment?: string;
+  reframed?: boolean;
 }>): string[] {
-  const lines: string[] = [];
-  for (const capture of captures) {
-    if (!isWeavableMoment(capture)) continue;
-    const spoken = spokenWords(capture);
-    const good = (capture.goodMoment || "").trim();
-    if (spoken && !isEmptyVoicePlaceholder(spoken)) lines.push(spoken);
-    else if (good && !isEmptyVoicePlaceholder(good)) lines.push(good);
-  }
-  return lines;
+  return weavableMoments(captures).map((moment) => moment.line);
 }
 
 export function mockGoodMoment(input: {
@@ -92,20 +136,35 @@ export function mockGoodMoment(input: {
   transcript?: string;
   caption?: string;
 }): string {
-  const raw = spokenWords(input);
-  if (raw) {
-    const clipped = raw.replace(/\s+/g, " ").slice(0, 240);
-    return clipped.replace(/^[a-z]/, (ch) => ch.toUpperCase());
-  }
+  const raw = cleanSpokenLine(spokenWords(input)).slice(0, 240);
+  if (raw && isSelfNegating(raw)) return silverLiningFor(raw);
+  if (raw) return raw;
   if (input.kind === "photo") return "You stopped long enough to keep a picture of the day.";
   if (input.kind === "voice") return EMPTY_VOICE_HINT;
   return "You wrote a moment down before it slipped away.";
 }
 
-export function mockStory(moments: string[], day: string): { title: string; body: string } {
-  const concrete = moments
-    .map((moment) => moment.replace(/\s+/g, " ").trim())
-    .filter((moment) => moment && !isEmptyVoicePlaceholder(moment));
+function asStoryMoments(moments: Array<string | StoryMoment>): StoryMoment[] {
+  return moments.map((moment) => {
+    if (typeof moment !== "string") {
+      if (isSelfNegating(moment.line)) {
+        return { line: silverLiningFor(moment.line), reframed: true };
+      }
+      return { ...moment, line: cleanSpokenLine(moment.line) };
+    }
+    const cleaned = cleanSpokenLine(moment);
+    if (isSelfNegating(cleaned)) return { line: silverLiningFor(cleaned), reframed: true };
+    return { line: cleaned, reframed: isSilverLiningLine(cleaned) };
+  });
+}
+
+export function mockStory(
+  moments: Array<string | StoryMoment>,
+  day: string,
+): { title: string; body: string } {
+  const concrete = asStoryMoments(moments).filter(
+    (moment) => moment.line && !isEmptyVoicePlaceholder(moment.line),
+  );
 
   if (!concrete.length) {
     return {
@@ -114,10 +173,21 @@ export function mockStory(moments: string[], day: string): { title: string; body
     };
   }
 
-  const quoted = concrete.map((moment) => moment.replace(/\.$/, "")).join(". ");
-  const title = titleFromMoments(concrete);
+  const lining = concrete.filter((moment) => moment.reframed);
+  const bright = concrete.filter((moment) => !moment.reframed);
+  if (lining.length && !bright.length) {
+    return mockLiningStory(lining.map((moment) => moment.line), day);
+  }
+
+  const quoted = bright
+    .map((moment) => moment.line.replace(/\.$/, ""))
+    .join(". ");
+  const title = titleFromMoments(bright.map((moment) => moment.line));
   const linger = lingerOnWords(quoted);
   const spine = praiseWhyFromMoments(quoted);
+  const extraLining = lining.length
+    ? `\n\nA silver lining sits nearby too: ${lining[0].line.replace(/\.$/, "")}.`
+    : "";
   const body = `There it is — the brightest thing from your day, in your own voice. Stay with it.
 
 ${quoted}.
@@ -126,7 +196,7 @@ Hear it again, the way you said it. ${quoted}.
 
 ${linger}
 
-${spine}
+${spine}${extraLining}
 
 That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is yours.
 
@@ -135,6 +205,27 @@ Float toward sleep with those words still close. Returning to this good lets it 
 Rest inside the line you kept. A smile in the chest. The good, still bright. Yours.`;
 
   return { title, body: `${body}\n\n— ${day}` };
+}
+
+function mockLiningStory(linings: string[], day: string): { title: string; body: string } {
+  const lining = linings[0].replace(/\.$/, "");
+  const body = `There is a silver lining in what you brought tonight. Stay with the hope that lives in it.
+
+${lining}.
+
+You named a wish to be cared for. That noticing is brave, and it is earned.
+
+Why does a wish like that land? Because a heart that loves connection can feel when care is wanted — and that same heart is why care can find you.
+
+You are someone worth caring about — lovable, good, made for connection.
+
+That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is yours.
+
+Float toward sleep with this lining still close. Returning to this good lets it open, then open again. With time, naturally, your own good moments unfold — your own good moments multifold.
+
+Rest inside the hope you kept. A smile in the chest. The good, still bright. Yours.`;
+
+  return { title: "A heart that loves connection", body: `${body}\n\n— ${day}` };
 }
 
 function lingerOnWords(quoted: string): string {

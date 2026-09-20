@@ -547,6 +547,13 @@ a {
   font-weight: 550;
 }
 
+.moment__note {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
 .photo-preview {
   width: 100%;
   max-height: 12rem;
