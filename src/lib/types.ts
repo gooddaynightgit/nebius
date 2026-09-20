@@ -1,0 +1,59 @@
+export type CaptureKind = "voice" | "photo" | "text";
+
+export type CaptureRecord = {
+  id: string;
+  vaultId: string;
+  kind: CaptureKind;
+  createdAt: string;
+  day: string;
+  text?: string;
+  transcript?: string;
+  caption?: string;
+  goodMoment?: string;
+  mediaKey?: string;
+  mediaContentType?: string;
+  ingestModel?: string;
+  ingestStatus: "pending" | "ok" | "skipped" | "mock";
+};
+
+export type StoryRecord = {
+  id: string;
+  vaultId: string;
+  day: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  weaveModel: string;
+  continuityModel?: string;
+  tts: {
+    status: "sonic" | "stub" | "skipped";
+    model?: string;
+    audioKey?: string;
+    contentType?: string;
+    note: string;
+  };
+  captureIds: string[];
+  mock: boolean;
+};
+
+export type VaultRecord = {
+  id: string;
+  kind: "anon" | "email";
+  sessionId: string;
+  email?: string;
+  createdAt: string;
+  updatedAt: string;
+  captureIds: string[];
+  stories: StoryRecord[];
+  captures: CaptureRecord[];
+};
+
+export type SessionState = {
+  sessionId: string;
+  vaultId: string;
+  email: string | null;
+  captureCount: number;
+  todayCount: number;
+  canHearStory: boolean;
+  lastStory: StoryRecord | null;
+};

@@ -1,0 +1,83 @@
+import { MODELS, TOKEN_FACTORY_BASE, hasTokenFactoryKey } from "./config";
+
+export type ChatMessage = {
+  role: "system" | "user" | "assistant";
+  content: string | Array<Record<string, unknown>>;
+};
+
+export function stripReasoning(text: string): string {
+  return text
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/```thinking[\s\S]*?```/gi, "")
+    .trim();
+}
+
+function apiRoot(): string {
+  return TOKEN_FACTORY_BASE.replace(/\/+$/, "");
+}
+
+export async function chatComplete(options: {
+  model: string;
+  messages: ChatMessage[];
+  temperature?: number;
+  maxTokens?: number;
+}): Promise<{ text: string; model: string }> {
+  if (!hasTokenFactoryKey()) {
+    throw new Error("NEBIUS_API_KEY is not set");
+  }
+  const res = await fetch(`${apiRoot()}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.NEBIUS_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: options.model,
+      messages: options.messages,
+      temperature: options.temperature ?? 0.6,
+      max_tokens: options.maxTokens ?? 900,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Token Factory ${options.model} failed (${res.status}): ${err.slice(0, 400)}`);
+  }
+  const data = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const text = stripReasoning(data.choices?.[0]?.message?.content ?? "");
+  return { text, model: options.model };
+}
+
+export async function completeWithFallback(
+  models: string[],
+  messages: ChatMessage[],
+  options?: { temperature?: number; maxTokens?: number },
+): Promise<{ text: string; model: string }> {
+  let lastError: unknown;
+  for (const model of models.filter(Boolean)) {
+    try {
+      return await chatComplete({ model, messages, ...options });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("All models failed");
+}
+
+export function nanoModels(multimodal: boolean): string[] {
+  if (multimodal && MODELS.nanoOmni) {
+    return [MODELS.nanoOmni, MODELS.nano];
+  }
+  return [MODELS.nano];
+}
+
+export function superModels(): string[] {
+  return [MODELS.super];
+}
+
+export function ultraModels(): string[] {
+  return [MODELS.ultra, MODELS.ultraFallback, MODELS.super];
+}
+
+export { MODELS };
