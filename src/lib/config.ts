@@ -35,6 +35,17 @@ export function hasNebiusObjectStorage(): boolean {
   );
 }
 
+export function hasVercelBlob(): boolean {
+  return Boolean(
+    process.env.BLOB_READ_WRITE_TOKEN?.trim() ||
+      (process.env.VERCEL && process.env.BLOB_STORE_ID),
+  );
+}
+
+export function blobAccess(): "private" | "public" {
+  return process.env.BLOB_ACCESS === "public" ? "public" : "private";
+}
+
 export function dataDir(): string {
   if (process.env.DATA_DIR) return process.env.DATA_DIR;
   if (process.env.VERCEL) return "/tmp/gooddaynight";

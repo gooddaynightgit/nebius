@@ -71,3 +71,13 @@ describe("landing", () => {
     expect(src).not.toMatch(/you@email.com/);
   });
 });
+
+describe("unlock client contract", () => {
+  it("sends captures with the email unlock request", () => {
+    const src = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
+    expect(src).toMatch(/captures: captures\.map\(capturePayload\)/);
+    expect(src).toMatch(/Unlocking…/);
+    expect(src).toMatch(/unlockError/);
+    expect(src).toMatch(/weaveError/);
+  });
+});

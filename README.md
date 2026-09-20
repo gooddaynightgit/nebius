@@ -9,7 +9,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 ## Funnel
 
 1. Landing CTA **Hear your story — free** — no email form. Click opens `/app`.
-2. In the app she can drop **voice**, **photo**, or **text**. Each capture is stored (Nebius object storage when credentials exist; local JSON/files otherwise).
+2. In the app she can drop **voice**, **photo**, or **text**. Each capture is stored (Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, otherwise Nebius object storage, otherwise local JSON/files).
 3. Only after ≥1 moment does the app ask for email, which unlocks hearing her own good-moments story.
 
 ## Architecture
@@ -21,7 +21,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 | Ingest | Nemotron Nano via Token Factory extracts “the good.” Photos try Nano-Omni, then Nano. |
 | Weave | Nemotron 3 Super writes the bedtime story. Optional Ultra continuity from last night. |
 | Voice | NVIDIA Sonic via Token Factory when a model id is listable; otherwise stub TTS and play the story in a calm browser voice. |
-| Storage | Nebius AI Cloud object storage (S3 API) or `.data/` / `/tmp` fallback. |
+| Storage | **Vercel Blob** when `BLOB_READ_WRITE_TOKEN` is set; else Nebius AI Cloud object storage (S3 API); filesystem only for local dev. On Vercel without Blob/S3, health reports `ephemeral`. |
 | Nightly | `POST /api/weave` with `WEAVE_CRON_SECRET`, wrapped by `jobs/weave-nightly.sh` as a Nebius Serverless Job at 21:00. UI also has **Weave now**. |
 
 ### Token Factory models
@@ -66,10 +66,19 @@ Set `NEBIUS_S3_ENDPOINT`, `NEBIUS_S3_REGION`, `NEBIUS_S3_BUCKET`, `NEBIUS_S3_ACC
 
 1. Import this repository.
 2. Framework preset: **Next.js**.
-3. Environment variables from `.env.example` — at least `NEBIUS_API_KEY` for a live weave; add the `NEBIUS_S3_*` vars so captures survive across serverless instances.
-4. Attach `gooddaynight.com` in the Vercel domain settings.
+3. Environment variables from `.env.example` — at least `NEBIUS_API_KEY` for a live weave.
+4. **Enable Vercel Blob (required for durable captures/media on serverless):**
+   1. Vercel dashboard → project → **Storage** → **Create Database** → **Blob**.
+   2. Prefer **Private** access. Connect the store to this project.
+   3. Redeploy. Vercel injects `BLOB_READ_WRITE_TOKEN` (and `BLOB_STORE_ID` for OIDC).
+   4. If the store is public, set `BLOB_ACCESS=public`.
+   5. Confirm `GET /api/health` shows `"storage": "vercel-blob"`.
+5. Optional: set `NEBIUS_S3_*` instead of (or in addition to) Blob. Blob wins when the token is present.
+6. Attach `gooddaynight.com` in the Vercel domain settings.
 
-Filesystem fallback on Vercel is `/tmp` (ephemeral). For a judge-facing deploy, set Nebius object storage.
+**Without Blob or S3, Vercel’s filesystem is ephemeral** (`/tmp`, not shared across functions). Unlock still works because the client resends today’s captures to `POST /api/email`. Voice/photo files themselves will not survive across instances until Blob (or S3) is enabled.
+
+Health `storage` values: `vercel-blob` | `nebius-s3` | `filesystem` (local) | `ephemeral` (Vercel with neither store).
 
 ## Nightly weave as a Nebius Serverless Job (21:00)
 
@@ -108,7 +117,7 @@ nebius ai job create \
 | GET | `/api/session` | Anonymous cookie vault |
 | GET/POST | `/api/captures` | List / store a moment and Nano-ingest |
 | GET | `/api/media/:id` | Private media for this vault |
-| POST | `/api/email` | Gate after ≥1 capture; migrate anon → email vault |
+| POST | `/api/email` | Gate after ≥1 capture; accepts client `captures` if the server vault is empty; migrate anon → email vault |
 | POST | `/api/weave` | Super weave (session or cron) |
 | GET | `/api/story` | Last story |
 | GET | `/api/story/audio` | Sonic audio when present |

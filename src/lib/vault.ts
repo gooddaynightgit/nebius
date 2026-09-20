@@ -58,6 +58,15 @@ export async function getOrCreateAnonVault(
     const existing = await loadVault(mapped.vaultId);
     if (existing) return existing;
   }
+  const existingAnon = await loadVault(anonVaultId(sessionId));
+  if (existingAnon) {
+    index.sessions[sessionId] = {
+      vaultId: existingAnon.id,
+      email: existingAnon.email,
+    };
+    await saveIndex(index);
+    return existingAnon;
+  }
   const vault = emptyVault(anonVaultId(sessionId), "anon", sessionId);
   index.sessions[sessionId] = { vaultId: vault.id };
   await saveVault(vault);
@@ -104,6 +113,51 @@ export async function attachEmail(
   index.sessions[sessionId] = { vaultId: target.id, email };
   await saveIndex(index);
   return target;
+}
+
+export function hydrateCaptures(
+  vaultId: string,
+  incoming: Array<Partial<CaptureRecord>> | undefined,
+  day: string,
+): CaptureRecord[] {
+  if (!incoming?.length) return [];
+  return incoming.map((capture, index) => ({
+    id: capture.id ?? `inline_${index}`,
+    vaultId,
+    kind:
+      capture.kind === "voice" || capture.kind === "photo" || capture.kind === "text"
+        ? capture.kind
+        : "text",
+    createdAt: capture.createdAt ?? new Date().toISOString(),
+    day: capture.day ?? day,
+    text: capture.text,
+    transcript: capture.transcript,
+    caption: capture.caption,
+    goodMoment: capture.goodMoment,
+    mediaKey: capture.mediaKey,
+    mediaContentType: capture.mediaContentType,
+    ingestModel: capture.ingestModel,
+    ingestStatus: capture.ingestStatus ?? "ok",
+  }));
+}
+
+export function mergeCapturesIntoVault(
+  vault: VaultRecord,
+  incoming: Array<Partial<CaptureRecord>> | undefined,
+  day: string,
+): boolean {
+  const extras = hydrateCaptures(vault.id, incoming, day);
+  if (!extras.length) return false;
+  const seen = new Set(vault.captures.map((capture) => capture.id));
+  let added = false;
+  for (const capture of extras) {
+    if (seen.has(capture.id)) continue;
+    vault.captures.push(capture);
+    seen.add(capture.id);
+    added = true;
+  }
+  if (added) vault.captureIds = vault.captures.map((capture) => capture.id);
+  return added;
 }
 
 export async function addCapture(
