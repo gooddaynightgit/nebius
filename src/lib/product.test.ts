@@ -73,6 +73,9 @@ describe("ingest and weave fallbacks", () => {
     expect(story.body).toMatch(/cares/i);
     expect(story.body).toMatch(/multifold/i);
     expect(story.body).toMatch(/smile in the chest/i);
+    expect(story.body).toMatch(/noticing is earned|let that warmth in/i);
+    expect(story.body).toMatch(/why (did it land|would a friend)/i);
+    expect(story.body).toMatch(/easy to love|worth the enquiry|caring person/i);
     expect(story.body).not.toMatch(/not as a task/i);
     expect(story.body).not.toMatch(/not a to-do/i);
     expect(story.body).not.toMatch(/darker/i);
@@ -100,6 +103,9 @@ describe("ingest and weave fallbacks", () => {
   it("asks Super to keep her words brightest, feel joy, and close multifold", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/LEAD with their exact good moment/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/weaker paraphrase/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Narrative spine/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/lovable \/ good \/ caring \/ worthy/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/cheesy self-help/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/not as a task/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/multifold/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);

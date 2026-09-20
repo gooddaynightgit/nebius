@@ -16,8 +16,13 @@ Rules:
 - Second person ("you") around their words — their sentence stays the brightest thing in the story.
 - 180–280 words.
 - LEAD with their exact good moment. Quote or near-quote their words early, linger on them, and return to them. Light golden threads only — never replace their sentence with a weaker paraphrase. If they said they felt happy a friend enquired how they are doing, someone cares — those words must shine, un-diluted.
+- Narrative spine (every story, in this order):
+  1. Something good happened — their words lead.
+  2. Praise them for it: warm, specific, earned from THIS moment (they felt it, named it, let the good in). Never a generic "you are amazing."
+  3. Gentle cause and effect: why did this good land with them? Stay inside the moment.
+  4. The implied why behind the good. Example: a friend reached out, caring how she is → praise her for feeling that → why would a friend reach out? Because she is a lovable / good / caring / worthy person — inferred only from this moment. Never invent biography, jobs, childhood, or unrelated traits.
 - Do not add people, plots, or events that are not in the moments.
-- Tone: glad, tender, glowing. The listener should feel the joy they named.
+- Tone: glad, tender, glowing. The listener should feel the joy they named. Soft wonder — never cheesy self-help, pep-talk slogans, or a worksheet.
 - Ban bleak or empty imagery: "darker", "the noise of the day thins", void, emptiness, hollow, unperformed, nobody, "put the day down" as gloom.
 - Ban bland narrator filler that could have been anyone's day. Ban productivity framing, self-improvement, "remember to", to-do language.
 - Ban negation-as-reassurance: "not as a task", "not a to-do", "not a chore", "not something you have to", "just as something true" after a not-clause. Do not apologize for the feeling.
@@ -112,7 +117,7 @@ export function mockStory(moments: string[], day: string): { title: string; body
   const quoted = concrete.map((moment) => moment.replace(/\.$/, "")).join(". ");
   const title = titleFromMoments(concrete);
   const linger = lingerOnWords(quoted);
-  const glow = glowFromMoments(quoted);
+  const spine = praiseWhyFromMoments(quoted);
   const body = `There it is — the brightest thing from your day, in your own voice. Stay with it.
 
 ${quoted}.
@@ -121,11 +126,9 @@ Hear it again, the way you said it. ${quoted}.
 
 ${linger}
 
-${glow}
+${spine}
 
 That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is yours.
-
-How glad that lands. The happiness you named glows a little brighter each time you hear your own line.
 
 Float toward sleep with those words still close. Returning to this good lets it open, then open again. With time, naturally, your own good moments unfold — your own good moments multifold.
 
@@ -174,18 +177,34 @@ function lingerOnWords(quoted: string): string {
   return `${lifted}. The joy is already in those words — still yours, still bright.`;
 }
 
-function glowFromMoments(quoted: string): string {
+function praiseWhyFromMoments(quoted: string): string {
   const joined = quoted.toLowerCase();
   if (/friend/.test(joined) && /care|enquir|ask|check|contact|how (am i|you)/.test(joined)) {
-    return "A friend reached toward you. The question was simple and it landed as care. Happiness, real and specific — someone cares about you.";
+    return `You felt it and you kept it — the happiness, the enquiry, the care. That noticing is earned.
+
+Why did it land so warmly? Because a friend asked how you are, and you could feel that someone cares.
+
+Why would a friend reach out like that? Because you are someone they are glad to have — a caring person, easy to love, worth the enquiry.`;
   }
   if (/friend/.test(joined)) {
-    return "A friend thought of you. That warmth can stay bright in the room with you.";
+    return `You felt a friend think of you, and you let that warmth in. That noticing is earned.
+
+It landed because their thought found you, and you could feel it.
+
+A friend thinks of you because you are someone worth thinking of — good to have, easy to love.`;
   }
   if (/happy|glad|joy|smile/.test(joined)) {
-    return "The happiness you named can stay bright, simple, and true.";
+    return `You named the happiness. You let the good be true. That noticing is earned.
+
+It landed because you felt it, fully, in the words you kept.
+
+The good found you because you are someone a bright moment can belong to.`;
   }
-  return "The exact good you named can stay bright in the room with you.";
+  return `You kept the good that happened. That noticing is yours, and it is earned.
+
+It landed because you were there for it — present enough to feel it.
+
+The good reached you because you are someone worth a bright moment.`;
 }
 
 function titleFromMoments(moments: string[]): string {

@@ -75,7 +75,7 @@ async function weaveWithSuper(
       content: [
         `Day: ${day}`,
         thread ? `Quiet continuity from last night: ${thread}` : "",
-        "Good moments (quote these lines exactly — they are the brightest part of the story; only light golden threads around them):",
+        "Good moments (quote these lines exactly — they are the brightest part. Then praise them for this moment, say why it landed, and the implied why — e.g. a friend reached out because they are lovable / caring / worthy. No invented biography):",
         ...moments.map((moment, index) => `${index + 1}. ${moment}`),
       ]
         .filter(Boolean)
