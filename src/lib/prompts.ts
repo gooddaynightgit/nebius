@@ -24,7 +24,7 @@ Strong feeling, soft delivery: a smile in the chest, never a hype yell, never ca
 Rules:
 - Second person ("you") around their words — their true good stays the brightest thing in the story.
 - 180–280 words.
-- LEAD with their exact good moment when it is truly good. Quote or near-quote those cleaned words early, linger on them, and return to them. Light golden threads only — never replace their sentence with a weaker paraphrase. If they said they felt happy a friend enquired how they are doing, someone cares — those words must shine, un-diluted.
+- LEAD with their exact good moment when it is truly good. Quote or near-quote those exact stored words early, linger on them, and return to them. Light golden threads only — never replace their sentence with a weaker paraphrase, and never reintroduce a typo they already accepted a correction for. If they said they felt happy a friend enquired how they are doing, someone cares — those words must shine, un-diluted.
 - If a moment is marked [silver lining], that lining IS the good. Lead with the hope/care/worth. NEVER quote, repeat, or celebrate despair ("no one cares about me", "nobody loves me", worthlessness). Do not praise the pain. Praise the courage of naming the wish; why it matters (a heart that loves connection); implied worth (lovable, worthy of care).
 - Narrative spine (every story, in this order):
   1. Something good happened — their true-good words lead, or the silver lining if the capture was a cloud.
@@ -86,7 +86,7 @@ export function storyMomentFromCapture(input: {
   goodMoment?: string;
   reframed?: boolean;
 }): StoryMoment | null {
-  const spoken = cleanSpokenLine(spokenWords(input)).slice(0, 240);
+  const spoken = (spokenWords(input) || "").replace(/\s+/g, " ").trim().slice(0, 240);
   if (spoken && isSelfNegating(spoken)) {
     const good = (input.goodMoment || "").trim();
     const lining =
@@ -96,7 +96,7 @@ export function storyMomentFromCapture(input: {
     return { line: lining, reframed: true };
   }
   if (spoken && !isEmptyVoicePlaceholder(spoken)) {
-    return { line: spoken, reframed: false };
+    return { line: spoken, reframed: Boolean(input.reframed) && isSilverLiningLine(spoken) };
   }
   const good = cleanSpokenLine(input.goodMoment).slice(0, 240);
   if (good && !isEmptyVoicePlaceholder(good) && !isSelfNegating(good)) {
@@ -130,13 +130,28 @@ export function weavableLines(captures: Array<{
   return weavableMoments(captures).map((moment) => moment.line);
 }
 
+export function displayMoment(input: {
+  text?: string;
+  transcript?: string;
+  caption?: string;
+  goodMoment?: string;
+  reframed?: boolean;
+}): StoryMoment {
+  return (
+    storyMomentFromCapture(input) ?? {
+      line: "A moment you chose to keep.",
+      reframed: false,
+    }
+  );
+}
+
 export function mockGoodMoment(input: {
   kind: string;
   text?: string;
   transcript?: string;
   caption?: string;
 }): string {
-  const raw = cleanSpokenLine(spokenWords(input)).slice(0, 240);
+  const raw = (spokenWords(input) || "").replace(/\s+/g, " ").trim().slice(0, 240);
   if (raw && isSelfNegating(raw)) return silverLiningFor(raw);
   if (raw) return raw;
   if (input.kind === "photo") return "You stopped long enough to keep a picture of the day.";
@@ -146,15 +161,10 @@ export function mockGoodMoment(input: {
 
 function asStoryMoments(moments: Array<string | StoryMoment>): StoryMoment[] {
   return moments.map((moment) => {
-    if (typeof moment !== "string") {
-      if (isSelfNegating(moment.line)) {
-        return { line: silverLiningFor(moment.line), reframed: true };
-      }
-      return { ...moment, line: cleanSpokenLine(moment.line) };
-    }
-    const cleaned = cleanSpokenLine(moment);
-    if (isSelfNegating(cleaned)) return { line: silverLiningFor(cleaned), reframed: true };
-    return { line: cleaned, reframed: isSilverLiningLine(cleaned) };
+    const line = typeof moment === "string" ? moment.replace(/\s+/g, " ").trim() : moment.line;
+    const reframed = typeof moment === "string" ? false : moment.reframed;
+    if (isSelfNegating(line)) return { line: silverLiningFor(line), reframed: true };
+    return { line, reframed: reframed || isSilverLiningLine(line) };
   });
 }
 

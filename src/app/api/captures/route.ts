@@ -1,7 +1,8 @@
-import { cleanSpokenLine } from "@/lib/care";
+import { chooseSpokenLine, proposeSpokenLine } from "@/lib/care";
 import { ingestGood } from "@/lib/ingest";
 import { todayStamp, newId } from "@/lib/identity";
 import { badRequest, json } from "@/lib/http";
+import { proposeSpellfix } from "@/lib/spellfix";
 import { loadSessionVault, toPublicSession } from "@/lib/session";
 import { putBytes } from "@/lib/storage";
 import { addCapture, capturesForDay } from "@/lib/vault";
@@ -30,9 +31,30 @@ export async function POST(request: Request) {
   if (!KINDS.has(kind)) return badRequest("kind must be voice, photo, or text");
 
   const day = String(form.get("day") ?? todayStamp());
-  const text = cleanSpokenLine(String(form.get("text") ?? "")) || undefined;
-  const transcript = cleanSpokenLine(String(form.get("transcript") ?? "")) || undefined;
-  const caption = cleanSpokenLine(String(form.get("caption") ?? "")) || undefined;
+  const decision = String(form.get("spellDecision") ?? "");
+  const rawText = String(form.get("text") ?? "").replace(/\s+/g, " ").trim();
+  const rawTranscript = String(form.get("transcript") ?? "").replace(/\s+/g, " ").trim();
+  const rawCaption = String(form.get("caption") ?? "").replace(/\s+/g, " ").trim();
+  const spokenRaw = rawTranscript || rawCaption || rawText;
+  const proposal = spokenRaw ? await proposeSpellfix(spokenRaw) : proposeSpokenLine("");
+  if (proposal.changed && decision !== "corrected" && decision !== "keep") {
+    return json(
+      {
+        error: "Save corrected version?",
+        needsConfirm: true,
+        original: proposal.original,
+        corrected: proposal.corrected,
+      },
+      409,
+    );
+  }
+  const chosen = spokenRaw
+    ? chooseSpokenLine(spokenRaw, decision || "none", proposal.corrected)
+    : "";
+  const primary = rawTranscript ? "transcript" : rawText ? "text" : rawCaption ? "caption" : null;
+  const text = primary === "text" ? chosen || undefined : rawText || undefined;
+  const transcript = primary === "transcript" ? chosen || undefined : rawTranscript || undefined;
+  const caption = primary === "caption" ? chosen || undefined : rawCaption || undefined;
   const file = form.get("file");
 
   if (kind === "text" && !text) return badRequest("Write a moment first.");

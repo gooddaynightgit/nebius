@@ -8,9 +8,10 @@ import {
   isValidEmail,
   normalizeEmail,
 } from "./identity";
-import { cleanSpokenLine, isSelfNegating } from "./care";
+import { chooseSpokenLine, cleanSpokenLine, isSelfNegating, proposeSpokenLine } from "./care";
 import {
   SUPER_WEAVE_SYSTEM,
+  displayMoment,
   isWeavableMoment,
   mockGoodMoment,
   mockStory,
@@ -120,6 +121,29 @@ describe("ingest and weave fallbacks", () => {
     expect(
       cleanSpokenLine("Felt happpy my freind enquiered how am i doing, someone cares about me"),
     ).toBe("Felt happy my friend enquired how am I doing, someone cares about me");
+    expect(proposeSpokenLine("My friend enquired how am I doung").corrected).toMatch(
+      /how am I doing/i,
+    );
+    expect(proposeSpokenLine("My friend enquired how am I doung").changed).toBe(true);
+    expect(proposeSpokenLine("someone cares aboute me").corrected).toMatch(/about me/i);
+    expect(proposeSpokenLine("how idoing").corrected).toMatch(/I'm doing/i);
+    expect(chooseSpokenLine("how am I doung", "corrected")).toMatch(/doing/i);
+    expect(chooseSpokenLine("how am I doung", "keep")).toMatch(/doung/i);
+    expect(chooseSpokenLine("how am I doung", "none")).toBe("how am I doung");
+  });
+
+  it("does not treat a misspelled friend check-in as a silver lining", () => {
+    const shown = displayMoment({
+      text: "My friend enquired how am I doing",
+    });
+    expect(shown.reframed).toBe(false);
+    expect(shown.line).toMatch(/friend enquired/i);
+    expect(shown.line).not.toMatch(/silver lining/i);
+    const kept = displayMoment({
+      text: "My friend enquired how am I doung",
+    });
+    expect(kept.reframed).toBe(false);
+    expect(kept.line).not.toMatch(/silver lining/i);
   });
 
   it("does not treat despair as a good moment", () => {
@@ -144,14 +168,14 @@ describe("ingest and weave fallbacks", () => {
     expect(story.body).not.toMatch(/not as a task/i);
   });
 
-  it("cleans a typo'd friend check-in and still praises why", () => {
-    const messy = "Felt happpy my freind enquiered how am i doing, someone cares about me";
-    const cleaned = cleanSpokenLine(messy);
-    const story = mockStory([messy], "2026-09-20");
+  it("weaves the confirmed correction, not the typo", () => {
+    const messy = "My friend enquired how am I doung";
+    const cleaned = proposeSpokenLine(messy).corrected;
+    const story = mockStory([cleaned], "2026-09-20");
+    expect(cleaned).toMatch(/how am I doing/i);
     expect(story.body).toContain(cleaned);
-    expect(story.body).toMatch(/why would a friend/i);
-    expect(story.body).toMatch(/easy to love|worth the enquiry/i);
-    expect(story.body).not.toMatch(/happpy|freind|enquiered/);
+    expect(story.body).toMatch(/why would a friend|friend/i);
+    expect(story.body).not.toMatch(/doung/i);
   });
 
   it("weaves a silver lining instead of celebrating despair", async () => {
@@ -226,5 +250,9 @@ describe("unlock client contract", () => {
     expect(src).not.toMatch(/Demo weave/);
     expect(src).not.toMatch(/Warm stand-in/);
     expect(src).toMatch(/SILVER_LINING_NOTE|We kept the silver lining/);
+    expect(src).toMatch(/Save corrected version\?/);
+    expect(src).toMatch(/Yes, save this/);
+    expect(src).toMatch(/Keep as typed/);
+    expect(src).toMatch(/spellDecision/);
   });
 });
