@@ -3,12 +3,21 @@ import { completeWithFallback, superModels, ultraModels } from "./nebius";
 import {
   SUPER_WEAVE_SYSTEM,
   ULTRA_CONTINUITY_SYSTEM,
+  WEAVE_NEEDS_WORDS,
   mockStory,
+  weavableLines,
 } from "./prompts";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
 import { putBytes } from "./storage";
+
+export class WeaveNeedsWordsError extends Error {
+  constructor() {
+    super(WEAVE_NEEDS_WORDS);
+    this.name = "WeaveNeedsWordsError";
+  }
+}
 
 function parseTitleBody(text: string): { title: string; body: string } {
   const lines = text.trim().split(/\n/);
@@ -54,15 +63,53 @@ async function continuityThread(
   }
 }
 
+async function weaveWithSuper(
+  moments: string[],
+  day: string,
+  thread: string,
+): Promise<{ title: string; body: string; model: string } | null> {
+  const messages = [
+    { role: "system" as const, content: SUPER_WEAVE_SYSTEM },
+    {
+      role: "user" as const,
+      content: [
+        `Day: ${day}`,
+        thread ? `Quiet continuity from last night: ${thread}` : "",
+        "Good moments (use these actual words and facts):",
+        ...moments.map((moment, index) => `${index + 1}. ${moment}`),
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    },
+  ];
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const result = await completeWithFallback(superModels(), messages, {
+        temperature: attempt === 0 ? 0.7 : 0.5,
+        maxTokens: 700,
+      });
+      const parsed = parseTitleBody(result.text);
+      if (parsed.body.length > 80) {
+        return { ...parsed, model: result.model };
+      }
+    } catch {
+      // Retry once, then fall through to a word-centered mock.
+    }
+  }
+  return null;
+}
+
 export async function weaveStory(options: {
   vaultId: string;
   day: string;
   captures: CaptureRecord[];
   lastNight: StoryRecord | null;
 }): Promise<StoryRecord> {
-  const moments = options.captures
-    .map((c) => c.goodMoment || c.transcript || c.caption || c.text)
-    .filter((value): value is string => Boolean(value && value.trim()));
+  const moments = weavableLines(options.captures);
+  if (!moments.length) {
+    throw new WeaveNeedsWordsError();
+  }
 
   let title: string;
   let body: string;
@@ -70,34 +117,16 @@ export async function weaveStory(options: {
   let mock = true;
   let continuityModel: string | undefined;
 
-  if (hasTokenFactoryKey() && moments.length) {
+  if (hasTokenFactoryKey()) {
     const { thread, model } = await continuityThread(options.lastNight, moments);
     continuityModel = model;
-    try {
-      const result = await completeWithFallback(
-        superModels(),
-        [
-          { role: "system", content: SUPER_WEAVE_SYSTEM },
-          {
-            role: "user",
-            content: [
-              `Day: ${options.day}`,
-              thread ? `Quiet continuity from last night: ${thread}` : "",
-              "Good moments:",
-              ...moments.map((m, i) => `${i + 1}. ${m}`),
-            ]
-              .filter(Boolean)
-              .join("\n"),
-          },
-        ],
-        { temperature: 0.7, maxTokens: 700 },
-      );
-      const parsed = parseTitleBody(result.text);
-      title = parsed.title;
-      body = parsed.body;
-      weaveModel = result.model;
+    const live = await weaveWithSuper(moments, options.day, thread);
+    if (live) {
+      title = live.title;
+      body = live.body;
+      weaveModel = live.model;
       mock = false;
-    } catch {
+    } else {
       const fallback = mockStory(moments, options.day);
       title = fallback.title;
       body = fallback.body;
@@ -132,7 +161,7 @@ export async function weaveStory(options: {
       contentType: tts.contentType,
       note: tts.note,
     },
-    captureIds: options.captures.map((c) => c.id),
+    captureIds: options.captures.map((capture) => capture.id),
     mock,
   };
 }

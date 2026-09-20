@@ -35,6 +35,11 @@ export async function POST(request: Request) {
   const file = form.get("file");
 
   if (kind === "text" && !text) return badRequest("Write a moment first.");
+  if (kind === "voice" && !transcript && !caption && !text) {
+    return badRequest(
+      "Type a line about what you said — we need your words to tell tonight's story.",
+    );
+  }
 
   const id = newId("cap");
   let mediaKey: string | undefined;

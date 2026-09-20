@@ -77,6 +77,9 @@ export default function CaptureStudio() {
   const [story, setStory] = useState<StoryRecord | null>(null);
   const [playing, setPlaying] = useState(false);
   const mediaRef = useRef<MediaRecorder | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recordingRef = useRef(false);
+  const finalsRef = useRef("");
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -116,6 +119,12 @@ export default function CaptureStudio() {
     return () => {
       if (photoUrl) URL.revokeObjectURL(photoUrl);
       if (timerRef.current) window.clearInterval(timerRef.current);
+      recordingRef.current = false;
+      try {
+        recognitionRef.current?.stop();
+      } catch {
+        // Ignore.
+      }
       window.speechSynthesis?.cancel();
     };
   }, [photoUrl]);
@@ -169,13 +178,72 @@ export default function CaptureStudio() {
 
   async function onVoiceSubmit(event: FormEvent) {
     event.preventDefault();
-    await saveCapture({ transcript, caption }, voiceBlob, "moment.webm");
+    const spoken = (transcript || caption).trim();
+    if (!spoken) {
+      setCaptureError(
+        "Type a line about what you said — we need your words to tell tonight's story.",
+      );
+      return;
+    }
+    await saveCapture({ transcript: spoken }, voiceBlob, "moment.webm");
+  }
+
+  function attachSpeechRecognition() {
+    const SpeechRecognitionCtor =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
+      setCaptureError(
+        "This browser can't hear words automatically. Type what you said after you record.",
+      );
+      return;
+    }
+    const recognition = new SpeechRecognitionCtor();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const piece = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalsRef.current = `${finalsRef.current} ${piece}`.replace(/\s+/g, " ").trim();
+        } else {
+          interim += piece;
+        }
+      }
+      setTranscript(`${finalsRef.current} ${interim}`.replace(/\s+/g, " ").trim());
+    };
+    recognition.onerror = () => {
+      if (!finalsRef.current.trim()) {
+        setCaptureError(
+          "Couldn't catch the words. Type a line about what you said so we can tell your story.",
+        );
+      }
+    };
+    recognition.onend = () => {
+      if (recordingRef.current) {
+        try {
+          recognition.start();
+        } catch {
+          // Chrome throws if a restart races a stop.
+        }
+      }
+    };
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch {
+      setCaptureError(
+        "Couldn't start listening. Type a line about what you said after you record.",
+      );
+    }
   }
 
   async function startRecording() {
     setCaptureError(null);
     setVoiceBlob(null);
     setTranscript("");
+    finalsRef.current = "";
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -195,33 +263,28 @@ export default function CaptureStudio() {
     };
     mediaRef.current = recorder;
     recorder.start();
+    recordingRef.current = true;
     setRecording(true);
     setSeconds(0);
     timerRef.current = window.setInterval(() => setSeconds((n) => n + 1), 1000);
-
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-US";
-      recognition.onresult = (event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => {
-        let next = "";
-        for (let i = 0; i < event.results.length; i += 1) {
-          next += event.results[i][0].transcript;
-        }
-        setTranscript(next.trim());
-      };
-      recognition.start();
-      recorder.addEventListener("stop", () => recognition.stop());
-    }
+    attachSpeechRecognition();
   }
 
   function stopRecording() {
+    recordingRef.current = false;
     mediaRef.current?.stop();
     setRecording(false);
     if (timerRef.current) window.clearInterval(timerRef.current);
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    try {
+      recognition?.stop();
+    } catch {
+      // Already stopped.
+    }
+    window.setTimeout(() => {
+      setTranscript((current) => current.trim() || finalsRef.current.trim());
+    }, 600);
   }
 
   async function unlockEmail(event: FormEvent) {
@@ -282,11 +345,13 @@ export default function CaptureStudio() {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(`${record.title}. ${record.body}`);
-    utterance.rate = 0.9;
-    utterance.pitch = 0.95;
-    const voice = window.speechSynthesis
-      ?.getVoices()
-      .find((item) => /en[-_]?US/i.test(item.lang) && /female|samantha|google/i.test(item.name));
+    utterance.rate = 0.82;
+    utterance.pitch = 0.88;
+    const voices = window.speechSynthesis?.getVoices() ?? [];
+    const voice =
+      voices.find((item) => /samantha|victoria|karen|moira|fiona/i.test(item.name)) ||
+      voices.find((item) => /en[-_]?GB/i.test(item.lang) && /female|google/i.test(item.name)) ||
+      voices.find((item) => /en[-_]?US/i.test(item.lang) && /female|google/i.test(item.name));
     if (voice) utterance.voice = voice;
     utterance.onend = () => setPlaying(false);
     setPlaying(true);
@@ -405,21 +470,24 @@ export default function CaptureStudio() {
                     .toString()
                     .padStart(2, "0")}
                   :{(seconds % 60).toString().padStart(2, "0")}
+                  {recording ? " · listening" : ""}
                 </div>
               </div>
               <input
                 type="text"
-                value={transcript || caption}
-                onChange={(event) => {
-                  setTranscript(event.target.value);
-                  setCaption(event.target.value);
-                }}
-                placeholder="Transcript or a line about the sound (optional)"
+                value={transcript}
+                required
+                onChange={(event) => setTranscript(event.target.value)}
+                placeholder="What you said — we'll type it if we can hear you"
               />
+              <p className="cta-copy">
+                We listen while you record. If the line is empty after Stop, type the words —
+                tonight's story needs them.
+              </p>
               <button
                 className="btn btn--lime"
                 type="submit"
-                disabled={Boolean(busy) || (!voiceBlob && !transcript)}
+                disabled={Boolean(busy) || !transcript.trim()}
               >
                 {busy === "capture" ? "Saving…" : "Save this voice note"}
               </button>
@@ -514,9 +582,11 @@ export default function CaptureStudio() {
                 <h3 style={{ margin: 0 }}>{story.title}</h3>
                 <p>{story.body}</p>
                 <div className="status-row">
-                  <span className="chip">{story.mock ? "Demo weave" : story.weaveModel}</span>
                   <span className="chip">
-                    {story.tts.status === "sonic" ? "Sonic voice" : "Calm browser voice"}
+                    {story.mock ? "Warm stand-in (add NEBIUS_API_KEY for Super)" : story.weaveModel}
+                  </span>
+                  <span className="chip">
+                    {story.tts.status === "sonic" ? "Sonic voice" : "Browser voice (Sonic coming)"}
                   </span>
                 </div>
               </div>

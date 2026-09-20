@@ -8,7 +8,14 @@ import {
   isValidEmail,
   normalizeEmail,
 } from "./identity";
-import { mockGoodMoment, mockStory } from "./prompts";
+import {
+  SUPER_WEAVE_SYSTEM,
+  isWeavableMoment,
+  mockGoodMoment,
+  mockStory,
+  weavableLines,
+} from "./prompts";
+import { WeaveNeedsWordsError, weaveStory } from "./weave";
 import { stripReasoning } from "./nebius";
 
 describe("funnel", () => {
@@ -42,18 +49,75 @@ describe("email", () => {
 });
 
 describe("ingest and weave fallbacks", () => {
-  it("extracts a gentle mock moment from thin captures", () => {
-    expect(mockGoodMoment({ kind: "photo" })).toMatch(/picture/i);
+  it("keeps a rich voice transcript instead of a vague sound", () => {
+    expect(
+      mockGoodMoment({
+        kind: "voice",
+        transcript:
+          "I felt so happy that a friend contacted me to ask how I'm doing",
+      }),
+    ).toMatch(/friend contacted me/i);
+    expect(mockGoodMoment({ kind: "voice" })).toMatch(/small sound from the day/);
     expect(mockGoodMoment({ kind: "text", text: "the coffee was warm" })).toMatch(
       /coffee was warm/,
     );
   });
 
-  it("writes a bedtime story from moments without an API key", () => {
-    const story = mockStory(["You laughed on the stairs."], "2026-09-20");
-    expect(story.title).toBeTruthy();
-    expect(story.body).toMatch(/You laughed on the stairs/);
-    expect(story.body).toMatch(/Something good already happened/);
+  it("writes a warm story that quotes the friend's check-in, without bleak filler", () => {
+    const story = mockStory(
+      ["I felt so happy that a friend contacted me to ask how I'm doing"],
+      "2026-09-20",
+    );
+    expect(story.title).toMatch(/friend/i);
+    expect(story.body).toMatch(/friend contacted me/i);
+    expect(story.body).toMatch(/happy/i);
+    expect(story.body).not.toMatch(/darker/i);
+    expect(story.body).not.toMatch(/noise of the day thins/i);
+    expect(story.body).not.toMatch(/unperformed/i);
+  });
+
+  it("refuses empty-voice placeholders as weavable moments", () => {
+    expect(
+      isWeavableMoment({
+        kind: "voice",
+        goodMoment: "You left yourself a voice, a small sound from the day.",
+      } as never),
+    ).toBe(false);
+    expect(
+      weavableLines([
+        { goodMoment: "You left yourself a voice, a small sound from the day." },
+        {
+          transcript: "I felt so happy that a friend contacted me to ask how I'm doing",
+        },
+      ]),
+    ).toEqual(["I felt so happy that a friend contacted me to ask how I'm doing"]);
+  });
+
+  it("asks Super to keep their words and skip bleak imagery", () => {
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/MUST weave the listener's actual words/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
+  });
+
+  it("refuses to weave empty-voice placeholders", async () => {
+    await expect(
+      weaveStory({
+        vaultId: "v_test",
+        day: "2026-09-20",
+        lastNight: null,
+        captures: [
+          {
+            id: "cap_1",
+            vaultId: "v_test",
+            kind: "voice",
+            createdAt: "2026-09-20T10:00:00.000Z",
+            day: "2026-09-20",
+            goodMoment: "You left yourself a voice, a small sound from the day.",
+            ingestStatus: "mock",
+          },
+        ],
+      }),
+    ).rejects.toBeInstanceOf(WeaveNeedsWordsError);
   });
 
   it("strips Nemotron think tags", () => {
@@ -79,5 +143,9 @@ describe("unlock client contract", () => {
     expect(src).toMatch(/Unlocking…/);
     expect(src).toMatch(/unlockError/);
     expect(src).toMatch(/weaveError/);
+    expect(src).toMatch(/Type a line about what you said/);
+    expect(src).toMatch(/Browser voice \(Sonic coming\)/);
+    expect(src).not.toMatch(/Calm browser voice/);
+    expect(src).not.toMatch(/Demo weave/);
   });
 });
