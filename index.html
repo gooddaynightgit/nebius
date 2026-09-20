@@ -8,8 +8,8 @@
       name="description"
       content="Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you."
     />
-    <meta name="theme-color" content="#0a0b12" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#D4FF00" />
+    <meta name="color-scheme" content="light" />
     <link rel="canonical" href="https://gooddaynight.com/" />
 
     <meta property="og:type" content="website" />
@@ -37,7 +37,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;0,9..144,650;1,9..144,400;1,9..144,560&family=Outfit:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
@@ -45,54 +45,33 @@
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <div class="night" aria-hidden="true">
-      <div class="night__glow night__glow--moon"></div>
-      <div class="night__glow night__glow--horizon"></div>
-      <div class="night__stars"></div>
-      <div class="night__grain"></div>
-    </div>
+    <div class="page">
+      <header class="site-header">
+        <a class="badge" href="/">Gooddaynight</a>
+      </header>
 
-    <header class="site-header">
-      <a class="wordmark" href="/">
-        <span class="wordmark__mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="22" height="22" fill="none">
-            <path
-              d="M20.4 7.2A9.6 9.6 0 1 1 11.1 24.6 10.4 10.4 0 0 0 20.4 7.2Z"
-              fill="currentColor"
-            />
-          </svg>
-        </span>
-        <span>Gooddaynight</span>
-      </a>
-    </header>
+      <main id="main">
+        <section class="card card--mint" aria-labelledby="hero-heading">
+          <h1 id="hero-heading">
+            You scrolled past a hundred good moments today. None of them were yours.
+          </h1>
+          <span class="card__mark" aria-hidden="true"></span>
+          <span class="card__wash card__wash--sun" aria-hidden="true"></span>
+        </section>
 
-    <main id="main">
-      <section class="hero" aria-labelledby="hero-heading">
-        <div class="hero__moon" aria-hidden="true"></div>
-        <h1 id="hero-heading" class="hero__title">
-          You scrolled past a hundred good moments today. None of them were yours.
-        </h1>
-        <p class="hero__subhead">
-          Your own day — the laugh, the small win, the quiet moment — nobody
-          turned it into anything. Not even you. Gooddaynight does.
-        </p>
-
-        <form class="signup" id="signup-form" novalidate>
-          <div class="signup__actions">
-            <button class="btn" type="submit" id="cta-button">
-              Hear your story — free
-            </button>
-            <a class="signup__affordance" href="#email" id="signup-link">Signup</a>
-          </div>
-
-          <p class="hero__micro">
-            It takes what you texted, photographed, or voice-noted today — and
-            reads it back to you as a bedtime story.
+        <section class="card card--lavender">
+          <p class="card__body">
+            Your own day — the laugh, the small win, the quiet moment — nobody
+            turned it into anything. Not even you. Gooddaynight does.
           </p>
+          <span class="card__wash card__wash--ten" aria-hidden="true"></span>
+        </section>
 
-          <div class="signup__fields" id="signup-fields" hidden>
-            <label class="visually-hidden" for="email">Email</label>
-            <div class="signup__row">
+        <section class="card card--dark" aria-labelledby="signup-label">
+          <label class="pill" id="signup-label" for="email">Signup</label>
+          <form class="signup" id="signup-form" novalidate>
+            <div class="signup__live" id="signup-live">
+              <label class="visually-hidden" for="email">Email</label>
               <input
                 id="email"
                 name="email"
@@ -103,38 +82,57 @@
                 required
                 placeholder="you@email.com"
               />
+              <p class="signup__error" id="signup-error" hidden>
+                Enter a valid email to join the list.
+              </p>
+              <button class="btn" type="submit" id="cta-button">
+                Hear your story — free
+              </button>
             </div>
-            <p class="signup__error" id="signup-error" hidden>Enter a valid email to join the list.</p>
-          </div>
+            <p
+              class="signup__success"
+              id="signup-success"
+              hidden
+              role="status"
+              aria-live="polite"
+              tabindex="-1"
+            >
+              You're on the list
+            </p>
+          </form>
+        </section>
 
-          <p class="signup__success" id="signup-success" hidden role="status" aria-live="polite" tabindex="-1">
-            You're on the list
+        <section class="card card--cream">
+          <p class="card__body">
+            It takes what you texted, photographed, or voice-noted today — and
+            reads it back to you as a bedtime story.
           </p>
-        </form>
-      </section>
+          <span class="card__wash card__wash--note" aria-hidden="true"></span>
+        </section>
 
-      <section class="passage" aria-labelledby="prime-heading">
-        <h2 id="prime-heading" class="passage__text">
-          Remembering even one good thing today primes you to spot more tomorrow.
-        </h2>
-      </section>
+        <section class="card card--peach" aria-labelledby="prime-heading">
+          <h2 id="prime-heading">
+            Remembering even one good thing today primes you to spot more tomorrow.
+          </h2>
+          <span class="card__wash card__wash--plus" aria-hidden="true"></span>
+        </section>
 
-      <section class="passage passage--gold" aria-labelledby="multifold-heading">
-        <h2 id="multifold-heading" class="passage__text">
-          With time, naturally your good unfolds — multifold.
-        </h2>
-      </section>
+        <section class="card card--cyan" aria-labelledby="multifold-heading">
+          <h2 id="multifold-heading">
+            With time, naturally your good unfolds — multifold.
+          </h2>
+          <span class="card__wash card__wash--fold" aria-hidden="true"></span>
+        </section>
 
-      <section class="closing" aria-labelledby="closing-heading">
-        <h2 id="closing-heading" class="closing__text">
-          Something good is about to happen!
-        </h2>
-      </section>
-    </main>
+        <section class="card card--lime" aria-labelledby="closing-heading">
+          <h2 id="closing-heading">Something good is about to happen!</h2>
+        </section>
+      </main>
 
-    <footer class="site-footer">
-      <p><a href="https://gooddaynight.com">Gooddaynight.com</a></p>
-    </footer>
+      <footer class="site-footer">
+        <p><a href="https://gooddaynight.com">Gooddaynight.com</a></p>
+      </footer>
+    </div>
 
     <script src="/main.js" defer></script>
   </body>

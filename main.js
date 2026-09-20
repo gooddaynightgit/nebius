@@ -1,22 +1,16 @@
 (() => {
   const form = document.getElementById("signup-form");
   const email = document.getElementById("email");
-  const fields = document.getElementById("signup-fields");
+  const live = document.getElementById("signup-live");
   const error = document.getElementById("signup-error");
   const success = document.getElementById("signup-success");
-  const signupLink = document.getElementById("signup-link");
   const storageKey = "gooddaynight.signupEmail";
 
-  if (!form || !email || !fields || !error || !success || !signupLink) return;
-
-  const revealFields = () => {
-    fields.hidden = false;
-    email.focus();
-  };
+  if (!form || !email || !live || !error || !success) return;
 
   const showSuccess = () => {
     form.classList.add("is-success");
-    fields.hidden = true;
+    live.hidden = true;
     error.hidden = true;
     success.hidden = false;
     success.focus();
@@ -30,19 +24,8 @@
     // Private mode or blocked storage should not break the form.
   }
 
-  signupLink.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (form.classList.contains("is-success")) return;
-    revealFields();
-  });
-
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-
-    if (fields.hidden) {
-      revealFields();
-      return;
-    }
 
     const value = email.value.trim();
     const valid = value.length > 0 && email.checkValidity();

@@ -4,6 +4,8 @@ Single-page marketing site for [Gooddaynight.com](https://gooddaynight.com).
 
 Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.
 
+The landing page is a stacked colour-block layout (pastel gradient cards, lime brand badge, one punchy dark CTA card), designed mobile-first.
+
 ## Preview locally
 
 From the repository root:

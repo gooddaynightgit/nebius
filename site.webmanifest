@@ -4,8 +4,8 @@
   "description": "Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0b12",
-  "theme_color": "#0a0b12",
+  "background_color": "#ffffff",
+  "theme_color": "#d4ff00",
   "icons": [
     {
       "src": "/favicon.svg",
