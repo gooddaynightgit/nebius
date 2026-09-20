@@ -8,6 +8,7 @@ import {
   isValidEmail,
   normalizeEmail,
 } from "./identity";
+import { cleanSpokenLine, isSelfNegating } from "./care";
 import {
   SUPER_WEAVE_SYSTEM,
   isWeavableMoment,
@@ -106,11 +107,72 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Narrative spine/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/lovable \/ good \/ caring \/ worthy/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/cheesy self-help/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/silver lining/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/no one cares about me/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/not as a task/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/multifold/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
+  });
+
+  it("cleans obvious typos without corporate rewrite", () => {
+    expect(
+      cleanSpokenLine("Felt happpy my freind enquiered how am i doing, someone cares about me"),
+    ).toBe("Felt happy my friend enquired how am I doing, someone cares about me");
+  });
+
+  it("does not treat despair as a good moment", () => {
+    expect(isSelfNegating("No one cares about me")).toBe(true);
+    expect(
+      mockGoodMoment({ kind: "text", text: "No one cares about me" }),
+    ).not.toMatch(/no one cares about me/i);
+    expect(mockGoodMoment({ kind: "text", text: "No one cares about me" })).toMatch(
+      /silver lining|heart loves connection|wish to be cared/i,
+    );
+    expect(
+      weavableLines([{ text: "No one cares about me" }])[0],
+    ).not.toMatch(/no one cares about me/i);
+  });
+
+  it("turns despair into a silver-lining story, never celebrating the wound", () => {
+    const story = mockStory(["No one cares about me"], "2026-09-20");
+    expect(story.body).not.toMatch(/no one cares about me/i);
+    expect(story.body).toMatch(/silver lining/i);
+    expect(story.body).toMatch(/heart that loves connection|worth caring about/i);
+    expect(story.body).toMatch(/multifold/i);
+    expect(story.body).not.toMatch(/not as a task/i);
+  });
+
+  it("cleans a typo'd friend check-in and still praises why", () => {
+    const messy = "Felt happpy my freind enquiered how am i doing, someone cares about me";
+    const cleaned = cleanSpokenLine(messy);
+    const story = mockStory([messy], "2026-09-20");
+    expect(story.body).toContain(cleaned);
+    expect(story.body).toMatch(/why would a friend/i);
+    expect(story.body).toMatch(/easy to love|worth the enquiry/i);
+    expect(story.body).not.toMatch(/happpy|freind|enquiered/);
+  });
+
+  it("weaves a silver lining instead of celebrating despair", async () => {
+    const story = await weaveStory({
+      vaultId: "v_test",
+      day: "2026-09-20",
+      lastNight: null,
+      captures: [
+        {
+          id: "cap_sad",
+          vaultId: "v_test",
+          kind: "text",
+          createdAt: "2026-09-20T10:00:00.000Z",
+          day: "2026-09-20",
+          text: "No one cares about me",
+          ingestStatus: "mock",
+        },
+      ],
+    });
+    expect(story.body).not.toMatch(/no one cares about me/i);
+    expect(story.body).toMatch(/silver lining|heart that loves connection/i);
   });
 
   it("refuses to weave empty-voice placeholders", async () => {
@@ -163,5 +225,6 @@ describe("unlock client contract", () => {
     expect(src).not.toMatch(/Calm browser voice/);
     expect(src).not.toMatch(/Demo weave/);
     expect(src).not.toMatch(/Warm stand-in/);
+    expect(src).toMatch(/SILVER_LINING_NOTE|We kept the silver lining/);
   });
 });

@@ -134,6 +134,7 @@ export function hydrateCaptures(
     transcript: capture.transcript,
     caption: capture.caption,
     goodMoment: capture.goodMoment,
+    reframed: capture.reframed,
     mediaKey: capture.mediaKey,
     mediaContentType: capture.mediaContentType,
     ingestModel: capture.ingestModel,

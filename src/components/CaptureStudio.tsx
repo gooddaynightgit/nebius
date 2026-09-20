@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SILVER_LINING_NOTE } from "@/lib/prompts";
 import type { CaptureKind, CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
 
 type Mode = CaptureKind;
@@ -32,6 +33,7 @@ function capturePayload(capture: CaptureRecord) {
     transcript: capture.transcript,
     caption: capture.caption,
     goodMoment: capture.goodMoment,
+    reframed: capture.reframed,
     ingestStatus: capture.ingestStatus,
     ingestModel: capture.ingestModel,
   };
@@ -416,6 +418,7 @@ export default function CaptureStudio() {
                 value={text}
                 onChange={(event) => setText(event.target.value)}
                 placeholder="the laugh, the small win, the quiet moment"
+                spellCheck
                 required
               />
               <button className="btn btn--lime" type="submit" disabled={Boolean(busy)}>
@@ -448,6 +451,7 @@ export default function CaptureStudio() {
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
                 placeholder="What was good here? (optional)"
+                spellCheck
               />
               <button className="btn btn--lime" type="submit" disabled={Boolean(busy) || !photo}>
                 {busy === "capture" ? "Saving…" : "Keep this photo"}
@@ -479,6 +483,7 @@ export default function CaptureStudio() {
                 required
                 onChange={(event) => setTranscript(event.target.value)}
                 placeholder="What you said — we'll type it if we can hear you"
+                spellCheck
               />
               <p className="cta-copy">
                 We listen while you record. If the line is empty after Stop, type the words —
@@ -509,6 +514,7 @@ export default function CaptureStudio() {
                 <article className="moment" key={capture.id}>
                   <span className="moment__kind">{capture.kind}</span>
                   <p>{capture.goodMoment || capture.text || capture.transcript || capture.caption}</p>
+                  {capture.reframed && <p className="moment__note">{SILVER_LINING_NOTE}</p>}
                 </article>
               ))}
             </div>
