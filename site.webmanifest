@@ -1,0 +1,23 @@
+{
+  "name": "Gooddaynight",
+  "short_name": "Gooddaynight",
+  "description": "Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0b12",
+  "theme_color": "#0a0b12",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
