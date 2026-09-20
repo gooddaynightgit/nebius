@@ -16,6 +16,8 @@ python3 -m http.server 4173
 
 Then open [http://localhost:4173](http://localhost:4173).
 
+Asset links are relative (`styles.css`, `main.js`, favicons) so previews on raw.githack, GitHub Pages project URLs, and other subpaths load the colour-block CSS instead of unstyled HTML.
+
 Any static file server works (`npx serve`, Caddy, nginx). There is no build step.
 
 ## Signup form
