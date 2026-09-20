@@ -63,14 +63,18 @@ describe("ingest and weave fallbacks", () => {
     );
   });
 
-  it("writes a warm story that quotes the friend's check-in, without bleak filler", () => {
-    const story = mockStory(
-      ["I felt so happy that a friend contacted me to ask how I'm doing"],
-      "2026-09-20",
-    );
-    expect(story.title).toMatch(/friend/i);
-    expect(story.body).toMatch(/friend contacted me/i);
+  it("writes a joyful story that keeps her line brightest and closes multifold", () => {
+    const line = "Felt happy my friend enquired how am I doing, someone cares about me";
+    const story = mockStory([line], "2026-09-20");
+    expect(story.title).toMatch(/cares|friend/i);
+    expect(story.body).toContain(line);
+    expect(story.body.indexOf(line)).toBeLessThan(story.body.indexOf("multifold"));
     expect(story.body).toMatch(/happy/i);
+    expect(story.body).toMatch(/cares/i);
+    expect(story.body).toMatch(/multifold/i);
+    expect(story.body).toMatch(/smile in the chest/i);
+    expect(story.body).not.toMatch(/not as a task/i);
+    expect(story.body).not.toMatch(/not a to-do/i);
     expect(story.body).not.toMatch(/darker/i);
     expect(story.body).not.toMatch(/noise of the day thins/i);
     expect(story.body).not.toMatch(/unperformed/i);
@@ -93,8 +97,12 @@ describe("ingest and weave fallbacks", () => {
     ).toEqual(["I felt so happy that a friend contacted me to ask how I'm doing"]);
   });
 
-  it("asks Super to keep their words and skip bleak imagery", () => {
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/MUST weave the listener's actual words/);
+  it("asks Super to keep her words brightest, feel joy, and close multifold", () => {
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/LEAD with their exact good moment/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/weaker paraphrase/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/not as a task/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/multifold/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
   });
@@ -145,7 +153,9 @@ describe("unlock client contract", () => {
     expect(src).toMatch(/weaveError/);
     expect(src).toMatch(/Type a line about what you said/);
     expect(src).toMatch(/Browser voice \(Sonic coming\)/);
+    expect(src).toMatch(/Joyful stand-in \(add NEBIUS_API_KEY for Super\)/);
     expect(src).not.toMatch(/Calm browser voice/);
     expect(src).not.toMatch(/Demo weave/);
+    expect(src).not.toMatch(/Warm stand-in/);
   });
 });
