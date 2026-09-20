@@ -1,3 +1,4 @@
+import { containsDespair } from "./care";
 import { hasTokenFactoryKey, useUltra } from "./config";
 import { completeWithFallback, superModels, ultraModels } from "./nebius";
 import {
@@ -13,9 +14,7 @@ import { newId } from "./identity";
 import { putBytes } from "./storage";
 
 function celebratesDespair(text: string): boolean {
-  return /no\s*one cares about me|nobody cares about me|nobody loves me|i(?:'m| am) worthless/i.test(
-    text,
-  );
+  return containsDespair(text);
 }
 
 export class WeaveNeedsWordsError extends Error {
@@ -146,6 +145,14 @@ export async function weaveStory(options: {
     const fallback = mockStory(moments, options.day);
     title = fallback.title;
     body = fallback.body;
+  }
+
+  if (celebratesDespair(`${title}\n${body}`)) {
+    const safe = mockStory(moments, options.day);
+    title = safe.title;
+    body = safe.body;
+    weaveModel = mock ? "mock" : "mock-fallback";
+    mock = true;
   }
 
   const tts = await synthesizeStory(`${title}. ${body}`);

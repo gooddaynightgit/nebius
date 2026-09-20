@@ -1,5 +1,6 @@
 import {
   cleanSpokenLine,
+  containsDespair,
   isSelfNegating,
   isSilverLiningLine,
   silverLiningFor,
@@ -25,7 +26,7 @@ Rules:
 - Second person ("you") around their words — their true good stays the brightest thing in the story.
 - 180–280 words.
 - LEAD with their exact good moment when it is truly good. Quote or near-quote those cleaned words early, linger on them, and return to them. Light golden threads only — never replace their sentence with a weaker paraphrase. If they said they felt happy a friend enquired how they are doing, someone cares — those words must shine, un-diluted.
-- If a moment is marked [silver lining], that lining IS the good. Lead with the hope/care/worth. NEVER quote, repeat, or celebrate despair ("no one cares about me", "nobody loves me", worthlessness). Do not praise the pain. Praise the courage of naming the wish; why it matters (a heart that loves connection); implied worth (lovable, worthy of care).
+- If a moment is marked [silver lining], that lining IS the good. Lead with the hope/care/worth. NEVER quote, repeat, or celebrate despair ("no one cares about me", "nobody loves me", worthlessness, "no one cares aboute"). Do not praise the pain. Do not concatenate a friend-good and a despair line into one "brightest thing / your own voice" dump. Elevate true goods; transform negatives into one lining. Praise the courage of naming the wish; why it matters (a heart that loves connection); implied worth (lovable, worthy of care).
 - Narrative spine (every story, in this order):
   1. Something good happened — their true-good words lead, or the silver lining if the capture was a cloud.
   2. Praise them for it: warm, specific, earned from THIS moment (they felt it, named it, let the good in). Never a generic "you are amazing."
@@ -95,7 +96,7 @@ export function storyMomentFromCapture(input: {
         : silverLiningFor(spoken);
     return { line: lining, reframed: true };
   }
-  if (spoken && !isEmptyVoicePlaceholder(spoken)) {
+  if (spoken && !isEmptyVoicePlaceholder(spoken) && !containsDespair(spoken)) {
     return { line: spoken, reframed: false };
   }
   const good = cleanSpokenLine(input.goodMoment).slice(0, 240);
@@ -123,6 +124,21 @@ export function weavableMoments(captures: Array<{
     moments.push(moment);
   }
   return moments;
+}
+
+export function displayMoment(input: {
+  text?: string;
+  transcript?: string;
+  caption?: string;
+  goodMoment?: string;
+  reframed?: boolean;
+}): StoryMoment {
+  return (
+    storyMomentFromCapture(input) ?? {
+      line: "A moment you chose to keep.",
+      reframed: false,
+    }
+  );
 }
 
 export function weavableLines(captures: Array<{
@@ -178,8 +194,16 @@ export function mockStory(
     };
   }
 
-  const lining = concrete.filter((moment) => moment.reframed);
-  const bright = concrete.filter((moment) => !moment.reframed);
+  const lining = concrete.filter(
+    (moment) => moment.reframed || isSelfNegating(moment.line) || containsDespair(moment.line),
+  );
+  const bright = concrete.filter(
+    (moment) =>
+      !moment.reframed &&
+      !isSelfNegating(moment.line) &&
+      !containsDespair(moment.line) &&
+      !isSilverLiningLine(moment.line),
+  );
   if (lining.length && !bright.length) {
     return mockLiningStory(lining.map((moment) => moment.line), day);
   }

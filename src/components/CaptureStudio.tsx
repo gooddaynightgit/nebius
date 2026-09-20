@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SILVER_LINING_NOTE } from "@/lib/prompts";
+import { SILVER_LINING_NOTE, displayMoment } from "@/lib/prompts";
 import type { CaptureKind, CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
 
 type Mode = CaptureKind;
@@ -510,13 +510,16 @@ export default function CaptureStudio() {
             </p>
           ) : (
             <div className="moment-list">
-              {captures.map((capture) => (
-                <article className="moment" key={capture.id}>
-                  <span className="moment__kind">{capture.kind}</span>
-                  <p>{capture.goodMoment || capture.text || capture.transcript || capture.caption}</p>
-                  {capture.reframed && <p className="moment__note">{SILVER_LINING_NOTE}</p>}
-                </article>
-              ))}
+              {captures.map((capture) => {
+                const shown = displayMoment(capture);
+                return (
+                  <article className="moment" key={capture.id}>
+                    <span className="moment__kind">{capture.kind}</span>
+                    <p>{shown.line}</p>
+                    {shown.reframed && <p className="moment__note">{SILVER_LINING_NOTE}</p>}
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
