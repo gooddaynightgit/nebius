@@ -12,7 +12,8 @@ import {
   mergeCapturesIntoVault,
   saveVault,
 } from "@/lib/vault";
-import { weaveStory } from "@/lib/weave";
+import { WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
+import { weavableLines } from "@/lib/prompts";
 import type { CaptureRecord } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -55,18 +56,30 @@ export async function POST(request: Request) {
 
   const captures = capturesForDay(vault, day);
   if (!captures.length) return badRequest("No moments for this day yet.");
+  if (!weavableLines(captures).length) {
+    return badRequest(
+      "Add a line about what you said — a voice without words isn't enough to tell your story.",
+    );
+  }
 
-  const story = await weaveStory({
-    vaultId: vault.id,
-    day,
-    captures,
-    lastNight: latest(vault),
-  });
-  await addStory(vault, story);
-  return json({
-    story,
-    session: toPublicSession(vault, sessionId, day),
-  });
+  try {
+    const story = await weaveStory({
+      vaultId: vault.id,
+      day,
+      captures,
+      lastNight: latest(vault),
+    });
+    await addStory(vault, story);
+    return json({
+      story,
+      session: toPublicSession(vault, sessionId, day),
+    });
+  } catch (error) {
+    if (error instanceof WeaveNeedsWordsError) {
+      return badRequest(error.message);
+    }
+    throw error;
+  }
 }
 
 async function weaveAll(request: Request) {
@@ -77,7 +90,7 @@ async function weaveAll(request: Request) {
   const stories = [];
   for (const vault of vaults) {
     const captures = capturesForDay(vault, day);
-    if (!captures.length) continue;
+    if (!captures.length || !weavableLines(captures).length) continue;
     const existing = lastStoryForDay(vault, day);
     if (existing && existing.day === day) continue;
     const story = await weaveStory({
