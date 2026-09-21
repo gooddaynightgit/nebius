@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   JOY_NEED,
+  PHOTO_TOO_LARGE,
   PREVIEW_UNREACHABLE,
   PRODUCTION_UNREACHABLE,
   UNEXPECTED_RESPONSE,
   explainClientFetchError,
   isPreviewHost,
   looksLikeAuthWall,
+  looksLikePayloadTooLarge,
   readJson,
   readResponsePayload,
   reachabilityMessage,
@@ -79,6 +81,38 @@ describe("client fetch", () => {
     await expect(readJson(previewGarbage, "nebius-git-foo.vercel.app")).rejects.toThrow(
       PREVIEW_UNREACHABLE,
     );
+  });
+
+  it("classifies 413 payload-too-large by status first, never as a connection wall", async () => {
+    const html413 = () =>
+      new Response("<html><head></head><body>FUNCTION_PAYLOAD_TOO_LARGE</body></html>", {
+        status: 413,
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
+    const payload = "FUNCTION_PAYLOAD_TOO_LARGE";
+    expect(looksLikeAuthWall(html413(), payload)).toBe(false);
+    expect(looksLikePayloadTooLarge(html413(), payload)).toBe(true);
+    await expect(readJson(html413(), "nebius-liart.vercel.app")).rejects.toThrow(PHOTO_TOO_LARGE);
+    await expect(readResponsePayload(html413(), "nebius-liart.vercel.app")).rejects.toThrow(PHOTO_TOO_LARGE);
+    expect(explainClientFetchError(new Error(PHOTO_TOO_LARGE), "nebius-liart.vercel.app")).toBe(
+      PHOTO_TOO_LARGE,
+    );
+    expect(PHOTO_TOO_LARGE).toMatch(/too large/i);
+    expect(PHOTO_TOO_LARGE).not.toMatch(/connection/i);
+    expect(PHOTO_TOO_LARGE).not.toBe(PRODUCTION_UNREACHABLE);
+
+    const entity = new Response("Request Entity Too Large", {
+      status: 413,
+      headers: { "content-type": "text/plain" },
+    });
+    await expect(readJson(entity, "nebius-liart.vercel.app")).rejects.toThrow(PHOTO_TOO_LARGE);
+
+    const html502 = new Response("<!doctype html><html><title>Bad Gateway</title></html>", {
+      status: 502,
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+    expect(looksLikeAuthWall(html502, "<!doctype html>")).toBe(false);
+    await expect(readJson(html502, "nebius-liart.vercel.app")).rejects.toThrow(UNEXPECTED_RESPONSE);
   });
 
   it("reads JSON errors as their server message, not Failed to fetch", async () => {
