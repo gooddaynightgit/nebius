@@ -63,6 +63,9 @@ describe("landing copy", () => {
     expect(JOY_TYPES[0]?.tagline).toBe(
       "You stepped into the early gold and let the day find you.",
     );
+    expect(JOY_TYPES[3]?.tagline).toBe(
+      "Your body remembered it was yours. A walk. A stretch. Your dance.",
+    );
     expect(JOY_TYPES[5]?.tagline).toBe(
       "You don't have to name the category. The photo already knows.",
     );

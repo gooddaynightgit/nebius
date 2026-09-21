@@ -381,7 +381,7 @@ const JOY_FRESH_OPENERS: Record<string, (detail: string) => { title: string; lea
   }),
   "a-little-movement": (detail) => ({
     title: "A body that remembered",
-    lead: `You moved, and the moving was yours. ${detail} Not a program. A walk, a stretch, a longer way home.`,
+    lead: `You moved, and the moving was yours. ${detail} Not a program. A walk, a stretch, your dance.`,
   }),
   "one-corner-clear": (detail) => ({
     title: "One corner, yours",

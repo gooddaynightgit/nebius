@@ -89,7 +89,7 @@ export const JOY_TYPES: JoyType[] = [
   {
     id: "a-little-movement",
     title: "A little movement",
-    tagline: "Your body remembered it was yours. A walk. A stretch. The long way home.",
+    tagline: "Your body remembered it was yours. A walk. A stretch. Your dance.",
     body: "Ten minutes and your whole chemistry changes. A walk brisk enough to feel your heart sing. A stretch long and luxurious, spine waking, shoulders opening. Endorphins flood through you — your body's own joy, made by you, for you, on demand. You are powerful and it feels incredible.",
     capture:
       "a photo of your shoes on the pavement, your arms reaching wide to the sky, the path stretching out ahead of you.",
