@@ -12,7 +12,8 @@ import { clipCaption } from "./app-capture";
 import { hasTokenFactoryKey, useUltra } from "./config";
 import { getJoyById } from "./landing";
 import {
-  appStoryModels,
+  appStoryTextModels,
+  appStoryVisionModels,
   completeWithFallback,
   superModels,
   textExcavateModels,
@@ -171,17 +172,40 @@ export function appReflectUserText(input: {
   joyTitle: string;
   excavation: string;
   caption?: string;
+  hasImage?: boolean;
 }): string {
   const caption = input.caption ? clipCaption(input.caption) : "";
   return [
+    input.hasImage
+      ? "The photo is attached. Use it together with the photo description. Stay inside what the still actually shows; the description names the ingredients. No invented scene."
+      : "The photo pixels are not attached. Stay inside the photo description, chosen joy, and optional caption. Do not invent a scene beyond those words.",
     "Photo description (sensory excavation of today's kept still):",
     input.excavation,
     `Chosen joy (lay this tint once, lightly, only if it fits the evidence — never print it as a label): ${joyColourLabel(input.joyTitle)}`,
     caption
       ? `Optional caption (their whisper): ${caption}`
       : "No caption.",
-    "Write one short Nightly Reflection. Four beats in this order, packed into 1–2 sentences (max ~35 words): name the looking, 2–3 concrete details from the photo description and/or caption, ownership, door. Second person. Plain reflection text only. Or BLOCK.",
+    "Write one short Nightly Reflection. Four beats in this order, packed into 1–2 sentences (max ~35 words): name the looking, 2–3 concrete details from the photo (and/or photo description and caption), ownership, door. Second person. Plain reflection text only. Or BLOCK.",
   ].join("\n\n");
+}
+
+export function appReflectUserContent(input: {
+  joyTitle: string;
+  excavation: string;
+  caption?: string;
+  imageDataUrl?: string;
+}): ChatMessage["content"] {
+  const userText = appReflectUserText({
+    ...input,
+    hasImage: Boolean(input.imageDataUrl),
+  });
+  if (input.imageDataUrl) {
+    return [
+      { type: "text", text: userText },
+      { type: "image_url", image_url: { url: input.imageDataUrl } },
+    ];
+  }
+  return userText;
 }
 
 /** @deprecated use appReflectUserText — YOURS no longer sends a playback template to the closer. */
@@ -193,6 +217,27 @@ export function appWeaveUserText(input: {
 }): string {
   void input.template;
   return appReflectUserText(input);
+}
+
+type AppReflectFail = {
+  lastBody: string;
+  lastModel: string;
+  lastProblems: string[];
+  lastError?: string;
+};
+
+function closerErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message.slice(0, 240);
+  return String(error).slice(0, 240);
+}
+
+function logAppReflectFallback(fail?: AppReflectFail) {
+  const lastModel = fail?.lastModel || "none";
+  const lastProblems = fail?.lastProblems?.join(",") || "none";
+  const lastError = fail?.lastError || "none";
+  console.warn(
+    `[yours] Nightly Reflection using mockJoyStory lastModel=${lastModel} lastProblems=${lastProblems} lastError=${lastError}`,
+  );
 }
 
 function reflectRetryHint(problems: string[], lastBody: string): string {
@@ -265,62 +310,94 @@ async function excavateAppPhoto(input: {
   }
 }
 
-async function weaveAppStoryFromExcavation(input: {
-  joyTitle: string;
-  template: string;
-  excavation: string;
-  caption?: string;
-}): Promise<{ blocked: true; model: string } | { body: string; model: string } | null> {
-  const userText = appReflectUserText(input);
-  const messages: ChatMessage[] = [
-    { role: "system", content: APP_REFLECT_SYSTEM },
-    { role: "user", content: userText },
-  ];
+const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak"]);
 
-  let lastBody = "";
-  let lastModel = "";
-  let lastProblems: string[] = [];
+async function reflectWithModels(
+  models: string[],
+  baseMessages: ChatMessage[],
+  template: string,
+): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail }> {
+  const fail: AppReflectFail = {
+    lastBody: "",
+    lastModel: "",
+    lastProblems: [],
+  };
+  if (!models.length) return { fail };
+
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       const retryHint =
         attempt === 0
-          ? messages
+          ? baseMessages
           : [
-              ...messages,
+              ...baseMessages,
               {
                 role: "user" as const,
-                content: reflectRetryHint(lastProblems, lastBody),
+                content: reflectRetryHint(fail.lastProblems, fail.lastBody),
               },
             ];
-      const result = await completeWithFallback(appStoryModels(), retryHint, {
+      const result = await completeWithFallback(models, retryHint, {
         temperature: attempt === 0 ? 0.75 : 0.5,
         maxTokens: 180,
       });
-      lastModel = result.model;
+      fail.lastModel = result.model;
       const parsed = parseAppWeaveReply(result.text);
       if (parsed === "BLOCK") {
-        if (!lastBody) break;
+        if (!fail.lastBody) break;
         continue;
       }
       const trimmed = trimAppStory(parsed);
-      lastBody = trimmed;
-      lastProblems = appStoryProblems(trimmed, input.template);
-      if (lastProblems.length === 0) {
+      fail.lastBody = trimmed;
+      fail.lastProblems = appStoryProblems(trimmed, template);
+      if (fail.lastProblems.length === 0) {
         return { body: trimmed, model: result.model };
       }
-    } catch {
-      // Retry, then fall through to an honest mock.
+    } catch (error) {
+      fail.lastError = closerErrorMessage(error);
+      break;
     }
   }
   if (
-    lastBody &&
-    !appStoryProblems(lastBody, input.template).some(
-      (item) => item === "canned" || item === "wellness" || item === "despair" || item === "leak",
-    )
+    fail.lastBody &&
+    !fail.lastProblems.some((item) => FATAL_REFLECT_PROBLEMS.has(item))
   ) {
-    return { body: finishAppStory(lastBody), model: lastModel || "mock-fallback" };
+    return { body: finishAppStory(fail.lastBody), model: fail.lastModel || "mock-fallback" };
   }
-  return null;
+  return { fail };
+}
+
+export async function weaveAppStoryFromExcavation(input: {
+  joyTitle: string;
+  template: string;
+  excavation: string;
+  caption?: string;
+  imageDataUrl?: string;
+}): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail } | null> {
+  const visionIds = input.imageDataUrl ? appStoryVisionModels() : [];
+  const textIds = appStoryTextModels();
+  let lastFail: AppReflectFail | undefined;
+
+  if (visionIds.length && input.imageDataUrl) {
+    const visionMessages: ChatMessage[] = [
+      { role: "system", content: APP_REFLECT_SYSTEM },
+      { role: "user", content: appReflectUserContent(input) },
+    ];
+    const live = await reflectWithModels(visionIds, visionMessages, input.template);
+    if ("body" in live || "blocked" in live) return live;
+    lastFail = live.fail;
+  }
+
+  if (textIds.length) {
+    const textMessages: ChatMessage[] = [
+      { role: "system", content: APP_REFLECT_SYSTEM },
+      { role: "user", content: appReflectUserText({ ...input, hasImage: false }) },
+    ];
+    const live = await reflectWithModels(textIds, textMessages, input.template);
+    if ("body" in live || "blocked" in live) return live;
+    lastFail = live.fail;
+  }
+
+  return { fail: lastFail ?? { lastBody: "", lastModel: "", lastProblems: [] } };
 }
 
 async function weaveAppPhotoStory(input: {
@@ -348,13 +425,21 @@ async function weaveAppPhotoStory(input: {
     template: input.template,
     excavation,
     caption: input.caption,
+    imageDataUrl: input.imageDataUrl,
   });
   if (live && "blocked" in live && live.blocked) {
+    logAppReflectFallback({
+      lastBody: "",
+      lastModel: live.model,
+      lastProblems: ["block"],
+      lastError: "BLOCK",
+    });
     return { kind: "fallback", excavation, excavateModel };
   }
   if (live && "body" in live) {
     return { kind: "story", body: live.body, model: live.model, excavateModel };
   }
+  logAppReflectFallback(live && "fail" in live ? live.fail : undefined);
   return { kind: "fallback", excavation, excavateModel };
 }
 

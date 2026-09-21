@@ -11,10 +11,15 @@ export const MODELS = {
   // Factory lists one (docs still mention Qwen/Qwen2-VL-72B-Instruct).
   vision: process.env.NEBIUS_VISION_MODEL ?? "openbmb/MiniCPM-V-4_5",
   // YOURS closer — short Nightly Reflection. Catalog snapshot 2026-09-21 lists
-  // moonshotai/Kimi-K2.6 (general Kimi, us-central1). moonshotai/Kimi-K2-Instruct
-  // and moonshotai/Kimi-K2.5 are not in that snapshot; Kimi-K2.7-Code is coding.
-  // Override NEBIUS_STORY_MODEL if your key has another Kimi id. Falls back to Super.
+  // moonshotai/Kimi-K2.6 as image2text (us-central1). YOURS sends the photo plus
+  // excavation, joy, and optional caption. moonshotai/Kimi-K3 is also image2text;
+  // moonshotai/Kimi-K2.7-Code is text2text (coding). Override NEBIUS_STORY_MODEL
+  // to a text-only id if needed — the closer then stays text-only. After Kimi,
+  // text2text Qwen instruct, then Super. Mock only if every live path fails.
   story: process.env.NEBIUS_STORY_MODEL ?? "moonshotai/Kimi-K2.6",
+  // Text2text Nightly Reflection if image2text Kimi cannot finish.
+  storyText:
+    process.env.NEBIUS_STORY_TEXT_MODEL ?? "Qwen/Qwen3-235B-A22B-Instruct-2507",
   // Text-only photo excavation when vision fails — keep off the Kimi closer.
   excavateText:
     process.env.NEBIUS_EXCAVATE_TEXT_MODEL ?? "Qwen/Qwen3-235B-A22B-Instruct-2507",
