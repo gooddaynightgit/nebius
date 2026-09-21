@@ -45,7 +45,6 @@ export const LANDING = {
     captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     captionExamples: "a name / a step count / he wrote back",
     captionDropped: "That line couldn’t be saved. The photo still is.",
-    locked: "Tonight’s story is already yours. A kinder photo still fits today.",
     blocked: "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     keep: "Keep",
     keepLabel: "Keep tonight’s story with the photo",

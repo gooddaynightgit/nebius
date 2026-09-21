@@ -542,7 +542,7 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/See the story/);
     expect(src).not.toMatch(/StoryPlayback/);
     expect(src).toMatch(/LANDING\.app\.replace/);
-    expect(src).toMatch(/LANDING\.app\.locked/);
+    expect(src).not.toMatch(/LANDING\.app\.locked/);
     expect(src).not.toMatch(/disabled=\{locked\}/);
     expect(src).not.toMatch(/if \(locked\)/);
     expect(src).not.toMatch(/setCaptureError\(LANDING\.app\.locked\)/);

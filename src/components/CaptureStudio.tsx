@@ -564,11 +564,6 @@ export default function CaptureStudio() {
                 {phoneNote}
               </p>
             ) : null}
-            {opened ? (
-              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
-                {LANDING.app.locked}
-              </p>
-            ) : null}
           </section>
 
           <section
