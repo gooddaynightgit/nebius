@@ -40,7 +40,7 @@ export default function HomePage() {
           </p>
           <p className="cta-copy">
             One good moment remembered today. More spotted tomorrow. Day by
-            day, one unfolds in multifolds.
+            day, one moment becomes many.
           </p>
         </section>
 
