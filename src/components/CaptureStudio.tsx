@@ -361,9 +361,6 @@ export default function CaptureStudio() {
                     {LANDING.app.captionLabel}
                   </label>
                   <p className="cta-copy" style={{ marginTop: 0 }}>
-                    {LANDING.app.captionBeside}
-                  </p>
-                  <p className="cta-copy" style={{ marginTop: "0.35rem" }}>
                     {LANDING.app.captionHelp}
                   </p>
                   <input
