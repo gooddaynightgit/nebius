@@ -165,7 +165,7 @@ export function appExcavateUserText(input: {
       ? `Photo notes (use only if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
     caption ? `Optional caption: ${caption}` : "No caption.",
-    "If horrific: BLOCK. Otherwise ingredients only — no bedtime story.",
+    "If horrific: BLOCK. Otherwise ingredients only — no bedtime story. Prefer foil, peel, cocoa, chill over clinical anatomy. Never wrinkled skin, sagging, old hands, or other unflattering body language.",
   ].join("\n\n");
 }
 
@@ -186,7 +186,7 @@ export function appReflectUserText(input: {
     caption
       ? `Optional caption (their whisper): ${caption}`
       : "No caption.",
-    "Write one short Nightly Reflection. Four beats in this order, packed into 1–2 sentences (max ~35 words): name the looking, 2–3 concrete details from the photo (and/or photo description and caption), ownership, door. Second person. Plain reflection text only. Or BLOCK.",
+    "Write one short Nightly Reflection. Four beats in this order, packed into 1–2 sentences (max ~35 words): noticing this still (not camera praise), 2–3 warm concrete details from the photo (and/or photo description and caption), ownership, door into tomorrow's hunt (not a product slogan). Prefer foil, peel, cocoa, chill, bite, wrapping, light, sheets. Never unflattering body, age, skin, or weight language — if the excavation says wrinkled skin, reframe or pick a different kind detail. Never quote marketing taglines. Second person. Plain reflection text only. Or BLOCK.",
   ].join("\n\n");
 }
 
@@ -277,6 +277,9 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 }
 
 function reflectRetryHint(problems: string[], lastBody: string): string {
+  if (problems.includes("harsh")) {
+    return "The last draft used unflattering body, age, skin, weight, or flaw language. Rewrite with warm, kind, glad details from the photo — chocolate, cold, sheets, light, bite, wrapping, foil, peel, cocoa, chill. Never quote wrinkled skin, sagging, old hands, fat, or similar. Pick a different concrete detail if needed. Four beats. 1–2 sentences. ~35 words. Plain reflection text only. Or BLOCK.";
+  }
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
     return "The last draft was too short. Write 1–2 sentences, about 35 words, with all four beats: looking, 2–3 concrete details from the photo description and/or caption, ownership, door. Plain reflection text only. Or BLOCK.";
   }
@@ -284,7 +287,7 @@ function reflectRetryHint(problems: string[], lastBody: string): string {
     return "The last draft was too long. Cut to 1–2 sentences, max ~35 words. Keep the four beats. No extra scene. Plain reflection text only. Or BLOCK.";
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return "Rewrite without questions, exclamation marks, or meta talk about prompts, excavates, captions, or instructions. Four beats. 1–2 sentences. ~35 words. Plain reflection text only. Or BLOCK.";
+    return "Rewrite without questions, exclamation marks, slogans, product talk, or meta talk about prompts, excavates, captions, or instructions. Do not write anyone-can-take-a-photo or the-app-rewires-you. Four beats: noticing this still, warm details, ownership, door. 1–2 sentences. ~35 words. Plain reflection text only. Or BLOCK.";
   }
   return "Rewrite. Follow the brief. Fresh phrasing — do not copy the example. 1–2 sentences, ~35 words. Concrete details from this entry only. No title. No joy labels. Plain reflection text only. Or BLOCK.";
 }
@@ -346,7 +349,7 @@ async function excavateAppPhoto(input: {
   }
 }
 
-const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak"]);
+const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak", "harsh"]);
 
 async function reflectWithModels(
   models: string[],

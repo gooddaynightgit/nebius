@@ -61,6 +61,9 @@ describe("Nightly Reflection message shape", () => {
   });
 });
 
+const INSULT =
+  "You spent today noticing instead of rushing past—wrinkled skin cradling dark chocolate, a moment held like something precious. This quiet pause could only be yours.";
+
 describe("Nightly Reflection live fallback", () => {
   beforeEach(() => {
     completeWithFallback.mockReset();
@@ -162,6 +165,40 @@ describe("Nightly Reflection live fallback", () => {
     expect(hint).toMatch(/Bearer \[redacted\]/);
     expect(hint).not.toMatch(/sk-secret/);
     expect(hint.length).toBeLessThanOrEqual(180);
+  });
+
+  it("retries when the draft quotes wrinkled skin, then accepts a kind rewrite", async () => {
+    completeWithFallback
+      .mockResolvedValueOnce({
+        text: INSULT,
+        model: "moonshotai/Kimi-K2.6",
+      })
+      .mockResolvedValueOnce({
+        text: GOOD,
+        model: "moonshotai/Kimi-K2.6",
+      });
+    const live = await weaveAppStoryFromExcavation(input);
+    expect(live).toMatchObject({ body: GOOD, model: "moonshotai/Kimi-K2.6" });
+    expect(completeWithFallback).toHaveBeenCalledTimes(2);
+    const retryMessages = completeWithFallback.mock.calls[1][1] as Array<{ content: unknown }>;
+    const hint = String(retryMessages[retryMessages.length - 1]?.content ?? "");
+    expect(hint).toMatch(/unflattering body/i);
+    expect(hint).toMatch(/wrinkled skin/i);
+    expect(hint).toMatch(/foil, peel, cocoa/i);
+  });
+
+  it("does not keep a last draft that quotes wrinkled skin", async () => {
+    completeWithFallback.mockResolvedValue({
+      text: INSULT,
+      model: "moonshotai/Kimi-K2.6",
+    });
+    const live = await weaveAppStoryFromExcavation(input);
+    expect(live && "body" in live).toBe(false);
+    expect(live).toMatchObject({
+      fail: expect.objectContaining({
+        lastProblems: expect.arrayContaining(["harsh"]),
+      }),
+    });
   });
 
   it("does not attach an image on the text-only path", async () => {

@@ -6,6 +6,7 @@ import {
   APP_STORY_WORD_HARD_MAX,
   APP_STORY_WORD_MAX,
   appStoryProblems,
+  hasHarshBodyLanguage,
   countAppStorySentences,
   countAppStoryWords,
   expandAppStory,
@@ -85,6 +86,42 @@ describe("app story length and BLOCK", () => {
     expect(
       leaksAppStoryInstruction(
         "You spent today looking for the good — a prompt hello on the screen, a moment that could only belong to you. Kept, it opens the door to more.",
+      ),
+    ).toBe(false);
+  });
+
+  it("flags unflattering body language without treating dark chocolate as harsh", () => {
+    const insult =
+      "You spent today noticing instead of rushing past—wrinkled skin cradling dark chocolate, a moment held like something precious. This quiet pause could only be yours.";
+    const kind =
+      "You spent today looking for the good instead of scrolling past it — and you found it: cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.";
+    expect(hasHarshBodyLanguage(insult)).toBe(true);
+    expect(appStoryProblems(insult, "")).toContain("harsh");
+    expect(hasHarshBodyLanguage("old hands holding the mug")).toBe(true);
+    expect(hasHarshBodyLanguage("sagging")).toBe(true);
+    expect(hasHarshBodyLanguage(kind)).toBe(false);
+    expect(hasHarshBodyLanguage("dark chocolate, quiet sheets, wrinkled foil")).toBe(false);
+    expect(hasHarshBodyLanguage("a bite of cocoa, the chill, the wrapping")).toBe(false);
+    expect(appStoryProblems(kind, "")).toEqual([]);
+  });
+
+  it("flags marketing slogans so the closer can retry", () => {
+    expect(
+      leaksAppStoryInstruction(
+        "Anyone can take a photo — today you notice what it was. Cold chocolate, quiet sheets.",
+      ),
+    ).toBe(true);
+    expect(
+      leaksAppStoryInstruction(
+        "The app doesn't just save your best moment — it rewires your whole day hunting for it.",
+      ),
+    ).toBe(true);
+    expect(appStoryProblems("Anyone can take a photo — today you notice what it was.", "")).toContain(
+      "leak",
+    );
+    expect(
+      leaksAppStoryInstruction(
+        "You spent today looking for the good instead of scrolling past it — cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.",
       ),
     ).toBe(false);
   });

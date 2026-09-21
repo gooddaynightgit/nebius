@@ -13,13 +13,21 @@ export const WEAVE_BLOCKED =
 export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
+/** Unflattering body / age / skin / weight phrasing the closer must not quote. */
+export const APP_STORY_HARSH_BODY_RE =
+  /\b(?:wrinkl(?:ed|y)[\s-]+(?:skin|hands?|fingers?|face|neck|arms?|flesh)|(?:old|aged|aging|ageing)[\s-]+(?:hands?|skin|fingers?|face)|sagging|saggy|loose[\s-]+skin|crepey|flabby|overweight|obese|cellulite|double[\s-]+chin|age[\s-]+spots|liver[\s-]+spots|turkey[\s-]+neck|gnarled|wizened|withered(?:[\s-]+skin)?|blotchy(?:[\s-]+skin)?|veiny(?:[\s-]+hands?)?|baggy[\s-]+eyes|crow'?s[\s-]+feet|jowls|muffin[\s-]+top|fat[\s-]+(?:belly|stomach|arms?|hands?|fingers?|thighs?|face|cheeks?|neck|body)|leathery[\s-]+skin|weathered[\s-]+(?:skin|hands?))\b/i;
+
+export function hasHarshBodyLanguage(text: string): boolean {
+  return APP_STORY_HARSH_BODY_RE.test(text);
+}
+
 const EMPTY_REFLECTION =
   "You spent today looking for the good, and you kept what you found — a moment that could only belong to you. Kept, it opens the door to more.";
 
 const DOOR_CLOSE = "Kept, it opens the door to more.";
 
 export const APP_STORY_LEAK_RE =
-  /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper/i;
+  /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper|anyone can take a photo|today you notice what it was|rewires your whole day|rewire your whole day|doesn't just save your best moment|does not just save your best moment|\bgooddaynight\b|the app doesn't just save|the app does not just save|rewires you\b/i;
 
 export function leaksAppStoryInstruction(body: string): boolean {
   return APP_STORY_LEAK_RE.test(body);
@@ -177,6 +185,7 @@ export function appStoryProblems(body: string, template: string): string[] {
   if (APP_STORY_WELLNESS_RE.test(body)) problems.push("wellness");
   if (celebratesDespair(body)) problems.push("despair");
   if (leaksAppStoryInstruction(body)) problems.push("leak");
+  if (hasHarshBodyLanguage(body)) problems.push("harsh");
   if (/[?!]/.test(body)) problems.push("lecture");
   if (/^title:/im.test(body)) problems.push("title");
   if (/#\w/.test(body) || /\p{Extended_Pictographic}/u.test(body)) problems.push("chrome");
