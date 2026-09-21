@@ -4,7 +4,7 @@ export type JoyType = {
   tagline: string;
   body: string;
   capture: string;
-  playback: string;
+  playbackTemplate: string;
 };
 
 export const LANDING = {
@@ -31,11 +31,22 @@ export const LANDING = {
     whisperLabel: "A whisper next to the photo. 80 characters.",
     whisperExamples: "the light on the kettle / he wrote back / I made it home",
     joyLegend: "What kind of quiet joy was it? (pick one)",
+    playbackExample:
+      "Example of tonight’s tone — not your story yet. YOURS writes yours from this photo.",
   },
   app: {
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     yours: "YOURS",
+    tagline: "One photo. One joy. One story.",
+    yoursHint: "YOURS — the link that opens tonight’s story.",
+    captionLabel: "Optional caption — one line, 80 characters.",
+    captionExamples: "the light on the kettle / he wrote back / I made it home",
+    privateNote:
+      "Private vault only — not shared, posted, or used to train public models.",
+    locked: "Tonight’s photo is locked. YOURS already opened the story.",
+    save: "Save today’s moment",
+    replace: "Replace today’s photo",
   },
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",
@@ -53,7 +64,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "Step into the early light. On the porch. By a window. Along your street. Let it find your face — it resets your body's clock and lifts your serotonin before the day even begins. Gold on your skin. A rhythm waking inside you. This is how a good day starts: gently, with you in it.",
     capture:
       "a photo of the light on your table, the sky on your street, your shadow stretched long on the pavement.",
-    playback:
+    playbackTemplate:
       '"This morning, you stood in the sun. Ten quiet minutes. Gold on your skin. Your body remembered its rhythm. And the day began — gently, breathtakingly, beautifully — with you in it."',
   },
   {
@@ -63,7 +74,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "A roaring laugh with a coworker. A huge wave to your neighbor across the street. A text to a friend that says *you crossed my mind and it made me grin.* Each one floods you with oxytocin — the chemistry of pure belonging — and the whole world lights up like it's in on the joy with you.",
     capture:
       "a photo of the two of you mid-laugh, their name on your screen, your hand still raised in that wave.",
-    playback:
+    playbackTemplate:
       '"Today, you laughed so hard the room got brighter. You waved like you meant it — and it came right back at you. Somewhere, someone is smiling right now because you exist. That\'s not a small thing. That\'s everything."',
   },
   {
@@ -72,7 +83,7 @@ export const JOY_TYPES: JoyType[] = [
     tagline: "Coffee. A page. Dirt on your hands. The phone stayed down.",
     body: "The coffee pours like liquid gold — and you watch every drop like it matters, because it does. Your hands in the garden soil, the earth humming beneath your fingers. A chapter so good the whole world falls away. Phone forgotten. Every sense awake. Every second golden. This is being gloriously, completely alive.",
     capture: "a photo of the steam rising, the soil on your palms, the open book on your knee.",
-    playback:
+    playbackTemplate:
       '"Today, you gave one moment everything — and it gave you back the whole world. Every sense on fire. Every second shining. You weren\'t just doing something today. You were THERE — fully, radiantly, joyfully there."',
   },
   {
@@ -82,7 +93,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "Ten minutes and your whole chemistry changes. A walk brisk enough to feel your heart sing. A stretch long and luxurious, spine waking, shoulders opening. Endorphins flood through you — your body's own joy, made by you, for you, on demand. You are powerful and it feels incredible.",
     capture:
       "a photo of your shoes on the pavement, your arms reaching wide to the sky, the path stretching out ahead of you.",
-    playback:
+    playbackTemplate:
       '"Today, you moved — and your body threw a celebration. Endorphins like fireworks, mood soaring, heart singing. You didn\'t just go for a walk today. You turned yourself ON."',
   },
   {
@@ -92,7 +103,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "One desk. One kitchen counter. One little square of the world, wiped clean and set right. Your hands move, the clutter disappears, and calm rises up to meet you — instant, visible, glorious accomplishment. A tiny island of order, built by you, shining back at you.",
     capture:
       "a photo of the cleared surface gleaming, your hands mid-tidy, the before-and-after smile on your face.",
-    playback:
+    playbackTemplate:
       '"Today, you made order out of chaos — one beautiful corner at a time. You looked at what you built and felt that deep, golden calm: I did this. Your space is brighter. And so are you."',
   },
   {
@@ -101,7 +112,7 @@ export const JOY_TYPES: JoyType[] = [
     tagline: "You don't have to name the category. The photo already knows.",
     body: "Some joys refuse categories — and they're often the best ones. The unexpected. The unrepeatable. The moment you almost didn't capture. It counts. It always counts. Whatever it was, it found you today, and you were wise enough to keep it.",
     capture: "exactly as it happened. No explanation required.",
-    playback:
+    playbackTemplate:
       '"Today held something that doesn\'t fit in any box — and it was yours. You noticed it. You kept it. Some moments are too alive for categories, and tonight, this one is yours to relive, word by word."',
   },
 ];

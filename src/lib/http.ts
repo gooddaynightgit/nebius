@@ -15,3 +15,7 @@ export function forbidden(message: string) {
 export function unauthorized(message: string) {
   return json({ error: message }, 401);
 }
+
+export function notFound(message: string, extra?: Record<string, unknown>) {
+  return json({ error: message, code: "expired", ...extra }, 404);
+}

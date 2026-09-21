@@ -103,6 +103,8 @@ export async function attachEmail(
     storySeen.add(story.id);
   }
 
+  target.yoursOpened = { ...(anon.yoursOpened ?? {}), ...(target.yoursOpened ?? {}) };
+
   if (anon.id !== target.id) {
     anon.email = email;
     await saveVault(anon);
@@ -139,6 +141,11 @@ export function hydrateCaptures(
     mediaContentType: capture.mediaContentType,
     ingestModel: capture.ingestModel,
     ingestStatus: capture.ingestStatus ?? "ok",
+    joyType: capture.joyType,
+    source: capture.source,
+    dateVerified: capture.dateVerified,
+    photoTakenAt: capture.photoTakenAt,
+    locked: capture.locked,
   }));
 }
 
@@ -211,7 +218,53 @@ export function lastStoryForDay(
   vault: VaultRecord,
   day: string,
 ): StoryRecord | null {
-  return vault.stories.find((s) => s.day === day) ?? lastStory(vault);
+  return vault.stories.find((s) => s.day === day) ?? null;
+}
+
+export function appPhotoForDay(vault: VaultRecord, day: string): CaptureRecord | null {
+  const photos = vault.captures.filter(
+    (capture) => capture.day === day && capture.kind === "photo" && capture.source === "app",
+  );
+  return photos.at(-1) ?? null;
+}
+
+export function isYoursOpened(vault: VaultRecord, day: string): boolean {
+  return Boolean(vault.yoursOpened?.[day] || appPhotoForDay(vault, day)?.locked);
+}
+
+export async function markYoursOpened(vault: VaultRecord, day: string): Promise<void> {
+  vault.yoursOpened = { ...vault.yoursOpened, [day]: new Date().toISOString() };
+  const photo = appPhotoForDay(vault, day);
+  if (photo) {
+    const idx = vault.captures.findIndex((item) => item.id === photo.id);
+    if (idx >= 0) vault.captures[idx] = { ...vault.captures[idx], locked: true };
+  }
+  await saveVault(vault);
+}
+
+export async function upsertAppPhoto(
+  vault: VaultRecord,
+  capture: Omit<CaptureRecord, "vaultId">,
+): Promise<CaptureRecord> {
+  const existing = appPhotoForDay(vault, capture.day);
+  if (existing?.locked || vault.yoursOpened?.[capture.day]) {
+    throw new Error("Today's photo is locked. YOURS already opened tonight's story.");
+  }
+  if (existing) {
+    vault.stories = vault.stories.filter((story) => story.day !== capture.day);
+    const record: CaptureRecord = {
+      ...existing,
+      ...capture,
+      id: existing.id,
+      vaultId: vault.id,
+      locked: false,
+    };
+    const idx = vault.captures.findIndex((item) => item.id === existing.id);
+    vault.captures[idx] = record;
+    await saveVault(vault);
+    return record;
+  }
+  return addCapture(vault, capture);
 }
 
 export async function listEmailVaults(): Promise<VaultRecord[]> {

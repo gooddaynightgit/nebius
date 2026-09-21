@@ -71,4 +71,49 @@ describe("private vault", () => {
     expect(vault.captures[0].kind).toBe("voice");
     expect(mergeCapturesIntoVault(vault, vault.captures, "2026-09-20")).toBe(false);
   });
+
+  it("replaces today's app photo until YOURS is opened, then locks", async () => {
+    const {
+      getOrCreateAnonVault,
+      upsertAppPhoto,
+      markYoursOpened,
+      appPhotoForDay,
+    } = await import("./vault");
+    const vault = await getOrCreateAnonVault("session-app-photo");
+    const first = await upsertAppPhoto(vault, {
+      id: "cap_a",
+      kind: "photo",
+      createdAt: "2026-09-21T10:00:00.000Z",
+      day: "2026-09-21",
+      caption: "first still",
+      joyType: "morning-sunlight",
+      source: "app",
+      ingestStatus: "mock",
+    });
+    const second = await upsertAppPhoto(vault, {
+      id: "cap_b",
+      kind: "photo",
+      createdAt: "2026-09-21T11:00:00.000Z",
+      day: "2026-09-21",
+      caption: "second still",
+      joyType: "just-this",
+      source: "app",
+      ingestStatus: "mock",
+    });
+    expect(second.id).toBe(first.id);
+    expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBe("second still");
+    await markYoursOpened(vault, "2026-09-21");
+    await expect(
+      upsertAppPhoto(vault, {
+        id: "cap_c",
+        kind: "photo",
+        createdAt: "2026-09-21T12:00:00.000Z",
+        day: "2026-09-21",
+        caption: "too late",
+        joyType: "just-this",
+        source: "app",
+        ingestStatus: "mock",
+      }),
+    ).rejects.toThrow(/locked/i);
+  });
 });

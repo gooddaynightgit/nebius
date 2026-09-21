@@ -8,16 +8,16 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 ## Funnel
 
-1. Landing: hero + CTA **Hear your story — free** — no email form. **One good moment today** is an accordion: drop a photo (optional 80-character whisper) and pick one of six quiet-joy radios. Collapsed rows show title + italic tagline; selecting a type opens body, **Capture it**, and a pale lavender **Story playback** box. Clicking the CTA opens `/app`. Landing photos/whispers save through the same `/api/captures` vault as the app.
-2. `/app` is **photo only**, in this order: one photo upload, one quiet-joy radio, then **YOURS** — a link that opens the woven story in a pale lavender playback card. Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* Each capture is stored (Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, otherwise Nebius object storage, otherwise local JSON/files).
-3. Only after ≥1 moment does the app ask for email, which unlocks **YOURS**.
+1. Landing: hero + CTA **Hear your story — free** — no email form. **One good moment today** is an accordion: drop a photo (optional 80-character whisper) and pick one of six quiet-joy radios. Collapsed rows show title + italic tagline; selecting a type opens body, **Capture it**, and a pale lavender **Story playback** box labeled as an **example of tone** (the canned `playbackTemplate`, not tonight's story). Clicking the CTA opens `/app`. Landing photos/whispers save through the same `/api/captures` vault as the app.
+2. `/app` is **photo only**: heading **One good moment today**, tagline **One photo. One joy. One story.** Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* Save one still + one joy pick (optional 80-character caption). **YOURS** then appears — the only door to tonight's story (`/app/yours`). Nemotron analyzes the photo + joy pick (Nano Omni when a Token Factory key is present; text-only rephrase of the joy template otherwise). Super weaves a **fresh** story from that analysis and the joy `playbackTemplate` — never the canned quote unchanged. After YOURS opens, the photo locks. After midnight the story link expires.
+3. Private vault only — not shared, posted, or used to train public models. Email remains available on the landing path; `/app` does not ask for it to open YOURS.
 
 ## Architecture
 
 | Layer | What |
 | --- | --- |
 | Frontend | Next.js App Router on Vercel. Landing + `/app` capture UI + story player with replay-last-night. |
-| API | `/api/captures` ingest, `/api/email` gate, `/api/weave` story, `/api/story` + `/api/story/audio` playback. |
+| API | `/api/captures` ingest (`source=app` enforces photo-day rules), `/api/yours` open/lock tonight's story, `/api/email` gate (landing path), `/api/weave` story, `/api/story` + `/api/story/audio` playback. |
 | Ingest | Nemotron Nano via Token Factory extracts “the good.” Photos try Nano-Omni, then Nano. |
 | Weave | Nemotron 3 Super writes the bedtime story. Optional Ultra continuity from last night. |
 | Voice | NVIDIA Sonic via Token Factory when a model id is listable; otherwise stub TTS and play the story in a calm browser voice. |
@@ -103,11 +103,10 @@ nebius ai job create \
 ## Demo script (≤3 minutes)
 
 1. **0:00** Landing. Point at the colour blocks and the lime **Hear your story — free**. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender Story playback. There is no signup field. Click through.
-2. **0:20** `/app`. Heading is **One good moment today**. Upload one photo, pick a quiet-joy radio (italic tagline, Capture it, pale lavender Story playback preview). **YOURS** appears — tap it to save and open the story.
-3. **0:50** The email card appears only now. Enter an email. Unlock.
-4. **1:10** Tap **Weave now**. If `NEBIUS_API_KEY` is set, Super writes the story; otherwise the mock story still plays in a pale lavender playback card. Tap **Replay last night** and let the calm voice read it.
-5. **1:50** Header shows Token Factory vs demo mode. Mention: Nano extracts the good, Super weaves, vault is private, Sonic is stubbed until Token Factory lists it, nightly job at 21:00 is the same `/api/weave` path.
-6. **2:20** Add one more moment and weave again — last night / this session stays in the vault for replay.
+2. **0:20** `/app`. Heading is **One good moment today**. Tagline: **One photo. One joy. One story.** Upload one photo (screenshots count; a video can yield one still), optional 80-character caption, pick a quiet-joy radio. **Save today's moment** — then **YOURS** appears. Tap it to open `/app/yours`.
+3. **0:50** Pale lavender Story playback reads the **woven** story (not the canned joy template). Replay last night.
+4. **1:20** Header shows Token Factory vs demo mode. Mention: Nano (Omni when available) reads the photo + joy pick, Super rewrites from the playback template, vault is private, Sonic is stubbed until Token Factory lists it.
+5. **1:50** After YOURS, the photo is locked. After midnight the link expires.
 
 ## API sketch
 
@@ -115,9 +114,10 @@ nebius ai job create \
 | --- | --- | --- |
 | GET | `/api/health` | Models, storage backend, Token Factory flag |
 | GET | `/api/session` | Anonymous cookie vault |
-| GET/POST | `/api/captures` | List / store a moment and Nano-ingest |
+| GET/POST | `/api/captures` | List / store a moment and Nano-ingest. `source=app` enforces one photo/day, today-only, joy pick, caption ≤80, no video, safety denylist |
 | GET | `/api/media/:id` | Private media for this vault |
-| POST | `/api/email` | Gate after ≥1 capture; accepts client `captures` if the server vault is empty; migrate anon → email vault |
+| GET/POST | `/api/yours` | Open tonight's woven story, lock the photo; 404 after midnight or if nothing was saved |
+| POST | `/api/email` | Gate after ≥1 capture on the landing path; accepts client `captures` if the server vault is empty; migrate anon → email vault |
 | POST | `/api/weave` | Super weave (session or cron) |
 | GET | `/api/story` | Last story |
 | GET | `/api/story/audio` | Sonic audio when present |

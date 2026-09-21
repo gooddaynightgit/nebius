@@ -1,12 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useId, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
-import StoryPlayback from "@/components/StoryPlayback";
-import { LANDING, PHOTO_MAX_BYTES, getJoyById, type JoyType } from "@/lib/landing";
+import { localDay } from "@/lib/day";
+import {
+  LANDING,
+  PHOTO_MAX_BYTES,
+  WHISPER_MAX,
+  getJoyById,
+  type JoyType,
+} from "@/lib/landing";
+import {
+  inspectPhotoDate,
+  isImageMime,
+  isVideoMime,
+  looksLikeBorrowedName,
+  looksLikeMemeName,
+  PHOTO_DATE_MESSAGES,
+} from "@/lib/photo";
+import { isHorrificFilename, isHorrificText, SAFETY_REFUSAL } from "@/lib/safety-text";
 import { SILVER_LINING_NOTE, displayMoment } from "@/lib/prompts";
-import type { CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
+import type { CaptureRecord, SessionState } from "@/lib/types";
 
 type Health = {
   tokenFactory: boolean;
@@ -14,97 +29,92 @@ type Health = {
   sonicListable: boolean;
 };
 
-function localDay() {
-  return new Intl.DateTimeFormat("en-CA").format(new Date());
-}
-
 async function readJson<T>(res: Response): Promise<T> {
   const data = (await res.json()) as T & { error?: string };
   if (!res.ok) throw new Error(data.error || "Something went sideways.");
   return data;
 }
 
-function capturePayload(capture: CaptureRecord) {
-  return {
-    id: capture.id,
-    kind: capture.kind,
-    createdAt: capture.createdAt,
-    day: capture.day,
-    text: capture.text,
-    transcript: capture.transcript,
-    caption: capture.caption,
-    goodMoment: capture.goodMoment,
-    reframed: capture.reframed,
-    ingestStatus: capture.ingestStatus,
-    ingestModel: capture.ingestModel,
-  };
-}
-
-function readLocalCaptures(day: string): CaptureRecord[] {
+async function stillFromVideo(file: File): Promise<File> {
+  const url = URL.createObjectURL(file);
   try {
-    const raw = window.sessionStorage.getItem(`gdn.captures.${day}`);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as CaptureRecord[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeLocalCaptures(day: string, captures: CaptureRecord[]) {
-  try {
-    window.sessionStorage.setItem(`gdn.captures.${day}`, JSON.stringify(captures));
-  } catch {
-    // Private mode should not break capture.
+    const video = document.createElement("video");
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "metadata";
+    video.src = url;
+    await new Promise<void>((resolve, reject) => {
+      const fail = () => reject(new Error("Could not read that video."));
+      video.onloadeddata = () => resolve();
+      video.onerror = fail;
+      window.setTimeout(fail, 8000);
+    });
+    if (video.readyState < 2) {
+      await new Promise<void>((resolve) => {
+        video.onseeked = () => resolve();
+        video.currentTime = Math.min(0.2, (video.duration || 1) / 4);
+        window.setTimeout(() => resolve(), 1200);
+      });
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 720;
+    canvas.height = video.videoHeight || 720;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not keep a still from that video.");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (next) => (next ? resolve(next) : reject(new Error("Could not keep a still from that video."))),
+        "image/jpeg",
+        0.92,
+      );
+    });
+    const stem = file.name.replace(/\.[^.]+$/, "") || "still";
+    return new File([blob], `${stem}.jpg`, {
+      type: "image/jpeg",
+      lastModified: file.lastModified || Date.now(),
+    });
+  } finally {
+    URL.revokeObjectURL(url);
   }
 }
 
 export default function CaptureStudio() {
   const photoInputId = useId();
+  const captionId = useId();
   const [session, setSession] = useState<SessionState | null>(null);
-  const [captures, setCaptures] = useState<CaptureRecord[]>([]);
   const [health, setHealth] = useState<Health | null>(null);
-  const [email, setEmail] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [captureError, setCaptureError] = useState<string | null>(null);
-  const [unlockError, setUnlockError] = useState<string | null>(null);
-  const [weaveError, setWeaveError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"capture" | "unlock" | "weave" | null>(null);
-  const [story, setStory] = useState<StoryRecord | null>(null);
-  const [playing, setPlaying] = useState(false);
+  const [caption, setCaption] = useState("");
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
-  const [savedPair, setSavedPair] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [captureError, setCaptureError] = useState<string | null>(null);
+  const [dateNote, setDateNote] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  const day = useMemo(localDay, []);
+  const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
-  const pairKey = photo && selectedJoy ? `${selectedJoy.id}:${photo.name}:${photo.size}:${photo.lastModified}` : null;
+  const locked = Boolean(session?.yoursOpened);
+  const savedPhoto = session?.todayPhoto ?? null;
+  const yoursReady = Boolean(savedPhoto);
+  const previewSrc =
+    photoUrl || (savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null);
 
   const refresh = useCallback(async () => {
-    const [sessionRes, captureRes] = await Promise.all([
-      fetch(`/api/session?day=${day}`),
-      fetch(`/api/captures?day=${day}`),
-    ]);
+    const sessionRes = await fetch(`/api/session?day=${day}`);
     const sessionData = await readJson<SessionState & { health?: Health }>(sessionRes);
-    const captureData = await readJson<{ captures: CaptureRecord[]; session: SessionState }>(
-      captureRes,
-    );
-    setSession(captureData.session);
-    const local = readLocalCaptures(day);
-    const fromServer = captureData.captures;
-    const merged =
-      fromServer.length >= local.length
-        ? fromServer
-        : [
-            ...fromServer,
-            ...local.filter((item) => !fromServer.some((row) => row.id === item.id)),
-          ];
-    setCaptures(merged);
-    writeLocalCaptures(day, merged);
-    setStory(captureData.session.lastStory);
+    setSession(sessionData);
     if (sessionData.health) setHealth(sessionData.health);
-  }, [day]);
+    if (!hydrated && sessionData.todayPhoto) {
+      setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
+      setCaption(sessionData.todayPhoto.caption ?? "");
+      if (!sessionData.todayPhoto.dateVerified) {
+        setDateNote(PHOTO_DATE_MESSAGES.unverified);
+      }
+    }
+    setHydrated(true);
+  }, [day, hydrated]);
 
   useEffect(() => {
     refresh().catch((err: Error) => setCaptureError(err.message));
@@ -113,182 +123,124 @@ export default function CaptureStudio() {
   useEffect(() => {
     return () => {
       if (photoUrl) URL.revokeObjectURL(photoUrl);
-      window.speechSynthesis?.cancel();
     };
   }, [photoUrl]);
 
-  function takePhoto(file: File | null) {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
+  async function takePhoto(file: File | null) {
+    if (!file || locked) return;
+    let next = file;
+    if (isVideoMime(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
+      try {
+        next = await stillFromVideo(file);
+        setDateNote("Videos aren't saved. We kept one still frame.");
+      } catch (error) {
+        setCaptureError(
+          error instanceof Error ? error.message : "Videos aren't saved. Extract one still frame and try again.",
+        );
+        return;
+      }
+    } else if (!isImageMime(next.type) && !next.type.startsWith("image/")) {
       setCaptureError("Choose a photo — a still from the day.");
       return;
     }
-    if (file.size > PHOTO_MAX_BYTES) {
+    if (next.size > PHOTO_MAX_BYTES) {
       setCaptureError("Keep photos under 4.5 MB.");
       return;
     }
+    if (looksLikeMemeName(next.name)) {
+      setCaptureError("Tonight is for your own moment, not a meme.");
+      return;
+    }
+    if (looksLikeBorrowedName(next.name)) {
+      setCaptureError("Tonight is for your own moment — not someone else's picture.");
+      return;
+    }
+    if (isHorrificFilename(next.name)) {
+      setCaptureError(SAFETY_REFUSAL);
+      return;
+    }
+    const date = inspectPhotoDate({
+      lastModified: next.lastModified,
+      localDay: day,
+      tzOffsetMinutes: new Date().getTimezoneOffset(),
+    });
+    if (date.takenDay && date.takenDay !== day) {
+      setCaptureError(PHOTO_DATE_MESSAGES.old);
+      return;
+    }
     setCaptureError(null);
-    setPhoto(file);
+    if (!date.verified) {
+      setDateNote(date.reason === "none" ? PHOTO_DATE_MESSAGES.missing : PHOTO_DATE_MESSAGES.unverified);
+    } else if (!dateNote?.startsWith("Videos")) {
+      setDateNote(null);
+    }
+    setPhoto(next);
     setPhotoUrl((current) => {
       if (current) URL.revokeObjectURL(current);
-      return URL.createObjectURL(file);
+      return URL.createObjectURL(next);
     });
   }
 
   function pickJoy(joy: JoyType) {
+    if (locked) return;
     setSelectedJoyId(joy.id);
     setCaptureError(null);
   }
 
-  async function weaveCaptures(nextCaptures: CaptureRecord[], nextSession: SessionState | null) {
-    setBusy("weave");
-    setWeaveError(null);
-    try {
-      const res = await fetch("/api/weave", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          day,
-          email: nextSession?.email || email,
-          captures: nextCaptures.map(capturePayload),
-        }),
-      });
-      const data = await readJson<{ story: StoryRecord; session: SessionState }>(res);
-      setStory(data.story);
-      setSession(data.session);
-      window.requestAnimationFrame(() => {
-        document.getElementById("yours")?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start",
-        });
-      });
-      return data.story;
-    } catch (err) {
-      setWeaveError(err instanceof Error ? err.message : "Weave failed.");
-      return null;
-    } finally {
-      setBusy(null);
+  async function saveMoment(event: FormEvent) {
+    event.preventDefault();
+    if (locked) {
+      setCaptureError(LANDING.app.locked);
+      return;
     }
-  }
-
-  async function savePhotoJoy(): Promise<{
-    captures: CaptureRecord[];
-    session: SessionState;
-  } | null> {
-    if (!selectedJoy || !photo) {
-      setCaptureError(photo ? "Pick the kind of quiet joy first." : "Add one photo from today.");
-      return null;
+    if (!photo && !savedPhoto) {
+      setCaptureError("Add one photo from today.");
+      return;
     }
-    if (savedPair === pairKey && captures.length > 0 && session) {
-      return { captures, session };
+    if (!selectedJoy) {
+      setCaptureError("Pick the kind of quiet joy first.");
+      return;
     }
-    setBusy("capture");
+    const line = caption.replace(/\s+/g, " ").trim();
+    if (line.length > WHISPER_MAX) {
+      setCaptureError(`Keep the caption to ${WHISPER_MAX} characters.`);
+      return;
+    }
+    if (isHorrificText(line)) {
+      setCaptureError(SAFETY_REFUSAL);
+      return;
+    }
+    setBusy(true);
     setCaptureError(null);
     try {
       const form = new FormData();
+      form.set("source", "app");
       form.set("kind", "photo");
       form.set("day", day);
-      form.set("caption", selectedJoy.title);
-      form.set("spellDecision", "keep");
-      form.set("file", photo, photo.name || "moment.jpg");
+      form.set("joyType", selectedJoy.id);
+      form.set("tzOffset", String(new Date().getTimezoneOffset()));
+      if (line) form.set("caption", line);
+      if (photo) form.set("file", photo, photo.name || "moment.jpg");
       const res = await fetch("/api/captures", { method: "POST", body: form });
       const data = (await res.json()) as {
         capture?: CaptureRecord;
         session?: SessionState;
         error?: string;
+        dateNote?: string;
       };
-      if (!res.ok || !data.capture || !data.session) {
-        throw new Error(data.error || "Something went sideways.");
+      if (!res.ok || !data.session) {
+        throw new Error(data.error || "Could not save that moment.");
       }
-      const nextCaptures = [...captures, data.capture];
       setSession(data.session);
-      setCaptures(nextCaptures);
-      writeLocalCaptures(day, nextCaptures);
-      setSavedPair(pairKey);
-      return { captures: nextCaptures, session: data.session };
+      if (data.dateNote) setDateNote(data.dateNote);
     } catch (err) {
       setCaptureError(err instanceof Error ? err.message : "Could not save that moment.");
-      return null;
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   }
 
-  async function openYours(event: MouseEvent<HTMLAnchorElement>) {
-    if (story) return;
-    event.preventDefault();
-    const saved = await savePhotoJoy();
-    if (!saved) return;
-    if (!saved.session.email) {
-      document.getElementById("email-heading")?.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-        block: "start",
-      });
-      return;
-    }
-    await weaveCaptures(saved.captures, saved.session);
-  }
-
-  async function unlockEmail(event: FormEvent) {
-    event.preventDefault();
-    setBusy("unlock");
-    setUnlockError(null);
-    try {
-      const res = await fetch("/api/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          day,
-          captures: captures.map(capturePayload),
-        }),
-      });
-      const data = await readJson<{ session: SessionState }>(res);
-      setSession(data.session);
-      if (captures.length >= 1) {
-        await weaveCaptures(captures, data.session);
-      }
-    } catch (err) {
-      setUnlockError(err instanceof Error ? err.message : "Could not save email.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  function speakStory(record: StoryRecord) {
-    window.speechSynthesis?.cancel();
-    if (record.tts.status === "sonic") {
-      const audio = audioRef.current ?? new Audio("/api/story/audio");
-      audioRef.current = audio;
-      audio.src = `/api/story/audio?t=${record.id}`;
-      void audio.play();
-      setPlaying(true);
-      audio.onended = () => setPlaying(false);
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(`${record.title}. ${record.body}`);
-    utterance.rate = 0.82;
-    utterance.pitch = 0.88;
-    const voices = window.speechSynthesis?.getVoices() ?? [];
-    const voice =
-      voices.find((item) => /samantha|victoria|karen|moira|fiona/i.test(item.name)) ||
-      voices.find((item) => /en[-_]?GB/i.test(item.lang) && /female|google/i.test(item.name)) ||
-      voices.find((item) => /en[-_]?US/i.test(item.lang) && /female|google/i.test(item.name));
-    if (voice) utterance.voice = voice;
-    utterance.onend = () => setPlaying(false);
-    setPlaying(true);
-    window.speechSynthesis?.speak(utterance);
-  }
-
-  function stopStory() {
-    window.speechSynthesis?.cancel();
-    audioRef.current?.pause();
-    setPlaying(false);
-  }
-
-  const unlocked = Boolean(session?.email);
-  const showEmail = !unlocked && captures.length >= 1;
-  const yoursReady = Boolean((photo && selectedJoy) || story);
+  const shown = savedPhoto ? displayMoment(savedPhoto) : null;
 
   return (
     <div className="page">
@@ -304,175 +256,126 @@ export default function CaptureStudio() {
       <main id="main">
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.moment.title}</h1>
+          <p className="app-tagline">{LANDING.app.tagline}</p>
+          <p className="app-yours-hint">{LANDING.app.yoursHint}</p>
         </section>
 
-        <section className="card card--dark" aria-labelledby="capture-heading">
-          <span className="pill">Photo</span>
-          <h2 id="capture-heading" className="visually-hidden">
-            Add a photo
-          </h2>
-          <p className="cta-copy" style={{ marginTop: 0 }}>
-            {LANDING.app.photoHelp}
-          </p>
-          <div className="studio">
-            <label className="btn btn--ghost" htmlFor={photoInputId}>
-              {photo ? "Choose another photo" : "Take or upload a photo"}
-            </label>
-            <input
-              id={photoInputId}
-              className="visually-hidden"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={(event) => {
-                takePhoto(event.target.files?.[0] ?? null);
-                event.target.value = "";
-              }}
-            />
-            {photoUrl ? (
-              // User-selected blob preview — next/image cannot optimize object URLs.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img className="photo-preview" src={photoUrl} alt="Selected moment from today" />
-            ) : null}
-          </div>
-          {captureError ? (
-            <p className="error" role="alert">
-              {captureError}
+        <form onSubmit={saveMoment}>
+          <section className="card card--dark" aria-labelledby="capture-heading">
+            <span className="pill">Photo</span>
+            <h2 id="capture-heading" className="visually-hidden">
+              Add a photo
+            </h2>
+            <p className="cta-copy" style={{ marginTop: 0 }}>
+              {LANDING.app.photoHelp}
             </p>
-          ) : null}
-        </section>
+            <div className="studio">
+              <label className="btn btn--ghost" htmlFor={photoInputId}>
+                {locked
+                  ? "Photo locked"
+                  : photo || savedPhoto
+                    ? "Choose another photo"
+                    : "Take or upload a photo"}
+              </label>
+              <input
+                id={photoInputId}
+                className="visually-hidden"
+                type="file"
+                accept="image/*,video/*"
+                capture="environment"
+                disabled={locked}
+                onChange={(event) => {
+                  void takePhoto(event.target.files?.[0] ?? null);
+                  event.target.value = "";
+                }}
+              />
+              {previewSrc ? (
+                // User-selected blob preview — next/image cannot optimize object URLs.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="photo-preview" src={previewSrc} alt="Selected moment from today" />
+              ) : null}
+              <label className="whisper-label" htmlFor={captionId} style={{ color: "#f4f7fb" }}>
+                {LANDING.app.captionLabel}
+              </label>
+              <input
+                id={captionId}
+                type="text"
+                maxLength={WHISPER_MAX}
+                autoComplete="off"
+                placeholder={LANDING.app.captionExamples}
+                value={caption}
+                disabled={locked}
+                onChange={(event) => setCaption(event.target.value.replace(/\n/g, " ").slice(0, WHISPER_MAX))}
+              />
+              <p className="whisper-count" style={{ color: "rgba(244,247,251,0.7)" }}>
+                {caption.length}/{WHISPER_MAX}
+              </p>
+            </div>
+            {dateNote ? (
+              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
+                {dateNote}
+              </p>
+            ) : null}
+            {captureError ? (
+              <p className="error" role="alert">
+                {captureError}
+              </p>
+            ) : null}
+            {locked ? (
+              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
+                {LANDING.app.locked}
+              </p>
+            ) : (
+              <button className="btn btn--lime" type="submit" disabled={busy} style={{ marginTop: "1rem" }}>
+                {busy ? "Saving…" : savedPhoto ? LANDING.app.replace : LANDING.app.save}
+              </button>
+            )}
+          </section>
 
-        <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">
-          <h2 id="joy-heading" className="visually-hidden">
-            What kind of quiet joy was it?
-          </h2>
-          <JoyPicker
-            name="quiet-joy-app"
-            idPrefix="app-joy"
-            selectedId={selectedJoyId}
-            onSelect={pickJoy}
-          />
-          <span className="card__wash card__wash--note" aria-hidden="true"></span>
-        </section>
+          <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">
+            <h2 id="joy-heading" className="visually-hidden">
+              What kind of quiet joy was it?
+            </h2>
+            <JoyPicker
+              name="quiet-joy-app"
+              idPrefix="app-joy"
+              selectedId={selectedJoyId}
+              onSelect={pickJoy}
+            />
+            <span className="card__wash card__wash--note" aria-hidden="true"></span>
+          </section>
+        </form>
 
         {yoursReady ? (
           <section className="card card--lime card--compact" aria-label={LANDING.app.yours}>
-            <a
-              className="yours"
-              href="#yours"
-              onClick={(event) => {
-                void openYours(event);
-              }}
-            >
-              {busy === "capture" || busy === "weave" ? "…" : LANDING.app.yours}
-            </a>
+            <Link className="yours" href="/app/yours">
+              {LANDING.app.yours}
+            </Link>
           </section>
         ) : null}
 
         <section className="card card--cream card--compact" aria-labelledby="today-heading">
-          <h2 id="today-heading">Today’s moments</h2>
-          {captures.length === 0 ? (
+          <h2 id="today-heading">Today’s moment</h2>
+          {!savedPhoto ? (
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
-              Nothing saved yet. One moment is enough.
+              Nothing saved yet. One photo and one joy, then YOURS.
             </p>
           ) : (
             <div className="moment-list">
-              {captures.map((capture) => {
-                const shown = displayMoment(capture);
-                return (
-                  <article className="moment" key={capture.id}>
-                    <span className="moment__kind">{capture.kind}</span>
-                    <p>{shown.line}</p>
-                    {shown.reframed && <p className="moment__note">{SILVER_LINING_NOTE}</p>}
-                  </article>
-                );
-              })}
+              <article className="moment">
+                <span className="moment__kind">
+                  {getJoyById(savedPhoto.joyType)?.title ?? "photo"}
+                </span>
+                <p>{shown?.line}</p>
+                {shown?.reframed ? <p className="moment__note">{SILVER_LINING_NOTE}</p> : null}
+              </article>
             </div>
           )}
         </section>
-
-        {showEmail && (
-          <section className="card card--dark card--compact" aria-labelledby="email-heading">
-            <span className="pill">Unlock</span>
-            <h2 id="email-heading">Hear your own good-moments story</h2>
-            <p className="cta-copy">
-              Email unlocks playback. Your vault stays private — keyed to you, never sent elsewhere.
-            </p>
-            <form className="studio" onSubmit={unlockEmail} style={{ marginTop: "1rem" }}>
-              <label className="visually-hidden" htmlFor="unlock-email">
-                Email
-              </label>
-              <input
-                id="unlock-email"
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                spellCheck={false}
-                required
-                placeholder="you@email.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-              {unlockError && (
-                <p className="error" role="alert">
-                  {unlockError}
-                </p>
-              )}
-              <button className="btn btn--lime" type="submit" disabled={Boolean(busy)}>
-                {busy === "unlock" ? "Unlocking…" : "Unlock my story"}
-              </button>
-            </form>
-          </section>
-        )}
-
-        {weaveError && !story ? (
-          <p className="error" role="alert">
-            {weaveError}
-          </p>
-        ) : null}
-
-        {story && (
-          <section
-            id="yours"
-            className="card card--peach card--compact"
-            aria-labelledby="yours-heading"
-          >
-            <h2 id="yours-heading" className="visually-hidden">
-              {LANDING.app.yours}
-            </h2>
-            <div className="story-body">
-              <StoryPlayback id="app-story-playback" title={story.title}>
-                <p className="playback__story">{story.body}</p>
-              </StoryPlayback>
-              <div className="actions" style={{ marginTop: "0.2rem" }}>
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() => (playing ? stopStory() : speakStory(story))}
-                  style={{ color: "var(--navy)", borderColor: "rgba(22,50,74,0.25)" }}
-                >
-                  {playing ? "Pause" : "Replay last night"}
-                </button>
-              </div>
-              {weaveError && (
-                <p className="error" role="alert">
-                  {weaveError}
-                </p>
-              )}
-              <div className="status-row">
-                <span className="chip">
-                  {story.mock ? "Joyful stand-in (add NEBIUS_API_KEY for Super)" : story.weaveModel}
-                </span>
-                <span className="chip">
-                  {story.tts.status === "sonic" ? "Sonic voice" : "Browser voice (Sonic coming)"}
-                </span>
-              </div>
-            </div>
-          </section>
-        )}
       </main>
 
       <footer className="site-footer">
+        <p className="private-note">{LANDING.app.privateNote}</p>
         <p>
           <Link href="/">Back to Gooddaynight</Link>
         </p>

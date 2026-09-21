@@ -90,8 +90,11 @@ export default function JoyPicker({
                   <p className="joy__capture">
                     <span>Capture it</span> {joy.capture}
                   </p>
-                  <StoryPlayback id={`${idPrefix}-playback-${joy.id}`}>
-                    {joy.playback}
+                  <StoryPlayback
+                    id={`${idPrefix}-playback-${joy.id}`}
+                    eyebrow={LANDING.moment.playbackExample}
+                  >
+                    {joy.playbackTemplate}
                   </StoryPlayback>
                 </div>
               ) : null}

@@ -1,3 +1,4 @@
+import { JOY_TYPES, type JoyType } from "./landing";
 import {
   cleanSpokenLine,
   isSelfNegating,
@@ -38,6 +39,23 @@ Rules:
 - Ban negation-as-reassurance: "not as a task", "not a to-do", "not a chore", "not something you have to", "just as something true" after a not-clause. Do not apologize for the feeling.
 - End by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally your own good moments unfolds — your own good moments multifolds." Soft, wonder-struck, never preachy, never advice.
 - First line MUST be: Title: <short title that reflects THEIR moment>`;
+
+export const APP_WEAVE_SYSTEM = `You are Gooddaynight, a private bedtime storyteller.
+Write a joyful, uplifting, emotionally warm story the listener hears as they float into sleep.
+Strong feeling, soft delivery: a smile in the chest, never a hype yell, never calm-clinical.
+
+You are given a quiet-joy PLAYBACK TEMPLATE. It is an example of TONE only.
+You MUST rewrite it into a fresh story grounded in THIS photo (vision notes), THIS joy pick, and the optional caption.
+NEVER copy, quote, or lightly edit the template's distinctive sentences. New wording every time. If a sentence could have come from the canned playback, throw it away and write another.
+
+Rules:
+- Second person ("you"). 180–280 words.
+- Ground the story in visible or named details from THIS photo and caption. Do not invent people, places, or plots that are not in the notes.
+- If a moment is marked [silver lining], that lining IS the good. NEVER quote, repeat, or celebrate despair. Praise the courage of naming the wish; a heart that loves connection; implied worth.
+- Narrative spine: their good (or silver lining) leads → specific praise earned from THIS still → why it landed → implied worth from this moment only → float into sleep, multifold.
+- Tone: glad, tender, glowing. Ban bleak imagery, productivity framing, and negation-as-reassurance ("not as a task").
+- End by gently floating into slumber: returning to this good unfolds it, then unfolds it again — multifold. A smile in the chest.
+- First line MUST be: Title: <short title that reflects THEIR photo>`;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
 Given last night's story and today's good moments, return ONLY JSON:
@@ -319,4 +337,101 @@ function titleFromMoments(moments: string[]): string {
   if (/friend/.test(joined)) return "The friend who thought of you";
   if (/happy|glad|joy|smile/.test(joined)) return "The happiness you kept";
   return "The good that found you";
+}
+
+export function stripPlaybackQuotes(template: string): string {
+  return template.replace(/^[\s"'“”]+|[\s"'“”]+$/g, "").trim();
+}
+
+export const CANNED_PLAYBACK_MARKERS = [
+  "Ten quiet minutes. Gold on your skin",
+  "You turned yourself ON",
+  "fully, radiantly, joyfully there",
+  "That's not a small thing. That's everything",
+  "Your space is brighter. And so are you",
+  "too alive for categories",
+  "Endorphins like fireworks",
+  "breathtakingly, beautifully — with you in it",
+] as const;
+
+export function usesCannedPlayback(body: string, template: string): boolean {
+  const hay = body.replace(/\s+/g, " ");
+  const raw = stripPlaybackQuotes(template);
+  if (raw.length >= 32 && hay.includes(raw.slice(0, 32))) return true;
+  if (raw.length >= 48 && hay.includes(raw.slice(-48))) return true;
+  for (const marker of CANNED_PLAYBACK_MARKERS) {
+    if (hay.includes(marker)) return true;
+  }
+  const sentences = raw.split(/(?<=\.)\s+/).map((part) => part.trim()).filter((part) => part.length >= 28);
+  return sentences.some((sentence) => hay.includes(sentence));
+}
+
+const JOY_FRESH_OPENERS: Record<string, (detail: string) => { title: string; lead: string }> = {
+  "morning-sunlight": (detail) => ({
+    title: "Light that found you",
+    lead: `Morning met you in a still you kept. ${detail} The day did not rush; it arrived on your face first.`,
+  }),
+  "a-small-hello": (detail) => ({
+    title: "A hello that landed",
+    lead: `Someone reached you today, and you kept the proof. ${detail} Belonging showed up in a small, ordinary way — and it counted.`,
+  }),
+  "one-thing-done-slowly": (detail) => ({
+    title: "The thing you didn't rush",
+    lead: `You gave one thing your whole attention. ${detail} The phone waited. The minute was allowed to be a minute.`,
+  }),
+  "a-little-movement": (detail) => ({
+    title: "A body that remembered",
+    lead: `You moved, and the moving was yours. ${detail} Not a program. A walk, a stretch, a longer way home.`,
+  }),
+  "one-corner-clear": (detail) => ({
+    title: "One corner, yours",
+    lead: `A small square of the world exhaled because you touched it. ${detail} Order enough to see. Peace you could point at.`,
+  }),
+  "just-this": (detail) => ({
+    title: "This, kept",
+    lead: `It did not need a category. ${detail} You noticed it anyway, and that noticing is the whole story.`,
+  }),
+};
+
+export function mockJoyStory(input: {
+  joy: JoyType;
+  caption?: string;
+  goodMoment?: string;
+  reframed?: boolean;
+  day: string;
+}): { title: string; body: string } {
+  const detail = (input.goodMoment || input.caption || input.joy.tagline).replace(/\.$/, "");
+  if (input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment)) {
+    const lining = isSelfNegating(input.caption)
+      ? silverLiningFor(input.caption || "")
+      : input.goodMoment || silverLiningFor("this hard day");
+    const lined = mockLiningStory([lining], input.day);
+    return {
+      title: lined.title,
+      body: `${lined.body}\n\nYou still chose ${input.joy.title.toLowerCase()} as the shape of the night. The lining holds.`,
+    };
+  }
+  const opener =
+    JOY_FRESH_OPENERS[input.joy.id]?.(detail) ?? {
+      title: input.joy.title,
+      lead: `You kept a still for ${input.joy.title.toLowerCase()}. ${detail}.`,
+    };
+  const body = `${opener.lead}
+
+You felt it and you kept it — this ${input.joy.title.toLowerCase()}, this frame, this day. That noticing is earned.
+
+Why did it land? Because you were there long enough to see it, and seeing it was already a kind of care.
+
+The good reached you because you are someone a quiet moment can belong to — worthy of the still you chose.
+
+That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is yours.
+
+Float toward sleep with this picture still close. Returning to this good lets it open, then open again. With time, naturally, your own good moments unfold — your own good moments multifold.
+
+Rest inside the frame you kept. A smile in the chest. The good, still bright. Yours.`;
+  return { title: opener.title, body: `${body}\n\n— ${input.day}` };
+}
+
+export function allPlaybackTemplates(): string[] {
+  return JOY_TYPES.map((joy) => joy.playbackTemplate);
 }

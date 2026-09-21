@@ -10,6 +10,7 @@ import {
 } from "./identity";
 import { chooseSpokenLine, cleanSpokenLine, isSelfNegating, proposeSpokenLine } from "./care";
 import {
+  APP_WEAVE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   displayMoment,
   isWeavableMoment,
@@ -115,6 +116,9 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/PLAYBACK TEMPLATE/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/NEVER copy/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/silver lining/);
   });
 
   it("cleans obvious typos without corporate rewrite", () => {
@@ -223,6 +227,50 @@ describe("ingest and weave fallbacks", () => {
   it("strips Nemotron think tags", () => {
     expect(stripReasoning("<think>secret</think>\nHello night")).toBe("Hello night");
   });
+
+  it("rewrites joy playback templates instead of dumping them as the story", async () => {
+    const { JOY_TYPES } = await import("./landing");
+    const { mockJoyStory, usesCannedPlayback, CANNED_PLAYBACK_MARKERS } = await import("./prompts");
+    for (const joy of JOY_TYPES) {
+      const story = mockJoyStory({
+        joy,
+        caption: "the kettle caught the light",
+        goodMoment: "Steam over the kettle in the morning window.",
+        day: "2026-09-21",
+      });
+      expect(usesCannedPlayback(story.body, joy.playbackTemplate)).toBe(false);
+      expect(usesCannedPlayback(joy.playbackTemplate, joy.playbackTemplate)).toBe(true);
+      for (const marker of CANNED_PLAYBACK_MARKERS) {
+        expect(story.body).not.toContain(marker);
+      }
+    }
+  });
+
+  it("weaves an app photo from the joy template without pasting the canned playback", async () => {
+    const story = await weaveStory({
+      vaultId: "v_test",
+      day: "2026-09-21",
+      lastNight: null,
+      captures: [
+        {
+          id: "cap_app",
+          vaultId: "v_test",
+          kind: "photo",
+          createdAt: "2026-09-21T10:00:00.000Z",
+          day: "2026-09-21",
+          caption: "gold on the table",
+          joyType: "morning-sunlight",
+          source: "app",
+          goodMoment: "Sun on the kitchen table.",
+          ingestStatus: "mock",
+        },
+      ],
+    });
+    expect(story.body).not.toMatch(/Ten quiet minutes\. Gold on your skin/);
+    expect(story.body).not.toMatch(/breathtakingly, beautifully/);
+    expect(story.body).toMatch(/kitchen table|gold on the table|Light that found you/i);
+    expect(story.title).not.toBe("Story playback");
+  });
 });
 
 describe("landing", () => {
@@ -294,36 +342,39 @@ describe("landing", () => {
   });
 });
 
-describe("unlock client contract", () => {
-  it("sends captures with the email unlock request", () => {
+describe("app capture client contract", () => {
+  it("saves photo + joy, then offers YOURS as the only story door", () => {
     const src = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
-    expect(src).toMatch(/captures: captures\.map\(capturePayload\)/);
-    expect(src).toMatch(/Unlocking…/);
-    expect(src).toMatch(/unlockError/);
-    expect(src).toMatch(/weaveError/);
-    expect(src).toMatch(/Browser voice \(Sonic coming\)/);
-    expect(src).toMatch(/Joyful stand-in \(add NEBIUS_API_KEY for Super\)/);
-    expect(src).not.toMatch(/Calm browser voice/);
-    expect(src).not.toMatch(/Demo weave/);
-    expect(src).not.toMatch(/Warm stand-in/);
-    expect(src).toMatch(/SILVER_LINING_NOTE|We kept the silver lining/);
-    expect(src).toMatch(/spellDecision/);
-    expect(src).toMatch(/JoyPicker/);
-    expect(src).toMatch(/quiet-joy-app/);
-    expect(src).toMatch(/StoryPlayback/);
-    expect(src).toMatch(/app-story-playback/);
+    const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
+    const picker = readFileSync(path.resolve("src/components/JoyPicker.tsx"), "utf8");
     expect(src).toMatch(/LANDING\.moment\.title/);
+    expect(src).toMatch(/LANDING\.app\.tagline/);
+    expect(src).toMatch(/LANDING\.app\.yoursHint/);
     expect(src).toMatch(/LANDING\.app\.photoHelp/);
     expect(src).toMatch(/LANDING\.app\.yours/);
-    expect(src).toMatch(/href="#yours"/);
-    expect(src).toMatch(/id="yours"/);
-    expect(src).not.toMatch(/See the story/);
-    expect(src).toMatch(/kind", "photo"/);
-    expect(src).not.toMatch(/Drop a moment from today/);
-    expect(src).not.toMatch(/Nothing leaves your private vault/);
+    expect(src).toMatch(/href="\/app\/yours"/);
+    expect(src).toMatch(/source", "app"/);
+    expect(src).toMatch(/joyType/);
+    expect(src).toMatch(/tzOffset/);
+    expect(src).toMatch(/WHISPER_MAX/);
+    expect(src).toMatch(/stillFromVideo/);
+    expect(src).toMatch(/accept="image\/\*,video\/\*"/);
+    expect(src).toMatch(/JoyPicker/);
+    expect(src).toMatch(/quiet-joy-app/);
+    expect(src).not.toMatch(/href="#yours"/);
+    expect(src).not.toMatch(/type="email"/);
     expect(src).not.toMatch(/role="tablist"/);
     expect(src).not.toMatch(/Save this voice note/);
-    expect(src).not.toMatch(/Save this moment/);
-    expect(src).not.toMatch(/Type a line about what you said/);
+    expect(src).not.toMatch(/See the story/);
+    expect(src).not.toMatch(/StoryPlayback/);
+    expect(yours).toMatch(/StoryPlayback/);
+    expect(yours).toMatch(/app-story-playback/);
+    expect(yours).toMatch(/card--lavender/);
+    expect(yours).toMatch(/POST/);
+    expect(yours).toMatch(/\/api\/yours/);
+    expect(picker).toMatch(/playbackTemplate/);
+    expect(picker).toMatch(/playbackExample/);
+    expect(src).toMatch(/SILVER_LINING_NOTE|We kept the silver lining/);
+    expect(src).toMatch(/LANDING\.app\.privateNote/);
   });
 });

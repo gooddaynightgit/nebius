@@ -149,6 +149,35 @@ a {
   font-size: clamp(1.7rem, 7vw, 2.15rem);
 }
 
+.app-tagline {
+  position: relative;
+  z-index: 1;
+  margin: 0.75rem 0 0;
+  max-width: 22rem;
+  font-size: 1.08rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+.app-yours-hint {
+  position: relative;
+  z-index: 1;
+  margin: 0.45rem 0 0;
+  max-width: 24rem;
+  font-size: 0.98rem;
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.private-note {
+  max-width: 28rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
 .card h2 {
   font-size: clamp(1.4rem, 5.4vw, 1.75rem);
 }
@@ -501,6 +530,16 @@ a {
   border-radius: 0.35rem;
   background: var(--docs-lavender);
   color: var(--navy);
+}
+
+.playback__eyebrow {
+  margin: 0 0 0.55rem;
+  max-width: 36rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
 }
 
 .playback h3 {

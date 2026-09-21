@@ -21,6 +21,9 @@ describe("landing copy", () => {
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
     expect(LANDING.app.yours).toBe("YOURS");
+    expect(LANDING.app.tagline).toBe("One photo. One joy. One story.");
+    expect(LANDING.app.yoursHint).toBe("YOURS — the link that opens tonight’s story.");
+    expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",
     );
@@ -39,22 +42,22 @@ describe("landing copy", () => {
       "One corner, clear",
       "Just this",
     ]);
-    expect(JOY_TYPES[0]?.playback).toBe(
+    expect(JOY_TYPES[0]?.playbackTemplate).toBe(
       '"This morning, you stood in the sun. Ten quiet minutes. Gold on your skin. Your body remembered its rhythm. And the day began — gently, breathtakingly, beautifully — with you in it."',
     );
-    expect(JOY_TYPES[1]?.playback).toBe(
+    expect(JOY_TYPES[1]?.playbackTemplate).toBe(
       '"Today, you laughed so hard the room got brighter. You waved like you meant it — and it came right back at you. Somewhere, someone is smiling right now because you exist. That\'s not a small thing. That\'s everything."',
     );
-    expect(JOY_TYPES[2]?.playback).toBe(
+    expect(JOY_TYPES[2]?.playbackTemplate).toBe(
       '"Today, you gave one moment everything — and it gave you back the whole world. Every sense on fire. Every second shining. You weren\'t just doing something today. You were THERE — fully, radiantly, joyfully there."',
     );
-    expect(JOY_TYPES[3]?.playback).toBe(
+    expect(JOY_TYPES[3]?.playbackTemplate).toBe(
       '"Today, you moved — and your body threw a celebration. Endorphins like fireworks, mood soaring, heart singing. You didn\'t just go for a walk today. You turned yourself ON."',
     );
-    expect(JOY_TYPES[4]?.playback).toBe(
+    expect(JOY_TYPES[4]?.playbackTemplate).toBe(
       '"Today, you made order out of chaos — one beautiful corner at a time. You looked at what you built and felt that deep, golden calm: I did this. Your space is brighter. And so are you."',
     );
-    expect(JOY_TYPES[5]?.playback).toBe(
+    expect(JOY_TYPES[5]?.playbackTemplate).toBe(
       '"Today held something that doesn\'t fit in any box — and it was yours. You noticed it. You kept it. Some moments are too alive for categories, and tonight, this one is yours to relive, word by word."',
     );
     expect(JOY_TYPES[0]?.tagline).toBe(
