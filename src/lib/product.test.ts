@@ -286,7 +286,8 @@ describe("landing", () => {
     expect(picker).toMatch(/name = "quiet-joy"/);
     expect(picker).toMatch(/joy__tagline/);
     expect(picker).toMatch(/Capture it/);
-    expect(picker).toMatch(/Story playback/);
+    expect(picker).toMatch(/<StoryPlayback/);
+    expect(playback).toMatch(/Story playback/);
     expect(playback).toMatch(/className="playback"/);
     expect(styles).toMatch(/#f0f0ff/);
     expect(styles).toMatch(/--docs-lavender/);
