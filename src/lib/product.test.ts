@@ -456,6 +456,13 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/JOY_NEED/);
     expect(src).toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
     expect(src).not.toMatch(/Failed to fetch/);
+    expect(src).toMatch(/className="pill">Photo/);
+    expect(src).toMatch(/className="pill">Joy/);
+    expect(src).toMatch(/className="pill">Story/);
+    expect(src).toMatch(/LANDING\.app\.brand/);
+    expect(src).not.toMatch(/header-meta/);
+    expect(src).not.toMatch(/Token Factory/);
+    expect(src).not.toMatch(/Demo mode/);
   });
 });
 

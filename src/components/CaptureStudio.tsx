@@ -34,12 +34,6 @@ import {
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import type { SessionState } from "@/lib/types";
 
-type Health = {
-  tokenFactory: boolean;
-  storage: string;
-  sonicListable: boolean;
-};
-
 async function stillFromVideo(file: File): Promise<File> {
   const url = URL.createObjectURL(file);
   try {
@@ -92,7 +86,6 @@ export default function CaptureStudio() {
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const photoUrlRef = useRef<string | null>(null);
   const [session, setSession] = useState<SessionState | null>(null);
-  const [health, setHealth] = useState<Health | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
@@ -116,9 +109,8 @@ export default function CaptureStudio() {
   const refresh = useCallback(async () => {
     try {
       const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
-      const sessionData = await readJson<SessionState & { health?: Health }>(sessionRes);
+      const sessionData = await readJson<SessionState>(sessionRes);
       setSession(sessionData);
-      if (sessionData.health) setHealth(sessionData.health);
       if (!hydrated && sessionData.todayPhoto) {
         setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
         setCaption(sessionData.yoursOpened ? "" : sessionData.todayPhoto.caption ?? "");
@@ -347,15 +339,13 @@ export default function CaptureStudio() {
     <div className="page">
       <header className="site-header">
         <Link className="badge" href="/">
-          Gooddaynight
+          {LANDING.app.brand}
         </Link>
-        <span className="header-meta">
-          {health?.tokenFactory ? "Token Factory" : "Demo mode"} · {health?.storage ?? "…"}
-        </span>
       </header>
 
       <main id="main">
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
+          <span className="pill">Story</span>
           <h1 id="app-moment-heading">{LANDING.moment.title}</h1>
           <p className="app-tagline">{LANDING.app.tagline}</p>
           <p className="app-yours-hint">{LANDING.app.yoursHint}</p>
@@ -506,6 +496,7 @@ export default function CaptureStudio() {
             className="card card--cream card--moment card--compact"
             aria-labelledby="joy-heading"
           >
+            <span className="pill">Joy</span>
             <h2 id="joy-heading" className="visually-hidden">
               What kind of quiet joy was it?
             </h2>

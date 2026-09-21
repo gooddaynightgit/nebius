@@ -38,6 +38,7 @@ export const LANDING = {
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     yours: "YOURS",
+    brand: "gooddaynight.com",
     tagline: "One photo. One joy. One story.",
     yoursHint: "YOURS — the link that opens tonight’s story.",
     captionLabel: "Optional caption",
