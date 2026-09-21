@@ -9,7 +9,7 @@ import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
 import { loadSessionVault, presentSession, toPublicSession } from "@/lib/session";
 import { putBytes } from "@/lib/storage";
-import { addCapture, appPhotoForDay, capturesForDay, isYoursOpened, upsertAppPhoto } from "@/lib/vault";
+import { addCapture, appPhotoForDay, capturesForDay, upsertAppPhoto } from "@/lib/vault";
 import type { CaptureKind } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -138,10 +138,6 @@ async function saveAppPhoto(
   const file = form.get("file");
   const existing = appPhotoForDay(vault, day);
 
-  if (existing?.locked || isYoursOpened(vault, day)) {
-    return forbidden("Today's photo is locked. YOURS already opened tonight's story.");
-  }
-
   const hasNewFile = file instanceof File && file.size > 0;
   if (!hasNewFile && !existing) {
     return badRequest("Add one photo from today.");
@@ -209,35 +205,30 @@ async function saveAppPhoto(
     joyType: joy.id,
   });
 
-  try {
-    const capture = await upsertAppPhoto(vault, {
-      id,
-      kind: "photo",
-      createdAt: existing?.createdAt ?? new Date().toISOString(),
-      day,
-      caption: caption || undefined,
-      joyType: joy.id,
-      source: "app",
-      dateVerified: date.verified && date.takenDay === day,
-      photoTakenAt: date.takenDay ?? undefined,
-      locked: false,
-      goodMoment: ingest.goodMoment,
-      reframed: ingest.reframed,
-      mediaKey,
-      mediaContentType,
-      ingestModel: ingest.model,
-      ingestStatus: ingest.status,
-    });
-    return json({
-      capture,
-      session: await presentSession(vault, sessionId, day),
-      dateNote: date.verified ? undefined : PHOTO_DATE_MESSAGES.unverified,
-      captionNote: captionResult.dropped ? LANDING.app.captionDropped : undefined,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Today's photo is locked.";
-    return forbidden(message);
-  }
+  const capture = await upsertAppPhoto(vault, {
+    id,
+    kind: "photo",
+    createdAt: existing?.createdAt ?? new Date().toISOString(),
+    day,
+    caption: caption || undefined,
+    joyType: joy.id,
+    source: "app",
+    dateVerified: date.verified && date.takenDay === day,
+    photoTakenAt: date.takenDay ?? undefined,
+    locked: false,
+    goodMoment: ingest.goodMoment,
+    reframed: ingest.reframed,
+    mediaKey,
+    mediaContentType,
+    ingestModel: ingest.model,
+    ingestStatus: ingest.status,
+  });
+  return json({
+    capture,
+    session: await presentSession(vault, sessionId, day),
+    dateNote: date.verified ? undefined : PHOTO_DATE_MESSAGES.unverified,
+    captionNote: captionResult.dropped ? LANDING.app.captionDropped : undefined,
+  });
 }
 
 function extensionFor(contentType: string, kind: CaptureKind): string {

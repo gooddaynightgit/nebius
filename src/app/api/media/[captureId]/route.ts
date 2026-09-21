@@ -20,7 +20,7 @@ export async function GET(
   return new Response(new Uint8Array(file.body), {
     headers: {
       "Content-Type": capture.mediaContentType || file.contentType,
-      "Cache-Control": "private, max-age=3600",
+      "Cache-Control": "private, no-cache",
     },
   });
 }

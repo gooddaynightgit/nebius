@@ -9,7 +9,7 @@ import {
   appPhotoForDay,
   isYoursOpened,
   lastStory,
-  lastStoryForDay,
+  matchingStoryForPhoto,
   markYoursOpened,
   saveVault,
 } from "@/lib/vault";
@@ -27,12 +27,7 @@ export async function GET(request: Request) {
   if (!isPlausibleClientDay(day)) return notFound(EXPIRED);
   const { sessionId, vault } = await loadSessionVault();
   const photo = appPhotoForDay(vault, day);
-  const storyForPhoto = (() => {
-    const story = lastStoryForDay(vault, day);
-    if (!photo) return story;
-    if (story && story.captureIds.includes(photo.id)) return story;
-    return null;
-  })();
+  const storyForPhoto = matchingStoryForPhoto(vault, day, photo);
   const opened = isYoursOpened(vault, day);
   if (!photo && !storyForPhoto) {
     const hadPrior =
@@ -60,10 +55,7 @@ export async function POST(request: Request) {
   if (!photo) return json({ error: MISSING, code: "missing" }, 400);
   if (!joyType) return badRequest("Pick the kind of quiet joy first.");
 
-  let story = lastStoryForDay(vault, day);
-  if (story && !story.captureIds.includes(photo.id)) {
-    story = null;
-  }
+  let story = matchingStoryForPhoto(vault, day, photo);
   if (!story) {
     try {
       const imageDataUrl = await captureImageDataUrl(photo);
@@ -103,6 +95,7 @@ export async function POST(request: Request) {
   await markYoursOpened(vault, day);
   return json({
     session: await presentSession(vault, sessionId, day),
+    photo: appPhotoForDay(vault, day),
     story,
     opened: true,
     locked: true,

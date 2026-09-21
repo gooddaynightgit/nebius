@@ -650,6 +650,18 @@ a {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.btn--keep {
+  background: var(--docs-lavender);
+  border-color: rgba(22, 50, 74, 0.18);
+  color: var(--navy);
+}
+
+.btn--keep:hover {
+  background: #ebe7fb;
+  border-color: rgba(22, 50, 74, 0.28);
+  color: var(--navy);
+}
+
 .yours {
   display: flex;
   align-items: center;

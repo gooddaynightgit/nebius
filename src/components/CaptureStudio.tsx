@@ -114,9 +114,9 @@ export default function CaptureStudio() {
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
-  const locked = Boolean(session?.yoursOpened);
+  const opened = Boolean(session?.yoursOpened);
   const savedPhoto = session?.todayPhoto ?? null;
-  const yoursReady = Boolean(savedPhoto) || (phoneStash && !locked);
+  const yoursReady = Boolean(savedPhoto) || phoneStash;
   const previewSrc =
     photoUrl || (savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null);
 
@@ -140,11 +140,11 @@ export default function CaptureStudio() {
       }
       if (!hydrated && sessionData.todayPhoto) {
         setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
-        setCaption(sessionData.yoursOpened ? "" : sessionData.todayPhoto.caption ?? "");
+        setCaption(sessionData.todayPhoto.caption ?? "");
         if (!sessionData.todayPhoto.dateVerified) {
           setDateNote(PHOTO_DATE_MESSAGES.unverified);
         }
-      } else if (!hydrated && stash && !sessionData.yoursOpened) {
+      } else if (!hydrated && stash) {
         setSelectedJoyId(stash.joyType);
         setCaption(stash.caption);
       }
@@ -192,7 +192,6 @@ export default function CaptureStudio() {
   }
 
   async function openTakeCamera() {
-    if (locked) return;
     if (prefersLiveCamera()) {
       try {
         const stream = await openRearCamera();
@@ -221,7 +220,7 @@ export default function CaptureStudio() {
   }
 
   async function takePhoto(file: File | null, fromCamera = false) {
-    if (!file || locked) return;
+    if (!file) return;
     setCaptureError(null);
     let next = file;
     if (isVideoMime(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
@@ -318,7 +317,6 @@ export default function CaptureStudio() {
   }
 
   function pickJoy(joy: JoyType) {
-    if (locked) return;
     setSelectedJoyId(joy.id);
     setJoyError(null);
     setCaptureError(null);
@@ -326,10 +324,6 @@ export default function CaptureStudio() {
 
   async function saveMoment(event: FormEvent) {
     event.preventDefault();
-    if (locked) {
-      setCaptureError(LANDING.app.locked);
-      return;
-    }
     const existingStash = await readCaptureStash(day);
     const uploadPhoto = photo ?? (existingStash ? stashPhotoFile(existingStash) : null);
     if (!uploadPhoto && !savedPhoto) {
@@ -451,7 +445,6 @@ export default function CaptureStudio() {
                 <button
                   className="btn btn--ghost"
                   type="button"
-                  disabled={locked}
                   onClick={() => {
                     void openTakeCamera();
                   }}
@@ -465,7 +458,6 @@ export default function CaptureStudio() {
                   type="file"
                   accept="image/*"
                   capture="environment"
-                  disabled={locked}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null, true);
                     event.target.value = "";
@@ -479,7 +471,6 @@ export default function CaptureStudio() {
                   className="visually-hidden"
                   type="file"
                   accept="image/*,video/*"
-                  disabled={locked}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null);
                     event.target.value = "";
@@ -516,30 +507,28 @@ export default function CaptureStudio() {
                   onError={recoverPreview}
                 />
               ) : null}
-              {!locked ? (
-                <>
-                  <label className="whisper-label" htmlFor={captionId} style={{ color: "#f4f7fb" }}>
-                    {LANDING.app.captionLabel}
-                  </label>
-                  <p className="cta-copy" style={{ marginTop: 0 }}>
-                    {LANDING.app.captionHelp}
-                  </p>
-                  <input
-                    id={captionId}
-                    type="text"
-                    maxLength={WHISPER_MAX}
-                    autoComplete="off"
-                    placeholder={LANDING.app.captionExamples}
-                    value={caption}
-                    onChange={(event) =>
-                      setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
-                    }
-                  />
-                  <p className="whisper-count" style={{ color: "rgba(244,247,251,0.7)" }}>
-                    {caption.length}/{WHISPER_MAX}
-                  </p>
-                </>
-              ) : null}
+              <>
+                <label className="whisper-label" htmlFor={captionId} style={{ color: "#f4f7fb" }}>
+                  {LANDING.app.captionLabel}
+                </label>
+                <p className="cta-copy" style={{ marginTop: 0 }}>
+                  {LANDING.app.captionHelp}
+                </p>
+                <input
+                  id={captionId}
+                  type="text"
+                  maxLength={WHISPER_MAX}
+                  autoComplete="off"
+                  placeholder={LANDING.app.captionExamples}
+                  value={caption}
+                  onChange={(event) =>
+                    setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
+                  }
+                />
+                <p className="whisper-count" style={{ color: "rgba(244,247,251,0.7)" }}>
+                  {caption.length}/{WHISPER_MAX}
+                </p>
+              </>
             </div>
             {dateNote ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
@@ -575,11 +564,6 @@ export default function CaptureStudio() {
                 {phoneNote}
               </p>
             ) : null}
-            {locked ? (
-              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
-                {LANDING.app.locked}
-              </p>
-            ) : null}
           </section>
 
           <section
@@ -605,13 +589,11 @@ export default function CaptureStudio() {
             <span className="card__wash card__wash--note" aria-hidden="true"></span>
           </section>
 
-          {!locked ? (
-            <section className="card card--lime card--compact">
-              <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
-                {busy ? "Saving…" : savedPhoto || phoneStash ? LANDING.app.replace : LANDING.app.save}
-              </button>
-            </section>
-          ) : null}
+          <section className="card card--lime card--compact">
+            <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
+              {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
+            </button>
+          </section>
         </form>
 
         {yoursReady ? (
