@@ -5,7 +5,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "re
 import JoyPicker from "@/components/JoyPicker";
 import StoryPlayback from "@/components/StoryPlayback";
 import { proposeSpokenLine } from "@/lib/care";
-import { getJoyById, type JoyType } from "@/lib/landing";
+import { LANDING, getJoyById, type JoyType } from "@/lib/landing";
 import { SILVER_LINING_NOTE, displayMoment } from "@/lib/prompts";
 import type { CaptureKind, CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
 
@@ -498,11 +498,8 @@ export default function CaptureStudio() {
       </header>
 
       <main id="main">
-        <section className="card card--mint card--compact" aria-labelledby="drop-heading">
-          <h1 id="drop-heading">Drop a moment from today.</h1>
-          <p className="card__body" style={{ marginTop: "0.7rem" }}>
-            Voice, photo, or a few words. Nothing leaves your private vault.
-          </p>
+        <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
+          <h1 id="app-moment-heading">{LANDING.moment.title}</h1>
         </section>
 
         <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">

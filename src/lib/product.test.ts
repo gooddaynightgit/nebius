@@ -316,5 +316,8 @@ describe("unlock client contract", () => {
     expect(src).toMatch(/quiet-joy-app/);
     expect(src).toMatch(/StoryPlayback/);
     expect(src).toMatch(/app-story-playback/);
+    expect(src).toMatch(/LANDING\.moment\.title/);
+    expect(src).not.toMatch(/Drop a moment from today/);
+    expect(src).not.toMatch(/Nothing leaves your private vault/);
   });
 });
