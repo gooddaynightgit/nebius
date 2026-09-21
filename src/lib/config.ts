@@ -6,6 +6,13 @@ export const MODELS = {
   nano:
     process.env.NEBIUS_NANO_MODEL ?? "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
   nanoOmni: process.env.NEBIUS_NANO_OMNI_MODEL ?? "nvidia/nemotron-3-nano-omni",
+  // Catalog snapshot 2026-09-21: no Qwen VL id is listed. MiniCPM-V is the
+  // dedicated image2text VL in eu-north1. Override to a Qwen VL id if Token
+  // Factory lists one (docs still mention Qwen/Qwen2-VL-72B-Instruct).
+  vision: process.env.NEBIUS_VISION_MODEL ?? "openbmb/MiniCPM-V-4_5",
+  // Strong Qwen instruct for the bedtime storyteller. Falls back to Super.
+  story:
+    process.env.NEBIUS_STORY_MODEL ?? "Qwen/Qwen3-235B-A22B-Instruct-2507",
   super:
     process.env.NEBIUS_SUPER_MODEL ?? "nvidia/nemotron-3-super-120b-a12b",
   ultra:

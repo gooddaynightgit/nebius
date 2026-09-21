@@ -10,11 +10,18 @@ export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
 const STILLNESS_EXPAND = [
-  "The frame can stay as it is.",
-  "Nothing more is asked of this hour.",
-  "The night holds what you kept, then goes quiet.",
+  "The room grows quieter around what you see.",
+  "A small warmth stays in the chest.",
+  "The night holds the picture, then goes still.",
   "You can leave it there, unhurried.",
 ];
+
+export const APP_STORY_LEAK_RE =
+  /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside/i;
+
+export function leaksAppStoryInstruction(body: string): boolean {
+  return APP_STORY_LEAK_RE.test(body);
+}
 
 export function isWeaveBlock(text: string): boolean {
   const cleaned = text
@@ -57,7 +64,7 @@ export function expandAppStory(body: string, min = APP_STORY_MIN): string {
   let next = body.replace(/\s+/g, " ").trim();
   if (!next) {
     next =
-      "You kept a still from the day. This telling will not invent a street or a gift or a face. The night holds the frame, then goes quiet.";
+      "You look a little longer at what the day kept. Light and shape are still there. The night grows quiet around them.";
   }
   let guard = 0;
   while (next.length < min && guard < 16) {
@@ -120,6 +127,7 @@ export function appStoryProblems(body: string, template: string): string[] {
   if (usesCannedPlayback(body, template)) problems.push("canned");
   if (APP_STORY_WELLNESS_RE.test(body)) problems.push("wellness");
   if (celebratesDespair(body)) problems.push("despair");
+  if (leaksAppStoryInstruction(body)) problems.push("leak");
   if (/^title:/im.test(body)) problems.push("title");
   if (/#\w/.test(body) || /\p{Extended_Pictographic}/u.test(body)) problems.push("chrome");
   return problems;

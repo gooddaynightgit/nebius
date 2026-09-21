@@ -30,6 +30,7 @@ export type StoryRecord = {
   body: string;
   createdAt: string;
   weaveModel: string;
+  excavateModel?: string;
   continuityModel?: string;
   tts: {
     status: "sonic" | "stub" | "skipped";

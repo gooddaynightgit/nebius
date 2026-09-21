@@ -15,7 +15,7 @@ import {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const EXPIRED = "Tonight's story lived for one night. Come back with today's photo.";
 const MISSING = "Save today's photo and pick a joy first.";

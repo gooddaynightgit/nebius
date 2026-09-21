@@ -8,14 +8,25 @@ import {
   trimAppStory,
 } from "./app-story";
 import { clipCaption } from "./app-capture";
-import { MODELS, hasTokenFactoryKey, useUltra } from "./config";
+import { hasTokenFactoryKey, useUltra } from "./config";
 import { getJoyById } from "./landing";
-import { completeWithFallback, superModels, ultraModels, type ChatMessage } from "./nebius";
 import {
+  appStoryModels,
+  completeWithFallback,
+  superModels,
+  textExcavateModels,
+  ultraModels,
+  visionModels,
+  type ChatMessage,
+} from "./nebius";
+import {
+  APP_EXCAVATE_SYSTEM,
+  APP_WEAVE_FORBIDDEN_PHRASES,
   APP_WEAVE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   ULTRA_CONTINUITY_SYSTEM,
   WEAVE_NEEDS_WORDS,
+  mockExcavation,
   mockJoyStory,
   mockStory,
   weavableMoments,
@@ -40,11 +51,10 @@ export class WeaveBlockedError extends Error {
   }
 }
 
-function appWeaveModels(hasImage: boolean): string[] {
-  if (hasImage && MODELS.nanoOmni) {
-    return [MODELS.nanoOmni, MODELS.super].filter(Boolean);
-  }
-  return superModels();
+function parseExcavationReply(text: string): "BLOCK" | string {
+  const parsed = parseAppWeaveReply(text);
+  if (parsed === "BLOCK") return "BLOCK";
+  return parsed;
 }
 
 function parseTitleBody(text: string): { title: string; body: string } {
@@ -139,48 +149,111 @@ function joyColourLabel(joyTitle: string): string {
     .trim();
 }
 
-function appWeaveUserText(input: {
-  joyTitle: string;
-  template: string;
-  photoNotes: string;
+export function appExcavateUserText(input: {
   caption?: string;
+  photoNotes: string;
   hasImage: boolean;
 }): string {
   const caption = input.caption ? clipCaption(input.caption) : "";
   return [
     input.hasImage
-      ? "The photo is attached. Analyze the frame first: objects, place, light, and any text on screen. Time of day only if the picture shows it. If this is a screenshot, read the visible text."
-      : "The photo pixels are not attached. Do not invent objects, places, people, gifts, or feelings. Write only from the joy colour, the optional caption whisper, and any photo notes below. If those notes are thin, stay general and honest — still write.",
-    `Joy pick (colour only, not a lecture): ${joyColourLabel(input.joyTitle)}`,
-    `Joy playback string (TEMPLATE to rephrase — not the story; never copy its sentences):\n${input.template}`,
+      ? "The photo is attached. Treat it as a fragment of today. Return the five ingredient sections. No story."
+      : "The photo pixels are not attached. Do your best from the caption and any photo notes. Do not invent a scene beyond those words. Return the five ingredient sections. No story.",
     input.photoNotes
-      ? `Photo notes (use only if they name what is actually in the frame):\n${input.photoNotes}`
+      ? `Photo notes (use only if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
-    caption
-      ? `Optional caption (whisper beside the image; never more than these words): ${caption}`
-      : "No caption.",
-    "Write 4–6 short sentences. Target 600–900 characters. Hard max 1,200. Never under 400 unless BLOCK. Plain story text only. Or BLOCK.",
+    caption ? `Optional caption: ${caption}` : "No caption.",
+    "If horrific: BLOCK. Otherwise ingredients only — no bedtime story.",
   ].join("\n\n");
 }
 
-async function weaveAppWithNemotron(input: {
+export function appWeaveUserText(input: {
   joyTitle: string;
   template: string;
-  photoNotes: string;
+  excavation: string;
   caption?: string;
+}): string {
+  const caption = input.caption ? clipCaption(input.caption) : "";
+  return [
+    "Sensory ingredients from the photo (this is what is actually there — stay inside it):",
+    input.excavation,
+    `Joy pick (one brushstroke of warmth in the scene): ${joyColourLabel(input.joyTitle)}`,
+    `Joy playback string (TEMPLATE to rephrase — write a fresh telling):\n${input.template}`,
+    caption
+      ? `Optional caption (soft meaning once if it helps; prefer concrete detail from the ingredients): ${caption}`
+      : "No caption.",
+    "Write 4–6 short sentences. Target 600–900 characters. Hard max 1,200. Stay at 400 or more unless BLOCK. Start from one concrete sensory detail. Address the listener as you. Tonight's moment. Affirmative voice. Worth keeping. Particular to the photo. Plain story text only. Or BLOCK.",
+    `Forbidden in the story: ${APP_WEAVE_FORBIDDEN_PHRASES.join(", ")}.`,
+  ].join("\n\n");
+}
+
+async function excavateAppPhoto(input: {
+  caption?: string;
+  photoNotes: string;
   imageDataUrl?: string;
-}): Promise<{ blocked: true; model: string } | { body: string; model: string } | null> {
-  const hasImage = Boolean(input.imageDataUrl);
-  const userText = appWeaveUserText({ ...input, hasImage });
-  const userContent: ChatMessage["content"] = hasImage
+}): Promise<{ blocked: true; model: string } | { text: string; model: string } | null> {
+  const imageDataUrl = input.imageDataUrl;
+  const hasImage = Boolean(imageDataUrl);
+  const visionText = appExcavateUserText({ ...input, hasImage });
+  const visionContent: ChatMessage["content"] = hasImage && imageDataUrl
     ? [
-        { type: "text", text: userText },
-        { type: "image_url", image_url: { url: input.imageDataUrl } },
+        { type: "text", text: visionText },
+        { type: "image_url", image_url: { url: imageDataUrl } },
       ]
-    : userText;
+    : visionText;
+  const visionMessages: ChatMessage[] = [
+    { role: "system", content: APP_EXCAVATE_SYSTEM },
+    { role: "user", content: visionContent },
+  ];
+
+  const tryParse = (text: string, model: string) => {
+    const parsed = parseExcavationReply(text);
+    if (parsed === "BLOCK") return { blocked: true as const, model };
+    if (parsed.replace(/\s+/g, " ").trim().length < 40) return null;
+    return { text: parsed, model };
+  };
+
+  if (hasImage) {
+    try {
+      const result = await completeWithFallback(visionModels(), visionMessages, {
+        temperature: 0.25,
+        maxTokens: 700,
+      });
+      const parsed = tryParse(result.text, result.model);
+      if (parsed) return parsed;
+    } catch {
+      // Fall through to a text-only best-effort excavation.
+    }
+  }
+
+  const textMessages: ChatMessage[] = [
+    { role: "system", content: APP_EXCAVATE_SYSTEM },
+    {
+      role: "user",
+      content: appExcavateUserText({ ...input, hasImage: false }),
+    },
+  ];
+  try {
+    const result = await completeWithFallback(textExcavateModels(), textMessages, {
+      temperature: 0.2,
+      maxTokens: 500,
+    });
+    return tryParse(result.text, result.model);
+  } catch {
+    return null;
+  }
+}
+
+async function weaveAppStoryFromExcavation(input: {
+  joyTitle: string;
+  template: string;
+  excavation: string;
+  caption?: string;
+}): Promise<{ blocked: true; model: string } | { body: string; model: string } | null> {
+  const userText = appWeaveUserText(input);
   const messages: ChatMessage[] = [
     { role: "system", content: APP_WEAVE_SYSTEM },
-    { role: "user", content: userContent },
+    { role: "user", content: userText },
   ];
 
   let lastBody = "";
@@ -196,19 +269,19 @@ async function weaveAppWithNemotron(input: {
                 role: "user" as const,
                 content:
                   lastBody && lastBody.length < APP_STORY_MIN
-                    ? "The last draft was too short. Write 4–6 short sentences, 600–900 characters, grounded in the photo and caption. Plain story text only. Or BLOCK."
-                    : "Rewrite. Follow the brief exactly. Fresh sentences. No template dump. No title. No wellness words. 600–900 characters. Plain story text only. Or BLOCK.",
+                    ? "The last draft was too short. Write 4–6 short sentences, 600–900 characters, grounded in the sensory ingredients. Address the listener as you. Affirmative. Particular. Worth keeping. Plain story text only. Or BLOCK."
+                    : "Rewrite. Follow the brief. Fresh sentences from the excavation. Address the listener as you. Tonight's moment. Affirmative voice. No instruction-echo. No title. No wellness words. 600–900 characters. Plain story text only. Or BLOCK.",
               },
             ];
-      const result = await completeWithFallback(appWeaveModels(hasImage), retryHint, {
+      const result = await completeWithFallback(appStoryModels(), retryHint, {
         temperature: attempt === 0 ? 0.7 : 0.45,
         maxTokens: 500,
       });
       lastModel = result.model;
       const parsed = parseAppWeaveReply(result.text);
       if (parsed === "BLOCK") {
-        if (!lastBody) return { blocked: true, model: result.model };
-        break;
+        if (!lastBody) break;
+        continue;
       }
       lastBody = parsed;
       const problems = appStoryProblems(parsed, input.template).filter((item) => item !== "long");
@@ -219,10 +292,50 @@ async function weaveAppWithNemotron(input: {
       // Retry, then fall through to an honest mock.
     }
   }
-  if (lastBody && !appStoryProblems(lastBody, input.template).some((item) => item === "canned" || item === "wellness" || item === "despair")) {
+  if (
+    lastBody &&
+    !appStoryProblems(lastBody, input.template).some(
+      (item) => item === "canned" || item === "wellness" || item === "despair" || item === "leak",
+    )
+  ) {
     return { body: finishAppStory(lastBody), model: lastModel || "mock-fallback" };
   }
   return null;
+}
+
+async function weaveAppPhotoStory(input: {
+  joyTitle: string;
+  template: string;
+  photoNotes: string;
+  caption?: string;
+  imageDataUrl?: string;
+}): Promise<
+  | { kind: "blocked"; model: string; excavateModel?: string }
+  | { kind: "story"; body: string; model: string; excavateModel?: string }
+  | { kind: "fallback"; excavation: string; excavateModel?: string }
+> {
+  const excavated = await excavateAppPhoto(input);
+  if (excavated && "blocked" in excavated && excavated.blocked) {
+    return { kind: "blocked", model: excavated.model, excavateModel: excavated.model };
+  }
+  const excavation =
+    excavated && "text" in excavated
+      ? excavated.text
+      : mockExcavation({ caption: input.caption, photoNotes: input.photoNotes });
+  const excavateModel = excavated && "text" in excavated ? excavated.model : "mock-excavation";
+  const live = await weaveAppStoryFromExcavation({
+    joyTitle: input.joyTitle,
+    template: input.template,
+    excavation,
+    caption: input.caption,
+  });
+  if (live && "blocked" in live && live.blocked) {
+    return { kind: "fallback", excavation, excavateModel };
+  }
+  if (live && "body" in live) {
+    return { kind: "story", body: live.body, model: live.model, excavateModel };
+  }
+  return { kind: "fallback", excavation, excavateModel };
 }
 
 export async function weaveStory(options: {
@@ -238,6 +351,7 @@ export async function weaveStory(options: {
   let title: string;
   let body: string;
   let weaveModel = "mock";
+  let excavateModel: string | undefined;
   let mock = true;
   let continuityModel: string | undefined;
 
@@ -247,37 +361,48 @@ export async function weaveStory(options: {
     if (isHorrificText(caption) || isHorrificText(photoNotes)) {
       throw new WeaveBlockedError();
     }
-    const fallback = mockJoyStory({
-      joy: appJoy,
-      caption,
-      goodMoment: photoNotes,
-      reframed: Boolean(appCapture.reframed),
-      day: options.day,
-    });
     if (hasTokenFactoryKey()) {
-      const live = await weaveAppWithNemotron({
+      const live = await weaveAppPhotoStory({
         joyTitle: appJoy.title,
         template: appJoy.playbackTemplate,
         photoNotes,
         caption,
         imageDataUrl: options.imageDataUrl,
       });
-      if (live && "blocked" in live && live.blocked) {
+      if (live.kind === "blocked") {
         throw new WeaveBlockedError();
       }
-      if (live && "body" in live) {
+      if (live.kind === "story") {
         title = "";
         body = live.body;
         weaveModel = live.model;
+        excavateModel = live.excavateModel;
         mock = false;
       } else {
+        const fallback = mockJoyStory({
+          joy: appJoy,
+          caption,
+          goodMoment: photoNotes,
+          reframed: Boolean(appCapture.reframed),
+          day: options.day,
+          excavation: live.excavation,
+        });
         title = "";
         body = fallback.body;
         weaveModel = "mock-fallback";
+        excavateModel = live.excavateModel;
       }
     } else {
+      const fallback = mockJoyStory({
+        joy: appJoy,
+        caption,
+        goodMoment: photoNotes,
+        reframed: Boolean(appCapture.reframed),
+        day: options.day,
+      });
       title = "";
       body = fallback.body;
+      excavateModel = "mock-excavation";
     }
   } else {
     const moments = weavableMoments(options.captures);
@@ -323,6 +448,7 @@ export async function weaveStory(options: {
     body,
     createdAt: new Date().toISOString(),
     weaveModel,
+    excavateModel,
     continuityModel,
     tts: {
       status: tts.status,

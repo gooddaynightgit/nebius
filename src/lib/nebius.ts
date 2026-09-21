@@ -65,19 +65,43 @@ export async function completeWithFallback(
   throw lastError instanceof Error ? lastError : new Error("All models failed");
 }
 
+export function uniqueModels(...ids: Array<string | undefined | null>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of ids) {
+    const id = raw?.trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
 export function nanoModels(multimodal: boolean): string[] {
   if (multimodal && MODELS.nanoOmni) {
-    return [MODELS.nanoOmni, MODELS.nano];
+    return uniqueModels(MODELS.nanoOmni, MODELS.nano);
   }
-  return [MODELS.nano];
+  return uniqueModels(MODELS.nano);
+}
+
+export function visionModels(): string[] {
+  return uniqueModels(MODELS.vision, MODELS.nanoOmni);
+}
+
+export function appStoryModels(): string[] {
+  return uniqueModels(MODELS.story, MODELS.super);
+}
+
+export function textExcavateModels(): string[] {
+  return uniqueModels(MODELS.story, MODELS.nano, MODELS.super);
 }
 
 export function superModels(): string[] {
-  return [MODELS.super];
+  return uniqueModels(MODELS.super);
 }
 
 export function ultraModels(): string[] {
-  return [MODELS.ultra, MODELS.ultraFallback, MODELS.super];
+  return uniqueModels(MODELS.ultra, MODELS.ultraFallback, MODELS.super);
 }
 
 export { MODELS };
