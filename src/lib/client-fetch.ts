@@ -4,6 +4,19 @@ export const PREVIEW_UNREACHABLE = LANDING.app.reach;
 export const PRODUCTION_UNREACHABLE = LANDING.app.reachLive;
 export const UNEXPECTED_RESPONSE = LANDING.app.unexpected;
 export const JOY_NEED = LANDING.app.joyNeed;
+export const PHOTO_TOO_LARGE = LANDING.app.tooLarge;
+export const PHOTO_TOO_LARGE_KEEP = LANDING.app.tooLargeKeep;
+
+const GATEWAY_STATUSES = new Set([413, 502, 504]);
+
+export function isGatewayStatus(status: number): boolean {
+  return GATEWAY_STATUSES.has(status);
+}
+
+export function looksLikePayloadTooLarge(res: Response, body = ""): boolean {
+  if (res.status === 413) return true;
+  return /FUNCTION_PAYLOAD_TOO_LARGE|Request Entity Too Large|Payload Too Large/i.test(body);
+}
 
 const PRODUCTION_HOSTS = new Set([
   "nebius-liart.vercel.app",
@@ -34,6 +47,7 @@ export function unexpectedResponseMessage(hostname = currentHostname()): string 
 }
 
 export function looksLikeAuthWall(res: Response, body = ""): boolean {
+  if (isGatewayStatus(res.status) || looksLikePayloadTooLarge(res, body)) return false;
   const type = res.headers.get("content-type") || "";
   if (/text\/html|application\/xhtml/i.test(type)) return true;
   const url = res.url || "";
@@ -48,7 +62,9 @@ export function explainClientFetchError(error: unknown, hostname = currentHostna
   if (
     message === PREVIEW_UNREACHABLE ||
     message === PRODUCTION_UNREACHABLE ||
-    message === UNEXPECTED_RESPONSE
+    message === UNEXPECTED_RESPONSE ||
+    message === PHOTO_TOO_LARGE ||
+    message === PHOTO_TOO_LARGE_KEEP
   ) {
     return message;
   }
@@ -74,6 +90,9 @@ export async function readResponsePayload<T>(
   hostname = currentHostname(),
 ): Promise<T> {
   const raw = await res.text();
+  if (looksLikePayloadTooLarge(res, raw)) {
+    throw new Error(PHOTO_TOO_LARGE);
+  }
   if (looksLikeAuthWall(res, raw)) {
     throw new Error(unexpectedResponseMessage(hostname));
   }

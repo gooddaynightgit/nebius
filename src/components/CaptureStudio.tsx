@@ -19,6 +19,7 @@ import {
   looksLikeMemeName,
   PHOTO_DATE_MESSAGES,
 } from "@/lib/photo";
+import { preparePhotoForUpload } from "@/lib/prepare-photo";
 import { captionDisposition } from "@/lib/app-capture";
 import {
   JOY_NEED,
@@ -192,6 +193,7 @@ export default function CaptureStudio() {
 
   async function takePhoto(file: File | null) {
     if (!file || locked) return;
+    setCaptureError(null);
     let next = file;
     if (isVideoMime(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
       try {
@@ -207,10 +209,6 @@ export default function CaptureStudio() {
       setCaptureError("Choose a photo — a still from the day.");
       return;
     }
-    if (next.size > PHOTO_MAX_BYTES) {
-      setCaptureError("Keep photos under 4.5 MB.");
-      return;
-    }
     if (looksLikeMemeName(next.name)) {
       setCaptureError("Tonight is for your own moment, not a meme.");
       return;
@@ -223,7 +221,14 @@ export default function CaptureStudio() {
       setCaptureError(SAFETY_REFUSAL);
       return;
     }
+    let originalBytes: ArrayBuffer | undefined;
+    try {
+      originalBytes = await next.arrayBuffer();
+    } catch {
+      originalBytes = undefined;
+    }
     const date = inspectPhotoDate({
+      bytes: originalBytes,
       lastModified: next.lastModified,
       localDay: day,
       tzOffsetMinutes: new Date().getTimezoneOffset(),
@@ -232,7 +237,16 @@ export default function CaptureStudio() {
       setCaptureError(PHOTO_DATE_MESSAGES.old);
       return;
     }
-    setCaptureError(null);
+    try {
+      next = await preparePhotoForUpload(next);
+    } catch (error) {
+      setCaptureError(error instanceof Error ? error.message : LANDING.app.tooLarge);
+      return;
+    }
+    if (next.size > PHOTO_MAX_BYTES) {
+      setCaptureError(LANDING.app.tooLargeKeep);
+      return;
+    }
     if (!date.verified) {
       setDateNote(date.reason === "none" ? PHOTO_DATE_MESSAGES.missing : PHOTO_DATE_MESSAGES.unverified);
     } else if (!dateNote?.startsWith("Videos")) {

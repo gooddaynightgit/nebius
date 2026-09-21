@@ -58,6 +58,9 @@ export const LANDING = {
     unexpected: "Couldn't read Gooddaynight's reply. Refresh and try again.",
     tryAgain: "Try again",
     joyNeed: "Pick the kind of quiet joy first.",
+    tooLarge: "That photo is too large — try again after we shrink it",
+    tooLargeKeep: "Keep photos under 4.5 MB.",
+    heicAsk: "That photo format isn't supported here. Save it as JPEG or PNG and try again.",
   },
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",
