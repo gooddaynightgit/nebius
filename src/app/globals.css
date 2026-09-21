@@ -611,6 +611,43 @@ a {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.yours {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 4.4rem;
+  border: 0;
+  border-radius: 1.15rem;
+  padding: 0.7rem 1rem;
+  background: var(--navy);
+  color: var(--lime);
+  font-family: inherit;
+  font-size: clamp(1.7rem, 8vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.yours:hover {
+  background: #0b2233;
+  color: var(--lime);
+}
+
+.card--lime .yours {
+  background: var(--navy);
+  color: var(--lime);
+}
+
+.yours[aria-disabled="true"] {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .cta-copy {
   position: relative;
   z-index: 1;

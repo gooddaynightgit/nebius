@@ -35,6 +35,7 @@ export const LANDING = {
   app: {
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
+    yours: "YOURS",
   },
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",

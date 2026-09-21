@@ -314,7 +314,10 @@ describe("unlock client contract", () => {
     expect(src).toMatch(/app-story-playback/);
     expect(src).toMatch(/LANDING\.moment\.title/);
     expect(src).toMatch(/LANDING\.app\.photoHelp/);
-    expect(src).toMatch(/See the story/);
+    expect(src).toMatch(/LANDING\.app\.yours/);
+    expect(src).toMatch(/href="#yours"/);
+    expect(src).toMatch(/id="yours"/);
+    expect(src).not.toMatch(/See the story/);
     expect(src).toMatch(/kind", "photo"/);
     expect(src).not.toMatch(/Drop a moment from today/);
     expect(src).not.toMatch(/Nothing leaves your private vault/);

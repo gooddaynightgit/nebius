@@ -20,6 +20,7 @@ describe("landing copy", () => {
     expect(LANDING.app.photoHelp).toBe(
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
+    expect(LANDING.app.yours).toBe("YOURS");
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",
     );

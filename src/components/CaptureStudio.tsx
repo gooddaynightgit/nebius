@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { FormEvent, MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import StoryPlayback from "@/components/StoryPlayback";
 import { LANDING, PHOTO_MAX_BYTES, getJoyById, type JoyType } from "@/lib/landing";
@@ -74,10 +74,12 @@ export default function CaptureStudio() {
   const [story, setStory] = useState<StoryRecord | null>(null);
   const [playing, setPlaying] = useState(false);
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
+  const [savedPair, setSavedPair] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const day = useMemo(localDay, []);
   const selectedJoy = getJoyById(selectedJoyId);
+  const pairKey = photo && selectedJoy ? `${selectedJoy.id}:${photo.name}:${photo.size}:${photo.lastModified}` : null;
 
   const refresh = useCallback(async () => {
     const [sessionRes, captureRes] = await Promise.all([
@@ -154,22 +156,31 @@ export default function CaptureStudio() {
       const data = await readJson<{ story: StoryRecord; session: SessionState }>(res);
       setStory(data.story);
       setSession(data.session);
+      window.requestAnimationFrame(() => {
+        document.getElementById("yours")?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        });
+      });
+      return data.story;
     } catch (err) {
       setWeaveError(err instanceof Error ? err.message : "Weave failed.");
+      return null;
     } finally {
       setBusy(null);
     }
   }
 
-  async function onPhotoSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!selectedJoy) {
-      setCaptureError("Pick the kind of quiet joy first.");
-      return;
+  async function savePhotoJoy(): Promise<{
+    captures: CaptureRecord[];
+    session: SessionState;
+  } | null> {
+    if (!selectedJoy || !photo) {
+      setCaptureError(photo ? "Pick the kind of quiet joy first." : "Add one photo from today.");
+      return null;
     }
-    if (!photo) {
-      setCaptureError("Add one photo from today.");
-      return;
+    if (savedPair === pairKey && captures.length > 0 && session) {
+      return { captures, session };
     }
     setBusy("capture");
     setCaptureError(null);
@@ -193,18 +204,29 @@ export default function CaptureStudio() {
       setSession(data.session);
       setCaptures(nextCaptures);
       writeLocalCaptures(day, nextCaptures);
-      setPhoto(null);
-      if (photoUrl) URL.revokeObjectURL(photoUrl);
-      setPhotoUrl(null);
-      if (data.session.email) {
-        await weaveCaptures(nextCaptures, data.session);
-      } else {
-        setBusy(null);
-      }
+      setSavedPair(pairKey);
+      return { captures: nextCaptures, session: data.session };
     } catch (err) {
       setCaptureError(err instanceof Error ? err.message : "Could not save that moment.");
+      return null;
+    } finally {
       setBusy(null);
     }
+  }
+
+  async function openYours(event: MouseEvent<HTMLAnchorElement>) {
+    if (story) return;
+    event.preventDefault();
+    const saved = await savePhotoJoy();
+    if (!saved) return;
+    if (!saved.session.email) {
+      document.getElementById("email-heading")?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+      return;
+    }
+    await weaveCaptures(saved.captures, saved.session);
   }
 
   async function unlockEmail(event: FormEvent) {
@@ -223,6 +245,9 @@ export default function CaptureStudio() {
       });
       const data = await readJson<{ session: SessionState }>(res);
       setSession(data.session);
+      if (captures.length >= 1) {
+        await weaveCaptures(captures, data.session);
+      }
     } catch (err) {
       setUnlockError(err instanceof Error ? err.message : "Could not save email.");
     } finally {
@@ -263,8 +288,7 @@ export default function CaptureStudio() {
 
   const unlocked = Boolean(session?.email);
   const showEmail = !unlocked && captures.length >= 1;
-  const canHear = unlocked && captures.length >= 1;
-  const canSave = Boolean(selectedJoy && photo && !busy);
+  const yoursReady = Boolean((photo && selectedJoy) || story);
 
   return (
     <div className="page">
@@ -282,19 +306,6 @@ export default function CaptureStudio() {
           <h1 id="app-moment-heading">{LANDING.moment.title}</h1>
         </section>
 
-        <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">
-          <h2 id="joy-heading" className="visually-hidden">
-            What kind of quiet joy was it?
-          </h2>
-          <JoyPicker
-            name="quiet-joy-app"
-            idPrefix="app-joy"
-            selectedId={selectedJoyId}
-            onSelect={pickJoy}
-          />
-          <span className="card__wash card__wash--note" aria-hidden="true"></span>
-        </section>
-
         <section className="card card--dark" aria-labelledby="capture-heading">
           <span className="pill">Photo</span>
           <h2 id="capture-heading" className="visually-hidden">
@@ -303,7 +314,7 @@ export default function CaptureStudio() {
           <p className="cta-copy" style={{ marginTop: 0 }}>
             {LANDING.app.photoHelp}
           </p>
-          <form className="studio" onSubmit={onPhotoSubmit}>
+          <div className="studio">
             <label className="btn btn--ghost" htmlFor={photoInputId}>
               {photo ? "Choose another photo" : "Take or upload a photo"}
             </label>
@@ -323,16 +334,40 @@ export default function CaptureStudio() {
               // eslint-disable-next-line @next/next/no-img-element
               <img className="photo-preview" src={photoUrl} alt="Selected moment from today" />
             ) : null}
-            <button className="btn btn--lime" type="submit" disabled={!canSave}>
-              {busy === "capture" ? "Saving…" : "See the story"}
-            </button>
-          </form>
+          </div>
           {captureError ? (
             <p className="error" role="alert">
               {captureError}
             </p>
           ) : null}
         </section>
+
+        <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">
+          <h2 id="joy-heading" className="visually-hidden">
+            What kind of quiet joy was it?
+          </h2>
+          <JoyPicker
+            name="quiet-joy-app"
+            idPrefix="app-joy"
+            selectedId={selectedJoyId}
+            onSelect={pickJoy}
+          />
+          <span className="card__wash card__wash--note" aria-hidden="true"></span>
+        </section>
+
+        {yoursReady ? (
+          <section className="card card--lime card--compact" aria-label={LANDING.app.yours}>
+            <a
+              className="yours"
+              href="#yours"
+              onClick={(event) => {
+                void openYours(event);
+              }}
+            >
+              {busy === "capture" || busy === "weave" ? "…" : LANDING.app.yours}
+            </a>
+          </section>
+        ) : null}
 
         <section className="card card--cream card--compact" aria-labelledby="today-heading">
           <h2 id="today-heading">Today’s moments</h2>
@@ -390,19 +425,26 @@ export default function CaptureStudio() {
           </section>
         )}
 
-        {canHear && (
-          <section className="card card--peach card--compact" aria-labelledby="weave-heading">
-            <h2 id="weave-heading">Tonight’s story</h2>
-            <div className="actions" style={{ marginTop: "1rem" }}>
-              <button
-                className="btn btn--lime"
-                type="button"
-                onClick={() => void weaveCaptures(captures, session)}
-                disabled={Boolean(busy) || captures.length === 0}
-              >
-                {busy === "weave" ? "Weaving…" : "Weave now"}
-              </button>
-              {story && (
+        {weaveError && !story ? (
+          <p className="error" role="alert">
+            {weaveError}
+          </p>
+        ) : null}
+
+        {story && (
+          <section
+            id="yours"
+            className="card card--peach card--compact"
+            aria-labelledby="yours-heading"
+          >
+            <h2 id="yours-heading" className="visually-hidden">
+              {LANDING.app.yours}
+            </h2>
+            <div className="story-body">
+              <StoryPlayback id="app-story-playback" title={story.title}>
+                <p className="playback__story">{story.body}</p>
+              </StoryPlayback>
+              <div className="actions" style={{ marginTop: "0.2rem" }}>
                 <button
                   className="btn"
                   type="button"
@@ -411,28 +453,21 @@ export default function CaptureStudio() {
                 >
                   {playing ? "Pause" : "Replay last night"}
                 </button>
-              )}
-            </div>
-            {weaveError && (
-              <p className="error" role="alert">
-                {weaveError}
-              </p>
-            )}
-            {story && (
-              <div className="story-body" style={{ marginTop: "1.1rem" }}>
-                <StoryPlayback id="app-story-playback" title={story.title}>
-                  <p className="playback__story">{story.body}</p>
-                </StoryPlayback>
-                <div className="status-row">
-                  <span className="chip">
-                    {story.mock ? "Joyful stand-in (add NEBIUS_API_KEY for Super)" : story.weaveModel}
-                  </span>
-                  <span className="chip">
-                    {story.tts.status === "sonic" ? "Sonic voice" : "Browser voice (Sonic coming)"}
-                  </span>
-                </div>
               </div>
-            )}
+              {weaveError && (
+                <p className="error" role="alert">
+                  {weaveError}
+                </p>
+              )}
+              <div className="status-row">
+                <span className="chip">
+                  {story.mock ? "Joyful stand-in (add NEBIUS_API_KEY for Super)" : story.weaveModel}
+                </span>
+                <span className="chip">
+                  {story.tts.status === "sonic" ? "Sonic voice" : "Browser voice (Sonic coming)"}
+                </span>
+              </div>
+            </div>
           </section>
         )}
       </main>
