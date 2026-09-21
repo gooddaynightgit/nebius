@@ -119,6 +119,8 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_WEAVE_SYSTEM).toMatch(/PLAYBACK TEMPLATE/);
     expect(APP_WEAVE_SYSTEM).toMatch(/NEVER copy/);
     expect(APP_WEAVE_SYSTEM).toMatch(/silver lining/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/80 characters/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Do not invent a happier day/);
   });
 
   it("cleans obvious typos without corporate rewrite", () => {
@@ -375,7 +377,11 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/\/api\/yours/);
     expect(picker).toMatch(/playbackTemplate/);
     expect(picker).toMatch(/playbackExample/);
-    expect(src).toMatch(/SILVER_LINING_NOTE|We kept the silver lining/);
-    expect(src).toMatch(/LANDING\.app\.privateNote/);
+    expect(src).toMatch(/LANDING\.app\.captionHelp/);
+    expect(src).toMatch(/LANDING\.app\.captionBeside/);
+    expect(src).toMatch(/captionDisposition/);
+    expect(src).toMatch(/LANDING\.footer\.somethingGood/);
+    expect(src).toMatch(/LANDING\.footer\.site/);
+    expect(src).not.toMatch(/LANDING\.app\.privateNote/);
   });
 });

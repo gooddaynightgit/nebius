@@ -102,7 +102,29 @@ describe("private vault", () => {
     });
     expect(second.id).toBe(first.id);
     expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBe("second still");
+    const cleared = await upsertAppPhoto(vault, {
+      id: "cap_clear",
+      kind: "photo",
+      createdAt: "2026-09-21T11:30:00.000Z",
+      day: "2026-09-21",
+      joyType: "just-this",
+      source: "app",
+      ingestStatus: "mock",
+    });
+    expect(cleared.caption).toBeUndefined();
+    const withLine = await upsertAppPhoto(vault, {
+      id: "cap_line",
+      kind: "photo",
+      createdAt: "2026-09-21T11:40:00.000Z",
+      day: "2026-09-21",
+      caption: "he wrote back",
+      joyType: "just-this",
+      source: "app",
+      ingestStatus: "mock",
+    });
+    expect(withLine.caption).toBe("he wrote back");
     await markYoursOpened(vault, "2026-09-21");
+    expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBeUndefined();
     await expect(
       upsertAppPhoto(vault, {
         id: "cap_c",

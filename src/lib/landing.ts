@@ -41,9 +41,10 @@ export const LANDING = {
     tagline: "One photo. One joy. One story.",
     yoursHint: "YOURS — the link that opens tonight’s story.",
     captionLabel: "Optional caption — one line, 80 characters.",
-    captionExamples: "the light on the kettle / he wrote back / I made it home",
-    privateNote:
-      "Private vault only — not shared, posted, or used to train public models.",
+    captionBeside: "It sits beside the photo. It is not the moment.",
+    captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
+    captionExamples: "a name / a step count / he wrote back",
+    captionDropped: "That line couldn’t be saved. The photo still is.",
     locked: "Tonight’s photo is locked. YOURS already opened the story.",
     save: "Save today’s moment",
     replace: "Replace today’s photo",

@@ -1,7 +1,7 @@
 import { captureImageDataUrl, ingestAppPhoto } from "@/lib/ingest";
 import { isPlausibleClientDay } from "@/lib/day";
 import { badRequest, json, notFound } from "@/lib/http";
-import { loadSessionVault, toPublicSession } from "@/lib/session";
+import { loadSessionVault, presentSession } from "@/lib/session";
 import { WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
 import {
   addStory,
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     return notFound(MISSING, { code: "missing" });
   }
   return json({
-    session: toPublicSession(vault, sessionId, day),
+    session: await presentSession(vault, sessionId, day),
     photo,
     story: opened ? storyForPhoto : null,
     opened,
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
   }
   await markYoursOpened(vault, day);
   return json({
-    session: toPublicSession(vault, sessionId, day),
+    session: await presentSession(vault, sessionId, day),
     story,
     opened: true,
     locked: true,

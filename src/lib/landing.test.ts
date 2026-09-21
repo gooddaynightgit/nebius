@@ -23,6 +23,10 @@ describe("landing copy", () => {
     expect(LANDING.app.yours).toBe("YOURS");
     expect(LANDING.app.tagline).toBe("One photo. One joy. One story.");
     expect(LANDING.app.yoursHint).toBe("YOURS — the link that opens tonight’s story.");
+    expect(LANDING.app.captionBeside).toBe("It sits beside the photo. It is not the moment.");
+    expect(LANDING.app.captionHelp).toBe(
+      "Write what the picture cannot say: a name, a step count, “he wrote back.”",
+    );
     expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",

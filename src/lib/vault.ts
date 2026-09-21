@@ -237,9 +237,28 @@ export async function markYoursOpened(vault: VaultRecord, day: string): Promise<
   const photo = appPhotoForDay(vault, day);
   if (photo) {
     const idx = vault.captures.findIndex((item) => item.id === photo.id);
-    if (idx >= 0) vault.captures[idx] = { ...vault.captures[idx], locked: true };
+    if (idx >= 0) {
+      const next = { ...vault.captures[idx], locked: true };
+      delete next.caption;
+      vault.captures[idx] = next;
+    }
   }
   await saveVault(vault);
+}
+
+export async function scrubExpiredCaptions(vault: VaultRecord, today: string): Promise<void> {
+  let changed = false;
+  vault.captures = vault.captures.map((capture) => {
+    if (capture.source !== "app" || !capture.caption) return capture;
+    const gone =
+      capture.day !== today || Boolean(capture.locked) || Boolean(vault.yoursOpened?.[capture.day]);
+    if (!gone) return capture;
+    changed = true;
+    const next = { ...capture };
+    delete next.caption;
+    return next;
+  });
+  if (changed) await saveVault(vault);
 }
 
 export async function upsertAppPhoto(
@@ -259,6 +278,8 @@ export async function upsertAppPhoto(
       vaultId: vault.id,
       locked: false,
     };
+    if (capture.caption) record.caption = capture.caption;
+    else delete record.caption;
     const idx = vault.captures.findIndex((item) => item.id === existing.id);
     vault.captures[idx] = record;
     await saveVault(vault);

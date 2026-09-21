@@ -1,3 +1,4 @@
+import { clipCaption } from "./app-capture";
 import { hasTokenFactoryKey, useUltra } from "./config";
 import { getJoyById } from "./landing";
 import { completeWithFallback, superModels, ultraModels } from "./nebius";
@@ -132,7 +133,9 @@ async function weaveAppWithSuper(input: {
         input.thread ? `Quiet continuity from last night: ${input.thread}` : "",
         `PLAYBACK TEMPLATE (tone only — REWRITE; never copy sentences):\n${input.template}`,
         `Photo understanding:\n${input.reframed ? "[silver lining] " : ""}${input.photoNotes}`,
-        input.caption ? `Optional caption: ${input.caption}` : "No caption.",
+        input.caption
+          ? `Optional caption (≤80 characters; do not quote more than this line): ${clipCaption(input.caption)}`
+          : "No caption.",
         "Write tonight's story now. Fresh sentences. Grounded in this still. Not the template.",
       ]
         .filter(Boolean)
@@ -177,13 +180,14 @@ export async function weaveStory(options: {
   let continuityModel: string | undefined;
 
   if (appJoy && appCapture) {
+    const caption = clipCaption(appCapture.caption ?? "") || undefined;
     const photoNotes =
       appCapture.goodMoment ||
-      appCapture.caption ||
+      caption ||
       `You kept a still for ${appJoy.title}.`;
     const fallback = mockJoyStory({
       joy: appJoy,
-      caption: appCapture.caption,
+      caption,
       goodMoment: photoNotes,
       reframed: Boolean(appCapture.reframed),
       day: options.day,
@@ -196,7 +200,7 @@ export async function weaveStory(options: {
         joyTitle: appJoy.title,
         template: appJoy.playbackTemplate,
         photoNotes,
-        caption: appCapture.caption,
+        caption,
         reframed: Boolean(appCapture.reframed),
         thread,
       });

@@ -19,8 +19,8 @@ import {
   looksLikeMemeName,
   PHOTO_DATE_MESSAGES,
 } from "@/lib/photo";
-import { isHorrificFilename, isHorrificText, SAFETY_REFUSAL } from "@/lib/safety-text";
-import { SILVER_LINING_NOTE, displayMoment } from "@/lib/prompts";
+import { captionDisposition } from "@/lib/app-capture";
+import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import type { CaptureRecord, SessionState } from "@/lib/types";
 
 type Health = {
@@ -90,6 +90,7 @@ export default function CaptureStudio() {
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
   const [dateNote, setDateNote] = useState<string | null>(null);
+  const [captionNote, setCaptionNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -108,7 +109,7 @@ export default function CaptureStudio() {
     if (sessionData.health) setHealth(sessionData.health);
     if (!hydrated && sessionData.todayPhoto) {
       setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
-      setCaption(sessionData.todayPhoto.caption ?? "");
+      setCaption(sessionData.yoursOpened ? "" : sessionData.todayPhoto.caption ?? "");
       if (!sessionData.todayPhoto.dateVerified) {
         setDateNote(PHOTO_DATE_MESSAGES.unverified);
       }
@@ -174,6 +175,8 @@ export default function CaptureStudio() {
     } else if (!dateNote?.startsWith("Videos")) {
       setDateNote(null);
     }
+    setCaption("");
+    setCaptionNote(null);
     setPhoto(next);
     setPhotoUrl((current) => {
       if (current) URL.revokeObjectURL(current);
@@ -201,17 +204,11 @@ export default function CaptureStudio() {
       setCaptureError("Pick the kind of quiet joy first.");
       return;
     }
-    const line = caption.replace(/\s+/g, " ").trim();
-    if (line.length > WHISPER_MAX) {
-      setCaptureError(`Keep the caption to ${WHISPER_MAX} characters.`);
-      return;
-    }
-    if (isHorrificText(line)) {
-      setCaptureError(SAFETY_REFUSAL);
-      return;
-    }
+    const kept = captionDisposition(caption);
     setBusy(true);
     setCaptureError(null);
+    setCaptionNote(kept.dropped ? LANDING.app.captionDropped : null);
+    if (kept.dropped) setCaption("");
     try {
       const form = new FormData();
       form.set("source", "app");
@@ -219,7 +216,7 @@ export default function CaptureStudio() {
       form.set("day", day);
       form.set("joyType", selectedJoy.id);
       form.set("tzOffset", String(new Date().getTimezoneOffset()));
-      if (line) form.set("caption", line);
+      if (kept.caption) form.set("caption", kept.caption);
       if (photo) form.set("file", photo, photo.name || "moment.jpg");
       const res = await fetch("/api/captures", { method: "POST", body: form });
       const data = (await res.json()) as {
@@ -227,12 +224,17 @@ export default function CaptureStudio() {
         session?: SessionState;
         error?: string;
         dateNote?: string;
+        captionNote?: string;
       };
       if (!res.ok || !data.session) {
         throw new Error(data.error || "Could not save that moment.");
       }
       setSession(data.session);
       if (data.dateNote) setDateNote(data.dateNote);
+      if (data.captionNote) {
+        setCaptionNote(data.captionNote);
+        setCaption("");
+      }
       window.requestAnimationFrame(() => {
         document.getElementById("yours-door")?.scrollIntoView({
           behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
@@ -245,8 +247,6 @@ export default function CaptureStudio() {
       setBusy(false);
     }
   }
-
-  const shown = savedPhoto ? displayMoment(savedPhoto) : null;
 
   return (
     <div className="page">
@@ -300,26 +300,42 @@ export default function CaptureStudio() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img className="photo-preview" src={previewSrc} alt="Selected moment from today" />
               ) : null}
-              <label className="whisper-label" htmlFor={captionId} style={{ color: "#f4f7fb" }}>
-                {LANDING.app.captionLabel}
-              </label>
-              <input
-                id={captionId}
-                type="text"
-                maxLength={WHISPER_MAX}
-                autoComplete="off"
-                placeholder={LANDING.app.captionExamples}
-                value={caption}
-                disabled={locked}
-                onChange={(event) => setCaption(event.target.value.replace(/\n/g, " ").slice(0, WHISPER_MAX))}
-              />
-              <p className="whisper-count" style={{ color: "rgba(244,247,251,0.7)" }}>
-                {caption.length}/{WHISPER_MAX}
-              </p>
+              {!locked ? (
+                <>
+                  <label className="whisper-label" htmlFor={captionId} style={{ color: "#f4f7fb" }}>
+                    {LANDING.app.captionLabel}
+                  </label>
+                  <p className="cta-copy" style={{ marginTop: 0 }}>
+                    {LANDING.app.captionBeside}
+                  </p>
+                  <p className="cta-copy" style={{ marginTop: "0.35rem" }}>
+                    {LANDING.app.captionHelp}
+                  </p>
+                  <input
+                    id={captionId}
+                    type="text"
+                    maxLength={WHISPER_MAX}
+                    autoComplete="off"
+                    placeholder={LANDING.app.captionExamples}
+                    value={caption}
+                    onChange={(event) =>
+                      setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
+                    }
+                  />
+                  <p className="whisper-count" style={{ color: "rgba(244,247,251,0.7)" }}>
+                    {caption.length}/{WHISPER_MAX}
+                  </p>
+                </>
+              ) : null}
             </div>
             {dateNote ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
                 {dateNote}
+              </p>
+            ) : null}
+            {captionNote ? (
+              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
+                {captionNote}
               </p>
             ) : null}
             {captureError ? (
@@ -373,21 +389,21 @@ export default function CaptureStudio() {
           ) : (
             <div className="moment-list">
               <article className="moment">
-                <span className="moment__kind">
-                  {getJoyById(savedPhoto.joyType)?.title ?? "photo"}
-                </span>
-                <p>{shown?.line}</p>
-                {shown?.reframed ? <p className="moment__note">{SILVER_LINING_NOTE}</p> : null}
+                <span className="moment__kind">photo</span>
+                <p>{getJoyById(savedPhoto.joyType)?.title ?? "A still from today."}</p>
               </article>
             </div>
           )}
         </section>
+
+        <section className="card card--lime card--compact" aria-labelledby="closing-heading">
+          <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>
+        </section>
       </main>
 
       <footer className="site-footer">
-        <p className="private-note">{LANDING.app.privateNote}</p>
         <p>
-          <Link href="/">Back to Gooddaynight</Link>
+          <Link href="/">{LANDING.footer.site}</Link>
         </p>
       </footer>
     </div>

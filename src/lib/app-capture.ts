@@ -11,7 +11,37 @@ import {
 import { isHorrificFilename, isHorrificText, SAFETY_REFUSAL } from "./safety-text";
 
 export function oneLineCaption(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
+  return value.replace(/[\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function clipCaption(value: string): string {
+  return oneLineCaption(value).slice(0, WHISPER_MAX);
+}
+
+export function isEssayCaption(value: string): boolean {
+  const line = oneLineCaption(value);
+  if (!line) return false;
+  if (/\b(1[\).:]|2[\).:]|3[\).:])/.test(line)) return true;
+  if (/\b(grateful|gratitude)\b/i.test(line) && (/,.*,/.test(line) || /\b(and|then)\b.*,/.test(line))) {
+    return true;
+  }
+  if (/\bdear (diary|journal)\b|\bjournal entry\b/i.test(line)) return true;
+  const sentences = line.split(/[.!?]+\s+/).filter((part) => part.trim().length > 8);
+  return sentences.length >= 3;
+}
+
+export type CaptionDisposition = {
+  caption: string;
+  dropped: boolean;
+  reason?: "blocked" | "essay";
+};
+
+export function captionDisposition(value: string): CaptionDisposition {
+  const line = clipCaption(value);
+  if (!line) return { caption: "", dropped: false };
+  if (isHorrificText(line)) return { caption: "", dropped: true, reason: "blocked" };
+  if (isEssayCaption(line)) return { caption: "", dropped: true, reason: "essay" };
+  return { caption: line, dropped: false };
 }
 
 export function appPhotoRejection(input: {
@@ -25,9 +55,6 @@ export function appPhotoRejection(input: {
 }): string | null {
   if (!isPlausibleClientDay(input.day)) return "Use today's date on your phone.";
   if (!getJoyById(input.joyId)) return "Pick the kind of quiet joy first.";
-  if (input.caption.length > WHISPER_MAX) {
-    return `Keep the caption to ${WHISPER_MAX} characters.`;
-  }
   if (!input.size) return "Add one photo from today.";
   if (input.size > PHOTO_MAX_BYTES) return "Keep photos under 4.5 MB.";
   if (isVideoMime(input.mime)) {
@@ -43,7 +70,7 @@ export function appPhotoRejection(input: {
   if (input.takenDay && input.takenDay !== input.day) {
     return PHOTO_DATE_MESSAGES.old;
   }
-  if (isHorrificText(input.caption) || isHorrificFilename(input.filename)) {
+  if (isHorrificFilename(input.filename)) {
     return SAFETY_REFUSAL;
   }
   return null;

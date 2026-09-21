@@ -50,6 +50,8 @@ NEVER copy, quote, or lightly edit the template's distinctive sentences. New wor
 
 Rules:
 - Second person ("you"). 180–280 words.
+- The optional caption is a whisper beside the photo — not the moment. You may use it. Never quote more than those 80 characters, and never invent extra words they did not write.
+- Same honesty as the photo: sad or hard is allowed. Do not invent a happier day.
 - Ground the story in visible or named details from THIS photo and caption. Do not invent people, places, or plots that are not in the notes.
 - If a moment is marked [silver lining], that lining IS the good. NEVER quote, repeat, or celebrate despair. Praise the courage of naming the wish; a heart that loves connection; implied worth.
 - Narrative spine: their good (or silver lining) leads → specific praise earned from THIS still → why it landed → implied worth from this moment only → float into sleep, multifold.

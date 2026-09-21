@@ -1,13 +1,13 @@
-import { appPhotoRejection, oneLineCaption } from "@/lib/app-capture";
+import { appPhotoRejection, captionDisposition } from "@/lib/app-capture";
 import { chooseSpokenLine, proposeSpokenLine } from "@/lib/care";
 import { ingestAppPhoto, ingestGood } from "@/lib/ingest";
 import { newId, todayStamp } from "@/lib/identity";
-import { getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
+import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
 import { badRequest, forbidden, json } from "@/lib/http";
 import { bufferToArrayBuffer, inspectPhotoDate, PHOTO_DATE_MESSAGES, type PhotoDateCheck } from "@/lib/photo";
 import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
-import { loadSessionVault, toPublicSession } from "@/lib/session";
+import { loadSessionVault, presentSession, toPublicSession } from "@/lib/session";
 import { putBytes } from "@/lib/storage";
 import { addCapture, appPhotoForDay, capturesForDay, isYoursOpened, upsertAppPhoto } from "@/lib/vault";
 import type { CaptureKind } from "@/lib/types";
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const day = url.searchParams.get("day") || todayStamp();
   const { sessionId, vault } = await loadSessionVault();
   return json({
-    session: toPublicSession(vault, sessionId, day),
+    session: await presentSession(vault, sessionId, day),
     captures: capturesForDay(vault, day),
   });
 }
@@ -132,7 +132,8 @@ async function saveAppPhoto(
   const day = String(form.get("day") ?? "");
   const joyId = String(form.get("joyType") ?? "");
   const joy = getJoyById(joyId);
-  const caption = oneLineCaption(String(form.get("caption") ?? ""));
+  const captionResult = captionDisposition(String(form.get("caption") ?? ""));
+  const caption = captionResult.caption;
   const tzOffset = Number(form.get("tzOffset"));
   const file = form.get("file");
   const existing = appPhotoForDay(vault, day);
@@ -186,9 +187,8 @@ async function saveAppPhoto(
       ? `data:${mediaContentType};base64,${bytes.toString("base64")}`
       : undefined;
 
-  if (imageDataUrl || caption) {
+  if (imageDataUrl) {
     const safety = await inspectImageSafety({
-      caption,
       filename,
       imageDataUrl,
     });
@@ -230,8 +230,9 @@ async function saveAppPhoto(
     });
     return json({
       capture,
-      session: toPublicSession(vault, sessionId, day),
+      session: await presentSession(vault, sessionId, day),
       dateNote: date.verified ? undefined : PHOTO_DATE_MESSAGES.unverified,
+      captionNote: captionResult.dropped ? LANDING.app.captionDropped : undefined,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Today's photo is locked.";

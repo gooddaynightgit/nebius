@@ -8,6 +8,7 @@ import {
   lastStoryForDay,
   appPhotoForDay,
   isYoursOpened,
+  scrubExpiredCaptions,
 } from "./vault";
 import type { SessionState, VaultRecord } from "./types";
 
@@ -51,6 +52,11 @@ export function toPublicSession(
   const today = capturesForDay(vault, day);
   const todayPhoto = appPhotoForDay(vault, day);
   const opened = isYoursOpened(vault, day);
+  const photo = todayPhoto
+    ? opened
+      ? { ...todayPhoto, caption: undefined }
+      : todayPhoto
+    : null;
   return {
     sessionId,
     vaultId: vault.id,
@@ -59,10 +65,19 @@ export function toPublicSession(
     todayCount: today.length,
     canHearStory: opened,
     lastStory: lastStoryForDay(vault, day),
-    todayPhoto,
+    todayPhoto: photo,
     yoursOpened: opened,
     canReplacePhoto: Boolean(todayPhoto) && !opened,
   };
+}
+
+export async function presentSession(
+  vault: VaultRecord,
+  sessionId: string,
+  day: string,
+): Promise<SessionState> {
+  await scrubExpiredCaptions(vault, day);
+  return toPublicSession(vault, sessionId, day);
 }
 
 export async function loadSessionVault(): Promise<{

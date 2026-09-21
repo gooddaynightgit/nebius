@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { appPhotoRejection, oneLineCaption } from "./app-capture";
+import { appPhotoRejection, captionDisposition, clipCaption, isEssayCaption, oneLineCaption } from "./app-capture";
 import { localDay } from "./day";
 import { PHOTO_DATE_MESSAGES } from "./photo";
-import { SAFETY_REFUSAL } from "./safety-text";
 
 const today = localDay();
 
 describe("app photo save rules", () => {
-  it("requires a today photo, a joy pick, and a short caption", () => {
+  it("requires a today photo and a joy pick; caption is optional", () => {
     expect(
       appPhotoRejection({
         day: today,
@@ -51,10 +50,10 @@ describe("app photo save rules", () => {
         size: 1200,
         takenDay: today,
       }),
-    ).toMatch(/80/);
+    ).toBeNull();
   });
 
-  it("rejects video, memes, old dates, and horrific captions", () => {
+  it("rejects video, memes, old dates, and horrific filenames — not captions", () => {
     expect(
       appPhotoRejection({
         day: today,
@@ -98,10 +97,21 @@ describe("app photo save rules", () => {
         size: 1200,
         takenDay: today,
       }),
-    ).toBe(SAFETY_REFUSAL);
+    ).toBeNull();
   });
 
-  it("collapses captions to one line", () => {
+  it("keeps captions to one clipped line and drops blocked or essay lines", () => {
     expect(oneLineCaption("the light\non the kettle")).toBe("the light on the kettle");
+    expect(clipCaption(`${"x".repeat(90)}`)).toHaveLength(80);
+    expect(captionDisposition("he wrote back")).toEqual({ caption: "he wrote back", dropped: false });
+    expect(captionDisposition("a gore scene from the movie")).toEqual({
+      caption: "",
+      dropped: true,
+      reason: "blocked",
+    });
+    expect(isEssayCaption("grateful for tea, sun, and you")).toBe(true);
+    expect(isEssayCaption("1) tea 2) sun 3) you")).toBe(true);
+    expect(isEssayCaption("he wrote back")).toBe(false);
+    expect(captionDisposition("grateful for tea, sun, and you").dropped).toBe(true);
   });
 });
