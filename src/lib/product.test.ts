@@ -20,7 +20,7 @@ import {
   weavableLines,
 } from "./prompts";
 import { WeaveNeedsWordsError, weaveStory } from "./weave";
-import { stripReasoning, uniqueModels, visionModels, appStoryModels } from "./nebius";
+import { stripReasoning, uniqueModels, visionModels, appStoryModels, appStoryTextModels, appStoryVisionModels, isImage2TextCloser } from "./nebius";
 import { MODELS } from "./config";
 
 describe("funnel", () => {
@@ -125,6 +125,7 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/4–6 short sentences/);
     expect(APP_REFLECT_SYSTEM).toMatch(/closing voice of Gooddaynight/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/photo when it is attached/);
     expect(APP_REFLECT_SYSTEM).toMatch(/photo description \(sensory excavation\)/);
     expect(APP_REFLECT_SYSTEM).toMatch(/chosen joy/);
     expect(APP_REFLECT_SYSTEM).toMatch(/optional caption \(their whisper\)/);
@@ -290,7 +291,7 @@ describe("ingest and weave fallbacks", () => {
     const { JOY_TYPES } = await import("./landing");
     const { mockJoyStory, mockExcavation } = await import("./prompts");
     const { appStoryProblems, leaksAppStoryInstruction } = await import("./app-story");
-    const { appExcavateUserText, appReflectUserText } = await import("./weave");
+    const { appExcavateUserText, appReflectUserText, appReflectUserContent } = await import("./weave");
     const joy = JOY_TYPES.find((item) => item.id === "just-this");
     expect(joy).toBeTruthy();
     const excavation = mockExcavation({
@@ -346,12 +347,37 @@ describe("ingest and weave fallbacks", () => {
     expect(user).toMatch(/1–2 sentences/);
     expect(user).toMatch(/~35 words/);
     expect(user).toMatch(/Optional caption \(their whisper\)/);
+    expect(user).toMatch(/photo pixels are not attached/);
     expect(user).not.toMatch(/4–6 short sentences/);
     expect(user).not.toMatch(/600–900 characters/);
     expect(user).not.toMatch(/Joy playback string/);
     expect(user).not.toMatch(/never more than these words/);
     expect(user).not.toMatch(/colour only, not a lecture/);
     expect(user).not.toMatch(/Forbidden in the story/);
+
+    const withPhoto = appReflectUserContent({
+      joyTitle: joy!.title,
+      excavation,
+      caption: "Blossomimg tree",
+      imageDataUrl: "data:image/jpeg;base64,abc",
+    });
+    expect(Array.isArray(withPhoto)).toBe(true);
+    expect(withPhoto).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "text", text: expect.stringMatching(/photo is attached/) }),
+        expect.objectContaining({
+          type: "image_url",
+          image_url: { url: "data:image/jpeg;base64,abc" },
+        }),
+      ]),
+    );
+    expect(
+      appReflectUserContent({
+        joyTitle: joy!.title,
+        excavation,
+        caption: "Blossomimg tree",
+      }),
+    ).toEqual(expect.stringMatching(/photo pixels are not attached/));
   });
 
   it("weaves an app photo from the joy template without pasting the canned playback", async () => {
@@ -552,6 +578,8 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/No YOURS story tonight/);
     expect(yours).toMatch(/Written without seeing the photo/);
     expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
+    expect(yours).toMatch(/Couldn’t finish tonight’s close/);
+    expect(yours).not.toMatch(/Kimi didn’t finish/);
     expect(yours).toMatch(/keepCardPhotoSrc|composeKeepCardJpeg/);
     expect(yours).toMatch(/LANDING\.app\.keep/);
     expect(yours).toMatch(/keepLabel/);
@@ -614,7 +642,10 @@ describe("YOURS two-step brief", () => {
     expect(weave).toMatch(/APP_REFLECT_SYSTEM/);
     expect(weave).not.toMatch(/4–6 short sentences/);
     expect(weave).toMatch(/visionModels/);
-    expect(weave).toMatch(/appStoryModels/);
+    expect(weave).toMatch(/appStoryVisionModels/);
+    expect(weave).toMatch(/appStoryTextModels/);
+    expect(weave).toMatch(/appReflectUserContent/);
+    expect(weave).toMatch(/mockJoyStory/);
     expect(weave).toMatch(/image_url/);
     expect(weave).toMatch(/imageDataUrl/);
     expect(weave).toMatch(/WeaveBlockedError/);
@@ -632,17 +663,30 @@ describe("YOURS two-step brief", () => {
     expect(envExample).toMatch(/NEBIUS_STORY_MODEL/);
     expect(envExample).toMatch(/moonshotai\/Kimi-K2\.6/);
     expect(envExample).toMatch(/Nightly Reflection/);
+    expect(envExample).toMatch(/image2text/);
+    expect(envExample).toMatch(/NEBIUS_STORY_TEXT_MODEL/);
     expect(readme).toMatch(/NEBIUS_VISION_MODEL/);
     expect(readme).toMatch(/NEBIUS_STORY_MODEL/);
     expect(readme).toMatch(/openbmb\/MiniCPM-V-4_5/);
     expect(readme).toMatch(/moonshotai\/Kimi-K2\.6/);
+    expect(readme).toMatch(/image2text/);
+    expect(readme).toMatch(/attaches the photo|the still is attached|sends the photo/i);
     expect(readme).not.toMatch(/YOURS bedtime story \| `Qwen\/Qwen3-235B-A22B-Instruct-2507`/);
     expect(uniqueModels("a", "a", "", "b")).toEqual(["a", "b"]);
     expect(visionModels()[0]).toBe(MODELS.vision);
+    expect(isImage2TextCloser("moonshotai/Kimi-K2.6")).toBe(true);
+    expect(isImage2TextCloser("moonshotai/Kimi-K3")).toBe(true);
+    expect(isImage2TextCloser("moonshotai/Kimi-K2.7-Code")).toBe(false);
+    expect(isImage2TextCloser("Qwen/Qwen3-235B-A22B-Instruct-2507")).toBe(false);
+    expect(appStoryVisionModels()).toEqual(["moonshotai/Kimi-K2.6"]);
+    expect(appStoryTextModels()[0]).toBe(MODELS.storyText);
+    expect(appStoryTextModels()).toContain(MODELS.super);
     expect(appStoryModels()[0]).toBe(MODELS.story);
-    expect(appStoryModels()[1]).toBe(MODELS.super);
+    expect(appStoryModels()[1]).toBe(MODELS.storyText);
+    expect(appStoryModels()[2]).toBe(MODELS.super);
     expect(MODELS.vision).toBe("openbmb/MiniCPM-V-4_5");
     expect(MODELS.story).toBe("moonshotai/Kimi-K2.6");
+    expect(MODELS.storyText).toBe("Qwen/Qwen3-235B-A22B-Instruct-2507");
     expect(MODELS.excavateText).toBe("Qwen/Qwen3-235B-A22B-Instruct-2507");
   });
 });

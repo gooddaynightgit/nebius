@@ -1,0 +1,136 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const completeWithFallback = vi.hoisted(() => vi.fn());
+
+vi.mock("./nebius", async () => {
+  const actual = await vi.importActual<typeof import("./nebius")>("./nebius");
+  return {
+    ...actual,
+    completeWithFallback,
+  };
+});
+
+import { MODELS } from "./config";
+import { appStoryProblems } from "./app-story";
+import {
+  appReflectUserContent,
+  appReflectUserText,
+  weaveAppStoryFromExcavation,
+} from "./weave";
+
+const GOOD =
+  "You spent today looking for the good instead of scrolling past it — cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.";
+
+const IMAGE = "data:image/jpeg;base64,abc";
+
+const input = {
+  joyTitle: "Just this",
+  template:
+    "Ten quiet minutes. Gold on your skin and a longer canned playback that should not appear in the story at all.",
+  excavation: "SUBJECTS & VIBE — No people. A frozen banana with chocolate.",
+  caption: "eaten standing up",
+  imageDataUrl: IMAGE,
+};
+
+describe("Nightly Reflection message shape", () => {
+  it("attaches the photo for image2text Kimi", () => {
+    const content = appReflectUserContent({ ...input, imageDataUrl: IMAGE });
+    expect(Array.isArray(content)).toBe(true);
+    expect(content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "text" }),
+        expect.objectContaining({
+          type: "image_url",
+          image_url: { url: IMAGE },
+        }),
+      ]),
+    );
+    expect(appReflectUserText({ ...input, hasImage: true })).toMatch(/photo is attached/i);
+  });
+
+  it("stays text-only when no image is present", () => {
+    const content = appReflectUserContent({ ...input, imageDataUrl: undefined });
+    expect(typeof content).toBe("string");
+    expect(content).toMatch(/photo pixels are not attached/i);
+    expect(String(content)).not.toMatch(/photo is attached/i);
+  });
+
+  it("lets a valid ~35-word reflection through the closer validators", () => {
+    expect(appStoryProblems(GOOD, input.template)).toEqual([]);
+  });
+});
+
+describe("Nightly Reflection live fallback", () => {
+  beforeEach(() => {
+    completeWithFallback.mockReset();
+  });
+
+  it("sends multimodal content to Kimi when the photo is present", async () => {
+    completeWithFallback.mockResolvedValueOnce({
+      text: GOOD,
+      model: "moonshotai/Kimi-K2.6",
+    });
+    const live = await weaveAppStoryFromExcavation(input);
+    expect(live).toMatchObject({ body: GOOD, model: "moonshotai/Kimi-K2.6" });
+    expect(completeWithFallback).toHaveBeenCalledTimes(1);
+    const [models, messages] = completeWithFallback.mock.calls[0] as [
+      string[],
+      Array<{ content: unknown }>,
+    ];
+    expect(models).toEqual(["moonshotai/Kimi-K2.6"]);
+    expect(messages[1].content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "image_url", image_url: { url: IMAGE } }),
+      ]),
+    );
+  });
+
+  it("tries Qwen text-only after multimodal Kimi fails, before mock", async () => {
+    completeWithFallback
+      .mockRejectedValueOnce(
+        new Error("Token Factory moonshotai/Kimi-K2.6 failed (400): image required"),
+      )
+      .mockResolvedValueOnce({
+        text: GOOD,
+        model: MODELS.storyText,
+      });
+    const live = await weaveAppStoryFromExcavation(input);
+    expect(live).toMatchObject({ body: GOOD, model: MODELS.storyText });
+    expect(completeWithFallback).toHaveBeenCalledTimes(2);
+    const visionModels = completeWithFallback.mock.calls[0][0] as string[];
+    const textCall = completeWithFallback.mock.calls[1] as [
+      string[],
+      Array<{ content: unknown }>,
+    ];
+    expect(visionModels).toEqual(["moonshotai/Kimi-K2.6"]);
+    expect(textCall[0][0]).toBe(MODELS.storyText);
+    expect(textCall[0]).toContain(MODELS.super);
+    expect(typeof textCall[1][1].content).toBe("string");
+  });
+
+  it("returns fail only after vision and text both fail", async () => {
+    completeWithFallback.mockRejectedValue(new Error("boom"));
+    const live = await weaveAppStoryFromExcavation(input);
+    expect(live).toMatchObject({
+      fail: expect.objectContaining({ lastError: expect.stringMatching(/boom/) }),
+    });
+    expect(completeWithFallback).toHaveBeenCalledTimes(2);
+    expect(live && "body" in live).toBe(false);
+  });
+
+  it("does not attach an image on the text-only path", async () => {
+    completeWithFallback.mockResolvedValueOnce({
+      text: GOOD,
+      model: MODELS.storyText,
+    });
+    const live = await weaveAppStoryFromExcavation({ ...input, imageDataUrl: undefined });
+    expect(live).toMatchObject({ model: MODELS.storyText });
+    expect(completeWithFallback).toHaveBeenCalledTimes(1);
+    const [models, messages] = completeWithFallback.mock.calls[0] as [
+      string[],
+      Array<{ content: unknown }>,
+    ];
+    expect(models[0]).toBe(MODELS.storyText);
+    expect(typeof messages[1].content).toBe("string");
+  });
+});

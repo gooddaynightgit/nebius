@@ -60,6 +60,8 @@ export async function completeWithFallback(
       return await chatComplete({ model, messages, ...options });
     } catch (error) {
       lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[token-factory] ${model} failed: ${message.slice(0, 240)}`);
     }
   }
   throw lastError instanceof Error ? lastError : new Error("All models failed");
@@ -88,8 +90,27 @@ export function visionModels(): string[] {
   return uniqueModels(MODELS.vision, MODELS.nanoOmni);
 }
 
+/** Catalog image2text Kimi ids. Coding Kimi and instruct text models stay text-only. */
+export function isImage2TextCloser(model: string): boolean {
+  const id = model.trim();
+  if (!id) return false;
+  if (/code/i.test(id)) return false;
+  return /moonshotai\/kimi-k2\.6\b/i.test(id) || /moonshotai\/kimi-k3\b/i.test(id);
+}
+
+/** Image2text Kimi (K2.6 / K3) — YOURS sends the photo when one is attached. */
+export function appStoryVisionModels(): string[] {
+  return uniqueModels(MODELS.story).filter(isImage2TextCloser);
+}
+
+/** Text2text Nightly Reflection: configured text id, then Qwen instruct, then Super. */
+export function appStoryTextModels(): string[] {
+  const storyIfText = isImage2TextCloser(MODELS.story) ? undefined : MODELS.story;
+  return uniqueModels(storyIfText, MODELS.storyText, MODELS.super);
+}
+
 export function appStoryModels(): string[] {
-  return uniqueModels(MODELS.story, MODELS.super);
+  return uniqueModels(...appStoryVisionModels(), ...appStoryTextModels());
 }
 
 export function textExcavateModels(): string[] {

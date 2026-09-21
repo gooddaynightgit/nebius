@@ -39,8 +39,7 @@ describe("app story length and BLOCK", () => {
       "You spent today looking for the good instead of scrolling past it — cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.";
     expect(countAppStoryWords(reflection)).toBeLessThanOrEqual(APP_STORY_WORD_MAX + 4);
     expect(countAppStorySentences(reflection)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
-    expect(appStoryProblems(reflection, "")).not.toContain("short");
-    expect(appStoryProblems(reflection, "")).not.toContain("long");
+    expect(appStoryProblems(reflection, "")).toEqual([]);
     expect(trimAppStory(reflection).length).toBeLessThanOrEqual(APP_STORY_MAX);
     expect(finishAppStory(reflection)).toBe(reflection);
 
@@ -70,6 +69,22 @@ describe("app story length and BLOCK", () => {
     expect(
       leaksAppStoryInstruction(
         "You spent today gathering the good — pale petals, bark, a moment that could only belong to you. Kept, it opens the door to more.",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not treat ordinary caption or whisper words as instruction leak", () => {
+    const screenshot =
+      "You spent today looking for the good — three handwritten lines, the screenshot caption, a moment that could only belong to you. Kept, it opens the door to more.";
+    const steam =
+      "You spent today looking for the good — a whisper of steam, the kettle, a moment that could only belong to you. Kept, it opens the door to more.";
+    expect(leaksAppStoryInstruction(screenshot)).toBe(false);
+    expect(appStoryProblems(screenshot, "")).toEqual([]);
+    expect(leaksAppStoryInstruction(steam)).toBe(false);
+    expect(appStoryProblems(steam, "")).toEqual([]);
+    expect(
+      leaksAppStoryInstruction(
+        "You spent today looking for the good — a prompt hello on the screen, a moment that could only belong to you. Kept, it opens the door to more.",
       ),
     ).toBe(false);
   });
