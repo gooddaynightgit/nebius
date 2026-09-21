@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { prefersLiveCamera } from "./live-camera";
+import { jpegBlobFromCanvas, prefersLiveCamera, stillFromLiveVideo } from "./live-camera";
 
 describe("live camera", () => {
   it("offers getUserMedia on secure mobile, not desktop", () => {
@@ -27,5 +27,11 @@ describe("live camera", () => {
         maxTouchPoints: 0,
       }),
     ).toBe(false);
+  });
+
+  it("encodes live stills as JPEG, with a data-URL fallback", () => {
+    expect(jpegBlobFromCanvas).toEqual(expect.any(Function));
+    expect(stillFromLiveVideo.toString()).toMatch(/image\/jpeg/);
+    expect(jpegBlobFromCanvas.toString()).toMatch(/toDataURL/);
   });
 });

@@ -33,6 +33,30 @@ export async function openRearCamera(): Promise<MediaStream> {
   throw last instanceof Error ? last : new Error("Could not open the camera.");
 }
 
+function jpegBlobFromDataUrl(dataUrl: string): Blob {
+  const comma = dataUrl.indexOf(",");
+  const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : "";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: "image/jpeg" });
+}
+
+export async function jpegBlobFromCanvas(canvas: HTMLCanvasElement, quality = 0.92): Promise<Blob> {
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((next) => resolve(next), "image/jpeg", quality);
+  });
+  if (blob && blob.size > 0) {
+    const bytes = await blob.arrayBuffer();
+    return new Blob([bytes], { type: "image/jpeg" });
+  }
+  const dataUrl = canvas.toDataURL("image/jpeg", quality);
+  if (!dataUrl.startsWith("data:image/jpeg")) {
+    throw new Error("Could not keep a still from the camera.");
+  }
+  return jpegBlobFromDataUrl(dataUrl);
+}
+
 export async function stillFromLiveVideo(video: HTMLVideoElement): Promise<File> {
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth || 720;
@@ -40,13 +64,7 @@ export async function stillFromLiveVideo(video: HTMLVideoElement): Promise<File>
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not keep a still from the camera.");
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (next) => (next ? resolve(next) : reject(new Error("Could not keep a still from the camera."))),
-      "image/jpeg",
-      0.92,
-    );
-  });
+  const blob = await jpegBlobFromCanvas(canvas, 0.92);
   return new File([blob], "moment.jpg", {
     type: "image/jpeg",
     lastModified: Date.now(),
