@@ -61,6 +61,10 @@ export const LANDING = {
     tooLarge: "That photo is too large — try again after we shrink it",
     tooLargeKeep: "Keep photos under 4.5 MB.",
     heicAsk: "That photo format isn't supported here. Save it as JPEG or PNG and try again.",
+    yoursMissing: "Save today's photo and pick a joy first.",
+    keepingMoment: "Keeping your moment…",
+    savedOnPhone: "Saved on this phone — open YOURS from here",
+    resaveFailed: "We couldn't send today's photo again. Go back and save it from this phone.",
   },
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",

@@ -50,6 +50,10 @@ describe("landing copy", () => {
     expect(LANDING.app.tooLarge).toBe("That photo is too large — try again after we shrink it");
     expect(LANDING.app.tooLargeKeep).toBe("Keep photos under 4.5 MB.");
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);
+    expect(LANDING.app.yoursMissing).toBe("Save today's photo and pick a joy first.");
+    expect(LANDING.app.keepingMoment).toBe("Keeping your moment…");
+    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open YOURS from here");
+    expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
     expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
     expect(LANDING.footer.changePicture).toBe(

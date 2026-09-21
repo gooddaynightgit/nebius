@@ -577,6 +577,14 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/header-meta/);
     expect(src).not.toMatch(/Token Factory/);
     expect(src).not.toMatch(/Demo mode/);
+    expect(src).toMatch(/writeCaptureStash/);
+    expect(src).toMatch(/updateCaptureStashPhoto/);
+    expect(src).toMatch(/savedOnPhone/);
+    expect(yours).toMatch(/buildAppCaptureForm/);
+    expect(yours).toMatch(/readCaptureStash/);
+    expect(yours).toMatch(/\/api\/captures/);
+    expect(yours).toMatch(/keepingMoment/);
+    expect(yours).toMatch(/isYoursMissingPayload/);
   });
 });
 
@@ -598,6 +606,7 @@ describe("YOURS two-step brief", () => {
     expect(weave).toMatch(/leaksAppStoryInstruction|appStoryProblems/);
     expect(yours).toMatch(/WeaveBlockedError/);
     expect(yours).toMatch(/code: "blocked"/);
+    expect(yours).toMatch(/code: "missing"/);
     expect(yours).toMatch(/imageDataUrl/);
     expect(yours).toMatch(
       /if \(error instanceof WeaveBlockedError\) \{\s*return forbidden\(error\.message, \{ code: "blocked" \}\)/,
