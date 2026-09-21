@@ -33,6 +33,13 @@ describe("landing copy", () => {
     expect(LANDING.app.reach).toBe(
       "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
     );
+    expect(LANDING.app.reachLive).toBe(
+      "Couldn't reach Gooddaynight — check your connection and try again.",
+    );
+    expect(LANDING.app.unexpected).toBe("Couldn't read Gooddaynight's reply. Refresh and try again.");
+    expect(LANDING.app.takePhoto).toBe("Take your photo");
+    expect(LANDING.app.uploadPhoto).toBe("Upload your photo");
+    expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
     expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
