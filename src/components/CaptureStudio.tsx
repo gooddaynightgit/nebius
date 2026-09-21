@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import StoryPlayback from "@/components/StoryPlayback";
-import { proposeSpokenLine } from "@/lib/care";
-import { LANDING, getJoyById, type JoyType } from "@/lib/landing";
+import { LANDING, PHOTO_MAX_BYTES, getJoyById, type JoyType } from "@/lib/landing";
 import { SILVER_LINING_NOTE, displayMoment } from "@/lib/prompts";
-import type { CaptureKind, CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
-
-type Mode = CaptureKind;
+import type { CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
 
 type Health = {
   tokenFactory: boolean;
@@ -54,43 +51,6 @@ function readLocalCaptures(day: string): CaptureRecord[] {
   }
 }
 
-type SpellPending = {
-  field: "text" | "transcript" | "caption";
-  original: string;
-  corrected: string;
-  fields: Record<string, string>;
-  file?: Blob | File | null;
-  filename?: string;
-};
-
-function spokenField(fields: Record<string, string>): "text" | "transcript" | "caption" {
-  if (fields.transcript) return "transcript";
-  if (fields.text) return "text";
-  return "caption";
-}
-
-async function fetchProposal(original: string) {
-  const local = proposeSpokenLine(original);
-  try {
-    const res = await fetch("/api/spellfix", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: original }),
-    });
-    if (res.ok) {
-      const data = (await res.json()) as {
-        original: string;
-        corrected: string;
-        changed: boolean;
-      };
-      if (data.corrected) return data;
-    }
-  } catch {
-    // Local proposal is enough.
-  }
-  return local;
-}
-
 function writeLocalCaptures(day: string, captures: CaptureRecord[]) {
   try {
     window.sessionStorage.setItem(`gdn.captures.${day}`, JSON.stringify(captures));
@@ -100,12 +60,10 @@ function writeLocalCaptures(day: string, captures: CaptureRecord[]) {
 }
 
 export default function CaptureStudio() {
-  const [mode, setMode] = useState<Mode>("text");
+  const photoInputId = useId();
   const [session, setSession] = useState<SessionState | null>(null);
   const [captures, setCaptures] = useState<CaptureRecord[]>([]);
   const [health, setHealth] = useState<Health | null>(null);
-  const [text, setText] = useState("");
-  const [caption, setCaption] = useState("");
   const [email, setEmail] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -113,23 +71,13 @@ export default function CaptureStudio() {
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [weaveError, setWeaveError] = useState<string | null>(null);
   const [busy, setBusy] = useState<"capture" | "unlock" | "weave" | null>(null);
-  const [recording, setRecording] = useState(false);
-  const [seconds, setSeconds] = useState(0);
-  const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
-  const [transcript, setTranscript] = useState("");
   const [story, setStory] = useState<StoryRecord | null>(null);
   const [playing, setPlaying] = useState(false);
-  const [spellPending, setSpellPending] = useState<SpellPending | null>(null);
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
-  const mediaRef = useRef<MediaRecorder | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const recordingRef = useRef(false);
-  const finalsRef = useRef("");
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const day = useMemo(localDay, []);
+  const selectedJoy = getJoyById(selectedJoyId);
 
   const refresh = useCallback(async () => {
     const [sessionRes, captureRes] = await Promise.all([
@@ -163,246 +111,100 @@ export default function CaptureStudio() {
   useEffect(() => {
     return () => {
       if (photoUrl) URL.revokeObjectURL(photoUrl);
-      if (timerRef.current) window.clearInterval(timerRef.current);
-      recordingRef.current = false;
-      try {
-        recognitionRef.current?.stop();
-      } catch {
-        // Ignore.
-      }
       window.speechSynthesis?.cancel();
     };
   }, [photoUrl]);
 
-  async function saveCapture(
-    fields: Record<string, string>,
-    file?: Blob | File | null,
-    filename?: string,
-  ) {
-    setBusy("capture");
+  function takePhoto(file: File | null) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setCaptureError("Choose a photo — a still from the day.");
+      return;
+    }
+    if (file.size > PHOTO_MAX_BYTES) {
+      setCaptureError("Keep photos under 4.5 MB.");
+      return;
+    }
     setCaptureError(null);
+    setPhoto(file);
+    setPhotoUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+  }
+
+  function pickJoy(joy: JoyType) {
+    setSelectedJoyId(joy.id);
+    setCaptureError(null);
+  }
+
+  async function weaveCaptures(nextCaptures: CaptureRecord[], nextSession: SessionState | null) {
+    setBusy("weave");
+    setWeaveError(null);
     try {
-      const form = new FormData();
-      form.set("kind", mode);
-      form.set("day", day);
-      for (const [key, value] of Object.entries(fields)) {
-        if (value) form.set(key, value);
-      }
-      if (file) form.set("file", file, filename ?? "moment.bin");
-      const res = await fetch("/api/captures", { method: "POST", body: form });
-      const data = (await res.json()) as {
-        capture?: CaptureRecord;
-        session?: SessionState;
-        error?: string;
-        needsConfirm?: boolean;
-        original?: string;
-        corrected?: string;
-      };
-      if (res.status === 409 && data.needsConfirm && data.original && data.corrected) {
-        setSpellPending({
-          field: spokenField(fields),
-          original: data.original,
-          corrected: data.corrected,
-          fields,
-          file,
-          filename,
-        });
-        return;
-      }
-      if (!res.ok || !data.capture || !data.session) {
-        throw new Error(data.error || "Something went sideways.");
-      }
-      setSession(data.session);
-      setCaptures((prev) => {
-        const next = [...prev, data.capture as CaptureRecord];
-        writeLocalCaptures(day, next);
-        return next;
+      const res = await fetch("/api/weave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          day,
+          email: nextSession?.email || email,
+          captures: nextCaptures.map(capturePayload),
+        }),
       });
-      setSpellPending(null);
-      setText("");
-      setCaption("");
-      setTranscript("");
-      setVoiceBlob(null);
-      setPhoto(null);
-      if (photoUrl) URL.revokeObjectURL(photoUrl);
-      setPhotoUrl(null);
+      const data = await readJson<{ story: StoryRecord; session: SessionState }>(res);
+      setStory(data.story);
+      setSession(data.session);
     } catch (err) {
-      setCaptureError(err instanceof Error ? err.message : "Could not save that moment.");
+      setWeaveError(err instanceof Error ? err.message : "Weave failed.");
     } finally {
       setBusy(null);
     }
   }
 
-  async function beginSave(
-    fields: Record<string, string>,
-    file?: Blob | File | null,
-    filename?: string,
-  ) {
-    setCaptureError(null);
-    const field = spokenField(fields);
-    const original = (fields[field] || "").trim();
-    if (original) {
-      setBusy("capture");
-      const proposal = await fetchProposal(original);
-      setBusy(null);
-      if (proposal.changed) {
-        setSpellPending({
-          field,
-          original: proposal.original,
-          corrected: proposal.corrected,
-          fields,
-          file,
-          filename,
-        });
-        return;
-      }
-    }
-    await saveCapture({ ...fields, spellDecision: "none" }, file, filename);
-  }
-
-  async function confirmSpell(decision: "corrected" | "keep") {
-    if (!spellPending) return;
-    const next = { ...spellPending.fields };
-    if (decision === "corrected") {
-      next[spellPending.field] = spellPending.corrected;
-    }
-    setSpellPending(null);
-    await saveCapture(
-      { ...next, spellDecision: decision },
-      spellPending.file,
-      spellPending.filename,
-    );
-  }
-
-  async function onTextSubmit(event: FormEvent) {
-    event.preventDefault();
-    await beginSave({ text });
-  }
-
   async function onPhotoSubmit(event: FormEvent) {
     event.preventDefault();
-    const joy = getJoyById(selectedJoyId);
-    await beginSave(
-      { caption: caption.trim() || joy?.title || "" },
-      photo,
-      photo?.name ?? "moment.jpg",
-    );
-  }
-
-  function pickJoy(joy: JoyType) {
-    setSelectedJoyId(joy.id);
-    setMode("photo");
-  }
-
-  async function onVoiceSubmit(event: FormEvent) {
-    event.preventDefault();
-    const spoken = (transcript || caption).trim();
-    if (!spoken) {
-      setCaptureError(
-        "Type a line about what you said — we need your words to tell tonight's story.",
-      );
+    if (!selectedJoy) {
+      setCaptureError("Pick the kind of quiet joy first.");
       return;
     }
-    await beginSave({ transcript: spoken }, voiceBlob, "moment.webm");
-  }
-
-  function attachSpeechRecognition() {
-    const SpeechRecognitionCtor =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognitionCtor) {
-      setCaptureError(
-        "This browser can't hear words automatically. Type what you said after you record.",
-      );
+    if (!photo) {
+      setCaptureError("Add one photo from today.");
       return;
     }
-    const recognition = new SpeechRecognitionCtor();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const piece = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalsRef.current = `${finalsRef.current} ${piece}`.replace(/\s+/g, " ").trim();
-        } else {
-          interim += piece;
-        }
-      }
-      setTranscript(`${finalsRef.current} ${interim}`.replace(/\s+/g, " ").trim());
-    };
-    recognition.onerror = () => {
-      if (!finalsRef.current.trim()) {
-        setCaptureError(
-          "Couldn't catch the words. Type a line about what you said so we can tell your story.",
-        );
-      }
-    };
-    recognition.onend = () => {
-      if (recordingRef.current) {
-        try {
-          recognition.start();
-        } catch {
-          // Chrome throws if a restart races a stop.
-        }
-      }
-    };
-    recognitionRef.current = recognition;
-    try {
-      recognition.start();
-    } catch {
-      setCaptureError(
-        "Couldn't start listening. Type a line about what you said after you record.",
-      );
-    }
-  }
-
-  async function startRecording() {
+    setBusy("capture");
     setCaptureError(null);
-    setVoiceBlob(null);
-    setTranscript("");
-    finalsRef.current = "";
-    let stream: MediaStream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setCaptureError("Microphone permission is needed for a voice note.");
-      return;
+      const form = new FormData();
+      form.set("kind", "photo");
+      form.set("day", day);
+      form.set("caption", selectedJoy.title);
+      form.set("spellDecision", "keep");
+      form.set("file", photo, photo.name || "moment.jpg");
+      const res = await fetch("/api/captures", { method: "POST", body: form });
+      const data = (await res.json()) as {
+        capture?: CaptureRecord;
+        session?: SessionState;
+        error?: string;
+      };
+      if (!res.ok || !data.capture || !data.session) {
+        throw new Error(data.error || "Something went sideways.");
+      }
+      const nextCaptures = [...captures, data.capture];
+      setSession(data.session);
+      setCaptures(nextCaptures);
+      writeLocalCaptures(day, nextCaptures);
+      setPhoto(null);
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+      setPhotoUrl(null);
+      if (data.session.email) {
+        await weaveCaptures(nextCaptures, data.session);
+      } else {
+        setBusy(null);
+      }
+    } catch (err) {
+      setCaptureError(err instanceof Error ? err.message : "Could not save that moment.");
+      setBusy(null);
     }
-    const recorder = new MediaRecorder(stream);
-    chunksRef.current = [];
-    recorder.ondataavailable = (event) => {
-      if (event.data.size) chunksRef.current.push(event.data);
-    };
-    recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-      setVoiceBlob(blob);
-      stream.getTracks().forEach((track) => track.stop());
-    };
-    mediaRef.current = recorder;
-    recorder.start();
-    recordingRef.current = true;
-    setRecording(true);
-    setSeconds(0);
-    timerRef.current = window.setInterval(() => setSeconds((n) => n + 1), 1000);
-    attachSpeechRecognition();
-  }
-
-  function stopRecording() {
-    recordingRef.current = false;
-    mediaRef.current?.stop();
-    setRecording(false);
-    if (timerRef.current) window.clearInterval(timerRef.current);
-    const recognition = recognitionRef.current;
-    recognitionRef.current = null;
-    try {
-      recognition?.stop();
-    } catch {
-      // Already stopped.
-    }
-    window.setTimeout(() => {
-      setTranscript((current) => current.trim() || finalsRef.current.trim());
-    }, 600);
   }
 
   async function unlockEmail(event: FormEvent) {
@@ -423,29 +225,6 @@ export default function CaptureStudio() {
       setSession(data.session);
     } catch (err) {
       setUnlockError(err instanceof Error ? err.message : "Could not save email.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function weaveNow() {
-    setBusy("weave");
-    setWeaveError(null);
-    try {
-      const res = await fetch("/api/weave", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          day,
-          email: session?.email || email,
-          captures: captures.map(capturePayload),
-        }),
-      });
-      const data = await readJson<{ story: StoryRecord; session: SessionState }>(res);
-      setStory(data.story);
-      setSession(data.session);
-    } catch (err) {
-      setWeaveError(err instanceof Error ? err.message : "Weave failed.");
     } finally {
       setBusy(null);
     }
@@ -485,6 +264,7 @@ export default function CaptureStudio() {
   const unlocked = Boolean(session?.email);
   const showEmail = !unlocked && captures.length >= 1;
   const canHear = unlocked && captures.length >= 1;
+  const canSave = Boolean(selectedJoy && photo && !busy);
 
   return (
     <div className="page">
@@ -516,151 +296,42 @@ export default function CaptureStudio() {
         </section>
 
         <section className="card card--dark" aria-labelledby="capture-heading">
-          <span className="pill">Capture</span>
+          <span className="pill">Photo</span>
           <h2 id="capture-heading" className="visually-hidden">
-            Add a moment
+            Add a photo
           </h2>
-          <div className="mode-row" role="tablist" aria-label="Capture type">
-            {(["voice", "photo", "text"] as Mode[]).map((item) => (
-              <button
-                key={item}
-                type="button"
-                role="tab"
-                aria-pressed={mode === item}
-                onClick={() => setMode(item)}
-              >
-                {item === "voice" ? "Voice" : item === "photo" ? "Photo" : "Text"}
-              </button>
-            ))}
-          </div>
-
-          {mode === "text" && (
-            <form className="studio" onSubmit={onTextSubmit}>
-              <label className="visually-hidden" htmlFor="moment-text">
-                Text note
-              </label>
-              <textarea
-                id="moment-text"
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                placeholder="the laugh, the small win, the quiet moment"
-                spellCheck
-                required
-              />
-              <button className="btn btn--lime" type="submit" disabled={Boolean(busy)}>
-                {busy === "capture" ? "Saving…" : "Save this moment"}
-              </button>
-            </form>
-          )}
-
-          {mode === "photo" && (
-            <form className="studio" onSubmit={onPhotoSubmit}>
-              <label className="btn btn--ghost" htmlFor="moment-photo">
-                {photo ? "Choose another photo" : "Take or upload a photo"}
-              </label>
-              <input
-                id="moment-photo"
-                className="visually-hidden"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null;
-                  setPhoto(file);
-                  if (photoUrl) URL.revokeObjectURL(photoUrl);
-                  setPhotoUrl(file ? URL.createObjectURL(file) : null);
-                }}
-              />
-              {photoUrl && <img className="photo-preview" src={photoUrl} alt="Selected moment" />}
-              <input
-                type="text"
-                value={caption}
-                onChange={(event) => setCaption(event.target.value)}
-                placeholder={
-                  getJoyById(selectedJoyId)?.capture ?? "What was good here? (optional)"
-                }
-                spellCheck
-              />
-              <button className="btn btn--lime" type="submit" disabled={Boolean(busy) || !photo}>
-                {busy === "capture" ? "Saving…" : "Keep this photo"}
-              </button>
-            </form>
-          )}
-
-          {mode === "voice" && (
-            <form className="studio" onSubmit={onVoiceSubmit}>
-              <div className="record">
-                <button
-                  type="button"
-                  className={`record__btn ${recording ? "is-live" : ""}`}
-                  onClick={() => (recording ? stopRecording() : startRecording())}
-                >
-                  {recording ? "Stop" : "Rec"}
-                </button>
-                <div className="record__time">
-                  {Math.floor(seconds / 60)
-                    .toString()
-                    .padStart(2, "0")}
-                  :{(seconds % 60).toString().padStart(2, "0")}
-                  {recording ? " · listening" : ""}
-                </div>
-              </div>
-              <input
-                type="text"
-                value={transcript}
-                required
-                onChange={(event) => setTranscript(event.target.value)}
-                placeholder="What you said — we'll type it if we can hear you"
-                spellCheck
-              />
-              <p className="cta-copy">
-                We listen while you record. If the line is empty after Stop, type the words —
-                tonight's story needs them.
-              </p>
-              <button
-                className="btn btn--lime"
-                type="submit"
-                disabled={Boolean(busy) || !transcript.trim()}
-              >
-                {busy === "capture" ? "Saving…" : "Save this voice note"}
-              </button>
-            </form>
-          )}
-
-          {spellPending && (
-            <div className="spell-confirm" role="dialog" aria-labelledby="spell-heading">
-              <h3 id="spell-heading">Save corrected version?</h3>
-              <p className="spell-confirm__pair">
-                <span>Typed</span>
-                {spellPending.original}
-              </p>
-              <p className="spell-confirm__pair">
-                <span>Corrected</span>
-                {spellPending.corrected}
-              </p>
-              <div className="actions">
-                <button
-                  className="btn btn--lime"
-                  type="button"
-                  onClick={() => confirmSpell("corrected")}
-                  disabled={Boolean(busy)}
-                >
-                  Yes, save this
-                </button>
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() => confirmSpell("keep")}
-                  disabled={Boolean(busy)}
-                  style={{ color: "var(--cream)", borderColor: "rgba(247,244,232,0.28)" }}
-                >
-                  Keep as typed
-                </button>
-              </div>
-            </div>
-          )}
-
-          {captureError && <p className="error">{captureError}</p>}
+          <p className="cta-copy" style={{ marginTop: 0 }}>
+            {LANDING.app.photoHelp}
+          </p>
+          <form className="studio" onSubmit={onPhotoSubmit}>
+            <label className="btn btn--ghost" htmlFor={photoInputId}>
+              {photo ? "Choose another photo" : "Take or upload a photo"}
+            </label>
+            <input
+              id={photoInputId}
+              className="visually-hidden"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(event) => {
+                takePhoto(event.target.files?.[0] ?? null);
+                event.target.value = "";
+              }}
+            />
+            {photoUrl ? (
+              // User-selected blob preview — next/image cannot optimize object URLs.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="photo-preview" src={photoUrl} alt="Selected moment from today" />
+            ) : null}
+            <button className="btn btn--lime" type="submit" disabled={!canSave}>
+              {busy === "capture" ? "Saving…" : "See the story"}
+            </button>
+          </form>
+          {captureError ? (
+            <p className="error" role="alert">
+              {captureError}
+            </p>
+          ) : null}
         </section>
 
         <section className="card card--cream card--compact" aria-labelledby="today-heading">
@@ -726,7 +397,7 @@ export default function CaptureStudio() {
               <button
                 className="btn btn--lime"
                 type="button"
-                onClick={weaveNow}
+                onClick={() => void weaveCaptures(captures, session)}
                 disabled={Boolean(busy) || captures.length === 0}
               >
                 {busy === "weave" ? "Weaving…" : "Weave now"}

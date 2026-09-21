@@ -32,6 +32,10 @@ export const LANDING = {
     whisperExamples: "the light on the kettle / he wrote back / I made it home",
     joyLegend: "What kind of quiet joy was it? (pick one)",
   },
+  app: {
+    photoHelp:
+      "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
+  },
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",
     oneMoment: "One moment. One story.",

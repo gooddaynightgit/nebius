@@ -9,8 +9,8 @@ Apache 2.0 — see [LICENSE](LICENSE).
 ## Funnel
 
 1. Landing: hero + CTA **Hear your story — free** — no email form. **One good moment today** is an accordion: drop a photo (optional 80-character whisper) and pick one of six quiet-joy radios. Collapsed rows show title + italic tagline; selecting a type opens body, **Capture it**, and a pale lavender **Story playback** box. Clicking the CTA opens `/app`. Landing photos/whispers save through the same `/api/captures` vault as the app.
-2. `/app` uses the same quiet-joy accordion (shared `JoyPicker` + `landing.ts` copy). After a pick she can still drop **voice**, **photo**, or **text**. Each capture is stored (Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, otherwise Nebius object storage, otherwise local JSON/files). Woven stories play back in the same pale lavender docs-style card, not a full-bleed photo overlay.
-3. Only after ≥1 moment does the app ask for email, which unlocks hearing her own good-moments story. Spell-confirm still asks before a correction is kept.
+2. `/app` is **photo only**: pick one quiet-joy radio, upload one photo, tap **See the story**. Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* Each capture is stored (Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, otherwise Nebius object storage, otherwise local JSON/files). Woven stories play back in the same pale lavender docs-style card, not a full-bleed photo overlay.
+3. Only after ≥1 moment does the app ask for email, which unlocks hearing her own good-moments story.
 
 ## Architecture
 
@@ -103,7 +103,7 @@ nebius ai job create \
 ## Demo script (≤3 minutes)
 
 1. **0:00** Landing. Point at the colour blocks and the lime **Hear your story — free**. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender Story playback. There is no signup field. Click through.
-2. **0:20** `/app`. Pick a quiet-joy radio so the accordion opens (italic tagline stays on the row; body, Capture it, and a pale lavender Story playback preview appear). Then paste a text moment (“the coffee was still warm”) or drop a photo. Save.
+2. **0:20** `/app`. Heading is **One good moment today**. Pick a quiet-joy radio so the accordion opens (italic tagline stays on the row; body, Capture it, and a pale lavender Story playback preview appear). Upload one photo (sky / gift / hello / grateful screenshot). Tap **See the story**.
 3. **0:50** The email card appears only now. Enter an email. Unlock.
 4. **1:10** Tap **Weave now**. If `NEBIUS_API_KEY` is set, Super writes the story; otherwise the mock story still plays in a pale lavender playback card. Tap **Replay last night** and let the calm voice read it.
 5. **1:50** Header shows Token Factory vs demo mode. Mention: Nano extracts the good, Super weaves, vault is private, Sonic is stubbed until Token Factory lists it, nightly job at 21:00 is the same `/api/weave` path.

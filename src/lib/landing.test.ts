@@ -17,6 +17,9 @@ describe("landing copy", () => {
     expect(LANDING.moment.title).toBe("One good moment today");
     expect(LANDING.moment.pictureTitle).toBe("Lay the picture here.");
     expect(LANDING.moment.joyLegend).toBe("What kind of quiet joy was it? (pick one)");
+    expect(LANDING.app.photoHelp).toBe(
+      "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
+    );
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",
     );
