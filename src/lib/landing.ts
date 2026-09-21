@@ -49,7 +49,12 @@ export const LANDING = {
     blocked: "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     save: "Save today’s moment",
     replace: "Replace today’s photo",
+    takePhoto: "Take your photo",
+    uploadPhoto: "Upload your photo",
     reach: "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
+    reachLive: "Couldn't reach Gooddaynight — check your connection and try again.",
+    unexpected: "Couldn't read Gooddaynight's reply. Refresh and try again.",
+    tryAgain: "Try again",
     joyNeed: "Pick the kind of quiet joy first.",
   },
   footer: {

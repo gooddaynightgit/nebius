@@ -844,6 +844,30 @@ a {
   gap: 0.85rem;
 }
 
+.studio-photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.studio-photo-actions .btn {
+  flex: 1 1 11rem;
+  text-align: center;
+}
+
+.text-retry {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .studio textarea,
 .studio input[type="email"],
 .studio input[type="text"] {
@@ -983,10 +1007,13 @@ a {
 }
 
 .photo-preview {
+  display: block;
   width: 100%;
-  max-height: 12rem;
+  min-height: 8rem;
+  max-height: 16rem;
   object-fit: cover;
   border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .story-body {

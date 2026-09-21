@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useId, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import { localDay } from "@/lib/day";
 import {
@@ -20,7 +20,12 @@ import {
   PHOTO_DATE_MESSAGES,
 } from "@/lib/photo";
 import { captionDisposition } from "@/lib/app-capture";
-import { JOY_NEED, explainClientFetchError, readJson } from "@/lib/client-fetch";
+import {
+  JOY_NEED,
+  explainClientFetchError,
+  isReachabilityError,
+  readJson,
+} from "@/lib/client-fetch";
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import type { SessionState } from "@/lib/types";
 
@@ -75,8 +80,10 @@ async function stillFromVideo(file: File): Promise<File> {
 }
 
 export default function CaptureStudio() {
-  const photoInputId = useId();
+  const takeInputId = useId();
+  const uploadInputId = useId();
   const captionId = useId();
+  const photoUrlRef = useRef<string | null>(null);
   const [session, setSession] = useState<SessionState | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
@@ -112,6 +119,7 @@ export default function CaptureStudio() {
         }
       }
       setHydrated(true);
+      setCaptureError((current) => (isReachabilityError(current) ? null : current));
     } catch (error) {
       setCaptureError(explainClientFetchError(error));
     }
@@ -122,10 +130,15 @@ export default function CaptureStudio() {
   }, [refresh]);
 
   useEffect(() => {
-    return () => {
-      if (photoUrl) URL.revokeObjectURL(photoUrl);
-    };
+    photoUrlRef.current = photoUrl;
   }, [photoUrl]);
+
+  useEffect(() => {
+    return () => {
+      const url = photoUrlRef.current;
+      if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+    };
+  }, []);
 
   async function takePhoto(file: File | null) {
     if (!file || locked) return;
@@ -179,9 +192,21 @@ export default function CaptureStudio() {
     setCaptionNote(null);
     setPhoto(next);
     setPhotoUrl((current) => {
-      if (current) URL.revokeObjectURL(current);
+      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
       return URL.createObjectURL(next);
     });
+  }
+
+  function recoverPreview() {
+    if (!photo) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPhotoUrl((current) => {
+        if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+        return String(reader.result);
+      });
+    };
+    reader.readAsDataURL(photo);
   }
 
   function pickJoy(joy: JoyType) {
@@ -240,6 +265,7 @@ export default function CaptureStudio() {
       if (!data.session) {
         throw new Error("Could not save that moment.");
       }
+      setCaptureError(null);
       setSession(data.session);
       if (data.dateNote) setDateNote(data.dateNote);
       if (data.captionNote) {
@@ -287,29 +313,47 @@ export default function CaptureStudio() {
               {LANDING.app.photoHelp}
             </p>
             <div className="studio">
-              <label className="btn btn--ghost" htmlFor={photoInputId}>
-                {locked
-                  ? "Photo locked"
-                  : photo || savedPhoto
-                    ? "Choose another photo"
-                    : "Take or upload a photo"}
-              </label>
-              <input
-                id={photoInputId}
-                className="visually-hidden"
-                type="file"
-                accept="image/*,video/*"
-                capture="environment"
-                disabled={locked}
-                onChange={(event) => {
-                  void takePhoto(event.target.files?.[0] ?? null);
-                  event.target.value = "";
-                }}
-              />
+              <div className="studio-photo-actions">
+                <label className="btn btn--ghost" htmlFor={takeInputId}>
+                  {LANDING.app.takePhoto}
+                </label>
+                <input
+                  id={takeInputId}
+                  className="visually-hidden"
+                  type="file"
+                  accept="image/*,video/*"
+                  capture="environment"
+                  disabled={locked}
+                  onChange={(event) => {
+                    void takePhoto(event.target.files?.[0] ?? null);
+                    event.target.value = "";
+                  }}
+                />
+                <label className="btn btn--ghost" htmlFor={uploadInputId}>
+                  {LANDING.app.uploadPhoto}
+                </label>
+                <input
+                  id={uploadInputId}
+                  className="visually-hidden"
+                  type="file"
+                  accept="image/*,video/*"
+                  disabled={locked}
+                  onChange={(event) => {
+                    void takePhoto(event.target.files?.[0] ?? null);
+                    event.target.value = "";
+                  }}
+                />
+              </div>
               {previewSrc ? (
                 // User-selected blob preview — next/image cannot optimize object URLs.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img className="photo-preview" src={previewSrc} alt="Selected moment from today" />
+                <img
+                  key={previewSrc}
+                  className="photo-preview"
+                  src={previewSrc}
+                  alt="Selected moment from today"
+                  onError={recoverPreview}
+                />
               ) : null}
               {!locked ? (
                 <>
@@ -352,6 +396,20 @@ export default function CaptureStudio() {
             {captureError ? (
               <p className="error" role="alert">
                 {captureError}
+                {isReachabilityError(captureError) ? (
+                  <>
+                    {" "}
+                    <button
+                      className="text-retry"
+                      type="button"
+                      onClick={() => {
+                        void refresh();
+                      }}
+                    >
+                      {LANDING.app.tryAgain}
+                    </button>
+                  </>
+                ) : null}
               </p>
             ) : null}
             {locked ? (
