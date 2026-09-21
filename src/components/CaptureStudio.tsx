@@ -345,7 +345,6 @@ export default function CaptureStudio() {
 
       <main id="main">
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
-          <span className="pill">Story</span>
           <h1 id="app-moment-heading">{LANDING.moment.title}</h1>
           <p className="app-tagline">{LANDING.app.tagline}</p>
           <p className="app-yours-hint">{LANDING.app.yoursHint}</p>
@@ -532,6 +531,7 @@ export default function CaptureStudio() {
         ) : null}
 
         <section className="card card--cream card--compact" aria-labelledby="today-heading">
+          <span className="pill">Story</span>
           <h2 id="today-heading">Today’s moment</h2>
           {!savedPhoto ? (
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
@@ -553,8 +553,9 @@ export default function CaptureStudio() {
       </main>
 
       <footer className="site-footer">
+        <p>{LANDING.footer.lookingForward}</p>
         <p>
-          <Link href="/">{LANDING.footer.site}</Link>
+          <a href={`mailto:${LANDING.footer.hello}`}>{LANDING.footer.hello}</a>
         </p>
       </footer>
     </div>
