@@ -19,7 +19,14 @@ import {
   looksLikeMemeName,
   PHOTO_DATE_MESSAGES,
 } from "@/lib/photo";
-import { preparePhotoForUpload } from "@/lib/prepare-photo";
+import {
+  HEIC_ASK,
+  copyAsJpegFile,
+  isHeicLike,
+  jpegFileForCameraStill,
+  normalizePhotoFile,
+  preparePhotoForUpload,
+} from "@/lib/prepare-photo";
 import { captionDisposition } from "@/lib/app-capture";
 import {
   JOY_NEED,
@@ -70,10 +77,7 @@ async function stillFromVideo(file: File): Promise<File> {
       );
     });
     const stem = file.name.replace(/\.[^.]+$/, "") || "still";
-    return new File([blob], `${stem}.jpg`, {
-      type: "image/jpeg",
-      lastModified: file.lastModified || Date.now(),
-    });
+    return copyAsJpegFile(blob, `${stem}.jpg`, file.lastModified || Date.now());
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -182,7 +186,7 @@ export default function CaptureStudio() {
     try {
       const file = await stillFromLiveVideo(video);
       stopLiveCamera();
-      await takePhoto(file);
+      await takePhoto(file, true);
     } catch (error) {
       stopLiveCamera();
       setCaptureError(
@@ -191,7 +195,7 @@ export default function CaptureStudio() {
     }
   }
 
-  async function takePhoto(file: File | null) {
+  async function takePhoto(file: File | null, fromCamera = false) {
     if (!file || locked) return;
     setCaptureError(null);
     let next = file;
@@ -205,9 +209,21 @@ export default function CaptureStudio() {
         );
         return;
       }
-    } else if (!isImageMime(next.type) && !next.type.startsWith("image/")) {
-      setCaptureError("Choose a photo — a still from the day.");
-      return;
+    } else {
+      try {
+        next = fromCamera ? await jpegFileForCameraStill(next) : await normalizePhotoFile(next);
+      } catch (error) {
+        setCaptureError(error instanceof Error ? error.message : "Choose a photo — a still from the day.");
+        return;
+      }
+      if (isHeicLike(next)) {
+        setCaptureError(HEIC_ASK);
+        return;
+      }
+      if (!isImageMime(next.type) && !next.type.startsWith("image/")) {
+        setCaptureError("Choose a photo — a still from the day.");
+        return;
+      }
     }
     if (looksLikeMemeName(next.name)) {
       setCaptureError("Tonight is for your own moment, not a meme.");
@@ -394,7 +410,7 @@ export default function CaptureStudio() {
                   capture="environment"
                   disabled={locked}
                   onChange={(event) => {
-                    void takePhoto(event.target.files?.[0] ?? null);
+                    void takePhoto(event.target.files?.[0] ?? null, true);
                     event.target.value = "";
                   }}
                 />
