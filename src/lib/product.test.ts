@@ -10,6 +10,7 @@ import {
 } from "./identity";
 import { chooseSpokenLine, cleanSpokenLine, isSelfNegating, proposeSpokenLine } from "./care";
 import {
+  APP_EXCAVATE_SYSTEM,
   APP_WEAVE_FORBIDDEN_PHRASES,
   APP_WEAVE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
@@ -20,7 +21,8 @@ import {
   weavableLines,
 } from "./prompts";
 import { WeaveNeedsWordsError, weaveStory } from "./weave";
-import { stripReasoning } from "./nebius";
+import { stripReasoning, uniqueModels, visionModels, appStoryModels } from "./nebius";
+import { MODELS } from "./config";
 
 describe("funnel", () => {
   it("does not prompt for email before the first capture", () => {
@@ -117,9 +119,16 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/You write one private bedtime story from one photo/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Do not write a bedtime story/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/sensory ingredients ONLY/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/no people/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/CAPTION WHISPER/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/4–6 short sentences/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/gifted warm writer/);
     expect(APP_WEAVE_SYSTEM).toMatch(/not a coach, therapist, or wellness brand/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Analyze the photo first/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Address the listener as \*you\*/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/tonight's moment from today's photo/);
     expect(APP_WEAVE_SYSTEM).toMatch(/caption only as a whisper/);
     expect(APP_WEAVE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
     expect(APP_WEAVE_SYSTEM).toMatch(/4–6 short sentences/);
@@ -136,6 +145,10 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_WEAVE_SYSTEM).toMatch(/Write the moment, not the pipeline/);
     expect(APP_WEAVE_SYSTEM).toMatch(/Forbidden in the story/);
     expect(APP_WEAVE_SYSTEM).toMatch(/one brushstroke/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Start from one concrete sensory detail/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/End on stillness/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/\byou\b/);
+    expect(APP_WEAVE_SYSTEM).not.toMatch(/Analyze the photo first/);
     for (const phrase of APP_WEAVE_FORBIDDEN_PHRASES) {
       expect(APP_WEAVE_SYSTEM).toMatch(phrase);
     }
@@ -280,16 +293,27 @@ describe("ingest and weave fallbacks", () => {
 
   it("writes a blossoming-tree moment warmly, without instruction-echo", async () => {
     const { JOY_TYPES } = await import("./landing");
-    const { mockJoyStory } = await import("./prompts");
+    const { mockJoyStory, mockExcavation } = await import("./prompts");
     const { appStoryProblems, leaksAppStoryInstruction } = await import("./app-story");
-    const { appWeaveUserText } = await import("./weave");
+    const { appExcavateUserText, appWeaveUserText } = await import("./weave");
     const joy = JOY_TYPES.find((item) => item.id === "just-this");
     expect(joy).toBeTruthy();
+    const excavation = mockExcavation({
+      caption: "Blossomimg tree",
+      photoNotes: "A blossoming tree against the sky.",
+    });
+    expect(excavation).toMatch(/SUBJECTS & VIBE/);
+    expect(excavation).toMatch(/No people/);
+    expect(excavation).toMatch(/petal|bark|blossom/i);
+    expect(excavation).toMatch(/CAPTION WHISPER/);
+    expect(excavation).toMatch(/Blossomimg tree/);
+    expect(excavation).not.toMatch(/once upon|you look|bedtime story/i);
     const story = mockJoyStory({
       joy: joy!,
       caption: "Blossomimg tree",
       goodMoment: "A blossoming tree against the sky.",
       day: "2026-09-21",
+      excavation,
     });
     expect(story.body).toMatch(/blossom|petal|bark|tree|sky/i);
     expect(story.body).toMatch(/gladness|warm|care|keep/i);
@@ -308,15 +332,24 @@ describe("ingest and weave fallbacks", () => {
     expect(leaksAppStoryInstruction(leaked)).toBe(true);
     expect(appStoryProblems(leaked, joy!.playbackTemplate)).toContain("leak");
 
-    const user = appWeaveUserText({
-      joyTitle: joy!.title,
-      template: joy!.playbackTemplate,
+    const excavateUser = appExcavateUserText({
       photoNotes: "A blossoming tree against the sky.",
       caption: "Blossomimg tree",
       hasImage: true,
     });
+    expect(excavateUser).toMatch(/No story/);
+    expect(excavateUser).toMatch(/ingredients only/);
+    expect(excavateUser).not.toMatch(/Write 4–6 short sentences/);
+
+    const user = appWeaveUserText({
+      joyTitle: joy!.title,
+      template: joy!.playbackTemplate,
+      excavation,
+      caption: "Blossomimg tree",
+    });
     expect(user).toMatch(/one brushstroke of warmth/);
     expect(user).toMatch(/Forbidden in the story/);
+    expect(user).toMatch(/Address the listener as you/);
     expect(user).not.toMatch(/never more than these words/);
     expect(user).not.toMatch(/colour only, not a lecture/);
     for (const phrase of APP_WEAVE_FORBIDDEN_PHRASES) {
@@ -353,6 +386,7 @@ describe("ingest and weave fallbacks", () => {
     expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
     expect(story.mock).toBe(true);
+    expect(story.excavateModel).toBe("mock-excavation");
   });
 
   it("blocks a horrific app weave and does not produce a story", async () => {
@@ -530,21 +564,38 @@ describe("app capture client contract", () => {
   });
 });
 
-describe("YOURS Nemotron brief", () => {
-  it("sends the photo on weave and refuses BLOCK without locking", () => {
+describe("YOURS two-step brief", () => {
+  it("excavates with vision then weaves the story, refusing BLOCK without locking", () => {
     const weave = readFileSync(path.resolve("src/lib/weave.ts"), "utf8");
     const yours = readFileSync(path.resolve("src/app/api/yours/route.ts"), "utf8");
+    const envExample = readFileSync(path.resolve(".env.example"), "utf8");
+    const readme = readFileSync(path.resolve("README.md"), "utf8");
+    expect(weave).toMatch(/APP_EXCAVATE_SYSTEM/);
     expect(weave).toMatch(/APP_WEAVE_SYSTEM/);
+    expect(weave).toMatch(/visionModels/);
+    expect(weave).toMatch(/appStoryModels/);
     expect(weave).toMatch(/image_url/);
     expect(weave).toMatch(/imageDataUrl/);
     expect(weave).toMatch(/WeaveBlockedError/);
     expect(weave).toMatch(/parseAppWeaveReply/);
     expect(weave).toMatch(/finishAppStory/);
+    expect(weave).toMatch(/leaksAppStoryInstruction|appStoryProblems/);
     expect(yours).toMatch(/WeaveBlockedError/);
     expect(yours).toMatch(/code: "blocked"/);
     expect(yours).toMatch(/imageDataUrl/);
     expect(yours).toMatch(
       /if \(error instanceof WeaveBlockedError\) \{\s*return forbidden\(error\.message, \{ code: "blocked" \}\)/,
     );
+    expect(envExample).toMatch(/NEBIUS_VISION_MODEL/);
+    expect(envExample).toMatch(/NEBIUS_STORY_MODEL/);
+    expect(readme).toMatch(/NEBIUS_VISION_MODEL/);
+    expect(readme).toMatch(/NEBIUS_STORY_MODEL/);
+    expect(readme).toMatch(/openbmb\/MiniCPM-V-4_5/);
+    expect(readme).toMatch(/Qwen\/Qwen3-235B-A22B-Instruct-2507/);
+    expect(uniqueModels("a", "a", "", "b")).toEqual(["a", "b"]);
+    expect(visionModels()[0]).toBe(MODELS.vision);
+    expect(appStoryModels()[0]).toBe(MODELS.story);
+    expect(MODELS.vision).toBe("openbmb/MiniCPM-V-4_5");
+    expect(MODELS.story).toBe("Qwen/Qwen3-235B-A22B-Instruct-2507");
   });
 });

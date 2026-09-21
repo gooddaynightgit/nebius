@@ -67,25 +67,41 @@ export const APP_WEAVE_FORBIDDEN_PHRASES = [
   "beside the image sits",
 ] as const;
 
-export const APP_WEAVE_SYSTEM = `You write one private bedtime story from one photo and an optional caption. You are not a coach, therapist, or wellness brand.
+export const APP_EXCAVATE_SYSTEM = `You look at one private photo as a rediscovered fragment of *today*, not as pixels only.
 
-**Analyze the photo first**
-1. What is actually in the frame (objects, place, light, text on screen).
-2. If it is a screenshot, read the visible text (chat, tracker, gift).
-3. Time-of-day only if the picture shows it.
-4. Use the caption only as a whisper: if one exists, echo its meaning at most once, softly. Prefer concrete sensory detail from the photo (blossoms, light, bark, sky, a kettle, a screen).
-5. Stay inside the photo and caption. Invent no people, places, gifts, or feelings beyond them.
-6. If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no story. Reply only: \`BLOCK\`
-7. Ugly, messy, blurry, ordinary, or sad: still write.
+Return structured sensory ingredients ONLY. Do not write a bedtime story. Do not address the listener as you. No narrative prose, no title, no moral, no plot.
+
+Cover these five sections, in this order:
+1. SUBJECTS & VIBE — if people are present: expressions, body language, clothing, mood. If **no people**, say so and focus on the main subject (tree, object, screen, corner).
+2. ENVIRONMENT — place, time-of-year/time-of-day **only if visible**, background clues.
+3. LIGHTING & TEXTURE — light quality, grain, colour temperature, material feel.
+4. HIDDEN DETAILS — small background elements that add depth.
+5. CAPTION WHISPER — if a caption exists, note it as a soft whisper of meaning (do not invent beyond it). If none, say so.
+
+Descriptive, rich, grounded in what is visible. Invent no people, places, gifts, or feelings beyond the photo and caption.
+
+If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no ingredients. Reply only: \`BLOCK\`
+Ugly, messy, blurry, ordinary, or sad: still describe.`;
+
+export const APP_WEAVE_SYSTEM = `You are a gifted warm writer with memoirist energy, writing one private bedtime story from sensory ingredients of today's photo. You are not a coach, therapist, or wellness brand.
+
+The listener is *you*, here, in tonight's moment from today's photo — never a first-person "I" looking back decades later. Second person only.
+
+You receive a visual excavation of the photo. Start from one concrete sensory detail in those ingredients (light, texture, blossom, bark, steam, a screen). Build around what is actually there. Mention a bond only if people are present in the excavation. If the excavation says there are no people, stay with the tree, object, screen, or corner.
 
 **Joy pick** (tint)
 morning sunlight / a small hello / one thing done slowly / a little movement / one corner clear / just this
 Lay the joy's warmth into the scene in one brushstroke. Let the picture carry it.
 
+Use the caption only as a whisper: if one exists, echo its meaning at most once, softly. Prefer concrete sensory detail from the excavation (blossoms, light, bark, sky, a kettle, a screen). Stay inside the excavation and caption. Invent no people, places, gifts, or feelings beyond them.
+
+If the ingredients are horrific (violence, gore, abuse, porn, hate, self-harm): write no story. Reply only: \`BLOCK\`
+Ugly, messy, blurry, ordinary, or sad: still write.
+
 **Write**
 - Address the listener as *you*.
 - Worth keeping: gently uplifting and particular to what is in the photo — a small strong feeling of care or quiet gladness.
-- Write the moment, not the pipeline. Concrete nouns and verbs from the image.
+- Write the moment, not the pipeline. Concrete nouns and verbs from the excavation.
 - Affirmative voice only. Tell what is here and warm.
 - 4–6 short sentences.
 - No serotonin, circadian, oxytocin, tips, or morals.
@@ -93,7 +109,7 @@ Lay the joy's warmth into the scene in one brushstroke. Let the picture carry it
 - End on stillness.
 
 **Forbidden in the story** (prompt-leak — never write these, never narrate the rules):
-nothing else, never more, not a lecture, not a list, do not have to, no one else, without adding, only the whisper, "you kept what the frame", "beside the image sits", meta talk about captions, frames, or instructions.
+nothing else, never more, not a lecture, not a list, do not have to, no one else, without adding, only the whisper, "you kept what the frame", "beside the image sits", meta talk about captions, frames, excavations, or instructions.
 
 **Length**
 - Target: **600–900 characters**
@@ -394,6 +410,65 @@ const JOY_COLOUR: Record<string, string> = {
   "just-this": "just this",
 };
 
+export function mockExcavation(input: {
+  caption?: string;
+  photoNotes?: string;
+}): string {
+  const notes = (input.photoNotes || "").replace(/\s+/g, " ").trim();
+  const whisper = clipCaption(input.caption || "");
+  const material = [notes, whisper].filter(Boolean).join(" ");
+  const t = material.toLowerCase();
+  const captionLine = whisper
+    ? `CAPTION WHISPER — Soft whisper of meaning: ${whisper}.`
+    : "CAPTION WHISPER — No caption.";
+
+  if (/blossom|bloom|petal/.test(t) || /blossomimg/.test(t)) {
+    return [
+      "SUBJECTS & VIBE — No people. The main subject is a blossoming tree, branches packed with pale open flowers, bark showing through the clusters.",
+      "ENVIRONMENT — Outdoors. A little sky shows between the branches. Blossom season; daylight only, nothing more specific.",
+      "LIGHTING & TEXTURE — Soft daylight on papery petals; the bark is rough and darker; colour is pale against the wood.",
+      "HIDDEN DETAILS — Gaps of sky; a farther branch; the frame is mostly tree.",
+      captionLine,
+    ].join("\n");
+  }
+  if (/kettle|steam/.test(t)) {
+    return [
+      "SUBJECTS & VIBE — No people. A kettle sits in the frame, metal catching the hour, steam lifting.",
+      "ENVIRONMENT — Indoor, near a window. Time of day only if light on the metal says so.",
+      "LIGHTING & TEXTURE — A small shine on the curve; glass behind; warm metal, moving steam.",
+      "HIDDEN DETAILS — Window-light, a bit of counter, the quiet of the room.",
+      captionLine,
+    ].join("\n");
+  }
+  if (/table/.test(t) && /sun|gold|light/.test(t)) {
+    return [
+      "SUBJECTS & VIBE — No people. A kitchen table holds the hour, wood grain and a fall of light.",
+      "ENVIRONMENT — Indoor kitchen. Daylight on the surface.",
+      "LIGHTING & TEXTURE — Gold along the wood; grain you can almost feel; quiet colour temperature.",
+      "HIDDEN DETAILS — Edge of the table, a little of the room beyond.",
+      captionLine,
+    ].join("\n");
+  }
+  if (/sky|cloud/.test(t)) {
+    return [
+      "SUBJECTS & VIBE — No people. Sky fills the still, wide and close.",
+      "ENVIRONMENT — Outdoors, looking up. Time of day only if the colour shows it.",
+      "LIGHTING & TEXTURE — Colour sitting in the air; soft grain of cloud or clear.",
+      "HIDDEN DETAILS — A rim of something at the edge of the frame, if any.",
+      captionLine,
+    ].join("\n");
+  }
+
+  const subject = notes || whisper || "one particular still from the day";
+  return [
+    `SUBJECTS & VIBE — No people named. The main subject is what the notes and caption keep: ${subject.replace(/\.$/, "")}.`,
+    "ENVIRONMENT — Stay with those words. Place or time of day only if they name it.",
+    "LIGHTING & TEXTURE — Light and surface as the notes suggest; nothing invented beyond them.",
+    "HIDDEN DETAILS — Only what the notes and caption already hold.",
+    captionLine,
+  ].join("\n");
+}
+
 function seenFromNotes(input: {
   joy: JoyType;
   caption?: string;
@@ -509,11 +584,15 @@ export function mockJoyStory(input: {
   goodMoment?: string;
   reframed?: boolean;
   day: string;
+  excavation?: string;
 }): { title: string; body: string } {
   const colour = JOY_COLOUR[input.joy.id] ?? "just this";
+  const excavation =
+    input.excavation?.trim() ||
+    mockExcavation({ caption: input.caption, photoNotes: input.goodMoment });
   const seen = seenFromNotes(input);
   const whisper = whisperFromCaption(input.caption);
-  const material = [seen, whisper].filter(Boolean).join(" ");
+  const material = [excavation, seen, whisper].filter(Boolean).join(" ");
   const sad = Boolean(
     input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment),
   );

@@ -14,6 +14,8 @@ export async function GET() {
     models: {
       nano: MODELS.nano,
       nanoOmni: MODELS.nanoOmni,
+      vision: MODELS.vision,
+      story: MODELS.story,
       super: MODELS.super,
       ultra: MODELS.ultra,
       sonic: MODELS.sonic || null,
