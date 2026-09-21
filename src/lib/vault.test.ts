@@ -72,12 +72,16 @@ describe("private vault", () => {
     expect(mergeCapturesIntoVault(vault, vault.captures, "2026-09-20")).toBe(false);
   });
 
-  it("replaces today's app photo until YOURS is opened, then locks", async () => {
+  it("replaces today's app photo even after YOURS opened, clearing that day's story", async () => {
     const {
+      addStory,
       getOrCreateAnonVault,
       upsertAppPhoto,
       markYoursOpened,
       appPhotoForDay,
+      isYoursOpened,
+      lastStoryForDay,
+      matchingStoryForPhoto,
     } = await import("./vault");
     const vault = await getOrCreateAnonVault("session-app-photo");
     const first = await upsertAppPhoto(vault, {
@@ -125,17 +129,40 @@ describe("private vault", () => {
     expect(withLine.caption).toBe("he wrote back");
     await markYoursOpened(vault, "2026-09-21");
     expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBeUndefined();
-    await expect(
-      upsertAppPhoto(vault, {
-        id: "cap_c",
-        kind: "photo",
-        createdAt: "2026-09-21T12:00:00.000Z",
-        day: "2026-09-21",
-        caption: "too late",
-        joyType: "just-this",
-        source: "app",
-        ingestStatus: "mock",
-      }),
-    ).rejects.toThrow(/locked/i);
+    expect(appPhotoForDay(vault, "2026-09-21")?.locked).toBe(true);
+    expect(isYoursOpened(vault, "2026-09-21")).toBe(true);
+
+    await addStory(vault, {
+      id: "st_old",
+      day: "2026-09-21",
+      title: "",
+      body: "old kettle story",
+      createdAt: "2026-09-21T20:00:00.000Z",
+      weaveModel: "mock",
+      tts: { status: "stub", note: "browser" },
+      captureIds: [withLine.id],
+      mock: true,
+    });
+    expect(matchingStoryForPhoto(vault, "2026-09-21", appPhotoForDay(vault, "2026-09-21"))?.body).toMatch(
+      /old kettle/,
+    );
+
+    const replaced = await upsertAppPhoto(vault, {
+      id: "cap_c",
+      kind: "photo",
+      createdAt: "2026-09-21T12:00:00.000Z",
+      day: "2026-09-21",
+      caption: "a kinder still",
+      joyType: "just-this",
+      source: "app",
+      ingestStatus: "mock",
+    });
+    expect(replaced.id).toBe(first.id);
+    expect(replaced.locked).toBe(false);
+    expect(replaced.caption).toBe("a kinder still");
+    expect(isYoursOpened(vault, "2026-09-21")).toBe(false);
+    expect(lastStoryForDay(vault, "2026-09-21")).toBeNull();
+    expect(matchingStoryForPhoto(vault, "2026-09-21", replaced)).toBeNull();
+    expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBe("a kinder still");
   });
 });

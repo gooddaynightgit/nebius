@@ -10,9 +10,16 @@ import {
   isYoursMissingPayload,
   readCaptureStash,
 } from "@/lib/capture-stash";
+import {
+  composeKeepCardJpeg,
+  keepCardFilename,
+  keepCardPhotoSrc,
+  loadKeepCardPhoto,
+  shareOrDownloadKeepCard,
+} from "@/lib/keep-card";
 import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
-import type { StoryRecord } from "@/lib/types";
+import type { CaptureRecord, StoryRecord } from "@/lib/types";
 
 type YoursState =
   | { status: "loading" }
@@ -21,10 +28,10 @@ type YoursState =
   | { status: "missing"; message: string }
   | { status: "blocked"; message: string }
   | { status: "error"; message: string }
-  | { status: "ready"; story: StoryRecord };
+  | { status: "ready"; story: StoryRecord; photoId?: string };
 
 type WeaveResult =
-  | { status: "ready"; story: StoryRecord }
+  | { status: "ready"; story: StoryRecord; photoId?: string }
   | { status: "missing"; message: string }
   | { status: "expired"; message: string }
   | { status: "blocked"; message: string };
@@ -32,6 +39,8 @@ type WeaveResult =
 export default function YoursStory() {
   const [state, setState] = useState<YoursState>({ status: "loading" });
   const [playing, setPlaying] = useState(false);
+  const [keepBusy, setKeepBusy] = useState(false);
+  const [keepNote, setKeepNote] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const day = localDay();
 
@@ -42,9 +51,12 @@ export default function YoursStory() {
       body: JSON.stringify({ day }),
       credentials: "same-origin",
     });
-    const data = await readResponsePayload<{ story?: StoryRecord; error?: string; code?: string }>(
-      open,
-    );
+    const data = await readResponsePayload<{
+      story?: StoryRecord;
+      photo?: CaptureRecord | null;
+      error?: string;
+      code?: string;
+    }>(open);
     if (open.status === 403 && data.code === "blocked") {
       return { status: "blocked", message: data.error || LANDING.app.blocked };
     }
@@ -60,7 +72,11 @@ export default function YoursStory() {
     if (!open.ok || !data.story) {
       throw new Error(data.error || "Could not open tonight's story.");
     }
-    return { status: "ready", story: data.story };
+    return {
+      status: "ready",
+      story: data.story,
+      photoId: data.photo?.id ?? data.story.captureIds[0],
+    };
   }, [day]);
 
   const restoreFromStashAndWeave = useCallback(async (): Promise<YoursState> => {
@@ -79,7 +95,7 @@ export default function YoursStory() {
       const woven = await weaveYours();
       if (woven.status === "ready") {
         await clearCaptureStash();
-        return { status: "ready", story: woven.story };
+        return { status: "ready", story: woven.story, photoId: woven.photoId };
       }
       if (woven.status === "missing") {
         return { status: "error", message: LANDING.app.resaveFailed };
@@ -102,6 +118,7 @@ export default function YoursStory() {
       ]);
       const data = await readResponsePayload<{
         story?: StoryRecord | null;
+        photo?: CaptureRecord | null;
         opened?: boolean;
         error?: string;
         code?: string;
@@ -134,7 +151,11 @@ export default function YoursStory() {
 
       if (data.opened && data.story) {
         await clearCaptureStash();
-        apply({ status: "ready", story: data.story });
+        apply({
+          status: "ready",
+          story: data.story,
+          photoId: data.photo?.id ?? data.story.captureIds[0],
+        });
         return;
       }
 
@@ -143,7 +164,7 @@ export default function YoursStory() {
         if (cancelled) return;
         if (woven.status === "ready") {
           await clearCaptureStash();
-          apply({ status: "ready", story: woven.story });
+          apply({ status: "ready", story: woven.story, photoId: woven.photoId });
           return;
         }
         if (woven.status === "missing" && stash) {
@@ -187,6 +208,31 @@ export default function YoursStory() {
     utterance.onend = () => setPlaying(false);
     setPlaying(true);
     window.speechSynthesis?.speak(utterance);
+  }
+
+  async function keepTonight() {
+    if (state.status !== "ready" || keepBusy) return;
+    const photoId = state.photoId ?? state.story.captureIds[0];
+    if (!photoId) {
+      setKeepNote(LANDING.app.keepFailed);
+      return;
+    }
+    setKeepBusy(true);
+    setKeepNote(null);
+    try {
+      const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
+      const blob = await composeKeepCardJpeg({ photo, story: state.story.body });
+      const result = await shareOrDownloadKeepCard({
+        blob,
+        filename: keepCardFilename(day),
+        title: LANDING.app.yours,
+      });
+      if (result === "cancelled") return;
+    } catch (error) {
+      setKeepNote(error instanceof Error ? error.message : LANDING.app.keepFailed);
+    } finally {
+      setKeepBusy(false);
+    }
   }
 
   const failed = state.status === "expired" || state.status === "missing" || state.status === "blocked" || state.status === "error";
@@ -258,6 +304,23 @@ export default function YoursStory() {
               >
                 {playing ? "Pause" : "Replay last night"}
               </button>
+              <button
+                className="btn btn--keep"
+                type="button"
+                aria-label={LANDING.app.keepLabel}
+                aria-busy={keepBusy}
+                disabled={keepBusy || !(state.photoId ?? state.story.captureIds[0])}
+                onClick={() => {
+                  void keepTonight();
+                }}
+              >
+                {keepBusy ? LANDING.app.keepBusy : LANDING.app.keep}
+              </button>
+              {keepNote ? (
+                <p className="notice" role="status">
+                  {keepNote}
+                </p>
+              ) : null}
             </div>
             <div className="status-row">
               <span className="chip">

@@ -34,6 +34,12 @@ describe("landing copy", () => {
     expect(LANDING.app.blocked).toBe(
       "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     );
+    expect(LANDING.app.locked).toBe(
+      "Tonight’s story is already yours. A kinder photo still fits today.",
+    );
+    expect(LANDING.app.keep).toBe("Keep");
+    expect(LANDING.app.keepLabel).toMatch(/photo/i);
+    expect(LANDING.app.replace).toBe("Replace today’s photo");
     expect(LANDING.app.reach).toBe(
       "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
     );

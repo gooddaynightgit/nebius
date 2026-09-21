@@ -221,6 +221,17 @@ export function lastStoryForDay(
   return vault.stories.find((s) => s.day === day) ?? null;
 }
 
+export function matchingStoryForPhoto(
+  vault: VaultRecord,
+  day: string,
+  photo: CaptureRecord | null,
+): StoryRecord | null {
+  const story = lastStoryForDay(vault, day);
+  if (!story) return null;
+  if (!photo) return story;
+  return story.captureIds.includes(photo.id) ? story : null;
+}
+
 export function appPhotoForDay(vault: VaultRecord, day: string): CaptureRecord | null {
   const photos = vault.captures.filter(
     (capture) => capture.day === day && capture.kind === "photo" && capture.source === "app",
@@ -230,6 +241,14 @@ export function appPhotoForDay(vault: VaultRecord, day: string): CaptureRecord |
 
 export function isYoursOpened(vault: VaultRecord, day: string): boolean {
   return Boolean(vault.yoursOpened?.[day] || appPhotoForDay(vault, day)?.locked);
+}
+
+export function clearDayLock(vault: VaultRecord, day: string): void {
+  if (vault.yoursOpened?.[day]) {
+    const next = { ...vault.yoursOpened };
+    delete next[day];
+    vault.yoursOpened = next;
+  }
 }
 
 export async function markYoursOpened(vault: VaultRecord, day: string): Promise<void> {
@@ -266,9 +285,7 @@ export async function upsertAppPhoto(
   capture: Omit<CaptureRecord, "vaultId">,
 ): Promise<CaptureRecord> {
   const existing = appPhotoForDay(vault, capture.day);
-  if (existing?.locked || vault.yoursOpened?.[capture.day]) {
-    throw new Error("Today's photo is locked. YOURS already opened tonight's story.");
-  }
+  clearDayLock(vault, capture.day);
   vault.stories = vault.stories.filter((story) => story.day !== capture.day);
   if (existing) {
     const record: CaptureRecord = {

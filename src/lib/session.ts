@@ -67,7 +67,7 @@ export function toPublicSession(
     lastStory: lastStoryForDay(vault, day),
     todayPhoto: photo,
     yoursOpened: opened,
-    canReplacePhoto: Boolean(todayPhoto) && !opened,
+    canReplacePhoto: Boolean(todayPhoto),
   };
 }
 
