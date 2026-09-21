@@ -9,7 +9,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 ## Funnel
 
 1. Landing: hero + CTA **Hear your story — free** — no email form. **One good moment today** is an accordion: drop a photo (optional 80-character whisper) and pick one of six quiet-joy radios. Collapsed rows show title + italic tagline; selecting a type opens body, **Capture it**, and a pale lavender **Story playback** box labeled as an **example of tone** (the canned `playbackTemplate`, not tonight's story). Clicking the CTA opens `/app`. Landing photos/whispers save through the same `/api/captures` vault as the app.
-2. `/app` is **photo only**: heading **One good moment today**, tagline **One photo. One joy. One story.** Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* Save one still + one joy pick. Optional one-line caption (≤80 characters) sits beside the photo — not the moment; horrific/essay lines are dropped and the photo still saves. **YOURS** then appears — the only door to tonight's story (`/app/yours`). Photo weaves run two steps: vision excavates sensory ingredients, then a text model writes the bedtime story in *you* + tonight + affirmative voice. Caption is a whisper; joy is one brushstroke (playback strings are templates to rephrase, never the story). Vision when a Token Factory key is present; an honest caption+joy stand-in when it is not. 4–6 short sentences, 600–900 characters (400–1,200 hard bounds). If the model returns `BLOCK` (horrific image), YOURS shows a gentle refusal and does not lock the photo. After a real story opens, the caption is deleted. Saving again the same day replaces that one still (no archive) so YOURS can weave a fresh story. **Keep** saves the photo and story as one picture. At midnight the night expires. Closing: **Something good is about to happen!** / **Gooddaynight.com**.
+2. `/app` is **photo only**: heading **One good moment today**, tagline **One photo. One joy. One story.** Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* Save one still + one joy pick. Optional one-line caption (≤80 characters) sits beside the photo — not the moment; horrific/essay lines are dropped and the photo still saves. **YOURS** then appears — the only door to tonight's story (`/app/yours`). Photo weaves run two steps: vision excavates sensory ingredients, then **Kimi** writes a short **Nightly Reflection** (1–2 sentences, ~35 words) from the photo description, chosen joy, and optional caption. Caption is their whisper; joy is a light tint (never printed as a label). Vision when a Token Factory key is present; an honest caption+joy stand-in when it is not. If the model returns `BLOCK` (horrific image), YOURS shows a gentle refusal and does not lock the photo. After a real story opens, the caption is deleted. Saving again the same day replaces that one still (no archive) so YOURS can weave a fresh reflection. **Keep** saves the photo and story as one picture. At midnight the night expires. Closing: **Something good is about to happen!** / **Gooddaynight.com**.
 3. Private vault only — not shared, posted, or used to train public models. Email remains available on the landing path; `/app` does not ask for it to open YOURS.
 
 ## Architecture
@@ -19,7 +19,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 | Frontend | Next.js App Router on Vercel. Landing + `/app` capture UI + story player with replay-last-night. |
 | API | `/api/captures` ingest (`source=app` enforces photo-day rules), `/api/yours` open tonight's story (a same-day Save replaces the one still and weaves again — no archive), `/api/email` gate (landing path), `/api/weave` story, `/api/story` + `/api/story/audio` playback. |
 | Ingest | Nemotron Nano via Token Factory extracts “the good.” Photos try Nano-Omni, then Nano. |
-| Weave | `/app` YOURS: vision excavates the photo, then a text model writes the tonight-story (vision when keyed; `BLOCK` refuses without locking). Landing path: Super + optional Ultra continuity. |
+| Weave | `/app` YOURS: vision excavates the photo, then Kimi writes a short Nightly Reflection (Super fallback). Landing path: Super + optional Ultra continuity. |
 | Voice | NVIDIA Sonic via Token Factory when a model id is listable; otherwise stub TTS and play the story in a calm browser voice. |
 | Storage | **Vercel Blob** when `BLOB_READ_WRITE_TOKEN` is set; else Nebius AI Cloud object storage (S3 API); filesystem only for local dev. On Vercel without Blob/S3, health reports `ephemeral`. |
 | Nightly | `POST /api/weave` with `WEAVE_CRON_SECRET`, wrapped by `jobs/weave-nightly.sh` as a Nebius Serverless Job at 21:00. UI also has **Weave now**. |
@@ -34,8 +34,9 @@ Checked against the public catalog (`/api/public/models_info`) on 2026-09-21:
 | --- | --- | --- |
 | Ingest / extract the good | `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` | In catalog |
 | Photo / multimodal ingest | `nvidia/nemotron-3-nano-omni` | Cookbook id; not in that catalog snapshot — tried then Nano fallback |
-| YOURS visual excavation | `openbmb/MiniCPM-V-4_5` (`NEBIUS_VISION_MODEL`) | image2text, in catalog (eu-north1). Fallback: Nano-Omni, then text-only from caption/notes. **No Qwen VL id in this snapshot**; Token Factory vision docs still mention `Qwen/Qwen2-VL-72B-Instruct` — set `NEBIUS_VISION_MODEL` to that if it is available on your key |
-| YOURS bedtime story | `Qwen/Qwen3-235B-A22B-Instruct-2507` (`NEBIUS_STORY_MODEL`) | In catalog; falls back to Super |
+| YOURS visual excavation | `openbmb/MiniCPM-V-4_5` (`NEBIUS_VISION_MODEL`) | image2text, in catalog (eu-north1). Fallback: Nano-Omni, then text-only from caption/notes with Qwen instruct (`NEBIUS_EXCAVATE_TEXT_MODEL`). **No Qwen VL id in this snapshot**; Token Factory vision docs still mention `Qwen/Qwen2-VL-72B-Instruct` — set `NEBIUS_VISION_MODEL` to that if it is available on your key |
+| YOURS Nightly Reflection | `moonshotai/Kimi-K2.6` (`NEBIUS_STORY_MODEL`) | In catalog (us-central1). `moonshotai/Kimi-K2-Instruct` and `Kimi-K2.5` are **not** in this snapshot; `Kimi-K2.7-Code` is coding-focused. Falls back to Super |
+| Text-only excavation fallback | `Qwen/Qwen3-235B-A22B-Instruct-2507` | In catalog (eu-north1). Used only if vision fails — not the YOURS closer |
 | Story weave (landing / Super fallback) | `nvidia/nemotron-3-super-120b-a12b` | In catalog |
 | Private vault continuity | `nvidia/Nemotron-3-Ultra-550b-a55b`, then `nvidia/Llama-3_1-Nemotron-Ultra-253B-v1` | Ultra-3 is in catalog; Llama Ultra is a fallback. Off unless `NEBIUS_USE_ULTRA=1` |
 | Calming voice | `NEBIUS_SONIC_MODEL` | **Not listable.** No Sonic / Magpie / `/v1/audio/speech` in Token Factory docs or catalog. Stubbed with a TODO in `src/lib/tts.ts`. Story text still returns. |
@@ -58,7 +59,7 @@ Open [http://localhost:3000](http://localhost:3000). Landing CTA goes to `/app`.
 
 ### With Token Factory
 
-Set `NEBIUS_API_KEY` in `.env.local`. `/app` YOURS excavates with `NEBIUS_VISION_MODEL` (then Omni), then writes the story with `NEBIUS_STORY_MODEL` (then Super). Landing weave calls Super. Ingest calls Nano (and Omni for photos when available).
+Set `NEBIUS_API_KEY` in `.env.local`. `/app` YOURS excavates with `NEBIUS_VISION_MODEL` (then Omni), then writes the Nightly Reflection with `NEBIUS_STORY_MODEL` (Kimi, then Super). Landing weave calls Super. Ingest calls Nano (and Omni for photos when available).
 
 ### With Nebius object storage
 
@@ -109,7 +110,7 @@ nebius ai job create \
 1. **0:00** Landing. Point at the colour blocks and the lime **Hear your story — free**. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender Story playback. There is no signup field. Click through.
 2. **0:20** `/app`. Heading is **One good moment today**. Tagline: **One photo. One joy. One story.** Upload one photo (screenshots count; a video can yield one still), optional 80-character caption, pick a quiet-joy radio. **Save today's moment** — then **YOURS** appears. Tap it to open `/app/yours`.
 3. **0:50** Pale lavender Story playback reads the **woven** story (not the canned joy template). Replay last night.
-4. **1:20** Header shows Token Factory vs demo mode. Mention: vision excavates the photo (MiniCPM-V or your `NEBIUS_VISION_MODEL`), a Qwen/Super pass writes the bedtime story, vault is private, Sonic is stubbed until Token Factory lists it.
+4. **1:20** Header shows Token Factory vs demo mode. Mention: vision excavates the photo (MiniCPM-V or your `NEBIUS_VISION_MODEL`), a Kimi/Super pass writes the Nightly Reflection, vault is private, Sonic is stubbed until Token Factory lists it.
 5. **1:50** After YOURS, **Keep** saves the photo with the story. Save again the same day to replace that one moment and open YOURS once more. After midnight the link expires.
 
 ## API sketch

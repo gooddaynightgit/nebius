@@ -10,9 +10,14 @@ export const MODELS = {
   // dedicated image2text VL in eu-north1. Override to a Qwen VL id if Token
   // Factory lists one (docs still mention Qwen/Qwen2-VL-72B-Instruct).
   vision: process.env.NEBIUS_VISION_MODEL ?? "openbmb/MiniCPM-V-4_5",
-  // Strong Qwen instruct for the bedtime storyteller. Falls back to Super.
-  story:
-    process.env.NEBIUS_STORY_MODEL ?? "Qwen/Qwen3-235B-A22B-Instruct-2507",
+  // YOURS closer — short Nightly Reflection. Catalog snapshot 2026-09-21 lists
+  // moonshotai/Kimi-K2.6 (general Kimi, us-central1). moonshotai/Kimi-K2-Instruct
+  // and moonshotai/Kimi-K2.5 are not in that snapshot; Kimi-K2.7-Code is coding.
+  // Override NEBIUS_STORY_MODEL if your key has another Kimi id. Falls back to Super.
+  story: process.env.NEBIUS_STORY_MODEL ?? "moonshotai/Kimi-K2.6",
+  // Text-only photo excavation when vision fails — keep off the Kimi closer.
+  excavateText:
+    process.env.NEBIUS_EXCAVATE_TEXT_MODEL ?? "Qwen/Qwen3-235B-A22B-Instruct-2507",
   super:
     process.env.NEBIUS_SUPER_MODEL ?? "nvidia/nemotron-3-super-120b-a12b",
   ultra:

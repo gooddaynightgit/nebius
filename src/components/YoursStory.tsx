@@ -326,8 +326,8 @@ export default function YoursStory() {
               <span className="chip">
                 {state.story.mock
                   ? state.story.weaveModel === "mock-fallback"
-                    ? "Nemotron didn’t finish; a quiet stand-in from the caption and joy."
-                    : "Written without seeing the photo (add NEBIUS_API_KEY for Nemotron)"
+                    ? "Kimi didn’t finish; a quiet stand-in from the photo and joy."
+                    : "Written without seeing the photo (add NEBIUS_API_KEY for Kimi)"
                   : state.story.weaveModel}
               </span>
               <span className="chip">
