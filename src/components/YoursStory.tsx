@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import StoryPlayback from "@/components/StoryPlayback";
+import { explainClientFetchError, readResponsePayload } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
 import type { StoryRecord } from "@/lib/types";
@@ -26,8 +27,11 @@ export default function YoursStory() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ day }),
+        credentials: "same-origin",
       });
-      const data = (await open.json()) as { story?: StoryRecord; error?: string; code?: string };
+      const data = await readResponsePayload<{ story?: StoryRecord; error?: string; code?: string }>(
+        open,
+      );
       if (open.status === 404) {
         setState({
           status: data.code === "missing" ? "missing" : "expired",
@@ -49,7 +53,7 @@ export default function YoursStory() {
     } catch (error) {
       setState({
         status: "missing",
-        message: error instanceof Error ? error.message : "Save today's photo first.",
+        message: explainClientFetchError(error),
       });
     }
   }, [day]);
@@ -57,13 +61,13 @@ export default function YoursStory() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const res = await fetch(`/api/yours?day=${day}`);
-      const data = (await res.json()) as {
+      const res = await fetch(`/api/yours?day=${day}`, { credentials: "same-origin" });
+      const data = await readResponsePayload<{
         story?: StoryRecord | null;
         opened?: boolean;
         error?: string;
         code?: string;
-      };
+      }>(res);
       if (cancelled) return;
       if (res.status === 404) {
         setState({
@@ -77,8 +81,10 @@ export default function YoursStory() {
         return;
       }
       await openYours();
-    })().catch(() => {
-      if (!cancelled) setState({ status: "missing", message: "Save today's photo first." });
+    })().catch((error) => {
+      if (!cancelled) {
+        setState({ status: "missing", message: explainClientFetchError(error) });
+      }
     });
     return () => {
       cancelled = true;

@@ -20,20 +20,15 @@ import {
   PHOTO_DATE_MESSAGES,
 } from "@/lib/photo";
 import { captionDisposition } from "@/lib/app-capture";
+import { JOY_NEED, explainClientFetchError, readJson } from "@/lib/client-fetch";
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
-import type { CaptureRecord, SessionState } from "@/lib/types";
+import type { SessionState } from "@/lib/types";
 
 type Health = {
   tokenFactory: boolean;
   storage: string;
   sonicListable: boolean;
 };
-
-async function readJson<T>(res: Response): Promise<T> {
-  const data = (await res.json()) as T & { error?: string };
-  if (!res.ok) throw new Error(data.error || "Something went sideways.");
-  return data;
-}
 
 async function stillFromVideo(file: File): Promise<File> {
   const url = URL.createObjectURL(file);
@@ -89,6 +84,7 @@ export default function CaptureStudio() {
   const [caption, setCaption] = useState("");
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
+  const [joyError, setJoyError] = useState<string | null>(null);
   const [dateNote, setDateNote] = useState<string | null>(null);
   const [captionNote, setCaptionNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -103,22 +99,26 @@ export default function CaptureStudio() {
     photoUrl || (savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null);
 
   const refresh = useCallback(async () => {
-    const sessionRes = await fetch(`/api/session?day=${day}`);
-    const sessionData = await readJson<SessionState & { health?: Health }>(sessionRes);
-    setSession(sessionData);
-    if (sessionData.health) setHealth(sessionData.health);
-    if (!hydrated && sessionData.todayPhoto) {
-      setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
-      setCaption(sessionData.yoursOpened ? "" : sessionData.todayPhoto.caption ?? "");
-      if (!sessionData.todayPhoto.dateVerified) {
-        setDateNote(PHOTO_DATE_MESSAGES.unverified);
+    try {
+      const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
+      const sessionData = await readJson<SessionState & { health?: Health }>(sessionRes);
+      setSession(sessionData);
+      if (sessionData.health) setHealth(sessionData.health);
+      if (!hydrated && sessionData.todayPhoto) {
+        setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
+        setCaption(sessionData.yoursOpened ? "" : sessionData.todayPhoto.caption ?? "");
+        if (!sessionData.todayPhoto.dateVerified) {
+          setDateNote(PHOTO_DATE_MESSAGES.unverified);
+        }
       }
+      setHydrated(true);
+    } catch (error) {
+      setCaptureError(explainClientFetchError(error));
     }
-    setHydrated(true);
   }, [day, hydrated]);
 
   useEffect(() => {
-    refresh().catch((err: Error) => setCaptureError(err.message));
+    void refresh();
   }, [refresh]);
 
   useEffect(() => {
@@ -187,6 +187,7 @@ export default function CaptureStudio() {
   function pickJoy(joy: JoyType) {
     if (locked) return;
     setSelectedJoyId(joy.id);
+    setJoyError(null);
     setCaptureError(null);
   }
 
@@ -201,12 +202,20 @@ export default function CaptureStudio() {
       return;
     }
     if (!selectedJoy) {
-      setCaptureError("Pick the kind of quiet joy first.");
+      setJoyError(JOY_NEED);
+      setCaptureError(null);
+      window.requestAnimationFrame(() => {
+        document.getElementById("joy-pick")?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        });
+      });
       return;
     }
     const kept = captionDisposition(caption);
     setBusy(true);
     setCaptureError(null);
+    setJoyError(null);
     setCaptionNote(kept.dropped ? LANDING.app.captionDropped : null);
     if (kept.dropped) setCaption("");
     try {
@@ -218,16 +227,18 @@ export default function CaptureStudio() {
       form.set("tzOffset", String(new Date().getTimezoneOffset()));
       if (kept.caption) form.set("caption", kept.caption);
       if (photo) form.set("file", photo, photo.name || "moment.jpg");
-      const res = await fetch("/api/captures", { method: "POST", body: form });
-      const data = (await res.json()) as {
-        capture?: CaptureRecord;
+      const res = await fetch("/api/captures", {
+        method: "POST",
+        body: form,
+        credentials: "same-origin",
+      });
+      const data = await readJson<{
         session?: SessionState;
-        error?: string;
         dateNote?: string;
         captionNote?: string;
-      };
-      if (!res.ok || !data.session) {
-        throw new Error(data.error || "Could not save that moment.");
+      }>(res);
+      if (!data.session) {
+        throw new Error("Could not save that moment.");
       }
       setSession(data.session);
       if (data.dateNote) setDateNote(data.dateNote);
@@ -242,7 +253,7 @@ export default function CaptureStudio() {
         });
       });
     } catch (err) {
-      setCaptureError(err instanceof Error ? err.message : "Could not save that moment.");
+      setCaptureError(explainClientFetchError(err));
     } finally {
       setBusy(false);
     }
@@ -350,10 +361,19 @@ export default function CaptureStudio() {
             ) : null}
           </section>
 
-          <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">
+          <section
+            id="joy-pick"
+            className="card card--cream card--moment card--compact"
+            aria-labelledby="joy-heading"
+          >
             <h2 id="joy-heading" className="visually-hidden">
               What kind of quiet joy was it?
             </h2>
+            {joyError ? (
+              <p className="error" role="alert" id="joy-need" style={{ margin: "0 0 0.85rem" }}>
+                {joyError}
+              </p>
+            ) : null}
             <JoyPicker
               name="quiet-joy-app"
               idPrefix="app-joy"

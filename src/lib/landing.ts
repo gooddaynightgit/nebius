@@ -49,6 +49,8 @@ export const LANDING = {
     blocked: "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     save: "Save today’s moment",
     replace: "Replace today’s photo",
+    reach: "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
+    joyNeed: "Pick the kind of quiet joy first.",
   },
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",

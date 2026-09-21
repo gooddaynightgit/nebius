@@ -30,6 +30,11 @@ describe("landing copy", () => {
     expect(LANDING.app.blocked).toBe(
       "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     );
+    expect(LANDING.app.reach).toBe(
+      "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
+    );
+    expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
+    expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
     expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",

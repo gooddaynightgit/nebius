@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import JoyPicker from "@/components/JoyPicker";
+import { explainClientFetchError, readJson } from "@/lib/client-fetch";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX } from "@/lib/landing";
 
 function localDay() {
@@ -82,12 +83,15 @@ function PhotoMoment() {
         form.set("kind", "text");
         form.set("text", whisper.trim());
       }
-      const res = await fetch("/api/captures", { method: "POST", body: form });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "Could not save that moment.");
+      const res = await fetch("/api/captures", {
+        method: "POST",
+        body: form,
+        credentials: "same-origin",
+      });
+      await readJson(res);
       setSaved(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save that moment.");
+      setError(explainClientFetchError(err));
     } finally {
       setBusy(false);
     }

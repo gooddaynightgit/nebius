@@ -435,6 +435,12 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.footer\.somethingGood/);
     expect(src).toMatch(/LANDING\.footer\.site/);
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
+    expect(src).toMatch(/explainClientFetchError/);
+    expect(src).toMatch(/id="joy-pick"/);
+    expect(src).toMatch(/id="joy-need"/);
+    expect(src).toMatch(/JOY_NEED/);
+    expect(src).toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
+    expect(src).not.toMatch(/Failed to fetch/);
   });
 });
 
