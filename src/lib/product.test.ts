@@ -352,6 +352,7 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.app\.yoursHint/);
     expect(src).toMatch(/LANDING\.app\.photoHelp/);
     expect(src).toMatch(/LANDING\.app\.yours/);
+    expect(src).toMatch(/id="yours-door"/);
     expect(src).toMatch(/href="\/app\/yours"/);
     expect(src).toMatch(/source", "app"/);
     expect(src).toMatch(/joyType/);

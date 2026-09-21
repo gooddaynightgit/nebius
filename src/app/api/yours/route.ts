@@ -26,9 +26,14 @@ export async function GET(request: Request) {
   if (!isPlausibleClientDay(day)) return notFound(EXPIRED);
   const { sessionId, vault } = await loadSessionVault();
   const photo = appPhotoForDay(vault, day);
-  const story = lastStoryForDay(vault, day);
+  const storyForPhoto = (() => {
+    const story = lastStoryForDay(vault, day);
+    if (!photo) return story;
+    if (story && story.captureIds.includes(photo.id)) return story;
+    return null;
+  })();
   const opened = isYoursOpened(vault, day);
-  if (!photo && !story) {
+  if (!photo && !storyForPhoto) {
     const hadPrior =
       vault.captures.some((capture) => capture.source === "app" && capture.day !== day) ||
       vault.stories.some((item) => item.day !== day);
@@ -38,7 +43,7 @@ export async function GET(request: Request) {
   return json({
     session: toPublicSession(vault, sessionId, day),
     photo,
-    story: opened ? story : null,
+    story: opened ? storyForPhoto : null,
     opened,
     locked: opened,
   });
@@ -50,11 +55,14 @@ export async function POST(request: Request) {
   if (!isPlausibleClientDay(day)) return notFound(EXPIRED);
   const { sessionId, vault } = await loadSessionVault();
   const photo = appPhotoForDay(vault, day);
+  const joyType = photo?.joyType;
   if (!photo) return badRequest(MISSING);
-  const joyType = photo.joyType;
   if (!joyType) return badRequest("Pick the kind of quiet joy first.");
 
   let story = lastStoryForDay(vault, day);
+  if (story && !story.captureIds.includes(photo.id)) {
+    story = null;
+  }
   if (!story) {
     try {
       const imageDataUrl = await captureImageDataUrl(photo);

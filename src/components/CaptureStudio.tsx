@@ -233,6 +233,12 @@ export default function CaptureStudio() {
       }
       setSession(data.session);
       if (data.dateNote) setDateNote(data.dateNote);
+      window.requestAnimationFrame(() => {
+        document.getElementById("yours-door")?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        });
+      });
     } catch (err) {
       setCaptureError(err instanceof Error ? err.message : "Could not save that moment.");
     } finally {
@@ -325,11 +331,7 @@ export default function CaptureStudio() {
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
                 {LANDING.app.locked}
               </p>
-            ) : (
-              <button className="btn btn--lime" type="submit" disabled={busy} style={{ marginTop: "1rem" }}>
-                {busy ? "Saving…" : savedPhoto ? LANDING.app.replace : LANDING.app.save}
-              </button>
-            )}
+            ) : null}
           </section>
 
           <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">
@@ -344,10 +346,18 @@ export default function CaptureStudio() {
             />
             <span className="card__wash card__wash--note" aria-hidden="true"></span>
           </section>
+
+          {!locked ? (
+            <section className="card card--lime card--compact">
+              <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
+                {busy ? "Saving…" : savedPhoto ? LANDING.app.replace : LANDING.app.save}
+              </button>
+            </section>
+          ) : null}
         </form>
 
         {yoursReady ? (
-          <section className="card card--lime card--compact" aria-label={LANDING.app.yours}>
+          <section id="yours-door" className="card card--lime card--compact" aria-label={LANDING.app.yours}>
             <Link className="yours" href="/app/yours">
               {LANDING.app.yours}
             </Link>

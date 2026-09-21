@@ -250,8 +250,8 @@ export async function upsertAppPhoto(
   if (existing?.locked || vault.yoursOpened?.[capture.day]) {
     throw new Error("Today's photo is locked. YOURS already opened tonight's story.");
   }
+  vault.stories = vault.stories.filter((story) => story.day !== capture.day);
   if (existing) {
-    vault.stories = vault.stories.filter((story) => story.day !== capture.day);
     const record: CaptureRecord = {
       ...existing,
       ...capture,
