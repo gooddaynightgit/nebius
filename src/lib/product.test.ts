@@ -413,11 +413,16 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.app\.takePhoto/);
     expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(src.match(/capture="environment"/g)?.length).toBe(1);
+    expect(src).toMatch(/accept="image\/\*"/);
+    expect(src).toMatch(/accept="image\/\*,video\/\*"/);
+    expect(src).toMatch(/takeInputRef/);
+    expect(src).toMatch(/uploadInputId/);
+    expect(src).toMatch(/getUserMedia|openRearCamera|prefersLiveCamera/);
     expect(src).toMatch(/createObjectURL/);
     expect(src).toMatch(/Try again|tryAgain/);
     expect(src).not.toMatch(/Take or upload a photo/);
     expect(src).not.toMatch(/Choose another photo/);
-    expect(src).toMatch(/accept="image\/\*,video\/\*"/);
+    expect(src).not.toMatch(/htmlFor=\{takeInputId\}/);
     expect(src).toMatch(/JoyPicker/);
     expect(src).toMatch(/quiet-joy-app/);
     expect(src).not.toMatch(/href="#yours"/);

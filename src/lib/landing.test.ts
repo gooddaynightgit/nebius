@@ -42,6 +42,8 @@ describe("landing copy", () => {
     expect(LANDING.app.unexpected).toBe("Couldn't read Gooddaynight's reply. Refresh and try again.");
     expect(LANDING.app.takePhoto).toBe("Take your photo");
     expect(LANDING.app.uploadPhoto).toBe("Upload your photo");
+    expect(LANDING.app.keepStill).toBe("Keep this still");
+    expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);

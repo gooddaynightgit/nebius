@@ -855,6 +855,31 @@ a {
   text-align: center;
 }
 
+.live-camera {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.live-camera__video {
+  display: block;
+  width: 100%;
+  min-height: 12rem;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: 1rem;
+  background: #111;
+}
+
+.live-camera__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.live-camera__actions .btn {
+  flex: 1 1 8rem;
+}
+
 .text-retry {
   display: inline;
   margin: 0;

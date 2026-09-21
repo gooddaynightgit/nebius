@@ -50,6 +50,8 @@ export const LANDING = {
     replace: "Replace today’s photo",
     takePhoto: "Take your photo",
     uploadPhoto: "Upload your photo",
+    keepStill: "Keep this still",
+    cancelCamera: "Cancel",
     reach: "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
     reachLive: "Couldn't reach Gooddaynight — check your connection and try again.",
     unexpected: "Couldn't read Gooddaynight's reply. Refresh and try again.",
