@@ -51,7 +51,9 @@ export default function HomePage() {
 
       <footer className="site-footer">
         <p>
-          <a href="https://gooddaynight.com">Gooddaynight.com</a>
+          Looking forward to hearing from you:
+          <br />
+          <a href="mailto:hello@gooddaynight.com">hello@gooddaynight.com</a>
         </p>
       </footer>
     </div>
