@@ -1,8 +1,9 @@
 import {
-  APP_STORY_MIN,
+  APP_STORY_WORD_MIN,
   WEAVE_BLOCKED,
   appStoryProblems,
   celebratesDespair,
+  countAppStoryWords,
   finishAppStory,
   parseAppWeaveReply,
   trimAppStory,
@@ -21,8 +22,7 @@ import {
 } from "./nebius";
 import {
   APP_EXCAVATE_SYSTEM,
-  APP_WEAVE_FORBIDDEN_PHRASES,
-  APP_WEAVE_SYSTEM,
+  APP_REFLECT_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   ULTRA_CONTINUITY_SYSTEM,
   WEAVE_NEEDS_WORDS,
@@ -167,24 +167,45 @@ export function appExcavateUserText(input: {
   ].join("\n\n");
 }
 
+export function appReflectUserText(input: {
+  joyTitle: string;
+  excavation: string;
+  caption?: string;
+}): string {
+  const caption = input.caption ? clipCaption(input.caption) : "";
+  return [
+    "Photo description (sensory excavation of today's kept still):",
+    input.excavation,
+    `Chosen joy (lay this tint once, lightly, only if it fits the evidence — never print it as a label): ${joyColourLabel(input.joyTitle)}`,
+    caption
+      ? `Optional caption (their whisper): ${caption}`
+      : "No caption.",
+    "Write one short Nightly Reflection. Four beats in this order, packed into 1–2 sentences (max ~35 words): name the looking, 2–3 concrete details from the photo description and/or caption, ownership, door. Second person. Plain reflection text only. Or BLOCK.",
+  ].join("\n\n");
+}
+
+/** @deprecated use appReflectUserText — YOURS no longer sends a playback template to the closer. */
 export function appWeaveUserText(input: {
   joyTitle: string;
   template: string;
   excavation: string;
   caption?: string;
 }): string {
-  const caption = input.caption ? clipCaption(input.caption) : "";
-  return [
-    "Sensory ingredients from the photo (this is what is actually there — stay inside it):",
-    input.excavation,
-    `Joy pick (one brushstroke of warmth in the scene): ${joyColourLabel(input.joyTitle)}`,
-    `Joy playback string (TEMPLATE to rephrase — write a fresh telling):\n${input.template}`,
-    caption
-      ? `Optional caption (soft meaning once if it helps; prefer concrete detail from the ingredients): ${caption}`
-      : "No caption.",
-    "Write 4–6 short sentences. Target 600–900 characters. Hard max 1,200. Stay at 400 or more unless BLOCK. Start from one concrete sensory detail. Address the listener as you. Tonight's moment. Affirmative voice. Worth keeping. Particular to the photo. Plain story text only. Or BLOCK.",
-    `Forbidden in the story: ${APP_WEAVE_FORBIDDEN_PHRASES.join(", ")}.`,
-  ].join("\n\n");
+  void input.template;
+  return appReflectUserText(input);
+}
+
+function reflectRetryHint(problems: string[], lastBody: string): string {
+  if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
+    return "The last draft was too short. Write 1–2 sentences, about 35 words, with all four beats: looking, 2–3 concrete details from the photo description and/or caption, ownership, door. Plain reflection text only. Or BLOCK.";
+  }
+  if (problems.includes("long")) {
+    return "The last draft was too long. Cut to 1–2 sentences, max ~35 words. Keep the four beats. No extra scene. Plain reflection text only. Or BLOCK.";
+  }
+  if (problems.includes("leak") || problems.includes("lecture")) {
+    return "Rewrite without questions, exclamation marks, or meta talk about prompts, excavates, captions, or instructions. Four beats. 1–2 sentences. ~35 words. Plain reflection text only. Or BLOCK.";
+  }
+  return "Rewrite. Follow the brief. Fresh phrasing — do not copy the example. 1–2 sentences, ~35 words. Concrete details from this entry only. No title. No joy labels. Plain reflection text only. Or BLOCK.";
 }
 
 async function excavateAppPhoto(input: {
@@ -250,14 +271,15 @@ async function weaveAppStoryFromExcavation(input: {
   excavation: string;
   caption?: string;
 }): Promise<{ blocked: true; model: string } | { body: string; model: string } | null> {
-  const userText = appWeaveUserText(input);
+  const userText = appReflectUserText(input);
   const messages: ChatMessage[] = [
-    { role: "system", content: APP_WEAVE_SYSTEM },
+    { role: "system", content: APP_REFLECT_SYSTEM },
     { role: "user", content: userText },
   ];
 
   let lastBody = "";
   let lastModel = "";
+  let lastProblems: string[] = [];
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       const retryHint =
@@ -267,15 +289,12 @@ async function weaveAppStoryFromExcavation(input: {
               ...messages,
               {
                 role: "user" as const,
-                content:
-                  lastBody && lastBody.length < APP_STORY_MIN
-                    ? "The last draft was too short. Write 4–6 short sentences, 600–900 characters, grounded in the sensory ingredients. Address the listener as you. Affirmative. Particular. Worth keeping. Plain story text only. Or BLOCK."
-                    : "Rewrite. Follow the brief. Fresh sentences from the excavation. Address the listener as you. Tonight's moment. Affirmative voice. No instruction-echo. No title. No wellness words. 600–900 characters. Plain story text only. Or BLOCK.",
+                content: reflectRetryHint(lastProblems, lastBody),
               },
             ];
       const result = await completeWithFallback(appStoryModels(), retryHint, {
-        temperature: attempt === 0 ? 0.7 : 0.45,
-        maxTokens: 500,
+        temperature: attempt === 0 ? 0.75 : 0.5,
+        maxTokens: 180,
       });
       lastModel = result.model;
       const parsed = parseAppWeaveReply(result.text);
@@ -283,10 +302,11 @@ async function weaveAppStoryFromExcavation(input: {
         if (!lastBody) break;
         continue;
       }
-      lastBody = parsed;
-      const problems = appStoryProblems(parsed, input.template).filter((item) => item !== "long");
-      if (problems.length === 0) {
-        return { body: trimAppStory(parsed), model: result.model };
+      const trimmed = trimAppStory(parsed);
+      lastBody = trimmed;
+      lastProblems = appStoryProblems(trimmed, input.template);
+      if (lastProblems.length === 0) {
+        return { body: trimmed, model: result.model };
       }
     } catch {
       // Retry, then fall through to an honest mock.

@@ -93,7 +93,7 @@ export function appStoryModels(): string[] {
 }
 
 export function textExcavateModels(): string[] {
-  return uniqueModels(MODELS.story, MODELS.nano, MODELS.super);
+  return uniqueModels(MODELS.excavateText, MODELS.nano, MODELS.super);
 }
 
 export function superModels(): string[] {

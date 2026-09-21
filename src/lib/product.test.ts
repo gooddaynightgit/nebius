@@ -11,8 +11,7 @@ import {
 import { chooseSpokenLine, cleanSpokenLine, isSelfNegating, proposeSpokenLine } from "./care";
 import {
   APP_EXCAVATE_SYSTEM,
-  APP_WEAVE_FORBIDDEN_PHRASES,
-  APP_WEAVE_SYSTEM,
+  APP_REFLECT_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   displayMoment,
   isWeavableMoment,
@@ -125,33 +124,26 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_EXCAVATE_SYSTEM).toMatch(/CAPTION WHISPER/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/4–6 short sentences/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/gifted warm writer/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/not a coach, therapist, or wellness brand/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Address the listener as \*you\*/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/tonight's moment from today's photo/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/caption only as a whisper/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/4–6 short sentences/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/No serotonin, circadian, oxytocin/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/600–900 characters/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/1,200 characters/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Never shorter than \*\*400\*\*/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Plain story text only/);
-    expect(APP_WEAVE_SYSTEM).not.toMatch(/First line MUST be: Title/);
-    expect(APP_WEAVE_SYSTEM).not.toMatch(/180–280 words/);
-    expect(APP_WEAVE_SYSTEM).not.toMatch(/serotonin before the day/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Affirmative voice only/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Worth keeping/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Write the moment, not the pipeline/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Forbidden in the story/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/one brushstroke/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Start from one concrete sensory detail/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/End on stillness/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/\byou\b/);
-    expect(APP_WEAVE_SYSTEM).not.toMatch(/Analyze the photo first/);
-    for (const phrase of APP_WEAVE_FORBIDDEN_PHRASES) {
-      expect(APP_WEAVE_SYSTEM).toMatch(phrase);
-    }
+    expect(APP_REFLECT_SYSTEM).toMatch(/closing voice of Gooddaynight/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/photo description \(sensory excavation\)/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/chosen joy/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/optional caption \(their whisper\)/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/four beats/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Max ~35 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/1–2 sentences/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Reply only: BLOCK/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/opens the door to more/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/4–6 short sentences/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/600–900 characters/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/1,200 characters/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Never shorter than \*\*400\*\*/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/gifted warm writer/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/First line MUST be: Title/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/180–280 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/plain reflection text only/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(/never print the joy category as a label/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/\byou\b/i);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Analyze the photo first/);
   });
 
   it("cleans obvious typos without corporate rewrite", () => {
@@ -264,7 +256,7 @@ describe("ingest and weave fallbacks", () => {
   it("rewrites joy playback templates instead of dumping them as the story", async () => {
     const { JOY_TYPES } = await import("./landing");
     const { mockJoyStory, usesCannedPlayback, CANNED_PLAYBACK_MARKERS } = await import("./prompts");
-    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_WELLNESS_RE } = await import("./app-story");
+    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_SENTENCE_MAX, APP_STORY_WELLNESS_RE, countAppStorySentences, countAppStoryWords } = await import("./app-story");
     for (const joy of JOY_TYPES) {
       const story = mockJoyStory({
         joy,
@@ -280,13 +272,16 @@ describe("ingest and weave fallbacks", () => {
       expect(story.title).toBe("");
       expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
       expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
+      expect(countAppStoryWords(story.body)).toBeLessThanOrEqual(45);
+      expect(countAppStorySentences(story.body)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
       expect(story.body).not.toMatch(APP_STORY_WELLNESS_RE);
       expect(story.body).not.toMatch(/#\w/);
       expect(story.body).not.toMatch(/^title:/im);
-      const sentences = story.body.split(/(?<=[.!?])\s+/).filter((part) => part.trim());
-      expect(sentences.length).toBeGreaterThanOrEqual(4);
-      expect(sentences.length).toBeLessThanOrEqual(6);
-      expect(story.body).toMatch(/still|quiet/i);
+      expect(story.body).not.toContain(joy.title);
+      expect(story.body).not.toMatch(/Just this is|One corner clear/i);
+      expect(story.body).toMatch(/You spent today/i);
+      expect(story.body).toMatch(/door|belong|yours/i);
+      expect(story.body).toMatch(/kettle|steam/i);
       expect(story.body).not.toMatch(/nothing else|never more|not a lecture|not a list|do not have to|beside the image sits/i);
     }
   });
@@ -295,7 +290,7 @@ describe("ingest and weave fallbacks", () => {
     const { JOY_TYPES } = await import("./landing");
     const { mockJoyStory, mockExcavation } = await import("./prompts");
     const { appStoryProblems, leaksAppStoryInstruction } = await import("./app-story");
-    const { appExcavateUserText, appWeaveUserText } = await import("./weave");
+    const { appExcavateUserText, appReflectUserText } = await import("./weave");
     const joy = JOY_TYPES.find((item) => item.id === "just-this");
     expect(joy).toBeTruthy();
     const excavation = mockExcavation({
@@ -316,7 +311,7 @@ describe("ingest and weave fallbacks", () => {
       excavation,
     });
     expect(story.body).toMatch(/blossom|petal|bark|tree|sky/i);
-    expect(story.body).toMatch(/gladness|warm|care|keep/i);
+    expect(story.body).toMatch(/door|belong|kept|yours/i);
     expect(story.body).toMatch(/Blossomimg tree/);
     expect(story.body.match(/Blossomimg tree/g)?.length).toBe(1);
     expect(leaksAppStoryInstruction(story.body)).toBe(false);
@@ -341,20 +336,22 @@ describe("ingest and weave fallbacks", () => {
     expect(excavateUser).toMatch(/ingredients only/);
     expect(excavateUser).not.toMatch(/Write 4–6 short sentences/);
 
-    const user = appWeaveUserText({
+    const user = appReflectUserText({
       joyTitle: joy!.title,
-      template: joy!.playbackTemplate,
       excavation,
       caption: "Blossomimg tree",
     });
-    expect(user).toMatch(/one brushstroke of warmth/);
-    expect(user).toMatch(/Forbidden in the story/);
-    expect(user).toMatch(/Address the listener as you/);
+    expect(user).toMatch(/Chosen joy/);
+    expect(user).toMatch(/never print it as a label/);
+    expect(user).toMatch(/1–2 sentences/);
+    expect(user).toMatch(/~35 words/);
+    expect(user).toMatch(/Optional caption \(their whisper\)/);
+    expect(user).not.toMatch(/4–6 short sentences/);
+    expect(user).not.toMatch(/600–900 characters/);
+    expect(user).not.toMatch(/Joy playback string/);
     expect(user).not.toMatch(/never more than these words/);
     expect(user).not.toMatch(/colour only, not a lecture/);
-    for (const phrase of APP_WEAVE_FORBIDDEN_PHRASES) {
-      expect(user).toMatch(phrase);
-    }
+    expect(user).not.toMatch(/Forbidden in the story/);
   });
 
   it("weaves an app photo from the joy template without pasting the canned playback", async () => {
@@ -554,6 +551,7 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/code === "blocked"/);
     expect(yours).toMatch(/No YOURS story tonight/);
     expect(yours).toMatch(/Written without seeing the photo/);
+    expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
     expect(yours).toMatch(/keepCardPhotoSrc|composeKeepCardJpeg/);
     expect(yours).toMatch(/LANDING\.app\.keep/);
     expect(yours).toMatch(/keepLabel/);
@@ -613,7 +611,8 @@ describe("YOURS two-step brief", () => {
     const envExample = readFileSync(path.resolve(".env.example"), "utf8");
     const readme = readFileSync(path.resolve("README.md"), "utf8");
     expect(weave).toMatch(/APP_EXCAVATE_SYSTEM/);
-    expect(weave).toMatch(/APP_WEAVE_SYSTEM/);
+    expect(weave).toMatch(/APP_REFLECT_SYSTEM/);
+    expect(weave).not.toMatch(/4–6 short sentences/);
     expect(weave).toMatch(/visionModels/);
     expect(weave).toMatch(/appStoryModels/);
     expect(weave).toMatch(/image_url/);
@@ -631,14 +630,19 @@ describe("YOURS two-step brief", () => {
     );
     expect(envExample).toMatch(/NEBIUS_VISION_MODEL/);
     expect(envExample).toMatch(/NEBIUS_STORY_MODEL/);
+    expect(envExample).toMatch(/moonshotai\/Kimi-K2\.6/);
+    expect(envExample).toMatch(/Nightly Reflection/);
     expect(readme).toMatch(/NEBIUS_VISION_MODEL/);
     expect(readme).toMatch(/NEBIUS_STORY_MODEL/);
     expect(readme).toMatch(/openbmb\/MiniCPM-V-4_5/);
-    expect(readme).toMatch(/Qwen\/Qwen3-235B-A22B-Instruct-2507/);
+    expect(readme).toMatch(/moonshotai\/Kimi-K2\.6/);
+    expect(readme).not.toMatch(/YOURS bedtime story \| `Qwen\/Qwen3-235B-A22B-Instruct-2507`/);
     expect(uniqueModels("a", "a", "", "b")).toEqual(["a", "b"]);
     expect(visionModels()[0]).toBe(MODELS.vision);
     expect(appStoryModels()[0]).toBe(MODELS.story);
+    expect(appStoryModels()[1]).toBe(MODELS.super);
     expect(MODELS.vision).toBe("openbmb/MiniCPM-V-4_5");
-    expect(MODELS.story).toBe("Qwen/Qwen3-235B-A22B-Instruct-2507");
+    expect(MODELS.story).toBe("moonshotai/Kimi-K2.6");
+    expect(MODELS.excavateText).toBe("Qwen/Qwen3-235B-A22B-Instruct-2507");
   });
 });

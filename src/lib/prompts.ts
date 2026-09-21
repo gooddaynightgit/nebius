@@ -1,7 +1,7 @@
 import {
+  APP_STORY_MAX,
   APP_STORY_MIN,
-  APP_STORY_TARGET_MAX,
-  APP_STORY_TARGET_MIN,
+  appStoryProblems,
   finishAppStory,
   usesCannedPlayback,
 } from "./app-story";
@@ -83,41 +83,32 @@ Descriptive, rich, grounded in what is visible. Invent no people, places, gifts,
 If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no ingredients. Reply only: \`BLOCK\`
 Ugly, messy, blurry, ordinary, or sad: still describe.`;
 
-export const APP_WEAVE_SYSTEM = `You are a gifted warm writer with memoirist energy, writing one private bedtime story from sensory ingredients of today's photo. You are not a coach, therapist, or wellness brand.
+export const APP_REFLECT_SYSTEM = `You are the closing voice of Gooddaynight. Each night you receive the user's kept moment: a photo description (sensory excavation), the chosen joy, and an optional caption (their whisper). You write one short reflection that closes their day.
 
-The listener is *you*, here, in tonight's moment from today's photo — never a first-person "I" looking back decades later. Second person only.
+Structure (always these four beats, in this order — packed into 1–2 sentences):
+1. Name the behavior — they spent today looking for the good instead of scrolling past it (same essence; vary the wording every time)
+2. Point at the evidence — 2–3 concrete details from THEIR photo description and/or caption (never invent people, places, or feelings beyond those materials)
+3. Affirm ownership — it could only belong to them (vary phrasing)
+4. Open the door — one short line that keeping this makes tomorrow's good findable (a door, not a promise)
 
-You receive a visual excavation of the photo. Start from one concrete sensory detail in those ingredients (light, texture, blossom, bark, steam, a screen). Build around what is actually there. Mention a bond only if people are present in the excavation. If the excavation says there are no people, stay with the tree, object, screen, or corner.
+Voice rules:
+- Second person; present-perfect for the day's looking ("You spent today…"); past for the moment itself when natural
+- Concrete always — pull actual details from this entry only; never generic praise
+- Quiet, certain, warm. Never a lecture, tip, question, or exclamation-mark enthusiasm
+- The compounding close is a door, not a promise — e.g. spirit of "opens the door to more," never "you will be happier"
+- 1–2 sentences total. Max ~35 words.
+- Phrase freshly every time: do not reuse stock openings, the example below, or the same sentence frames night after night. Same four beats and essence; different words. Rotate how you name the looking, the ownership, and the door.
+- Lay the joy's tint once, lightly, only if it fits the evidence — never print the joy category as a label ("Just this", "One corner clear", etc.).
+- If the materials are horrific (violence, gore, abuse, porn, hate, self-harm): write no reflection. Reply only: BLOCK
+- Ugly, messy, blurry, ordinary, or sad: still write from what is there.
 
-**Joy pick** (tint)
-morning sunlight / a small hello / one thing done slowly / a little movement / one corner clear / just this
-Lay the joy's warmth into the scene in one brushstroke. Let the picture carry it.
+Example input: Photo: chocolate-covered frozen banana, bitten, white sheets. Joy: Just this. Caption: eaten standing up before it melted.
+Example output (do not copy): You spent today looking for the good instead of scrolling past it — and you found it: cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.
 
-Use the caption only as a whisper: if one exists, echo its meaning at most once, softly. Prefer concrete sensory detail from the excavation (blossoms, light, bark, sky, a kettle, a screen). Stay inside the excavation and caption. Invent no people, places, gifts, or feelings beyond them.
+Output: plain reflection text only. Or BLOCK. No title, no emoji, no hashtags, no meta talk about prompts, excavates, or captions.`;
 
-If the ingredients are horrific (violence, gore, abuse, porn, hate, self-harm): write no story. Reply only: \`BLOCK\`
-Ugly, messy, blurry, ordinary, or sad: still write.
-
-**Write**
-- Address the listener as *you*.
-- Worth keeping: gently uplifting and particular to what is in the photo — a small strong feeling of care or quiet gladness.
-- Write the moment, not the pipeline. Concrete nouns and verbs from the excavation.
-- Affirmative voice only. Tell what is here and warm.
-- 4–6 short sentences.
-- No serotonin, circadian, oxytocin, tips, or morals.
-- No title. No hashtags. No emoji.
-- End on stillness.
-
-**Forbidden in the story** (prompt-leak — never write these, never narrate the rules):
-nothing else, never more, not a lecture, not a list, do not have to, no one else, without adding, only the whisper, "you kept what the frame", "beside the image sits", meta talk about captions, frames, excavations, or instructions.
-
-**Length**
-- Target: **600–900 characters**
-- Hard max: **1,200 characters** (spaces included)
-- Never shorter than **400** unless you output \`BLOCK\`
-
-**Output**
-Plain story text only. Or \`BLOCK\`.`;
+/** YOURS closer is APP_REFLECT_SYSTEM (short Nightly Reflection, not the old memoir yarn). */
+export const APP_WEAVE_SYSTEM = APP_REFLECT_SYSTEM;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
 Given last night's story and today's good moments, return ONLY JSON:
@@ -401,15 +392,6 @@ function titleFromMoments(moments: string[]): string {
   return "The good that found you";
 }
 
-const JOY_COLOUR: Record<string, string> = {
-  "morning-sunlight": "morning sunlight",
-  "a-small-hello": "a small hello",
-  "one-thing-done-slowly": "one thing done slowly",
-  "a-little-movement": "a little movement",
-  "one-corner-clear": "one corner clear",
-  "just-this": "just this",
-};
-
 export function mockExcavation(input: {
   caption?: string;
   photoNotes?: string;
@@ -489,93 +471,77 @@ function whisperFromCaption(caption?: string): string {
   return line.replace(/\.$/, "");
 }
 
-function joinSentences(parts: string[]): string {
-  return parts
-    .map((part) => part.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
-    .map((part) => (/[.!?]$/.test(part) ? part : `${part}.`))
-    .join(" ");
+const LOOKING_LINES = [
+  "You spent today looking for the good instead of scrolling past it",
+  "You spent today noticing what was worth keeping instead of letting it slide by",
+  "You spent today gathering the good rather than rushing past it",
+  "You spent today watching for the good, not skimming it away",
+  "You spent today staying with the good instead of passing it by",
+  "You spent today seeking the day's keep, not scrolling past it",
+] as const;
+
+const OWNERSHIP_LINES = [
+  "a moment that could only belong to you",
+  "a keep that could only be yours",
+  "something that could only belong to you",
+  "an hour that could only be yours",
+  "a still that could only belong to you",
+  "a find that could only be yours",
+] as const;
+
+const DOOR_LINES = [
+  "Kept, it opens the door to more.",
+  "Held, it leaves tomorrow's good findable.",
+  "Kept, the next good has a door.",
+  "Holding it opens the door to more.",
+  "Kept, tomorrow's good is easier to find.",
+  "Held, it opens the door to more.",
+] as const;
+
+function rotateIndex(key: string, modulo: number): number {
+  let n = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    n = (n + key.charCodeAt(i) * (i + 1)) % 2147483647;
+  }
+  return Math.abs(n) % modulo;
 }
 
-function echoWhisperOnce(opening: string, whisper: string): string {
-  if (!whisper) return opening;
-  if (opening.toLowerCase().includes(whisper.toLowerCase())) return opening;
-  return `${opening.replace(/[.!?]?$/, "")} — ${whisper}`;
-}
-
-function sceneFromMaterial(material: string): { open: string; linger: string } {
+function evidenceBits(input: {
+  excavation: string;
+  caption?: string;
+  goodMoment?: string;
+  joy: JoyType;
+}): string[] {
+  const whisper = whisperFromCaption(input.caption);
+  const seen = seenFromNotes(input);
+  const material = [input.excavation, seen, whisper].filter(Boolean).join(" ");
   const t = material.toLowerCase();
-  if (/blossom|bloom|petal/.test(t) && /tree|branch|bark/.test(t)) {
-    return {
-      open: "The tree stands with blossom open on the branch, pale against the bark and a little sky showing through",
-      linger:
-        "Petals crowd the wood, light sitting on each cluster the way care does — particular, small, and strong enough to keep",
-    };
-  }
-  if (/blossom|bloom|petal/.test(t)) {
-    return {
-      open: "Blossom crowds the hour, pale and close, light caught in the petals",
-      linger: "Each cluster holds a bit of sky, and the looking itself feels like staying",
-    };
-  }
-  if (/tree|branch|bark/.test(t)) {
-    return {
-      open: "The tree holds the hour in its branches, bark and light kept together",
-      linger: "You can almost feel the grain of the bark, the quiet of leaves, the sky behind",
-    };
-  }
-  if (/kettle|steam/.test(t)) {
-    return {
-      open: "Steam lifts from the kettle, a small shine on the metal and the window holding the hour",
-      linger: "The gleam stays on the curve, glass behind it catching a little morning",
-    };
-  }
-  if (/table/.test(t) && /sun|gold|light/.test(t)) {
-    return {
-      open: "Sun lies on the kitchen table, gold along the wood you stopped for",
-      linger: "The grain of the table holds that gold, a quiet gladness in the looking",
-    };
-  }
-  if (/sun|gold|light/.test(t)) {
-    return {
-      open: "Light gathers on the particular thing you brought, gold enough to keep",
-      linger: "It rests there the way a hand might rest, warm and unhurried",
-    };
-  }
-  if (/sky|cloud/.test(t)) {
-    return {
-      open: "Sky fills the still, wide and close enough to keep",
-      linger: "Colour sits in the air, a small strong feeling of having looked up",
-    };
-  }
-  const bit = material.replace(/\.$/, "").trim();
-  if (bit && bit.length <= 80) {
-    return {
-      open: `Here is that particular thing from the day, close in the light: ${bit}`,
-      linger: "You stay with the shape of it, the warmth of having noticed",
-    };
-  }
-  return {
-    open: "The day keeps one particular thing close, light and shape still here",
-    linger: "You stay with the surface of it, a small strong feeling of care in the looking",
+  const bits: string[] = [];
+  const add = (bit: string) => {
+    const next = bit.replace(/\s+/g, " ").trim();
+    if (!next) return;
+    const key = next.toLowerCase();
+    if (bits.some((kept) => kept.toLowerCase() === key)) return;
+    if (whisper && key !== whisper.toLowerCase() && whisper.toLowerCase().includes(key)) return;
+    bits.push(next);
   };
-}
 
-function joyBrushstroke(joyId: string, colour: string): string {
-  switch (joyId) {
-    case "morning-sunlight":
-      return "Morning sunlight lies along it, warm on the surface";
-    case "a-small-hello":
-      return "A small hello lives in the air around it, easy and kind";
-    case "one-thing-done-slowly":
-      return "The looking itself is slow, and that slowness is part of the keeping";
-    case "a-little-movement":
-      return "A little movement still hums in you as you look";
-    case "one-corner-clear":
-      return "One corner of the day is clear here, and it is enough";
-    default:
-      return `${colour.charAt(0).toUpperCase()}${colour.slice(1)} warms the edge of the hour — a quiet gladness in the looking`;
+  if (/blossom|bloom|petal/.test(t)) add("pale petals");
+  if (/bark/.test(t)) add("bark");
+  else if (/tree|branch/.test(t)) add("the tree");
+  if (/kettle/.test(t)) add("the kettle");
+  if (/steam/.test(t)) add("steam");
+  if (/table/.test(t)) add("the kitchen table");
+  if (/gold/.test(t) && !/gold on the table/i.test(whisper || "")) add("gold along the wood");
+  if (/sky|cloud/.test(t)) add("a little sky");
+  if (/sun|daylight|light/.test(t) && bits.length < 2) add("the light");
+  const visual = bits.slice(0, whisper ? 2 : 3);
+  if (whisper && !visual.some((kept) => kept.toLowerCase() === whisper.toLowerCase())) {
+    visual.push(whisper);
   }
+  if (!visual.length && seen && seen.length <= 80) visual.push(seen);
+  if (!visual.length) visual.push("this still from the day");
+  return visual.slice(0, 3);
 }
 
 export function mockJoyStory(input: {
@@ -586,39 +552,31 @@ export function mockJoyStory(input: {
   day: string;
   excavation?: string;
 }): { title: string; body: string } {
-  const colour = JOY_COLOUR[input.joy.id] ?? "just this";
   const excavation =
     input.excavation?.trim() ||
     mockExcavation({ caption: input.caption, photoNotes: input.goodMoment });
-  const seen = seenFromNotes(input);
-  const whisper = whisperFromCaption(input.caption);
-  const material = [excavation, seen, whisper].filter(Boolean).join(" ");
-  const sad = Boolean(
-    input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment),
-  );
-  const scene = sceneFromMaterial(material);
-  const sentences: string[] = [
-    echoWhisperOnce(scene.open, whisper),
-    joyBrushstroke(input.joy.id, colour),
-    scene.linger,
-  ];
-  if (sad) {
-    sentences.push("You stay with it as it is, a small strong care in the looking");
-  } else {
-    sentences.push("You stay with that particular thing a little longer, lovely in its own weather");
-  }
-  sentences.push(
-    "Night gathers around it, and what you see is still there when the room goes still",
-  );
+  const evidence = evidenceBits({
+    excavation,
+    caption: input.caption,
+    goodMoment: input.goodMoment,
+    joy: input.joy,
+  });
+  const slot = rotateIndex(input.joy.id, LOOKING_LINES.length);
+  const looking = LOOKING_LINES[slot];
+  const ownership = OWNERSHIP_LINES[slot];
+  const door = DOOR_LINES[slot];
 
-  let body = joinSentences(sentences);
-  if (body.length < APP_STORY_TARGET_MIN) {
-    body = joinSentences([
-      ...sentences.slice(0, 5),
-      "The air around it feels kept, unhurried, already quiet",
-    ]);
+  const assemble = (details: string[]) =>
+    `${looking} — ${details.join(", ")}, ${ownership}. ${door}`;
+
+  let body = assemble(evidence);
+  if (appStoryProblems(body, input.joy.playbackTemplate).includes("long") && evidence.length > 2) {
+    body = assemble(evidence.slice(0, 2));
   }
-  if (body.length < APP_STORY_MIN || body.length > APP_STORY_TARGET_MAX) {
+  if (appStoryProblems(body, input.joy.playbackTemplate).length) {
+    body = finishAppStory(body);
+  }
+  if (body.length < APP_STORY_MIN || body.length > APP_STORY_MAX) {
     body = finishAppStory(body);
   }
   return { title: "", body };

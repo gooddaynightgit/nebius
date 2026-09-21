@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   APP_STORY_MAX,
   APP_STORY_MIN,
+  APP_STORY_SENTENCE_MAX,
+  APP_STORY_WORD_HARD_MAX,
+  APP_STORY_WORD_MAX,
   appStoryProblems,
+  countAppStorySentences,
+  countAppStoryWords,
   expandAppStory,
   finishAppStory,
   isWeaveBlock,
@@ -29,16 +34,28 @@ describe("app story length and BLOCK", () => {
     expect(body).toMatch(/kettle/);
   });
 
-  it("trims to 1200 and expands under 400 unless BLOCK", () => {
-    const long = `${"You kept the still. ".repeat(80)}The night goes quiet.`;
-    const trimmed = trimAppStory(long);
+  it("keeps a ~35-word reflection and trims yarn without padding to 400", () => {
+    const reflection =
+      "You spent today looking for the good instead of scrolling past it — cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.";
+    expect(countAppStoryWords(reflection)).toBeLessThanOrEqual(APP_STORY_WORD_MAX + 4);
+    expect(countAppStorySentences(reflection)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
+    expect(appStoryProblems(reflection, "")).not.toContain("short");
+    expect(appStoryProblems(reflection, "")).not.toContain("long");
+    expect(trimAppStory(reflection).length).toBeLessThanOrEqual(APP_STORY_MAX);
+    expect(finishAppStory(reflection)).toBe(reflection);
+
+    const yarn = `${"You kept the still. ".repeat(80)}The night goes quiet.`;
+    const trimmed = trimAppStory(yarn);
     expect(trimmed.length).toBeLessThanOrEqual(APP_STORY_MAX);
-    expect(trimmed.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
+    expect(countAppStorySentences(trimmed)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
+    expect(countAppStoryWords(trimmed)).toBeLessThanOrEqual(APP_STORY_WORD_HARD_MAX);
 
     const short = "You kept the still.";
     const expanded = expandAppStory(short);
     expect(expanded.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(expanded.length).toBeLessThanOrEqual(APP_STORY_MAX);
+    expect(countAppStorySentences(expanded)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
+    expect(expanded).toMatch(/door/i);
     expect(parseAppWeaveReply("BLOCK")).toBe("BLOCK");
     expect(finishAppStory(short).length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(leaksAppStoryInstruction(expanded)).toBe(false);
@@ -52,7 +69,7 @@ describe("app story length and BLOCK", () => {
     expect(appStoryProblems(leaked, "")).toContain("leak");
     expect(
       leaksAppStoryInstruction(
-        "The tree stands with blossom open on the branch. Just this warms the looking. Night goes still.",
+        "You spent today gathering the good — pale petals, bark, a moment that could only belong to you. Kept, it opens the door to more.",
       ),
     ).toBe(false);
   });
