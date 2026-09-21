@@ -10,6 +10,7 @@ import {
 } from "./identity";
 import { chooseSpokenLine, cleanSpokenLine, isSelfNegating, proposeSpokenLine } from "./care";
 import {
+  APP_WEAVE_FORBIDDEN_PHRASES,
   APP_WEAVE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   displayMoment,
@@ -130,6 +131,14 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_WEAVE_SYSTEM).not.toMatch(/First line MUST be: Title/);
     expect(APP_WEAVE_SYSTEM).not.toMatch(/180–280 words/);
     expect(APP_WEAVE_SYSTEM).not.toMatch(/serotonin before the day/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Affirmative voice only/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Worth keeping/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Write the moment, not the pipeline/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Forbidden in the story/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/one brushstroke/);
+    for (const phrase of APP_WEAVE_FORBIDDEN_PHRASES) {
+      expect(APP_WEAVE_SYSTEM).toMatch(phrase);
+    }
   });
 
   it("cleans obvious typos without corporate rewrite", () => {
@@ -265,6 +274,53 @@ describe("ingest and weave fallbacks", () => {
       expect(sentences.length).toBeGreaterThanOrEqual(4);
       expect(sentences.length).toBeLessThanOrEqual(6);
       expect(story.body).toMatch(/still|quiet/i);
+      expect(story.body).not.toMatch(/nothing else|never more|not a lecture|not a list|do not have to|beside the image sits/i);
+    }
+  });
+
+  it("writes a blossoming-tree moment warmly, without instruction-echo", async () => {
+    const { JOY_TYPES } = await import("./landing");
+    const { mockJoyStory } = await import("./prompts");
+    const { appStoryProblems, leaksAppStoryInstruction } = await import("./app-story");
+    const { appWeaveUserText } = await import("./weave");
+    const joy = JOY_TYPES.find((item) => item.id === "just-this");
+    expect(joy).toBeTruthy();
+    const story = mockJoyStory({
+      joy: joy!,
+      caption: "Blossomimg tree",
+      goodMoment: "A blossoming tree against the sky.",
+      day: "2026-09-21",
+    });
+    expect(story.body).toMatch(/blossom|petal|bark|tree|sky/i);
+    expect(story.body).toMatch(/gladness|warm|care|keep/i);
+    expect(story.body).toMatch(/Blossomimg tree/);
+    expect(story.body.match(/Blossomimg tree/g)?.length).toBe(1);
+    expect(leaksAppStoryInstruction(story.body)).toBe(false);
+    expect(appStoryProblems(story.body, joy!.playbackTemplate)).not.toContain("leak");
+    expect(story.body).not.toMatch(/nothing else is added/i);
+    expect(story.body).not.toMatch(/never more than those words/i);
+    expect(story.body).not.toMatch(/not a lecture/i);
+    expect(story.body).not.toMatch(/you kept what the frame/i);
+    expect(story.body).not.toMatch(/beside the image sits/i);
+
+    const leaked =
+      "You kept what the frame actually holds — Blossomimg tree — and nothing else is added to the picture. Beside the image sits only the whisper you wrote — Blossomimg tree — and never more than those words. Just this is only a colour at the edge of this hour, warm and quiet, not a lecture and not a list. You look at that specific thing a little longer, lovely and particular, and you do not have to add anyone who was not there.";
+    expect(leaksAppStoryInstruction(leaked)).toBe(true);
+    expect(appStoryProblems(leaked, joy!.playbackTemplate)).toContain("leak");
+
+    const user = appWeaveUserText({
+      joyTitle: joy!.title,
+      template: joy!.playbackTemplate,
+      photoNotes: "A blossoming tree against the sky.",
+      caption: "Blossomimg tree",
+      hasImage: true,
+    });
+    expect(user).toMatch(/one brushstroke of warmth/);
+    expect(user).toMatch(/Forbidden in the story/);
+    expect(user).not.toMatch(/never more than these words/);
+    expect(user).not.toMatch(/colour only, not a lecture/);
+    for (const phrase of APP_WEAVE_FORBIDDEN_PHRASES) {
+      expect(user).toMatch(phrase);
     }
   });
 
@@ -292,6 +348,7 @@ describe("ingest and weave fallbacks", () => {
     expect(story.body).not.toMatch(/Ten quiet minutes\. Gold on your skin/);
     expect(story.body).not.toMatch(/breathtakingly, beautifully/);
     expect(story.body).toMatch(/kitchen table|gold on the table/i);
+    expect(story.body).not.toMatch(/nothing else|never more|not a lecture|beside the image sits/i);
     expect(story.title).toBe("");
     expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);

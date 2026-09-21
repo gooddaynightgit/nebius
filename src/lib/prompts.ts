@@ -54,27 +54,46 @@ Rules:
 - End by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally your own good moments unfolds — your own good moments multifolds." Soft, wonder-struck, never preachy, never advice.
 - First line MUST be: Title: <short title that reflects THEIR moment>`;
 
+export const APP_WEAVE_FORBIDDEN_PHRASES = [
+  "nothing else",
+  "never more",
+  "not a lecture",
+  "not a list",
+  "do not have to",
+  "no one else",
+  "without adding",
+  "only the whisper",
+  "you kept what the frame",
+  "beside the image sits",
+] as const;
+
 export const APP_WEAVE_SYSTEM = `You write one private bedtime story from one photo and an optional caption. You are not a coach, therapist, or wellness brand.
 
 **Analyze the photo first**
 1. What is actually in the frame (objects, place, light, text on screen).
 2. If it is a screenshot, read the visible text (chat, tracker, gift).
 3. Time-of-day only if the picture shows it.
-4. Use the caption only as a whisper beside the image. Never more than those words.
-5. Do not invent people, places, gifts, or feelings that are not in the photo or caption.
+4. Use the caption only as a whisper: if one exists, echo its meaning at most once, softly. Prefer concrete sensory detail from the photo (blossoms, light, bark, sky, a kettle, a screen).
+5. Stay inside the photo and caption. Invent no people, places, gifts, or feelings beyond them.
 6. If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no story. Reply only: \`BLOCK\`
 7. Ugly, messy, blurry, ordinary, or sad: still write.
 
-**Joy pick** (use as colour, not a lecture)
+**Joy pick** (tint)
 morning sunlight / a small hello / one thing done slowly / a little movement / one corner clear / just this
+Lay the joy's warmth into the scene in one brushstroke. Let the picture carry it.
 
 **Write**
 - Address the listener as *you*.
-- Lovely, warm, specific, quiet at the end.
+- Worth keeping: gently uplifting and particular to what is in the photo — a small strong feeling of care or quiet gladness.
+- Write the moment, not the pipeline. Concrete nouns and verbs from the image.
+- Affirmative voice only. Tell what is here and warm.
 - 4–6 short sentences.
 - No serotonin, circadian, oxytocin, tips, or morals.
 - No title. No hashtags. No emoji.
-- End on stillness, not a pep talk.
+- End on stillness.
+
+**Forbidden in the story** (prompt-leak — never write these, never narrate the rules):
+nothing else, never more, not a lecture, not a list, do not have to, no one else, without adding, only the whisper, "you kept what the frame", "beside the image sits", meta talk about captions, frames, or instructions.
 
 **Length**
 - Target: **600–900 characters**
@@ -82,7 +101,7 @@ morning sunlight / a small hello / one thing done slowly / a little movement / o
 - Never shorter than **400** unless you output \`BLOCK\`
 
 **Output**
-Plain story text only. Or \`BLOCK\`. Nothing else.`;
+Plain story text only. Or \`BLOCK\`.`;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
 Given last night's story and today's good moments, return ONLY JSON:
@@ -383,6 +402,7 @@ function seenFromNotes(input: {
   const raw = (input.goodMoment || "").replace(/\s+/g, " ").trim();
   if (!raw) return "";
   if (/you kept a still/i.test(raw)) return "";
+  if (/you stopped long enough to keep a picture/i.test(raw)) return "";
   if (usesCannedPlayback(raw, input.joy.playbackTemplate)) return "";
   if (isSelfNegating(raw)) return "";
   return raw.replace(/\.$/, "");
@@ -402,6 +422,87 @@ function joinSentences(parts: string[]): string {
     .join(" ");
 }
 
+function echoWhisperOnce(opening: string, whisper: string): string {
+  if (!whisper) return opening;
+  if (opening.toLowerCase().includes(whisper.toLowerCase())) return opening;
+  return `${opening.replace(/[.!?]?$/, "")} — ${whisper}`;
+}
+
+function sceneFromMaterial(material: string): { open: string; linger: string } {
+  const t = material.toLowerCase();
+  if (/blossom|bloom|petal/.test(t) && /tree|branch|bark/.test(t)) {
+    return {
+      open: "The tree stands with blossom open on the branch, pale against the bark and a little sky showing through",
+      linger:
+        "Petals crowd the wood, light sitting on each cluster the way care does — particular, small, and strong enough to keep",
+    };
+  }
+  if (/blossom|bloom|petal/.test(t)) {
+    return {
+      open: "Blossom crowds the hour, pale and close, light caught in the petals",
+      linger: "Each cluster holds a bit of sky, and the looking itself feels like staying",
+    };
+  }
+  if (/tree|branch|bark/.test(t)) {
+    return {
+      open: "The tree holds the hour in its branches, bark and light kept together",
+      linger: "You can almost feel the grain of the bark, the quiet of leaves, the sky behind",
+    };
+  }
+  if (/kettle|steam/.test(t)) {
+    return {
+      open: "Steam lifts from the kettle, a small shine on the metal and the window holding the hour",
+      linger: "The gleam stays on the curve, glass behind it catching a little morning",
+    };
+  }
+  if (/table/.test(t) && /sun|gold|light/.test(t)) {
+    return {
+      open: "Sun lies on the kitchen table, gold along the wood you stopped for",
+      linger: "The grain of the table holds that gold, a quiet gladness in the looking",
+    };
+  }
+  if (/sun|gold|light/.test(t)) {
+    return {
+      open: "Light gathers on the particular thing you brought, gold enough to keep",
+      linger: "It rests there the way a hand might rest, warm and unhurried",
+    };
+  }
+  if (/sky|cloud/.test(t)) {
+    return {
+      open: "Sky fills the still, wide and close enough to keep",
+      linger: "Colour sits in the air, a small strong feeling of having looked up",
+    };
+  }
+  const bit = material.replace(/\.$/, "").trim();
+  if (bit && bit.length <= 80) {
+    return {
+      open: `Here is that particular thing from the day, close in the light: ${bit}`,
+      linger: "You stay with the shape of it, the warmth of having noticed",
+    };
+  }
+  return {
+    open: "The day keeps one particular thing close, light and shape still here",
+    linger: "You stay with the surface of it, a small strong feeling of care in the looking",
+  };
+}
+
+function joyBrushstroke(joyId: string, colour: string): string {
+  switch (joyId) {
+    case "morning-sunlight":
+      return "Morning sunlight lies along it, warm on the surface";
+    case "a-small-hello":
+      return "A small hello lives in the air around it, easy and kind";
+    case "one-thing-done-slowly":
+      return "The looking itself is slow, and that slowness is part of the keeping";
+    case "a-little-movement":
+      return "A little movement still hums in you as you look";
+    case "one-corner-clear":
+      return "One corner of the day is clear here, and it is enough";
+    default:
+      return `${colour.charAt(0).toUpperCase()}${colour.slice(1)} warms the edge of the hour — a quiet gladness in the looking`;
+  }
+}
+
 export function mockJoyStory(input: {
   joy: JoyType;
   caption?: string;
@@ -412,60 +513,30 @@ export function mockJoyStory(input: {
   const colour = JOY_COLOUR[input.joy.id] ?? "just this";
   const seen = seenFromNotes(input);
   const whisper = whisperFromCaption(input.caption);
+  const material = [seen, whisper].filter(Boolean).join(" ");
   const sad = Boolean(
     input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment),
   );
-
-  const sentences: string[] = [];
-  if (seen) {
-    sentences.push(
-      `You kept what the frame actually holds — ${seen} — and nothing else is added to the picture`,
-    );
-  } else {
-    sentences.push(
-      "You kept one still from the day, and this telling will not invent a street or a gift or a face the picture did not keep",
-    );
-  }
-
-  if (whisper) {
-    sentences.push(
-      sad
-        ? `Beside it sits only the line you wrote — ${whisper} — a whisper, never more than those words, and no happier day is made up for you`
-        : `Beside the image sits only the whisper you wrote — ${whisper} — and never more than those words`,
-    );
-  } else {
-    sentences.push(
-      "There is no extra line beside the picture, so this telling will not speak a name or a feeling you did not write",
-    );
-  }
-
-  sentences.push(
-    `${colour.charAt(0).toUpperCase()}${colour.slice(1)} is only a colour at the edge of this hour, warm and quiet, not a lecture and not a list`,
-  );
-
+  const scene = sceneFromMaterial(material);
+  const sentences: string[] = [
+    echoWhisperOnce(scene.open, whisper),
+    joyBrushstroke(input.joy.id, colour),
+    scene.linger,
+  ];
   if (sad) {
-    sentences.push(
-      "Ugly, messy, blurry, or heavy is allowed here; the still can stay as it is, without a pep talk or a moral",
-    );
-  } else if (seen) {
-    sentences.push(
-      "You look at that specific thing a little longer, lovely and particular, and you do not have to add anyone who was not there",
-    );
+    sentences.push("You stay with it as it is, a small strong care in the looking");
   } else {
-    sentences.push(
-      "The picture can be ordinary or blurry or a little sad and still be the one you brought tonight",
-    );
+    sentences.push("You stay with that particular thing a little longer, lovely in its own weather");
   }
-
   sentences.push(
-    "The room can stay as it is; the night holds the frame, then goes still",
+    "Night gathers around it, and what you see is still there when the room goes still",
   );
 
   let body = joinSentences(sentences);
   if (body.length < APP_STORY_TARGET_MIN) {
     body = joinSentences([
       ...sentences.slice(0, 5),
-      "You can leave it there, unhurried, with the last word already quiet",
+      "The air around it feels kept, unhurried, already quiet",
     ]);
   }
   if (body.length < APP_STORY_MIN || body.length > APP_STORY_TARGET_MAX) {

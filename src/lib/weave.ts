@@ -12,6 +12,7 @@ import { MODELS, hasTokenFactoryKey, useUltra } from "./config";
 import { getJoyById } from "./landing";
 import { completeWithFallback, superModels, ultraModels, type ChatMessage } from "./nebius";
 import {
+  APP_WEAVE_FORBIDDEN_PHRASES,
   APP_WEAVE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   ULTRA_CONTINUITY_SYSTEM,
@@ -139,7 +140,7 @@ function joyColourLabel(joyTitle: string): string {
     .trim();
 }
 
-function appWeaveUserText(input: {
+export function appWeaveUserText(input: {
   joyTitle: string;
   template: string;
   photoNotes: string;
@@ -149,17 +150,18 @@ function appWeaveUserText(input: {
   const caption = input.caption ? clipCaption(input.caption) : "";
   return [
     input.hasImage
-      ? "The photo is attached. Analyze the frame first: objects, place, light, and any text on screen. Time of day only if the picture shows it. If this is a screenshot, read the visible text."
-      : "The photo pixels are not attached. Do not invent objects, places, people, gifts, or feelings. Write only from the joy colour, the optional caption whisper, and any photo notes below. If those notes are thin, stay general and honest — still write.",
-    `Joy pick (colour only, not a lecture): ${joyColourLabel(input.joyTitle)}`,
-    `Joy playback string (TEMPLATE to rephrase — not the story; never copy its sentences):\n${input.template}`,
+      ? "The photo is attached. Analyze the frame first: objects, place, light, and any text on screen. Time of day only if the picture shows it. If this is a screenshot, read the visible text. Write the moment you see."
+      : "The photo pixels are not attached. Stay with the joy tint, the optional caption, and any photo notes below. If those notes are thin, stay general and honest — still write, still particular.",
+    `Joy pick (one brushstroke of warmth in the scene): ${joyColourLabel(input.joyTitle)}`,
+    `Joy playback string (TEMPLATE to rephrase — write a fresh telling):\n${input.template}`,
     input.photoNotes
-      ? `Photo notes (use only if they name what is actually in the frame):\n${input.photoNotes}`
+      ? `Photo notes (use if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
     caption
-      ? `Optional caption (whisper beside the image; never more than these words): ${caption}`
+      ? `Optional caption (soft meaning once if it helps; prefer concrete detail from the photo): ${caption}`
       : "No caption.",
-    "Write 4–6 short sentences. Target 600–900 characters. Hard max 1,200. Never under 400 unless BLOCK. Plain story text only. Or BLOCK.",
+    "Write 4–6 short sentences. Target 600–900 characters. Hard max 1,200. Stay at 400 or more unless BLOCK. Affirmative voice. Worth keeping. Particular to the photo. Plain story text only. Or BLOCK.",
+    `Forbidden in the story: ${APP_WEAVE_FORBIDDEN_PHRASES.join(", ")}.`,
   ].join("\n\n");
 }
 
@@ -196,8 +198,8 @@ async function weaveAppWithNemotron(input: {
                 role: "user" as const,
                 content:
                   lastBody && lastBody.length < APP_STORY_MIN
-                    ? "The last draft was too short. Write 4–6 short sentences, 600–900 characters, grounded in the photo and caption. Plain story text only. Or BLOCK."
-                    : "Rewrite. Follow the brief exactly. Fresh sentences. No template dump. No title. No wellness words. 600–900 characters. Plain story text only. Or BLOCK.",
+                    ? "The last draft was too short. Write 4–6 short sentences, 600–900 characters, grounded in the photo. Affirmative. Particular. Worth keeping. Plain story text only. Or BLOCK."
+                    : "Rewrite. Follow the brief. Fresh sentences from the photo. Affirmative voice. No instruction-echo. No title. No wellness words. 600–900 characters. Plain story text only. Or BLOCK.",
               },
             ];
       const result = await completeWithFallback(appWeaveModels(hasImage), retryHint, {
@@ -219,7 +221,7 @@ async function weaveAppWithNemotron(input: {
       // Retry, then fall through to an honest mock.
     }
   }
-  if (lastBody && !appStoryProblems(lastBody, input.template).some((item) => item === "canned" || item === "wellness" || item === "despair")) {
+  if (lastBody && !appStoryProblems(lastBody, input.template).some((item) => item === "canned" || item === "wellness" || item === "despair" || item === "leak")) {
     return { body: finishAppStory(lastBody), model: lastModel || "mock-fallback" };
   }
   return null;
