@@ -437,7 +437,10 @@ describe("app capture client contract", () => {
     expect(picker).toMatch(/playbackTemplate/);
     expect(picker).toMatch(/playbackExample/);
     expect(src).toMatch(/LANDING\.app\.captionHelp/);
-    expect(src).toMatch(/LANDING\.app\.captionBeside/);
+    expect(src).toMatch(/LANDING\.app\.captionLabel/);
+    expect(src).not.toMatch(/captionBeside/);
+    expect(src).not.toMatch(/one line, 80 characters/);
+    expect(src).not.toMatch(/It sits beside the photo/);
     expect(src).toMatch(/captionDisposition/);
     expect(src).toMatch(/LANDING\.footer\.somethingGood/);
     expect(src).toMatch(/LANDING\.footer\.site/);
