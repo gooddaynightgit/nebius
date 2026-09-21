@@ -400,7 +400,10 @@ export function mockJoyStory(input: {
   reframed?: boolean;
   day: string;
 }): { title: string; body: string } {
-  const detail = (input.goodMoment || input.caption || input.joy.tagline).replace(/\.$/, "");
+  const rawDetail = (input.goodMoment || input.caption || input.joy.tagline).replace(/\.$/, "").trim();
+  const detail = rawDetail
+    ? `${rawDetail.charAt(0).toUpperCase()}${rawDetail.slice(1)}.`
+    : input.joy.tagline;
   if (input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment)) {
     const lining = isSelfNegating(input.caption)
       ? silverLiningFor(input.caption || "")
