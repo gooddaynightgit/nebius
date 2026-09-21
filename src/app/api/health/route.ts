@@ -1,16 +1,20 @@
-import { MODELS, hasNebiusObjectStorage, hasTokenFactoryKey, hasVercelBlob } from "@/lib/config";
+import { MODELS, blobAccess, hasNebiusObjectStorage, hasTokenFactoryKey, hasVercelBlob } from "@/lib/config";
 import { json } from "@/lib/http";
-import { storageBackend } from "@/lib/storage";
+import { probeVercelBlob, storageBackend } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const probeStorage = url.searchParams.get("probe") === "storage";
   return json({
     ok: true,
     tokenFactory: hasTokenFactoryKey(),
     storage: storageBackend(),
     vercelBlob: hasVercelBlob(),
+    blobAccess: hasVercelBlob() ? blobAccess() : null,
     objectStorage: hasNebiusObjectStorage(),
+    ...(probeStorage ? { blobProbe: await probeVercelBlob() } : {}),
     models: {
       nano: MODELS.nano,
       nanoOmni: MODELS.nanoOmni,

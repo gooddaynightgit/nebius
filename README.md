@@ -74,9 +74,11 @@ Set `NEBIUS_S3_ENDPOINT`, `NEBIUS_S3_REGION`, `NEBIUS_S3_BUCKET`, `NEBIUS_S3_ACC
    2. Prefer **Private** access. Connect the store to this project.
    3. Redeploy. Vercel injects `BLOB_READ_WRITE_TOKEN` (and `BLOB_STORE_ID` for OIDC).
    4. If the store is public, set `BLOB_ACCESS=public`.
-   5. Confirm `GET /api/health` shows `"storage": "vercel-blob"`.
+   5. Confirm `GET /api/health` shows `"storage": "vercel-blob"`. Optional: `GET /api/health?probe=storage` should return `"blobProbe": { "ok": true }` (tiny write/read; no secrets).
 5. Optional: set `NEBIUS_S3_*` instead of (or in addition to) Blob. Blob wins when the token is present.
 6. Attach `gooddaynight.com` in the Vercel domain settings.
+
+Private Blob stores are supported. Vault JSON and media are read with the URL returned by `put` (and a Blob API fallback). A failed private `get` is logged and is not treated as “vault missing” unless the object is truly absent.
 
 **Without Blob or S3, Vercel’s filesystem is ephemeral** (`/tmp`, not shared across functions). Unlock still works because the client resends today’s captures to `POST /api/email`. Voice/photo files themselves will not survive across instances until Blob (or S3) is enabled.
 
