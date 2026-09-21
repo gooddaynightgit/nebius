@@ -23,10 +23,13 @@ describe("landing copy", () => {
     expect(LANDING.app.yours).toBe("YOURS");
     expect(LANDING.app.tagline).toBe("One photo. One joy. One story.");
     expect(LANDING.app.yoursHint).toBe("YOURS — the link that opens tonight’s story.");
-    expect(LANDING.app.captionBeside).toBe("It sits beside the photo. It is not the moment.");
+    expect(LANDING.app.captionLabel).toBe("Optional caption");
+    expect(LANDING.app.captionLabel).not.toMatch(/80/);
     expect(LANDING.app.captionHelp).toBe(
       "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     );
+    expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
+    expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(
       "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     );
@@ -39,6 +42,8 @@ describe("landing copy", () => {
     expect(LANDING.app.unexpected).toBe("Couldn't read Gooddaynight's reply. Refresh and try again.");
     expect(LANDING.app.takePhoto).toBe("Take your photo");
     expect(LANDING.app.uploadPhoto).toBe("Upload your photo");
+    expect(LANDING.app.keepStill).toBe("Keep this still");
+    expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);

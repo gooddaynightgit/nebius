@@ -26,6 +26,11 @@ import {
   isReachabilityError,
   readJson,
 } from "@/lib/client-fetch";
+import {
+  openRearCamera,
+  prefersLiveCamera,
+  stillFromLiveVideo,
+} from "@/lib/live-camera";
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import type { SessionState } from "@/lib/types";
 
@@ -83,6 +88,8 @@ export default function CaptureStudio() {
   const takeInputId = useId();
   const uploadInputId = useId();
   const captionId = useId();
+  const takeInputRef = useRef<HTMLInputElement | null>(null);
+  const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const photoUrlRef = useRef<string | null>(null);
   const [session, setSession] = useState<SessionState | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
@@ -96,6 +103,7 @@ export default function CaptureStudio() {
   const [captionNote, setCaptionNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
@@ -139,6 +147,56 @@ export default function CaptureStudio() {
       if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
     };
   }, []);
+
+  useEffect(() => {
+    const video = liveVideoRef.current;
+    if (!liveStream || !video) return;
+    video.srcObject = liveStream;
+    void video.play().catch(() => undefined);
+    return () => {
+      video.srcObject = null;
+    };
+  }, [liveStream]);
+
+  useEffect(() => {
+    return () => {
+      liveStream?.getTracks().forEach((track) => track.stop());
+    };
+  }, [liveStream]);
+
+  function stopLiveCamera() {
+    liveStream?.getTracks().forEach((track) => track.stop());
+    setLiveStream(null);
+  }
+
+  async function openTakeCamera() {
+    if (locked) return;
+    if (prefersLiveCamera()) {
+      try {
+        const stream = await openRearCamera();
+        setLiveStream(stream);
+        return;
+      } catch {
+        // File input + capture=environment is the Android/desktop fallback.
+      }
+    }
+    takeInputRef.current?.click();
+  }
+
+  async function keepLiveStill() {
+    const video = liveVideoRef.current;
+    if (!video) return;
+    try {
+      const file = await stillFromLiveVideo(video);
+      stopLiveCamera();
+      await takePhoto(file);
+    } catch (error) {
+      stopLiveCamera();
+      setCaptureError(
+        error instanceof Error ? error.message : "Could not keep a still from the camera.",
+      );
+    }
+  }
 
   async function takePhoto(file: File | null) {
     if (!file || locked) return;
@@ -314,14 +372,22 @@ export default function CaptureStudio() {
             </p>
             <div className="studio">
               <div className="studio-photo-actions">
-                <label className="btn btn--ghost" htmlFor={takeInputId}>
+                <button
+                  className="btn btn--ghost"
+                  type="button"
+                  disabled={locked}
+                  onClick={() => {
+                    void openTakeCamera();
+                  }}
+                >
                   {LANDING.app.takePhoto}
-                </label>
+                </button>
                 <input
                   id={takeInputId}
+                  ref={takeInputRef}
                   className="visually-hidden"
                   type="file"
-                  accept="image/*,video/*"
+                  accept="image/*"
                   capture="environment"
                   disabled={locked}
                   onChange={(event) => {
@@ -344,6 +410,25 @@ export default function CaptureStudio() {
                   }}
                 />
               </div>
+              {liveStream ? (
+                <div className="live-camera">
+                  <video
+                    ref={liveVideoRef}
+                    className="live-camera__video"
+                    playsInline
+                    muted
+                    autoPlay
+                  />
+                  <div className="live-camera__actions">
+                    <button className="btn btn--lime" type="button" onClick={() => void keepLiveStill()}>
+                      {LANDING.app.keepStill}
+                    </button>
+                    <button className="btn btn--ghost" type="button" onClick={stopLiveCamera}>
+                      {LANDING.app.cancelCamera}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {previewSrc ? (
                 // User-selected blob preview — next/image cannot optimize object URLs.
                 // eslint-disable-next-line @next/next/no-img-element
@@ -361,9 +446,6 @@ export default function CaptureStudio() {
                     {LANDING.app.captionLabel}
                   </label>
                   <p className="cta-copy" style={{ marginTop: 0 }}>
-                    {LANDING.app.captionBeside}
-                  </p>
-                  <p className="cta-copy" style={{ marginTop: "0.35rem" }}>
                     {LANDING.app.captionHelp}
                   </p>
                   <input
