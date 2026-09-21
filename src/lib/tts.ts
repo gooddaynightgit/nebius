@@ -1,4 +1,4 @@
-import { MODELS, hasTokenFactoryKey } from "./config";
+import { MODELS, hasTokenFactoryKey, tokenFactoryBase } from "./config";
 
 export type TtsResult = {
   status: "sonic" | "stub" | "skipped";
@@ -17,8 +17,7 @@ export async function synthesizeStory(text: string): Promise<TtsResult> {
     return { status: "stub", note: SONIC_TODO };
   }
 
-  const root = (process.env.NEBIUS_TOKEN_FACTORY_BASE_URL ??
-    "https://api.tokenfactory.nebius.com/v1/").replace(/\/+$/, "");
+  const root = tokenFactoryBase().replace(/\/+$/, "");
 
   try {
     const res = await fetch(`${root}/audio/speech`, {

@@ -1,5 +1,6 @@
 import { MODELS, blobAccess, hasNebiusObjectStorage, hasTokenFactoryKey, hasVercelBlob } from "@/lib/config";
 import { json } from "@/lib/http";
+import { appStoryModels } from "@/lib/nebius";
 import { probeVercelBlob, storageBackend } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
@@ -20,10 +21,13 @@ export async function GET(request: Request) {
       nanoOmni: MODELS.nanoOmni,
       vision: MODELS.vision,
       story: MODELS.story,
+      storyText: MODELS.storyText,
+      excavateText: MODELS.excavateText,
       super: MODELS.super,
       ultra: MODELS.ultra,
       sonic: MODELS.sonic || null,
     },
+    closerChain: appStoryModels(),
     sonicListable: Boolean(MODELS.sonic),
     funnel: {
       landingEmail: false,

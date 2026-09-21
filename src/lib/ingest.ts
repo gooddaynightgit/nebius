@@ -3,6 +3,7 @@ import { hasTokenFactoryKey } from "./config";
 import { getJoyById } from "./landing";
 import { completeWithFallback, nanoModels, type ChatMessage } from "./nebius";
 import { NANO_INGEST_SYSTEM, mockGoodMoment, spokenWords } from "./prompts";
+import { imageDataUrlForModels } from "./model-image";
 import { getBytes } from "./storage";
 import type { CaptureKind, CaptureRecord } from "./types";
 
@@ -127,7 +128,7 @@ export async function captureImageDataUrl(
   if (!file?.body?.length) return undefined;
   const type = capture.mediaContentType || file.contentType || "image/jpeg";
   if (!type.startsWith("image/")) return undefined;
-  return `data:${type};base64,${file.body.toString("base64")}`;
+  return imageDataUrlForModels(type, file.body);
 }
 
 export async function ingestAppPhoto(input: {

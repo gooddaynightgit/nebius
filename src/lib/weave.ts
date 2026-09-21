@@ -36,6 +36,7 @@ import { isHorrificText } from "./safety-text";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
+import { shrinkDataUrlForModels } from "./model-image";
 import { putBytes } from "./storage";
 
 export class WeaveNeedsWordsError extends Error {
@@ -226,9 +227,44 @@ type AppReflectFail = {
   lastError?: string;
 };
 
+export function formatCloserHint(fail?: AppReflectFail | null): string {
+  if (!fail) return "closer: no live draft";
+  const error = (fail.lastError || "")
+    .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+    .replace(/\bsk-[A-Za-z0-9._-]+/g, "[redacted]");
+  const parts = [
+    fail.lastModel ? `model=${fail.lastModel}` : "",
+    fail.lastProblems.length ? `problems=${fail.lastProblems.join(",")}` : "",
+    error ? `error=${error}` : "",
+  ].filter(Boolean);
+  return (parts.join(" ") || "closer: no live draft").slice(0, 180);
+}
+
+function mergeReflectFail(primary?: AppReflectFail, next?: AppReflectFail): AppReflectFail {
+  if (!next && !primary) return { lastBody: "", lastModel: "", lastProblems: [] };
+  if (!next) return primary as AppReflectFail;
+  if (!primary) return next;
+  const errors = [primary.lastError, next.lastError].filter(Boolean);
+  return {
+    lastBody: next.lastBody || primary.lastBody,
+    lastModel: next.lastModel || primary.lastModel,
+    lastProblems: next.lastProblems.length ? next.lastProblems : primary.lastProblems,
+    lastError: errors.join(" | ") || undefined,
+  };
+}
+
 function closerErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message.slice(0, 240);
   return String(error).slice(0, 240);
+}
+
+function isRetryableCloserError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const status = Number(message.match(/failed \((\d{3})\)/)?.[1]);
+  if (!Number.isFinite(status)) return false;
+  if (status === 429) return true;
+  if (status >= 500) return true;
+  return false;
 }
 
 function logAppReflectFallback(fail?: AppReflectFail) {
@@ -354,7 +390,12 @@ async function reflectWithModels(
       }
     } catch (error) {
       fail.lastError = closerErrorMessage(error);
-      break;
+      console.warn(
+        `[yours] closer attempt ${attempt + 1}/3 models=${models.join("|")} lastError=${fail.lastError}`,
+      );
+      // 4xx (except 429) fail-soft into the next model set (Qwen/Super).
+      // completeWithFallback already tried every id in this set.
+      if (!isRetryableCloserError(error)) break;
     }
   }
   if (
@@ -394,7 +435,7 @@ export async function weaveAppStoryFromExcavation(input: {
     ];
     const live = await reflectWithModels(textIds, textMessages, input.template);
     if ("body" in live || "blocked" in live) return live;
-    lastFail = live.fail;
+    lastFail = mergeReflectFail(lastFail, live.fail);
   }
 
   return { fail: lastFail ?? { lastBody: "", lastModel: "", lastProblems: [] } };
@@ -409,9 +450,12 @@ async function weaveAppPhotoStory(input: {
 }): Promise<
   | { kind: "blocked"; model: string; excavateModel?: string }
   | { kind: "story"; body: string; model: string; excavateModel?: string }
-  | { kind: "fallback"; excavation: string; excavateModel?: string }
+  | { kind: "fallback"; excavation: string; excavateModel?: string; fail?: AppReflectFail }
 > {
-  const excavated = await excavateAppPhoto(input);
+  const imageDataUrl = input.imageDataUrl
+    ? shrinkDataUrlForModels(input.imageDataUrl)
+    : undefined;
+  const excavated = await excavateAppPhoto({ ...input, imageDataUrl });
   if (excavated && "blocked" in excavated && excavated.blocked) {
     return { kind: "blocked", model: excavated.model, excavateModel: excavated.model };
   }
@@ -425,22 +469,28 @@ async function weaveAppPhotoStory(input: {
     template: input.template,
     excavation,
     caption: input.caption,
-    imageDataUrl: input.imageDataUrl,
+    imageDataUrl,
   });
   if (live && "blocked" in live && live.blocked) {
-    logAppReflectFallback({
+    const fail = {
       lastBody: "",
       lastModel: live.model,
       lastProblems: ["block"],
       lastError: "BLOCK",
-    });
-    return { kind: "fallback", excavation, excavateModel };
+    };
+    logAppReflectFallback(fail);
+    return { kind: "fallback", excavation, excavateModel, fail };
   }
   if (live && "body" in live) {
     return { kind: "story", body: live.body, model: live.model, excavateModel };
   }
   logAppReflectFallback(live && "fail" in live ? live.fail : undefined);
-  return { kind: "fallback", excavation, excavateModel };
+  return {
+    kind: "fallback",
+    excavation,
+    excavateModel,
+    fail: live && "fail" in live ? live.fail : undefined,
+  };
 }
 
 export async function weaveStory(options: {
@@ -459,6 +509,7 @@ export async function weaveStory(options: {
   let excavateModel: string | undefined;
   let mock = true;
   let continuityModel: string | undefined;
+  let closerHint: string | undefined;
 
   if (appJoy && appCapture) {
     const caption = clipCaption(appCapture.caption ?? "") || undefined;
@@ -496,6 +547,7 @@ export async function weaveStory(options: {
         body = fallback.body;
         weaveModel = "mock-fallback";
         excavateModel = live.excavateModel;
+        closerHint = formatCloserHint(live.fail);
       }
     } else {
       const fallback = mockJoyStory({
@@ -564,5 +616,6 @@ export async function weaveStory(options: {
     },
     captureIds: options.captures.map((capture) => capture.id),
     mock,
+    closerHint,
   };
 }

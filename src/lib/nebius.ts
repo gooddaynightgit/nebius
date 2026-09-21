@@ -1,4 +1,4 @@
-import { MODELS, TOKEN_FACTORY_BASE, hasTokenFactoryKey } from "./config";
+import { MODELS, MODEL_DEFAULTS, hasTokenFactoryKey, tokenFactoryBase } from "./config";
 
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -13,7 +13,7 @@ export function stripReasoning(text: string): string {
 }
 
 function apiRoot(): string {
-  return TOKEN_FACTORY_BASE.replace(/\/+$/, "");
+  return tokenFactoryBase().replace(/\/+$/, "");
 }
 
 export async function chatComplete(options: {
@@ -81,13 +81,13 @@ export function uniqueModels(...ids: Array<string | undefined | null>): string[]
 
 export function nanoModels(multimodal: boolean): string[] {
   if (multimodal && MODELS.nanoOmni) {
-    return uniqueModels(MODELS.nanoOmni, MODELS.nano);
+    return uniqueModels(MODELS.nanoOmni, MODEL_DEFAULTS.nanoOmni, MODELS.nano, MODEL_DEFAULTS.nano);
   }
-  return uniqueModels(MODELS.nano);
+  return uniqueModels(MODELS.nano, MODEL_DEFAULTS.nano);
 }
 
 export function visionModels(): string[] {
-  return uniqueModels(MODELS.vision, MODELS.nanoOmni);
+  return uniqueModels(MODELS.vision, MODEL_DEFAULTS.vision, MODELS.nanoOmni, MODEL_DEFAULTS.nanoOmni);
 }
 
 /** Catalog image2text Kimi ids. Coding Kimi and instruct text models stay text-only. */
@@ -106,7 +106,14 @@ export function appStoryVisionModels(): string[] {
 /** Text2text Nightly Reflection: configured text id, then Qwen instruct, then Super. */
 export function appStoryTextModels(): string[] {
   const storyIfText = isImage2TextCloser(MODELS.story) ? undefined : MODELS.story;
-  return uniqueModels(storyIfText, MODELS.storyText, MODELS.super);
+  const ids = uniqueModels(
+    storyIfText,
+    MODELS.storyText,
+    MODEL_DEFAULTS.storyText,
+    MODELS.super,
+    MODEL_DEFAULTS.super,
+  );
+  return ids.length ? ids : [MODEL_DEFAULTS.storyText, MODEL_DEFAULTS.super];
 }
 
 export function appStoryModels(): string[] {
@@ -114,15 +121,29 @@ export function appStoryModels(): string[] {
 }
 
 export function textExcavateModels(): string[] {
-  return uniqueModels(MODELS.excavateText, MODELS.nano, MODELS.super);
+  return uniqueModels(
+    MODELS.excavateText,
+    MODEL_DEFAULTS.excavateText,
+    MODELS.nano,
+    MODEL_DEFAULTS.nano,
+    MODELS.super,
+    MODEL_DEFAULTS.super,
+  );
 }
 
 export function superModels(): string[] {
-  return uniqueModels(MODELS.super);
+  return uniqueModels(MODELS.super, MODEL_DEFAULTS.super);
 }
 
 export function ultraModels(): string[] {
-  return uniqueModels(MODELS.ultra, MODELS.ultraFallback, MODELS.super);
+  return uniqueModels(
+    MODELS.ultra,
+    MODEL_DEFAULTS.ultra,
+    MODELS.ultraFallback,
+    MODEL_DEFAULTS.ultraFallback,
+    MODELS.super,
+    MODEL_DEFAULTS.super,
+  );
 }
 
 export { MODELS };

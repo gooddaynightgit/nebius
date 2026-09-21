@@ -15,6 +15,7 @@ import { appStoryProblems } from "./app-story";
 import {
   appReflectUserContent,
   appReflectUserText,
+  formatCloserHint,
   weaveAppStoryFromExcavation,
 } from "./weave";
 
@@ -116,6 +117,51 @@ describe("Nightly Reflection live fallback", () => {
     });
     expect(completeWithFallback).toHaveBeenCalledTimes(2);
     expect(live && "body" in live).toBe(false);
+  });
+
+  it("does not burn Kimi rewrite retries on a 400; Qwen text still runs", async () => {
+    completeWithFallback
+      .mockRejectedValueOnce(
+        new Error("Token Factory moonshotai/Kimi-K2.6 failed (400): payload too large"),
+      )
+      .mockResolvedValueOnce({
+        text: GOOD,
+        model: MODELS.storyText,
+      });
+    const live = await weaveAppStoryFromExcavation(input);
+    expect(live).toMatchObject({ body: GOOD, model: MODELS.storyText });
+    expect(completeWithFallback).toHaveBeenCalledTimes(2);
+    expect(completeWithFallback.mock.calls[0][0]).toEqual(["moonshotai/Kimi-K2.6"]);
+    expect(completeWithFallback.mock.calls[1][0][0]).toBe(MODELS.storyText);
+  });
+
+  it("retries a 503 on the same vision set before falling through", async () => {
+    completeWithFallback
+      .mockRejectedValueOnce(
+        new Error("Token Factory moonshotai/Kimi-K2.6 failed (503): busy"),
+      )
+      .mockResolvedValueOnce({
+        text: GOOD,
+        model: "moonshotai/Kimi-K2.6",
+      });
+    const live = await weaveAppStoryFromExcavation(input);
+    expect(live).toMatchObject({ body: GOOD, model: "moonshotai/Kimi-K2.6" });
+    expect(completeWithFallback).toHaveBeenCalledTimes(2);
+    expect(completeWithFallback.mock.calls[0][0]).toEqual(["moonshotai/Kimi-K2.6"]);
+    expect(completeWithFallback.mock.calls[1][0]).toEqual(["moonshotai/Kimi-K2.6"]);
+  });
+
+  it("keeps a short non-secret closerHint for mock debug", () => {
+    const hint = formatCloserHint({
+      lastBody: "",
+      lastModel: "moonshotai/Kimi-K2.6",
+      lastProblems: [],
+      lastError: "Token Factory moonshotai/Kimi-K2.6 failed (400): Bearer sk-secret payload",
+    });
+    expect(hint).toMatch(/model=moonshotai\/Kimi-K2\.6/);
+    expect(hint).toMatch(/Bearer \[redacted\]/);
+    expect(hint).not.toMatch(/sk-secret/);
+    expect(hint.length).toBeLessThanOrEqual(180);
   });
 
   it("does not attach an image on the text-only path", async () => {
