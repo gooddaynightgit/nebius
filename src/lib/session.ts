@@ -1,7 +1,15 @@
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
-import { canUnlockStory, isValidEmail, normalizeEmail, todayStamp } from "./identity";
-import { attachEmail, capturesForDay, getOrCreateAnonVault, lastStory } from "./vault";
+import { isValidEmail, normalizeEmail, todayStamp } from "./identity";
+import {
+  attachEmail,
+  capturesForDay,
+  getOrCreateAnonVault,
+  lastStoryForDay,
+  appPhotoForDay,
+  isYoursOpened,
+  scrubExpiredCaptions,
+} from "./vault";
 import type { SessionState, VaultRecord } from "./types";
 
 export const SESSION_COOKIE = "gdn_sid";
@@ -42,15 +50,34 @@ export function toPublicSession(
   day: string,
 ): SessionState {
   const today = capturesForDay(vault, day);
+  const todayPhoto = appPhotoForDay(vault, day);
+  const opened = isYoursOpened(vault, day);
+  const photo = todayPhoto
+    ? opened
+      ? { ...todayPhoto, caption: undefined }
+      : todayPhoto
+    : null;
   return {
     sessionId,
     vaultId: vault.id,
     email: vault.email ?? null,
     captureCount: vault.captures.length,
     todayCount: today.length,
-    canHearStory: canUnlockStory(vault.captures.length, vault.email ?? null),
-    lastStory: lastStory(vault),
+    canHearStory: opened,
+    lastStory: lastStoryForDay(vault, day),
+    todayPhoto: photo,
+    yoursOpened: opened,
+    canReplacePhoto: Boolean(todayPhoto) && !opened,
   };
+}
+
+export async function presentSession(
+  vault: VaultRecord,
+  sessionId: string,
+  day: string,
+): Promise<SessionState> {
+  await scrubExpiredCaptions(vault, day);
+  return toPublicSession(vault, sessionId, day);
 }
 
 export async function loadSessionVault(): Promise<{

@@ -9,6 +9,11 @@ export type CaptureRecord = {
   text?: string;
   transcript?: string;
   caption?: string;
+  joyType?: string;
+  source?: "app" | "landing";
+  dateVerified?: boolean;
+  photoTakenAt?: string;
+  locked?: boolean;
   goodMoment?: string;
   reframed?: boolean;
   mediaKey?: string;
@@ -47,6 +52,7 @@ export type VaultRecord = {
   captureIds: string[];
   stories: StoryRecord[];
   captures: CaptureRecord[];
+  yoursOpened?: Record<string, string>;
 };
 
 export type SessionState = {
@@ -57,4 +63,7 @@ export type SessionState = {
   todayCount: number;
   canHearStory: boolean;
   lastStory: StoryRecord | null;
+  todayPhoto: CaptureRecord | null;
+  yoursOpened: boolean;
+  canReplacePhoto: boolean;
 };

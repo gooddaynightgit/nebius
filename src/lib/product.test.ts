@@ -10,6 +10,7 @@ import {
 } from "./identity";
 import { chooseSpokenLine, cleanSpokenLine, isSelfNegating, proposeSpokenLine } from "./care";
 import {
+  APP_WEAVE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   displayMoment,
   isWeavableMoment,
@@ -115,6 +116,20 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/You write one private bedtime story from one photo/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/not a coach, therapist, or wellness brand/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Analyze the photo first/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/caption only as a whisper/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/4–6 short sentences/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/No serotonin, circadian, oxytocin/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/600–900 characters/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/1,200 characters/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Never shorter than \*\*400\*\*/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Plain story text only/);
+    expect(APP_WEAVE_SYSTEM).not.toMatch(/First line MUST be: Title/);
+    expect(APP_WEAVE_SYSTEM).not.toMatch(/180–280 words/);
+    expect(APP_WEAVE_SYSTEM).not.toMatch(/serotonin before the day/);
   });
 
   it("cleans obvious typos without corporate rewrite", () => {
@@ -223,36 +238,227 @@ describe("ingest and weave fallbacks", () => {
   it("strips Nemotron think tags", () => {
     expect(stripReasoning("<think>secret</think>\nHello night")).toBe("Hello night");
   });
-});
 
-describe("landing", () => {
-  it("has a lime CTA into /app and no email form", () => {
-    const src = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
-    expect(src).toMatch(/Hear your story — free/);
-    expect(src).toMatch(/href="\/app"/);
-    expect(src).not.toMatch(/type="email"/);
-    expect(src).not.toMatch(/Signup/);
-    expect(src).not.toMatch(/you@email.com/);
+  it("rewrites joy playback templates instead of dumping them as the story", async () => {
+    const { JOY_TYPES } = await import("./landing");
+    const { mockJoyStory, usesCannedPlayback, CANNED_PLAYBACK_MARKERS } = await import("./prompts");
+    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_WELLNESS_RE } = await import("./app-story");
+    for (const joy of JOY_TYPES) {
+      const story = mockJoyStory({
+        joy,
+        caption: "the kettle caught the light",
+        goodMoment: "Steam over the kettle in the morning window.",
+        day: "2026-09-21",
+      });
+      expect(usesCannedPlayback(story.body, joy.playbackTemplate)).toBe(false);
+      expect(usesCannedPlayback(joy.playbackTemplate, joy.playbackTemplate)).toBe(true);
+      for (const marker of CANNED_PLAYBACK_MARKERS) {
+        expect(story.body).not.toContain(marker);
+      }
+      expect(story.title).toBe("");
+      expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
+      expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
+      expect(story.body).not.toMatch(APP_STORY_WELLNESS_RE);
+      expect(story.body).not.toMatch(/#\w/);
+      expect(story.body).not.toMatch(/^title:/im);
+      const sentences = story.body.split(/(?<=[.!?])\s+/).filter((part) => part.trim());
+      expect(sentences.length).toBeGreaterThanOrEqual(4);
+      expect(sentences.length).toBeLessThanOrEqual(6);
+      expect(story.body).toMatch(/still|quiet/i);
+    }
+  });
+
+  it("weaves an app photo from the joy template without pasting the canned playback", async () => {
+    const { APP_STORY_MIN, APP_STORY_MAX } = await import("./app-story");
+    const story = await weaveStory({
+      vaultId: "v_test",
+      day: "2026-09-21",
+      lastNight: null,
+      captures: [
+        {
+          id: "cap_app",
+          vaultId: "v_test",
+          kind: "photo",
+          createdAt: "2026-09-21T10:00:00.000Z",
+          day: "2026-09-21",
+          caption: "gold on the table",
+          joyType: "morning-sunlight",
+          source: "app",
+          goodMoment: "Sun on the kitchen table.",
+          ingestStatus: "mock",
+        },
+      ],
+    });
+    expect(story.body).not.toMatch(/Ten quiet minutes\. Gold on your skin/);
+    expect(story.body).not.toMatch(/breathtakingly, beautifully/);
+    expect(story.body).toMatch(/kitchen table|gold on the table/i);
+    expect(story.title).toBe("");
+    expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
+    expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
+    expect(story.mock).toBe(true);
+  });
+
+  it("blocks a horrific app weave and does not produce a story", async () => {
+    const { WeaveBlockedError } = await import("./weave");
+    await expect(
+      weaveStory({
+        vaultId: "v_test",
+        day: "2026-09-21",
+        lastNight: null,
+        captures: [
+          {
+            id: "cap_block",
+            vaultId: "v_test",
+            kind: "photo",
+            createdAt: "2026-09-21T10:00:00.000Z",
+            day: "2026-09-21",
+            caption: "kill myself",
+            joyType: "just-this",
+            source: "app",
+            goodMoment: "gore on the floor",
+            ingestStatus: "mock",
+          },
+        ],
+      }),
+    ).rejects.toBeInstanceOf(WeaveBlockedError);
   });
 });
 
-describe("unlock client contract", () => {
-  it("sends captures with the email unlock request", () => {
+describe("landing", () => {
+  const page = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
+  const copy = readFileSync(path.resolve("src/lib/landing.ts"), "utf8");
+  const accordion = readFileSync(path.resolve("src/components/MomentAccordion.tsx"), "utf8");
+  const picker = readFileSync(path.resolve("src/components/JoyPicker.tsx"), "utf8");
+  const playback = readFileSync(path.resolve("src/components/StoryPlayback.tsx"), "utf8");
+  const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+
+  it("has a lime CTA into /app and no email form", () => {
+    expect(page).toMatch(/href="\/app"/);
+    expect(copy).toMatch(/Hear your story — free/);
+    expect(page).not.toMatch(/type="email"/);
+    expect(accordion).not.toMatch(/type="email"/);
+    expect(picker).not.toMatch(/type="email"/);
+    expect(page).not.toMatch(/Signup/);
+    expect(page).not.toMatch(/you@email.com/);
+  });
+
+  it("keeps verbatim hero, joy types, and footer copy", () => {
+    expect(copy).toContain(
+      "You scrolled past a hundred good moments today. None of them were yours.",
+    );
+    expect(copy).toContain(
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does.",
+    );
+    expect(copy).toContain(
+      "Snap one good moment from your day. Gooddaynight reads it back to you as a beautiful story — your own.",
+    );
+    expect(copy).toContain(
+      "One good moment remembered today. More spotted tomorrow. Day by day, one unfolds in multifolds.",
+    );
+    expect(copy).toContain("One good moment today");
+    expect(copy).toContain("Lay the picture here.");
+    expect(copy).toContain("What kind of quiet joy was it? (pick one)");
+    expect(copy).toContain("You can change the picture if the day gets kinder.");
+    expect(copy).toContain("One moment. One story.");
+    expect(copy).toContain("Something good is about to happen!");
+    expect(copy).toContain("Gooddaynight.com");
+    for (const title of [
+      "Morning sunlight",
+      "A small hello",
+      "One thing, done slowly",
+      "A little movement",
+      "One corner, clear",
+      "Just this",
+    ]) {
+      expect(copy).toContain(title);
+    }
+    expect(copy).toContain(
+      "This morning, you stood in the sun. Ten quiet minutes. Gold on your skin.",
+    );
+    expect(copy).toContain("You turned yourself ON.");
+    expect(copy).toContain("You were THERE — fully, radiantly, joyfully there.");
+  });
+
+  it("opens story playback from radios in pale lavender panels", () => {
+    expect(accordion).toMatch(/<JoyPicker/);
+    expect(picker).toMatch(/type="radio"/);
+    expect(picker).toMatch(/name = "quiet-joy"/);
+    expect(picker).toMatch(/joy__tagline/);
+    expect(picker).toMatch(/Capture it/);
+    expect(picker).toMatch(/<StoryPlayback/);
+    expect(playback).toMatch(/Story playback/);
+    expect(playback).toMatch(/className="playback"/);
+    expect(styles).toMatch(/#f0f0ff/);
+    expect(styles).toMatch(/--docs-lavender/);
+  });
+});
+
+describe("app capture client contract", () => {
+  it("saves photo + joy, then offers YOURS as the only story door", () => {
     const src = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
-    expect(src).toMatch(/captures: captures\.map\(capturePayload\)/);
-    expect(src).toMatch(/Unlocking…/);
-    expect(src).toMatch(/unlockError/);
-    expect(src).toMatch(/weaveError/);
-    expect(src).toMatch(/Type a line about what you said/);
-    expect(src).toMatch(/Browser voice \(Sonic coming\)/);
-    expect(src).toMatch(/Joyful stand-in \(add NEBIUS_API_KEY for Super\)/);
-    expect(src).not.toMatch(/Calm browser voice/);
-    expect(src).not.toMatch(/Demo weave/);
-    expect(src).not.toMatch(/Warm stand-in/);
-    expect(src).toMatch(/SILVER_LINING_NOTE|We kept the silver lining/);
-    expect(src).toMatch(/Save corrected version\?/);
-    expect(src).toMatch(/Yes, save this/);
-    expect(src).toMatch(/Keep as typed/);
-    expect(src).toMatch(/spellDecision/);
+    const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
+    const picker = readFileSync(path.resolve("src/components/JoyPicker.tsx"), "utf8");
+    expect(src).toMatch(/LANDING\.moment\.title/);
+    expect(src).toMatch(/LANDING\.app\.tagline/);
+    expect(src).toMatch(/LANDING\.app\.yoursHint/);
+    expect(src).toMatch(/LANDING\.app\.photoHelp/);
+    expect(src).toMatch(/LANDING\.app\.yours/);
+    expect(src).toMatch(/id="yours-door"/);
+    expect(src).toMatch(/href="\/app\/yours"/);
+    expect(src).toMatch(/source", "app"/);
+    expect(src).toMatch(/joyType/);
+    expect(src).toMatch(/tzOffset/);
+    expect(src).toMatch(/WHISPER_MAX/);
+    expect(src).toMatch(/stillFromVideo/);
+    expect(src).toMatch(/accept="image\/\*,video\/\*"/);
+    expect(src).toMatch(/JoyPicker/);
+    expect(src).toMatch(/quiet-joy-app/);
+    expect(src).not.toMatch(/href="#yours"/);
+    expect(src).not.toMatch(/type="email"/);
+    expect(src).not.toMatch(/role="tablist"/);
+    expect(src).not.toMatch(/Save this voice note/);
+    expect(src).not.toMatch(/See the story/);
+    expect(src).not.toMatch(/StoryPlayback/);
+    expect(yours).toMatch(/StoryPlayback/);
+    expect(yours).toMatch(/app-story-playback/);
+    expect(yours).toMatch(/card--lavender/);
+    expect(yours).toMatch(/POST/);
+    expect(yours).toMatch(/\/api\/yours/);
+    expect(yours).toMatch(/code === "blocked"/);
+    expect(yours).toMatch(/No YOURS story tonight/);
+    expect(yours).toMatch(/Written without seeing the photo/);
+    expect(picker).toMatch(/playbackTemplate/);
+    expect(picker).toMatch(/playbackExample/);
+    expect(src).toMatch(/LANDING\.app\.captionHelp/);
+    expect(src).toMatch(/LANDING\.app\.captionBeside/);
+    expect(src).toMatch(/captionDisposition/);
+    expect(src).toMatch(/LANDING\.footer\.somethingGood/);
+    expect(src).toMatch(/LANDING\.footer\.site/);
+    expect(src).not.toMatch(/LANDING\.app\.privateNote/);
+    expect(src).toMatch(/explainClientFetchError/);
+    expect(src).toMatch(/id="joy-pick"/);
+    expect(src).toMatch(/id="joy-need"/);
+    expect(src).toMatch(/JOY_NEED/);
+    expect(src).toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
+    expect(src).not.toMatch(/Failed to fetch/);
+  });
+});
+
+describe("YOURS Nemotron brief", () => {
+  it("sends the photo on weave and refuses BLOCK without locking", () => {
+    const weave = readFileSync(path.resolve("src/lib/weave.ts"), "utf8");
+    const yours = readFileSync(path.resolve("src/app/api/yours/route.ts"), "utf8");
+    expect(weave).toMatch(/APP_WEAVE_SYSTEM/);
+    expect(weave).toMatch(/image_url/);
+    expect(weave).toMatch(/imageDataUrl/);
+    expect(weave).toMatch(/WeaveBlockedError/);
+    expect(weave).toMatch(/parseAppWeaveReply/);
+    expect(weave).toMatch(/finishAppStory/);
+    expect(yours).toMatch(/WeaveBlockedError/);
+    expect(yours).toMatch(/code: "blocked"/);
+    expect(yours).toMatch(/imageDataUrl/);
+    expect(yours).toMatch(
+      /if \(error instanceof WeaveBlockedError\) \{\s*return forbidden\(error\.message, \{ code: "blocked" \}\)/,
+    );
   });
 });

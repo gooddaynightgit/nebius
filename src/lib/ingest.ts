@@ -1,7 +1,9 @@
 import { cleanSpokenLine, isSelfNegating, isSilverLiningLine } from "./care";
 import { hasTokenFactoryKey } from "./config";
+import { getJoyById } from "./landing";
 import { completeWithFallback, nanoModels, type ChatMessage } from "./nebius";
 import { NANO_INGEST_SYSTEM, mockGoodMoment, spokenWords } from "./prompts";
+import { getBytes } from "./storage";
 import type { CaptureKind, CaptureRecord } from "./types";
 
 function parseGood(text: string): { good: string | null; reframed: boolean } {
@@ -112,6 +114,108 @@ export async function ingestGood(input: {
       model: result.model,
       status: "ok",
     };
+  } catch {
+    return { ...fallback, model: "mock-fallback", status: "skipped" };
+  }
+}
+
+export async function captureImageDataUrl(
+  capture: Pick<CaptureRecord, "mediaKey" | "mediaContentType">,
+): Promise<string | undefined> {
+  if (!capture.mediaKey) return undefined;
+  const file = await getBytes(capture.mediaKey);
+  if (!file?.body?.length) return undefined;
+  const type = capture.mediaContentType || file.contentType || "image/jpeg";
+  if (!type.startsWith("image/")) return undefined;
+  return `data:${type};base64,${file.body.toString("base64")}`;
+}
+
+export async function ingestAppPhoto(input: {
+  caption?: string;
+  imageDataUrl?: string;
+  joyType: string;
+}): Promise<{
+  goodMoment: string;
+  model: string;
+  status: CaptureRecord["ingestStatus"];
+  reframed: boolean;
+}> {
+  const joy = getJoyById(input.joyType);
+  const caption = (input.caption || "").replace(/\s+/g, " ").trim();
+  const fallbackSpoken = caption || joy?.title || "this quiet moment";
+  const fallback = fallbackIngest({
+    kind: "photo",
+    caption: fallbackSpoken,
+  });
+  const visionHint = input.imageDataUrl
+    ? "Look at the private daily photo. Name one true visible detail (light, object, screen, place, gesture). Ground it in the joy pick. Sad or ordinary photos are allowed; horrific content is not your job here."
+    : "No photo pixels available. Rephrase from the joy pick and caption only — still write a fresh good-moment sentence, never the canned playback template.";
+
+  if (!hasTokenFactoryKey()) {
+    const goodMoment = caption
+      ? isSelfNegating(caption)
+        ? fallback.goodMoment
+        : caption
+      : `You kept a still for ${joy?.title ?? "today"} — ${joy?.tagline ?? "a quiet moment that was yours."}`;
+    return {
+      goodMoment,
+      reframed: Boolean(caption && isSelfNegating(caption)),
+      model: "mock",
+      status: "mock",
+    };
+  }
+
+  const source = [
+    `kind: photo`,
+    `quiet joy pick: ${joy?.title ?? input.joyType}`,
+    joy?.tagline ? `joy spirit: ${joy.tagline}` : "",
+    caption ? `optional caption: ${caption}` : "no caption",
+    visionHint,
+    "Return JSON {\"good\":\"one warm sentence naming what THIS photo actually holds\",\"reframed\":false}.",
+    "If the caption is sad or self-negating, set reframed true and return a silver lining — never celebrate despair.",
+    "Do not quote or copy any story-playback template.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const userContent: ChatMessage["content"] = input.imageDataUrl
+    ? [
+        { type: "text", text: source },
+        { type: "image_url", image_url: { url: input.imageDataUrl } },
+      ]
+    : source;
+
+  try {
+    const result = await completeWithFallback(
+      nanoModels(Boolean(input.imageDataUrl)),
+      [
+        { role: "system", content: NANO_INGEST_SYSTEM },
+        { role: "user", content: userContent },
+      ],
+      { temperature: 0.35, maxTokens: 220 },
+    );
+    const parsed = parseGood(result.text);
+    const nanoGood = parsed.good ?? result.text.slice(0, 220);
+    if (caption && isSelfNegating(caption)) {
+      if (nanoGood && !isSelfNegating(nanoGood) && nanoGood.length >= 8) {
+        return {
+          goodMoment: cleanSpokenLine(nanoGood),
+          reframed: true,
+          model: result.model,
+          status: "ok",
+        };
+      }
+      return { ...fallback, model: result.model, status: "ok" };
+    }
+    if (nanoGood && !isSelfNegating(nanoGood) && nanoGood.length >= 8) {
+      return {
+        goodMoment: cleanSpokenLine(nanoGood),
+        reframed: parsed.reframed || isSilverLiningLine(nanoGood),
+        model: result.model,
+        status: "ok",
+      };
+    }
+    return { ...fallback, model: result.model, status: "ok" };
   } catch {
     return { ...fallback, model: "mock-fallback", status: "skipped" };
   }

@@ -1,7 +1,7 @@
 import { MODELS, hasTokenFactoryKey } from "@/lib/config";
 import { todayStamp } from "@/lib/identity";
 import { json } from "@/lib/http";
-import { readSessionId, toPublicSession } from "@/lib/session";
+import { presentSession, readSessionId } from "@/lib/session";
 import { storageBackend } from "@/lib/storage";
 import { getOrCreateAnonVault } from "@/lib/vault";
 
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const sessionId = await readSessionId();
   const vault = await getOrCreateAnonVault(sessionId);
   return json({
-    ...toPublicSession(vault, sessionId, day),
+    ...(await presentSession(vault, sessionId, day)),
     health: {
       tokenFactory: hasTokenFactoryKey(),
       storage: storageBackend(),
