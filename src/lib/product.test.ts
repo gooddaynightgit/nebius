@@ -448,7 +448,10 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/It sits beside the photo/);
     expect(src).toMatch(/captionDisposition/);
     expect(src).toMatch(/LANDING\.footer\.somethingGood/);
-    expect(src).toMatch(/LANDING\.footer\.site/);
+    expect(src).toMatch(/LANDING\.footer\.lookingForward/);
+    expect(src).toMatch(/LANDING\.footer\.hello/);
+    expect(src).toMatch(/mailto:/);
+    expect(src).not.toMatch(/LANDING\.footer\.site/);
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
     expect(src).toMatch(/explainClientFetchError/);
     expect(src).toMatch(/id="joy-pick"/);
@@ -458,7 +461,8 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="pill">Photo/);
     expect(src).toMatch(/className="pill">Joy/);
-    expect(src).toMatch(/className="pill">Story/);
+    expect(src).toMatch(/<span className="pill">Story<\/span>\s*<h2 id="today-heading">/);
+    expect(src).not.toMatch(/card--mint[\s\S]{0,180}<span className="pill">Story/);
     expect(src).toMatch(/LANDING\.app\.brand/);
     expect(src).not.toMatch(/header-meta/);
     expect(src).not.toMatch(/Token Factory/);

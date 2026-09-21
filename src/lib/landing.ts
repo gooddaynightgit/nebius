@@ -64,6 +64,8 @@ export const LANDING = {
     oneMoment: "One moment. One story.",
     somethingGood: "Something good is about to happen!",
     site: "Gooddaynight.com",
+    lookingForward: "Looking forward to hearing from you:",
+    hello: "hello@gooddaynight.com",
   },
 } as const;
 
