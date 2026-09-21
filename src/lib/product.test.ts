@@ -123,6 +123,8 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_EXCAVATE_SYSTEM).toMatch(/no people/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/CAPTION WHISPER/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/wrinkled skin/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/foil, peel, cocoa/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/4–6 short sentences/);
     expect(APP_REFLECT_SYSTEM).toMatch(/closing voice of Gooddaynight/);
     expect(APP_REFLECT_SYSTEM).toMatch(/photo when it is attached/);
@@ -144,6 +146,10 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/plain reflection text only/i);
     expect(APP_REFLECT_SYSTEM).toMatch(/never print the joy category as a label/);
     expect(APP_REFLECT_SYSTEM).toMatch(/\byou\b/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Affirmative gladness/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/wrinkled skin/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/foil, peel, cocoa/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Never quote the unflattering phrasing/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Analyze the photo first/);
   });
 
@@ -354,6 +360,8 @@ describe("ingest and weave fallbacks", () => {
     expect(user).not.toMatch(/never more than these words/);
     expect(user).not.toMatch(/colour only, not a lecture/);
     expect(user).not.toMatch(/Forbidden in the story/);
+    expect(user).toMatch(/wrinkled skin/);
+    expect(user).toMatch(/foil, peel, cocoa/);
 
     const withPhoto = appReflectUserContent({
       joyTitle: joy!.title,
@@ -378,6 +386,40 @@ describe("ingest and weave fallbacks", () => {
         caption: "Blossomimg tree",
       }),
     ).toEqual(expect.stringMatching(/photo pixels are not attached/));
+  });
+
+  it("keeps a chocolate still warm when the excavate says wrinkled skin", async () => {
+    const { JOY_TYPES } = await import("./landing");
+    const { mockJoyStory, mockExcavation } = await import("./prompts");
+    const { appStoryProblems, hasHarshBodyLanguage } = await import("./app-story");
+    const joy = JOY_TYPES.find((item) => item.id === "just-this");
+    expect(joy).toBeTruthy();
+    const excavation = [
+      "SUBJECTS & VIBE — No people. Wrinkled skin cradling dark chocolate.",
+      "ENVIRONMENT — Indoor, white sheets.",
+      "LIGHTING & TEXTURE — Cold chocolate, a bitten edge.",
+      "HIDDEN DETAILS — Foil wrapping.",
+      "CAPTION WHISPER — Soft whisper of meaning: eaten standing up before it melted.",
+    ].join("\n");
+    const story = mockJoyStory({
+      joy: joy!,
+      caption: "eaten standing up before it melted",
+      goodMoment: "Wrinkled skin cradling dark chocolate.",
+      day: "2026-09-21",
+      excavation,
+    });
+    expect(hasHarshBodyLanguage(story.body)).toBe(false);
+    expect(story.body).not.toMatch(/wrinkled skin/i);
+    expect(story.body).not.toMatch(/old hands|sagging|flabby/i);
+    expect(story.body).toMatch(/chocolate|cocoa|sheets|chill|wrapping|bite|foil|peel/i);
+    expect(appStoryProblems(story.body, joy!.playbackTemplate)).toEqual([]);
+
+    const fallbackExcavation = mockExcavation({
+      caption: "eaten standing up before it melted",
+      photoNotes: "Wrinkled skin cradling dark chocolate on white sheets.",
+    });
+    expect(fallbackExcavation).toMatch(/chocolate|cocoa|foil|peel|sheets/i);
+    expect(fallbackExcavation).not.toMatch(/wrinkled skin/i);
   });
 
   it("weaves an app photo from the joy template without pasting the canned playback", async () => {
@@ -655,6 +697,8 @@ describe("YOURS two-step brief", () => {
     expect(weave).toMatch(/parseAppWeaveReply/);
     expect(weave).toMatch(/finishAppStory/);
     expect(weave).toMatch(/leaksAppStoryInstruction|appStoryProblems/);
+    expect(weave).toMatch(/harsh/);
+    expect(weave).toMatch(/unflattering body/);
     expect(yours).toMatch(/WeaveBlockedError/);
     expect(yours).toMatch(/code: "blocked"/);
     expect(yours).toMatch(/code: "missing"/);

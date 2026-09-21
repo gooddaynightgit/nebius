@@ -13,6 +13,14 @@ export const WEAVE_BLOCKED =
 export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
+/** Unflattering body / age / skin / weight phrasing the closer must not quote. */
+export const APP_STORY_HARSH_BODY_RE =
+  /\b(?:wrinkl(?:ed|y)[\s-]+(?:skin|hands?|fingers?|face|neck|arms?|flesh)|(?:old|aged|aging|ageing)[\s-]+(?:hands?|skin|fingers?|face)|sagging|saggy|loose[\s-]+skin|crepey|flabby|overweight|obese|cellulite|double[\s-]+chin|age[\s-]+spots|liver[\s-]+spots|turkey[\s-]+neck|gnarled|wizened|withered(?:[\s-]+skin)?|blotchy(?:[\s-]+skin)?|veiny(?:[\s-]+hands?)?|baggy[\s-]+eyes|crow'?s[\s-]+feet|jowls|muffin[\s-]+top|fat[\s-]+(?:belly|stomach|arms?|hands?|fingers?|thighs?|face|cheeks?|neck|body)|leathery[\s-]+skin|weathered[\s-]+(?:skin|hands?))\b/i;
+
+export function hasHarshBodyLanguage(text: string): boolean {
+  return APP_STORY_HARSH_BODY_RE.test(text);
+}
+
 const EMPTY_REFLECTION =
   "You spent today looking for the good, and you kept what you found — a moment that could only belong to you. Kept, it opens the door to more.";
 
@@ -177,6 +185,7 @@ export function appStoryProblems(body: string, template: string): string[] {
   if (APP_STORY_WELLNESS_RE.test(body)) problems.push("wellness");
   if (celebratesDespair(body)) problems.push("despair");
   if (leaksAppStoryInstruction(body)) problems.push("leak");
+  if (hasHarshBodyLanguage(body)) problems.push("harsh");
   if (/[?!]/.test(body)) problems.push("lecture");
   if (/^title:/im.test(body)) problems.push("title");
   if (/#\w/.test(body) || /\p{Extended_Pictographic}/u.test(body)) problems.push("chrome");
