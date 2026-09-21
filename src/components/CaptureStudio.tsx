@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import JoyPicker from "@/components/JoyPicker";
+import StoryPlayback from "@/components/StoryPlayback";
 import { proposeSpokenLine } from "@/lib/care";
+import { getJoyById, type JoyType } from "@/lib/landing";
 import { SILVER_LINING_NOTE, displayMoment } from "@/lib/prompts";
 import type { CaptureKind, CaptureRecord, SessionState, StoryRecord } from "@/lib/types";
 
@@ -117,6 +120,7 @@ export default function CaptureStudio() {
   const [story, setStory] = useState<StoryRecord | null>(null);
   const [playing, setPlaying] = useState(false);
   const [spellPending, setSpellPending] = useState<SpellPending | null>(null);
+  const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const recordingRef = useRef(false);
@@ -277,7 +281,17 @@ export default function CaptureStudio() {
 
   async function onPhotoSubmit(event: FormEvent) {
     event.preventDefault();
-    await beginSave({ caption }, photo, photo?.name ?? "moment.jpg");
+    const joy = getJoyById(selectedJoyId);
+    await beginSave(
+      { caption: caption.trim() || joy?.title || "" },
+      photo,
+      photo?.name ?? "moment.jpg",
+    );
+  }
+
+  function pickJoy(joy: JoyType) {
+    setSelectedJoyId(joy.id);
+    setMode("photo");
   }
 
   async function onVoiceSubmit(event: FormEvent) {
@@ -491,6 +505,19 @@ export default function CaptureStudio() {
           </p>
         </section>
 
+        <section className="card card--cream card--moment card--compact" aria-labelledby="joy-heading">
+          <h2 id="joy-heading" className="visually-hidden">
+            What kind of quiet joy was it?
+          </h2>
+          <JoyPicker
+            name="quiet-joy-app"
+            idPrefix="app-joy"
+            selectedId={selectedJoyId}
+            onSelect={pickJoy}
+          />
+          <span className="card__wash card__wash--note" aria-hidden="true"></span>
+        </section>
+
         <section className="card card--dark" aria-labelledby="capture-heading">
           <span className="pill">Capture</span>
           <h2 id="capture-heading" className="visually-hidden">
@@ -552,7 +579,9 @@ export default function CaptureStudio() {
                 type="text"
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
-                placeholder="What was good here? (optional)"
+                placeholder={
+                  getJoyById(selectedJoyId)?.capture ?? "What was good here? (optional)"
+                }
                 spellCheck
               />
               <button className="btn btn--lime" type="submit" disabled={Boolean(busy) || !photo}>
@@ -723,8 +752,9 @@ export default function CaptureStudio() {
             )}
             {story && (
               <div className="story-body" style={{ marginTop: "1.1rem" }}>
-                <h3 style={{ margin: 0 }}>{story.title}</h3>
-                <p>{story.body}</p>
+                <StoryPlayback id="app-story-playback" title={story.title}>
+                  <p className="playback__story">{story.body}</p>
+                </StoryPlayback>
                 <div className="status-row">
                   <span className="chip">
                     {story.mock ? "Joyful stand-in (add NEBIUS_API_KEY for Super)" : story.weaveModel}

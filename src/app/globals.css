@@ -5,6 +5,7 @@
   --ink: #1b3a4b;
   --page: #ffffff;
   --muted: #3d5a6e;
+  --docs-lavender: #f0f0ff;
   --line: rgba(22, 50, 74, 0.14);
   --radius: 1.35rem;
   --sans: "Inter", "Segoe UI", "Helvetica Neue", sans-serif;
@@ -232,6 +233,7 @@ a {
 .card--moment h2,
 .card--moment h3,
 .card--moment .accordion__body,
+.card--moment .joy-fieldset,
 .card--moment .joy__detail,
 .card--moment .playback,
 .card--moment .dropzone,
@@ -435,21 +437,31 @@ a {
 
 .joy__pick {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
   min-height: 2.85rem;
-  padding: 0.7rem 0.9rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  padding: 0.75rem 0.9rem;
   cursor: pointer;
 }
 
 .joy__pick input {
   width: 1.15rem;
   height: 1.15rem;
-  margin: 0;
+  margin: 0.22rem 0 0;
   accent-color: var(--navy);
   flex: 0 0 auto;
+}
+
+.joy__copy {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.joy__title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .joy__detail {
@@ -460,9 +472,10 @@ a {
 
 .joy__tagline {
   margin: 0;
+  color: var(--ink);
   font-style: italic;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .joy__body,
@@ -483,25 +496,34 @@ a {
 
 .playback {
   margin: 0.25rem 0 0;
-  padding: 1.85rem 1.5rem 2.05rem;
-  border-radius: 0.2rem;
-  background: #f0f0ff;
-  color: #16324a;
+  padding: 1.9rem 1.55rem 2.35rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: var(--docs-lavender);
+  color: var(--navy);
 }
 
 .playback h3 {
-  margin: 0 0 0.7rem;
-  font-size: clamp(1.35rem, 5vw, 1.7rem);
+  margin: 0 0 0.75rem;
+  max-width: none;
+  font-size: clamp(1.4rem, 5.2vw, 1.75rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.25;
+  color: var(--navy);
 }
 
 .playback p {
   margin: 0;
+  max-width: 36rem;
   font-size: 1.05rem;
   font-weight: 500;
   line-height: 1.5;
+  color: var(--navy);
+}
+
+.playback__story {
+  white-space: pre-wrap;
 }
 
 .notice {
@@ -896,6 +918,11 @@ a {
   z-index: 1;
   display: grid;
   gap: 0.85rem;
+  max-width: none;
+}
+
+.story-body .playback {
+  max-width: none;
 }
 
 .story-body p {

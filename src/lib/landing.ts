@@ -55,7 +55,7 @@ export const JOY_TYPES: JoyType[] = [
     id: "a-small-hello",
     title: "A small hello",
     tagline: "Someone was reached. A wave, a laugh, a blue bubble.",
-    body: "A roaring laugh with a coworker. A huge wave to your neighbor across the street. A text to a friend that says you crossed my mind and it made me grin. Each one floods you with oxytocin — the chemistry of pure belonging — and the whole world lights up like it's in on the joy with you.",
+    body: "A roaring laugh with a coworker. A huge wave to your neighbor across the street. A text to a friend that says *you crossed my mind and it made me grin.* Each one floods you with oxytocin — the chemistry of pure belonging — and the whole world lights up like it's in on the joy with you.",
     capture:
       "a photo of the two of you mid-laugh, their name on your screen, your hand still raised in that wave.",
     playback:
@@ -103,3 +103,8 @@ export const JOY_TYPES: JoyType[] = [
 
 export const WHISPER_MAX = 80;
 export const PHOTO_MAX_BYTES = Math.floor(4.5 * 1024 * 1024);
+
+export function getJoyById(id: string | null | undefined): JoyType | undefined {
+  if (!id) return undefined;
+  return JOY_TYPES.find((joy) => joy.id === id);
+}

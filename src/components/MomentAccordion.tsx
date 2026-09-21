@@ -7,10 +7,10 @@ import {
   type FormEvent,
   useEffect,
   useId,
-  useRef,
   useState,
 } from "react";
-import { JOY_TYPES, LANDING, PHOTO_MAX_BYTES, WHISPER_MAX } from "@/lib/landing";
+import JoyPicker from "@/components/JoyPicker";
+import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX } from "@/lib/landing";
 
 function localDay() {
   return new Intl.DateTimeFormat("en-CA").format(new Date());
@@ -167,71 +167,6 @@ function PhotoMoment() {
         </p>
       ) : null}
     </form>
-  );
-}
-
-function JoyPicker() {
-  const [selected, setSelected] = useState<string | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!selected || !panelRef.current) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    panelRef.current.scrollIntoView({
-      behavior: reduce ? "auto" : "smooth",
-      block: "nearest",
-    });
-  }, [selected]);
-
-  return (
-    <fieldset className="joy-fieldset">
-      <legend className="joy-legend">{LANDING.moment.joyLegend}</legend>
-      <div className="joy-list">
-        {JOY_TYPES.map((joy) => {
-          const open = selected === joy.id;
-          const panelId = `joy-panel-${joy.id}`;
-          return (
-            <div key={joy.id} className={open ? "joy is-open" : "joy"}>
-              <label className="joy__pick">
-                <input
-                  type="radio"
-                  name="quiet-joy"
-                  value={joy.id}
-                  checked={open}
-                  aria-controls={panelId}
-                  aria-expanded={open}
-                  onChange={() => setSelected(joy.id)}
-                />
-                <span>{joy.title}</span>
-              </label>
-              {open ? (
-                <div
-                  id={panelId}
-                  ref={panelRef}
-                  className="joy__detail"
-                  role="region"
-                  aria-label={`${joy.title} detail`}
-                >
-                  <p className="joy__tagline">{joy.tagline}</p>
-                  <p className="joy__body">{joy.body}</p>
-                  <p className="joy__capture">
-                    <span>Capture it</span> {joy.capture}
-                  </p>
-                  <aside
-                    id={`playback-${joy.id}`}
-                    className="playback"
-                    aria-label="Story playback"
-                  >
-                    <h3>Story playback</h3>
-                    <p>{joy.playback}</p>
-                  </aside>
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </fieldset>
   );
 }
 

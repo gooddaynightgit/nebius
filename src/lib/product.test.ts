@@ -229,6 +229,8 @@ describe("landing", () => {
   const page = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
   const copy = readFileSync(path.resolve("src/lib/landing.ts"), "utf8");
   const accordion = readFileSync(path.resolve("src/components/MomentAccordion.tsx"), "utf8");
+  const picker = readFileSync(path.resolve("src/components/JoyPicker.tsx"), "utf8");
+  const playback = readFileSync(path.resolve("src/components/StoryPlayback.tsx"), "utf8");
   const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
 
   it("has a lime CTA into /app and no email form", () => {
@@ -236,6 +238,7 @@ describe("landing", () => {
     expect(copy).toMatch(/Hear your story — free/);
     expect(page).not.toMatch(/type="email"/);
     expect(accordion).not.toMatch(/type="email"/);
+    expect(picker).not.toMatch(/type="email"/);
     expect(page).not.toMatch(/Signup/);
     expect(page).not.toMatch(/you@email.com/);
   });
@@ -278,11 +281,15 @@ describe("landing", () => {
   });
 
   it("opens story playback from radios in pale lavender panels", () => {
-    expect(accordion).toMatch(/type="radio"/);
-    expect(accordion).toMatch(/name="quiet-joy"/);
-    expect(accordion).toMatch(/Story playback/);
-    expect(accordion).toMatch(/className="playback"/);
+    expect(accordion).toMatch(/<JoyPicker/);
+    expect(picker).toMatch(/type="radio"/);
+    expect(picker).toMatch(/name = "quiet-joy"/);
+    expect(picker).toMatch(/joy__tagline/);
+    expect(picker).toMatch(/Capture it/);
+    expect(picker).toMatch(/Story playback/);
+    expect(playback).toMatch(/className="playback"/);
     expect(styles).toMatch(/#f0f0ff/);
+    expect(styles).toMatch(/--docs-lavender/);
   });
 });
 
@@ -304,5 +311,9 @@ describe("unlock client contract", () => {
     expect(src).toMatch(/Yes, save this/);
     expect(src).toMatch(/Keep as typed/);
     expect(src).toMatch(/spellDecision/);
+    expect(src).toMatch(/JoyPicker/);
+    expect(src).toMatch(/quiet-joy-app/);
+    expect(src).toMatch(/StoryPlayback/);
+    expect(src).toMatch(/app-story-playback/);
   });
 });

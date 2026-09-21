@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JOY_TYPES, LANDING, WHISPER_MAX } from "./landing";
+import { JOY_TYPES, LANDING, WHISPER_MAX, getJoyById } from "./landing";
 
 describe("landing copy", () => {
   it("keeps hero and footer text exact", () => {
@@ -63,5 +63,8 @@ describe("landing copy", () => {
     expect(JOY_TYPES[4]?.capture).toBe(
       "a photo of the cleared surface gleaming, your hands mid-tidy, the before-and-after smile on your face.",
     );
+    expect(JOY_TYPES[1]?.body).toContain("*you crossed my mind and it made me grin.*");
+    expect(getJoyById("morning-sunlight")?.title).toBe("Morning sunlight");
+    expect(getJoyById("missing")).toBeUndefined();
   });
 });
