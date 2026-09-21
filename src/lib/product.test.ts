@@ -579,6 +579,7 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/Written without seeing the photo/);
     expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
     expect(yours).toMatch(/Couldn’t finish tonight’s close/);
+    expect(yours).not.toMatch(/closerHint/);
     expect(yours).not.toMatch(/Kimi didn’t finish/);
     expect(yours).toMatch(/keepCardPhotoSrc|composeKeepCardJpeg/);
     expect(yours).toMatch(/LANDING\.app\.keep/);
@@ -644,6 +645,8 @@ describe("YOURS two-step brief", () => {
     expect(weave).toMatch(/visionModels/);
     expect(weave).toMatch(/appStoryVisionModels/);
     expect(weave).toMatch(/appStoryTextModels/);
+    expect(weave).toMatch(/formatCloserHint/);
+    expect(weave).toMatch(/shrinkDataUrlForModels/);
     expect(weave).toMatch(/appReflectUserContent/);
     expect(weave).toMatch(/mockJoyStory/);
     expect(weave).toMatch(/image_url/);
@@ -688,5 +691,10 @@ describe("YOURS two-step brief", () => {
     expect(MODELS.story).toBe("moonshotai/Kimi-K2.6");
     expect(MODELS.storyText).toBe("Qwen/Qwen3-235B-A22B-Instruct-2507");
     expect(MODELS.excavateText).toBe("Qwen/Qwen3-235B-A22B-Instruct-2507");
+    const health = readFileSync(path.resolve("src/app/api/health/route.ts"), "utf8");
+    expect(health).toMatch(/storyText: MODELS\.storyText/);
+    expect(health).toMatch(/excavateText: MODELS\.excavateText/);
+    expect(health).toMatch(/closerChain: appStoryModels\(\)/);
+    expect(readme).toMatch(/empty string ≠ unset|delete empty model env/i);
   });
 });

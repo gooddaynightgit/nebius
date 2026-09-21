@@ -8,6 +8,7 @@ import { bufferToArrayBuffer, inspectPhotoDate, PHOTO_DATE_MESSAGES, type PhotoD
 import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
 import { loadSessionVault, presentSession, toPublicSession } from "@/lib/session";
+import { imageDataUrlForModels } from "@/lib/model-image";
 import { putBytes } from "@/lib/storage";
 import { addCapture, appPhotoForDay, capturesForDay, upsertAppPhoto } from "@/lib/vault";
 import type { CaptureKind } from "@/lib/types";
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
     mediaKey = `vaults/${vault.id}/media/${id}.${ext}`;
     await putBytes(mediaKey, bytes, mediaContentType);
     if (kind === "photo" && mediaContentType.startsWith("image/")) {
-      imageDataUrl = `data:${mediaContentType};base64,${bytes.toString("base64")}`;
+      imageDataUrl = imageDataUrlForModels(mediaContentType, bytes);
     }
   } else if (kind !== "text") {
     if (!transcript && !caption && !text) {
@@ -180,7 +181,7 @@ async function saveAppPhoto(
 
   const imageDataUrl =
     bytes && mediaContentType.startsWith("image/")
-      ? `data:${mediaContentType};base64,${bytes.toString("base64")}`
+      ? imageDataUrlForModels(mediaContentType, bytes)
       : undefined;
 
   if (imageDataUrl) {

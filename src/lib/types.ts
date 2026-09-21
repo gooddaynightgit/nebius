@@ -41,6 +41,8 @@ export type StoryRecord = {
   };
   captureIds: string[];
   mock: boolean;
+  /** Non-secret closer debug when mock-fallback — last model/problems/truncated error. */
+  closerHint?: string;
 };
 
 export type VaultRecord = {
