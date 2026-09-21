@@ -1,11 +1,15 @@
+import { appPhotoRejection, captionDisposition } from "@/lib/app-capture";
 import { chooseSpokenLine, proposeSpokenLine } from "@/lib/care";
-import { ingestGood } from "@/lib/ingest";
-import { todayStamp, newId } from "@/lib/identity";
-import { badRequest, json } from "@/lib/http";
+import { ingestAppPhoto, ingestGood } from "@/lib/ingest";
+import { newId, todayStamp } from "@/lib/identity";
+import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
+import { badRequest, forbidden, json } from "@/lib/http";
+import { bufferToArrayBuffer, inspectPhotoDate, PHOTO_DATE_MESSAGES, type PhotoDateCheck } from "@/lib/photo";
+import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
-import { loadSessionVault, toPublicSession } from "@/lib/session";
+import { loadSessionVault, presentSession, toPublicSession } from "@/lib/session";
 import { putBytes } from "@/lib/storage";
-import { addCapture, capturesForDay } from "@/lib/vault";
+import { addCapture, appPhotoForDay, capturesForDay, isYoursOpened, upsertAppPhoto } from "@/lib/vault";
 import type { CaptureKind } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +23,7 @@ export async function GET(request: Request) {
   const day = url.searchParams.get("day") || todayStamp();
   const { sessionId, vault } = await loadSessionVault();
   return json({
-    session: toPublicSession(vault, sessionId, day),
+    session: await presentSession(vault, sessionId, day),
     captures: capturesForDay(vault, day),
   });
 }
@@ -27,6 +31,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const { sessionId, vault } = await loadSessionVault();
   const form = await request.formData();
+  if (String(form.get("source") ?? "") === "app") {
+    return saveAppPhoto(sessionId, vault, form);
+  }
+
   const kind = String(form.get("kind") ?? "") as CaptureKind;
   if (!KINDS.has(kind)) return badRequest("kind must be voice, photo, or text");
 
@@ -70,7 +78,7 @@ export async function POST(request: Request) {
   let imageDataUrl: string | undefined;
 
   if (file instanceof File && file.size > 0) {
-    if (file.size > 4.5 * 1024 * 1024) return badRequest("Keep files under 4.5 MB.");
+    if (file.size > PHOTO_MAX_BYTES) return badRequest("Keep files under 4.5 MB.");
     const bytes = Buffer.from(await file.arrayBuffer());
     mediaContentType = file.type || "application/octet-stream";
     const ext = extensionFor(mediaContentType, kind);
@@ -80,7 +88,6 @@ export async function POST(request: Request) {
       imageDataUrl = `data:${mediaContentType};base64,${bytes.toString("base64")}`;
     }
   } else if (kind !== "text") {
-    // Voice/photo without a file is still a valid moment if there is a transcript or caption.
     if (!transcript && !caption && !text) {
       return badRequest("Add a voice, photo, or a short caption.");
     }
@@ -102,6 +109,7 @@ export async function POST(request: Request) {
     text,
     transcript,
     caption,
+    source: "landing",
     goodMoment: ingest.goodMoment,
     reframed: ingest.reframed,
     mediaKey,
@@ -114,6 +122,122 @@ export async function POST(request: Request) {
     capture,
     session: toPublicSession(vault, sessionId, day),
   });
+}
+
+async function saveAppPhoto(
+  sessionId: string,
+  vault: Awaited<ReturnType<typeof loadSessionVault>>["vault"],
+  form: FormData,
+) {
+  const day = String(form.get("day") ?? "");
+  const joyId = String(form.get("joyType") ?? "");
+  const joy = getJoyById(joyId);
+  const captionResult = captionDisposition(String(form.get("caption") ?? ""));
+  const caption = captionResult.caption;
+  const tzOffset = Number(form.get("tzOffset"));
+  const file = form.get("file");
+  const existing = appPhotoForDay(vault, day);
+
+  if (existing?.locked || isYoursOpened(vault, day)) {
+    return forbidden("Today's photo is locked. YOURS already opened tonight's story.");
+  }
+
+  const hasNewFile = file instanceof File && file.size > 0;
+  if (!hasNewFile && !existing) {
+    return badRequest("Add one photo from today.");
+  }
+
+  let bytes: Buffer | undefined;
+  let mediaContentType = existing?.mediaContentType || "image/jpeg";
+  let filename = "moment.jpg";
+  let date: PhotoDateCheck = {
+    takenDay: existing?.photoTakenAt ?? (existing ? day : null),
+    verified: Boolean(existing?.dateVerified),
+    reason: existing?.dateVerified ? "exif" : "none",
+  };
+
+  if (hasNewFile && file instanceof File) {
+    filename = file.name || "moment.jpg";
+    mediaContentType = file.type || "application/octet-stream";
+    bytes = Buffer.from(await file.arrayBuffer());
+    date = inspectPhotoDate({
+      bytes: bufferToArrayBuffer(bytes),
+      lastModified: file.lastModified,
+      localDay: day,
+      tzOffsetMinutes: tzOffset,
+    });
+  }
+
+  const rejected = appPhotoRejection({
+    day,
+    joyId,
+    caption,
+    mime: mediaContentType,
+    filename,
+    size: hasNewFile && file instanceof File ? file.size : existing ? 1 : 0,
+    takenDay: date.takenDay,
+  });
+  if (rejected) {
+    return rejected === SAFETY_REFUSAL ? forbidden(rejected) : badRequest(rejected);
+  }
+  if (!joy) return badRequest("Pick the kind of quiet joy first.");
+
+  const imageDataUrl =
+    bytes && mediaContentType.startsWith("image/")
+      ? `data:${mediaContentType};base64,${bytes.toString("base64")}`
+      : undefined;
+
+  if (imageDataUrl) {
+    const safety = await inspectImageSafety({
+      filename,
+      imageDataUrl,
+    });
+    if (!safety.safe) return forbidden(SAFETY_REFUSAL);
+  }
+
+  const id = existing?.id ?? newId("cap");
+  let mediaKey = existing?.mediaKey;
+  if (bytes) {
+    const ext = extensionFor(mediaContentType, "photo");
+    mediaKey = `vaults/${vault.id}/media/${id}.${ext}`;
+    await putBytes(mediaKey, bytes, mediaContentType);
+  }
+
+  const ingest = await ingestAppPhoto({
+    caption: caption || undefined,
+    imageDataUrl,
+    joyType: joy.id,
+  });
+
+  try {
+    const capture = await upsertAppPhoto(vault, {
+      id,
+      kind: "photo",
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+      day,
+      caption: caption || undefined,
+      joyType: joy.id,
+      source: "app",
+      dateVerified: date.verified && date.takenDay === day,
+      photoTakenAt: date.takenDay ?? undefined,
+      locked: false,
+      goodMoment: ingest.goodMoment,
+      reframed: ingest.reframed,
+      mediaKey,
+      mediaContentType,
+      ingestModel: ingest.model,
+      ingestStatus: ingest.status,
+    });
+    return json({
+      capture,
+      session: await presentSession(vault, sessionId, day),
+      dateNote: date.verified ? undefined : PHOTO_DATE_MESSAGES.unverified,
+      captionNote: captionResult.dropped ? LANDING.app.captionDropped : undefined,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Today's photo is locked.";
+    return forbidden(message);
+  }
 }
 
 function extensionFor(contentType: string, kind: CaptureKind): string {

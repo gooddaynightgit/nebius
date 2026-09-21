@@ -1,10 +1,25 @@
 import {
+  APP_STORY_MIN,
+  APP_STORY_TARGET_MAX,
+  APP_STORY_TARGET_MIN,
+  finishAppStory,
+  usesCannedPlayback,
+} from "./app-story";
+import { clipCaption } from "./app-capture";
+import { JOY_TYPES, type JoyType } from "./landing";
+import {
   cleanSpokenLine,
   isSelfNegating,
   isSilverLiningLine,
   silverLiningFor,
   type StoryMoment,
 } from "./care";
+
+export {
+  CANNED_PLAYBACK_MARKERS,
+  stripPlaybackQuotes,
+  usesCannedPlayback,
+} from "./app-story";
 
 export const NANO_INGEST_SYSTEM = `You extract one true good moment from a private daily capture.
 Return ONLY compact JSON: {"good":"one warm joyful sentence","tags":["optional"],"reframed":false}
@@ -38,6 +53,36 @@ Rules:
 - Ban negation-as-reassurance: "not as a task", "not a to-do", "not a chore", "not something you have to", "just as something true" after a not-clause. Do not apologize for the feeling.
 - End by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally your own good moments unfolds — your own good moments multifolds." Soft, wonder-struck, never preachy, never advice.
 - First line MUST be: Title: <short title that reflects THEIR moment>`;
+
+export const APP_WEAVE_SYSTEM = `You write one private bedtime story from one photo and an optional caption. You are not a coach, therapist, or wellness brand.
+
+**Analyze the photo first**
+1. What is actually in the frame (objects, place, light, text on screen).
+2. If it is a screenshot, read the visible text (chat, tracker, gift).
+3. Time-of-day only if the picture shows it.
+4. Use the caption only as a whisper beside the image. Never more than those words.
+5. Do not invent people, places, gifts, or feelings that are not in the photo or caption.
+6. If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no story. Reply only: \`BLOCK\`
+7. Ugly, messy, blurry, ordinary, or sad: still write.
+
+**Joy pick** (use as colour, not a lecture)
+morning sunlight / a small hello / one thing done slowly / a little movement / one corner clear / just this
+
+**Write**
+- Address the listener as *you*.
+- Lovely, warm, specific, quiet at the end.
+- 4–6 short sentences.
+- No serotonin, circadian, oxytocin, tips, or morals.
+- No title. No hashtags. No emoji.
+- End on stillness, not a pep talk.
+
+**Length**
+- Target: **600–900 characters**
+- Hard max: **1,200 characters** (spaces included)
+- Never shorter than **400** unless you output \`BLOCK\`
+
+**Output**
+Plain story text only. Or \`BLOCK\`. Nothing else.`;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
 Given last night's story and today's good moments, return ONLY JSON:
@@ -319,4 +364,116 @@ function titleFromMoments(moments: string[]): string {
   if (/friend/.test(joined)) return "The friend who thought of you";
   if (/happy|glad|joy|smile/.test(joined)) return "The happiness you kept";
   return "The good that found you";
+}
+
+const JOY_COLOUR: Record<string, string> = {
+  "morning-sunlight": "morning sunlight",
+  "a-small-hello": "a small hello",
+  "one-thing-done-slowly": "one thing done slowly",
+  "a-little-movement": "a little movement",
+  "one-corner-clear": "one corner clear",
+  "just-this": "just this",
+};
+
+function seenFromNotes(input: {
+  joy: JoyType;
+  caption?: string;
+  goodMoment?: string;
+}): string {
+  const raw = (input.goodMoment || "").replace(/\s+/g, " ").trim();
+  if (!raw) return "";
+  if (/you kept a still/i.test(raw)) return "";
+  if (usesCannedPlayback(raw, input.joy.playbackTemplate)) return "";
+  if (isSelfNegating(raw)) return "";
+  return raw.replace(/\.$/, "");
+}
+
+function whisperFromCaption(caption?: string): string {
+  const line = clipCaption(caption || "");
+  if (!line) return "";
+  return line.replace(/\.$/, "");
+}
+
+function joinSentences(parts: string[]): string {
+  return parts
+    .map((part) => part.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .map((part) => (/[.!?]$/.test(part) ? part : `${part}.`))
+    .join(" ");
+}
+
+export function mockJoyStory(input: {
+  joy: JoyType;
+  caption?: string;
+  goodMoment?: string;
+  reframed?: boolean;
+  day: string;
+}): { title: string; body: string } {
+  const colour = JOY_COLOUR[input.joy.id] ?? "just this";
+  const seen = seenFromNotes(input);
+  const whisper = whisperFromCaption(input.caption);
+  const sad = Boolean(
+    input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment),
+  );
+
+  const sentences: string[] = [];
+  if (seen) {
+    sentences.push(
+      `You kept what the frame actually holds — ${seen} — and nothing else is added to the picture`,
+    );
+  } else {
+    sentences.push(
+      "You kept one still from the day, and this telling will not invent a street or a gift or a face the picture did not keep",
+    );
+  }
+
+  if (whisper) {
+    sentences.push(
+      sad
+        ? `Beside it sits only the line you wrote — ${whisper} — a whisper, never more than those words, and no happier day is made up for you`
+        : `Beside the image sits only the whisper you wrote — ${whisper} — and never more than those words`,
+    );
+  } else {
+    sentences.push(
+      "There is no extra line beside the picture, so this telling will not speak a name or a feeling you did not write",
+    );
+  }
+
+  sentences.push(
+    `${colour.charAt(0).toUpperCase()}${colour.slice(1)} is only a colour at the edge of this hour, warm and quiet, not a lecture and not a list`,
+  );
+
+  if (sad) {
+    sentences.push(
+      "Ugly, messy, blurry, or heavy is allowed here; the still can stay as it is, without a pep talk or a moral",
+    );
+  } else if (seen) {
+    sentences.push(
+      "You look at that specific thing a little longer, lovely and particular, and you do not have to add anyone who was not there",
+    );
+  } else {
+    sentences.push(
+      "The picture can be ordinary or blurry or a little sad and still be the one you brought tonight",
+    );
+  }
+
+  sentences.push(
+    "The room can stay as it is; the night holds the frame, then goes still",
+  );
+
+  let body = joinSentences(sentences);
+  if (body.length < APP_STORY_TARGET_MIN) {
+    body = joinSentences([
+      ...sentences.slice(0, 5),
+      "You can leave it there, unhurried, with the last word already quiet",
+    ]);
+  }
+  if (body.length < APP_STORY_MIN || body.length > APP_STORY_TARGET_MAX) {
+    body = finishAppStory(body);
+  }
+  return { title: "", body };
+}
+
+export function allPlaybackTemplates(): string[] {
+  return JOY_TYPES.map((joy) => joy.playbackTemplate);
 }
