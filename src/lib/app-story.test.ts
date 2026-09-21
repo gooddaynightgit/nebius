@@ -104,4 +104,25 @@ describe("app story length and BLOCK", () => {
     expect(hasHarshBodyLanguage("a bite of cocoa, the chill, the wrapping")).toBe(false);
     expect(appStoryProblems(kind, "")).toEqual([]);
   });
+
+  it("flags marketing slogans so the closer can retry", () => {
+    expect(
+      leaksAppStoryInstruction(
+        "Anyone can take a photo — today you notice what it was. Cold chocolate, quiet sheets.",
+      ),
+    ).toBe(true);
+    expect(
+      leaksAppStoryInstruction(
+        "The app doesn't just save your best moment — it rewires your whole day hunting for it.",
+      ),
+    ).toBe(true);
+    expect(appStoryProblems("Anyone can take a photo — today you notice what it was.", "")).toContain(
+      "leak",
+    );
+    expect(
+      leaksAppStoryInstruction(
+        "You spent today looking for the good instead of scrolling past it — cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.",
+      ),
+    ).toBe(false);
+  });
 });

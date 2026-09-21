@@ -27,7 +27,7 @@ const EMPTY_REFLECTION =
 const DOOR_CLOSE = "Kept, it opens the door to more.";
 
 export const APP_STORY_LEAK_RE =
-  /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper/i;
+  /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper|anyone can take a photo|today you notice what it was|rewires your whole day|rewire your whole day|doesn't just save your best moment|does not just save your best moment|\bgooddaynight\b|the app doesn't just save|the app does not just save|rewires you\b/i;
 
 export function leaksAppStoryInstruction(body: string): boolean {
   return APP_STORY_LEAK_RE.test(body);

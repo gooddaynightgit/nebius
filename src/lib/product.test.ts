@@ -150,6 +150,11 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/wrinkled skin/);
     expect(APP_REFLECT_SYSTEM).toMatch(/foil, peel, cocoa/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Never quote the unflattering phrasing/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/noticing THIS moment/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(/tomorrow's good more findable/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Anyone can take a photo/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/rewires your whole day/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Do not write "Anyone can take a photo/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Analyze the photo first/);
   });
 
