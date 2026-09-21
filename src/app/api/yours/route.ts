@@ -1,6 +1,7 @@
 import { captureImageDataUrl, ingestAppPhoto } from "@/lib/ingest";
 import { isPlausibleClientDay } from "@/lib/day";
 import { badRequest, forbidden, json, notFound } from "@/lib/http";
+import { LANDING } from "@/lib/landing";
 import { loadSessionVault, presentSession } from "@/lib/session";
 import { WeaveBlockedError, WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
 import {
@@ -18,7 +19,7 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const EXPIRED = "Tonight's story lived for one night. Come back with today's photo.";
-const MISSING = "Save today's photo and pick a joy first.";
+const MISSING = LANDING.app.yoursMissing;
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
   const { sessionId, vault } = await loadSessionVault();
   const photo = appPhotoForDay(vault, day);
   const joyType = photo?.joyType;
-  if (!photo) return badRequest(MISSING);
+  if (!photo) return json({ error: MISSING, code: "missing" }, 400);
   if (!joyType) return badRequest("Pick the kind of quiet joy first.");
 
   let story = lastStoryForDay(vault, day);

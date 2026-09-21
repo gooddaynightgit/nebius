@@ -3,17 +3,31 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import StoryPlayback from "@/components/StoryPlayback";
-import { explainClientFetchError, readResponsePayload } from "@/lib/client-fetch";
+import { explainClientFetchError, readJson, readResponsePayload } from "@/lib/client-fetch";
+import {
+  buildAppCaptureForm,
+  clearCaptureStash,
+  isYoursMissingPayload,
+  readCaptureStash,
+} from "@/lib/capture-stash";
 import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
 import type { StoryRecord } from "@/lib/types";
 
 type YoursState =
   | { status: "loading" }
+  | { status: "keeping" }
   | { status: "expired"; message: string }
   | { status: "missing"; message: string }
   | { status: "blocked"; message: string }
+  | { status: "error"; message: string }
   | { status: "ready"; story: StoryRecord };
+
+type WeaveResult =
+  | { status: "ready"; story: StoryRecord }
+  | { status: "missing"; message: string }
+  | { status: "expired"; message: string }
+  | { status: "blocked"; message: string };
 
 export default function YoursStory() {
   const [state, setState] = useState<YoursState>({ status: "loading" });
@@ -21,47 +35,71 @@ export default function YoursStory() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const day = localDay();
 
-  const openYours = useCallback(async () => {
+  const weaveYours = useCallback(async (): Promise<WeaveResult> => {
+    const open = await fetch("/api/yours", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ day }),
+      credentials: "same-origin",
+    });
+    const data = await readResponsePayload<{ story?: StoryRecord; error?: string; code?: string }>(
+      open,
+    );
+    if (open.status === 403 && data.code === "blocked") {
+      return { status: "blocked", message: data.error || LANDING.app.blocked };
+    }
+    if (isYoursMissingPayload(open.status, data)) {
+      return { status: "missing", message: data.error || LANDING.app.yoursMissing };
+    }
+    if (open.status === 404) {
+      return {
+        status: data.code === "missing" ? "missing" : "expired",
+        message: data.error || "Tonight's story lived for one night.",
+      };
+    }
+    if (!open.ok || !data.story) {
+      throw new Error(data.error || "Could not open tonight's story.");
+    }
+    return { status: "ready", story: data.story };
+  }, [day]);
+
+  const restoreFromStashAndWeave = useCallback(async (): Promise<YoursState> => {
     try {
-      const open = await fetch("/api/yours", {
+      const stash = await readCaptureStash(day);
+      if (!stash) {
+        return { status: "missing", message: LANDING.app.yoursMissing };
+      }
+      const form = buildAppCaptureForm(stash, new Date().getTimezoneOffset());
+      const saveRes = await fetch("/api/captures", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ day }),
+        body: form,
         credentials: "same-origin",
       });
-      const data = await readResponsePayload<{ story?: StoryRecord; error?: string; code?: string }>(
-        open,
-      );
-      if (open.status === 404) {
-        setState({
-          status: data.code === "missing" ? "missing" : "expired",
-          message: data.error || "Tonight's story lived for one night.",
-        });
-        return;
+      await readJson(saveRes);
+      const woven = await weaveYours();
+      if (woven.status === "ready") {
+        await clearCaptureStash();
+        return { status: "ready", story: woven.story };
       }
-      if (open.status === 403 && data.code === "blocked") {
-        setState({
-          status: "blocked",
-          message: data.error || LANDING.app.blocked,
-        });
-        return;
+      if (woven.status === "missing") {
+        return { status: "error", message: LANDING.app.resaveFailed };
       }
-      if (!open.ok || !data.story) {
-        throw new Error(data.error || "Could not open tonight's story.");
-      }
-      setState({ status: "ready", story: data.story });
+      return woven;
     } catch (error) {
-      setState({
-        status: "missing",
-        message: explainClientFetchError(error),
-      });
+      return {
+        status: "error",
+        message: explainClientFetchError(error) || LANDING.app.resaveFailed,
+      };
     }
-  }, [day]);
+  }, [day, weaveYours]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const res = await fetch(`/api/yours?day=${day}`, { credentials: "same-origin" });
+      const [res, stash] = await Promise.all([
+        fetch(`/api/yours?day=${day}`, { credentials: "same-origin" }),
+        readCaptureStash(day),
+      ]);
       const data = await readResponsePayload<{
         story?: StoryRecord | null;
         opened?: boolean;
@@ -69,18 +107,57 @@ export default function YoursStory() {
         code?: string;
       }>(res);
       if (cancelled) return;
-      if (res.status === 404) {
-        setState({
-          status: data.code === "missing" ? "missing" : "expired",
+
+      const apply = (next: YoursState) => {
+        if (!cancelled) setState(next);
+      };
+
+      if (res.status === 404 || isYoursMissingPayload(res.status, data)) {
+        if (isYoursMissingPayload(res.status, data)) {
+          if (stash) {
+            apply({ status: "keeping" });
+            apply(await restoreFromStashAndWeave());
+            return;
+          }
+          apply({
+            status: "missing",
+            message: data.error || LANDING.app.yoursMissing,
+          });
+          return;
+        }
+        apply({
+          status: "expired",
           message: data.error || "Tonight's story lived for one night.",
         });
         return;
       }
+
       if (data.opened && data.story) {
-        setState({ status: "ready", story: data.story });
+        await clearCaptureStash();
+        apply({ status: "ready", story: data.story });
         return;
       }
-      await openYours();
+
+      try {
+        const woven = await weaveYours();
+        if (cancelled) return;
+        if (woven.status === "ready") {
+          await clearCaptureStash();
+          apply({ status: "ready", story: woven.story });
+          return;
+        }
+        if (woven.status === "missing" && stash) {
+          apply({ status: "keeping" });
+          apply(await restoreFromStashAndWeave());
+          return;
+        }
+        apply(woven);
+      } catch (error) {
+        apply({
+          status: "missing",
+          message: explainClientFetchError(error),
+        });
+      }
     })().catch((error) => {
       if (!cancelled) {
         setState({ status: "missing", message: explainClientFetchError(error) });
@@ -90,7 +167,7 @@ export default function YoursStory() {
       cancelled = true;
       window.speechSynthesis?.cancel();
     };
-  }, [day, openYours]);
+  }, [day, restoreFromStashAndWeave, weaveYours]);
 
   function speakStory(record: StoryRecord) {
     window.speechSynthesis?.cancel();
@@ -112,6 +189,8 @@ export default function YoursStory() {
     window.speechSynthesis?.speak(utterance);
   }
 
+  const failed = state.status === "expired" || state.status === "missing" || state.status === "blocked" || state.status === "error";
+
   return (
     <div className="page">
       <header className="site-header">
@@ -128,14 +207,21 @@ export default function YoursStory() {
             <p className="card__body">Opening tonight’s story…</p>
           </section>
         ) : null}
-        {state.status === "expired" || state.status === "missing" || state.status === "blocked" ? (
+        {state.status === "keeping" ? (
+          <section className="card card--lavender card--compact" aria-live="polite">
+            <p className="card__body">{LANDING.app.keepingMoment}</p>
+          </section>
+        ) : null}
+        {failed ? (
           <section className="card card--cream card--compact" aria-labelledby="yours-gone">
             <h1 id="yours-gone">
               {state.status === "expired"
                 ? "That night has passed."
                 : state.status === "blocked"
                   ? "No YOURS story tonight."
-                  : "Not yet."}
+                  : state.status === "error"
+                    ? "Couldn’t keep this moment."
+                    : "Not yet."}
             </h1>
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
               {state.message}

@@ -40,6 +40,13 @@ import {
   stillFromLiveVideo,
 } from "@/lib/live-camera";
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
+import {
+  clearCaptureStashIfOpened,
+  readCaptureStash,
+  stashPhotoFile,
+  updateCaptureStashPhoto,
+  writeCaptureStash,
+} from "@/lib/capture-stash";
 import type { SessionState } from "@/lib/types";
 
 async function stillFromVideo(file: File): Promise<File> {
@@ -102,26 +109,44 @@ export default function CaptureStudio() {
   const [busy, setBusy] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
+  const [phoneStash, setPhoneStash] = useState(false);
+  const [phoneNote, setPhoneNote] = useState<string | null>(null);
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
   const locked = Boolean(session?.yoursOpened);
   const savedPhoto = session?.todayPhoto ?? null;
-  const yoursReady = Boolean(savedPhoto);
+  const yoursReady = Boolean(savedPhoto) || (phoneStash && !locked);
   const previewSrc =
     photoUrl || (savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null);
 
   const refresh = useCallback(async () => {
     try {
-      const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
+      const [sessionRes, stash] = await Promise.all([
+        fetch(`/api/session?day=${day}`, { credentials: "same-origin" }),
+        readCaptureStash(day),
+      ]);
       const sessionData = await readJson<SessionState>(sessionRes);
       setSession(sessionData);
+      if (sessionData.yoursOpened) {
+        await clearCaptureStashIfOpened(day, true);
+        setPhoneStash(false);
+        setPhoneNote(null);
+      } else {
+        const hasStash = Boolean(stash);
+        setPhoneStash(hasStash);
+        const phoneOnly = hasStash && !sessionData.todayPhoto;
+        setPhoneNote(phoneOnly ? LANDING.app.savedOnPhone : null);
+      }
       if (!hydrated && sessionData.todayPhoto) {
         setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
         setCaption(sessionData.yoursOpened ? "" : sessionData.todayPhoto.caption ?? "");
         if (!sessionData.todayPhoto.dateVerified) {
           setDateNote(PHOTO_DATE_MESSAGES.unverified);
         }
+      } else if (!hydrated && stash && !sessionData.yoursOpened) {
+        setSelectedJoyId(stash.joyType);
+        setCaption(stash.caption);
       }
       setHydrated(true);
       setCaptureError((current) => (isReachabilityError(current) ? null : current));
@@ -275,6 +300,9 @@ export default function CaptureStudio() {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
       return URL.createObjectURL(next);
     });
+    void updateCaptureStashPhoto(day, next).then((updated) => {
+      if (updated) setPhoneStash(true);
+    });
   }
 
   function recoverPreview() {
@@ -302,7 +330,9 @@ export default function CaptureStudio() {
       setCaptureError(LANDING.app.locked);
       return;
     }
-    if (!photo && !savedPhoto) {
+    const existingStash = await readCaptureStash(day);
+    const uploadPhoto = photo ?? (existingStash ? stashPhotoFile(existingStash) : null);
+    if (!uploadPhoto && !savedPhoto) {
       setCaptureError("Add one photo from today.");
       return;
     }
@@ -331,7 +361,7 @@ export default function CaptureStudio() {
       form.set("joyType", selectedJoy.id);
       form.set("tzOffset", String(new Date().getTimezoneOffset()));
       if (kept.caption) form.set("caption", kept.caption);
-      if (photo) form.set("file", photo, photo.name || "moment.jpg");
+      if (uploadPhoto) form.set("file", uploadPhoto, uploadPhoto.name || "moment.jpg");
       const res = await fetch("/api/captures", {
         method: "POST",
         body: form,
@@ -345,12 +375,39 @@ export default function CaptureStudio() {
       if (!data.session) {
         throw new Error("Could not save that moment.");
       }
+      if (uploadPhoto) {
+        try {
+          await writeCaptureStash({
+            day,
+            joyType: selectedJoy.id,
+            caption: kept.caption,
+            photo: uploadPhoto,
+            fileName: uploadPhoto.name,
+          });
+        } catch {
+          // Save already succeeded; YOURS can still try the in-memory file this session.
+        }
+        setPhoneStash(true);
+      }
       setCaptureError(null);
       setSession(data.session);
       if (data.dateNote) setDateNote(data.dateNote);
       if (data.captionNote) {
         setCaptionNote(data.captionNote);
         setCaption("");
+      }
+      let latest = data.session;
+      try {
+        const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
+        latest = await readJson<SessionState>(sessionRes);
+        setSession(latest);
+      } catch {
+        latest = data.session;
+      }
+      if (!latest.todayPhoto) {
+        setPhoneNote(LANDING.app.savedOnPhone);
+      } else {
+        setPhoneNote(null);
       }
       window.requestAnimationFrame(() => {
         document.getElementById("yours-door")?.scrollIntoView({
@@ -513,6 +570,11 @@ export default function CaptureStudio() {
                 ) : null}
               </p>
             ) : null}
+            {phoneNote ? (
+              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
+                {phoneNote}
+              </p>
+            ) : null}
             {locked ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
                 {LANDING.app.locked}
@@ -546,7 +608,7 @@ export default function CaptureStudio() {
           {!locked ? (
             <section className="card card--lime card--compact">
               <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
-                {busy ? "Saving…" : savedPhoto ? LANDING.app.replace : LANDING.app.save}
+                {busy ? "Saving…" : savedPhoto || phoneStash ? LANDING.app.replace : LANDING.app.save}
               </button>
             </section>
           ) : null}
@@ -557,13 +619,18 @@ export default function CaptureStudio() {
             <Link className="yours" href="/app/yours">
               {LANDING.app.yours}
             </Link>
+            {phoneNote ? (
+              <p className="notice" style={{ marginTop: "0.85rem" }}>
+                {phoneNote}
+              </p>
+            ) : null}
           </section>
         ) : null}
 
         <section className="card card--cream card--compact" aria-labelledby="today-heading">
           <span className="pill">Story</span>
           <h2 id="today-heading">Today’s moment</h2>
-          {!savedPhoto ? (
+          {!savedPhoto && !phoneStash ? (
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
               Nothing saved yet. One photo and one joy, then YOURS.
             </p>
@@ -571,7 +638,9 @@ export default function CaptureStudio() {
             <div className="moment-list">
               <article className="moment">
                 <span className="moment__kind">photo</span>
-                <p>{getJoyById(savedPhoto.joyType)?.title ?? "A still from today."}</p>
+                <p>
+                  {getJoyById(savedPhoto?.joyType ?? selectedJoyId)?.title ?? "A still from today."}
+                </p>
               </article>
             </div>
           )}
