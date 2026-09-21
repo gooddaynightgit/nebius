@@ -8,7 +8,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 ## Funnel
 
-1. Landing CTA **Hear your story — free** — no email form. Click opens `/app`.
+1. Landing: hero + CTA **Hear your story — free** — no email form. **One good moment today** is an accordion: drop a photo (optional 80-character whisper) and pick one of six quiet-joy radios. Selecting a type opens its detail and a pale lavender **Story playback** box. Clicking the CTA opens `/app`. Landing photos/whispers save through the same `/api/captures` vault as the app.
 2. In the app she can drop **voice**, **photo**, or **text**. Each capture is stored (Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set, otherwise Nebius object storage, otherwise local JSON/files).
 3. Only after ≥1 moment does the app ask for email, which unlocks hearing her own good-moments story.
 
@@ -102,7 +102,7 @@ nebius ai job create \
 
 ## Demo script (≤3 minutes)
 
-1. **0:00** Landing. Point at the colour blocks and the lime **Hear your story — free**. There is no signup field. Click through.
+1. **0:00** Landing. Point at the colour blocks and the lime **Hear your story — free**. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender Story playback. There is no signup field. Click through.
 2. **0:20** `/app`. Paste a text moment (“the coffee was still warm”). Save. Optionally drop a photo and a short voice note.
 3. **0:50** The email card appears only now. Enter an email. Unlock.
 4. **1:10** Tap **Weave now**. If `NEBIUS_API_KEY` is set, Super writes the story; otherwise the mock story still plays. Tap **Replay last night** and let the calm voice read it.

@@ -226,13 +226,63 @@ describe("ingest and weave fallbacks", () => {
 });
 
 describe("landing", () => {
+  const page = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
+  const copy = readFileSync(path.resolve("src/lib/landing.ts"), "utf8");
+  const accordion = readFileSync(path.resolve("src/components/MomentAccordion.tsx"), "utf8");
+  const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+
   it("has a lime CTA into /app and no email form", () => {
-    const src = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
-    expect(src).toMatch(/Hear your story — free/);
-    expect(src).toMatch(/href="\/app"/);
-    expect(src).not.toMatch(/type="email"/);
-    expect(src).not.toMatch(/Signup/);
-    expect(src).not.toMatch(/you@email.com/);
+    expect(page).toMatch(/href="\/app"/);
+    expect(copy).toMatch(/Hear your story — free/);
+    expect(page).not.toMatch(/type="email"/);
+    expect(accordion).not.toMatch(/type="email"/);
+    expect(page).not.toMatch(/Signup/);
+    expect(page).not.toMatch(/you@email.com/);
+  });
+
+  it("keeps verbatim hero, joy types, and footer copy", () => {
+    expect(copy).toContain(
+      "You scrolled past a hundred good moments today. None of them were yours.",
+    );
+    expect(copy).toContain(
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does.",
+    );
+    expect(copy).toContain(
+      "Snap one good moment from your day. Gooddaynight reads it back to you as a beautiful story — your own.",
+    );
+    expect(copy).toContain(
+      "One good moment remembered today. More spotted tomorrow. Day by day, one unfolds in multifolds.",
+    );
+    expect(copy).toContain("One good moment today");
+    expect(copy).toContain("Lay the picture here.");
+    expect(copy).toContain("What kind of quiet joy was it? (pick one)");
+    expect(copy).toContain("You can change the picture if the day gets kinder.");
+    expect(copy).toContain("One moment. One story.");
+    expect(copy).toContain("Something good is about to happen!");
+    expect(copy).toContain("Gooddaynight.com");
+    for (const title of [
+      "Morning sunlight",
+      "A small hello",
+      "One thing, done slowly",
+      "A little movement",
+      "One corner, clear",
+      "Just this",
+    ]) {
+      expect(copy).toContain(title);
+    }
+    expect(copy).toContain(
+      "This morning, you stood in the sun. Ten quiet minutes. Gold on your skin.",
+    );
+    expect(copy).toContain("You turned yourself ON.");
+    expect(copy).toContain("You were THERE — fully, radiantly, joyfully there.");
+  });
+
+  it("opens story playback from radios in pale lavender panels", () => {
+    expect(accordion).toMatch(/type="radio"/);
+    expect(accordion).toMatch(/name="quiet-joy"/);
+    expect(accordion).toMatch(/Story playback/);
+    expect(accordion).toMatch(/className="playback"/);
+    expect(styles).toMatch(/#f0f0ff/);
   });
 });
 
