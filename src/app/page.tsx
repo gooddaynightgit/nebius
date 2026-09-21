@@ -20,8 +20,8 @@ export default function HomePage() {
 
         <section className="card card--lavender">
           <p className="card__body">
-            Your own day — the laugh, the small win, the quiet moment — nobody
-            turned it into anything. Not even you. Gooddaynight does.
+            Your laugh. Your small win. Your quiet moment. Nobody turned them
+            into anything — not even you. Gooddaynight does.
           </p>
           <span className="card__wash card__wash--ten" aria-hidden="true"></span>
         </section>
@@ -35,32 +35,13 @@ export default function HomePage() {
             Hear your story — free
           </Link>
           <p className="cta-copy">
-            Drop a voice, a photo, or a note. Email only after your first moment
-            — then you can hear your own good-moments story.
+            Snap one good moment from your day. Gooddaynight reads it back to
+            you as a beautiful story — your own.
           </p>
-        </section>
-
-        <section className="card card--cream">
-          <p className="card__body">
-            It takes what you texted, photographed, or voice-noted today — and
-            reads your own good moments back to you as a bedtime story.
+          <p className="cta-copy">
+            One good moment remembered today. More spotted tomorrow. Day by
+            day, one unfolds in multifolds.
           </p>
-          <span className="card__wash card__wash--note" aria-hidden="true"></span>
-        </section>
-
-        <section className="card card--peach" aria-labelledby="prime-heading">
-          <h2 id="prime-heading">
-            Remembering even one of your own good moments today primes you to spot more tomorrow.
-          </h2>
-          <span className="card__wash card__wash--plus" aria-hidden="true"></span>
-        </section>
-
-        <section className="card card--cyan" aria-labelledby="multifold-heading">
-          <h2 id="multifold-heading">
-            With time, naturally your own good moments unfolds — your own good moments
-            multifolds
-          </h2>
-          <span className="card__wash card__wash--fold" aria-hidden="true"></span>
         </section>
 
         <section className="card card--lime" aria-labelledby="closing-heading">

@@ -303,6 +303,10 @@ a {
   font-weight: 500;
 }
 
+.cta-copy + .cta-copy {
+  margin-top: 0.55rem;
+}
+
 .card__mark,
 .card__wash {
   pointer-events: none;
