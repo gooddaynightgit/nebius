@@ -1,8 +1,8 @@
 import { captureImageDataUrl, ingestAppPhoto } from "@/lib/ingest";
 import { isPlausibleClientDay } from "@/lib/day";
-import { badRequest, json, notFound } from "@/lib/http";
+import { badRequest, forbidden, json, notFound } from "@/lib/http";
 import { loadSessionVault, presentSession } from "@/lib/session";
-import { WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
+import { WeaveBlockedError, WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
 import {
   addStory,
   appPhotoForDay,
@@ -88,9 +88,13 @@ export async function POST(request: Request) {
         day,
         captures: [fresh],
         lastNight: lastStory(vault),
+        imageDataUrl,
       });
       await addStory(vault, story);
     } catch (error) {
+      if (error instanceof WeaveBlockedError) {
+        return forbidden(error.message, { code: "blocked" });
+      }
       if (error instanceof WeaveNeedsWordsError) return badRequest(error.message);
       throw error;
     }

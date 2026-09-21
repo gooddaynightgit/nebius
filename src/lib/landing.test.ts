@@ -27,6 +27,9 @@ describe("landing copy", () => {
     expect(LANDING.app.captionHelp).toBe(
       "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     );
+    expect(LANDING.app.blocked).toBe(
+      "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
+    );
     expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",

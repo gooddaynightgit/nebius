@@ -1,7 +1,16 @@
+import {
+  APP_STORY_MIN,
+  WEAVE_BLOCKED,
+  appStoryProblems,
+  celebratesDespair,
+  finishAppStory,
+  parseAppWeaveReply,
+  trimAppStory,
+} from "./app-story";
 import { clipCaption } from "./app-capture";
-import { hasTokenFactoryKey, useUltra } from "./config";
+import { MODELS, hasTokenFactoryKey, useUltra } from "./config";
 import { getJoyById } from "./landing";
-import { completeWithFallback, superModels, ultraModels } from "./nebius";
+import { completeWithFallback, superModels, ultraModels, type ChatMessage } from "./nebius";
 import {
   APP_WEAVE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
@@ -9,25 +18,33 @@ import {
   WEAVE_NEEDS_WORDS,
   mockJoyStory,
   mockStory,
-  usesCannedPlayback,
   weavableMoments,
 } from "./prompts";
+import { isHorrificText } from "./safety-text";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
 import { putBytes } from "./storage";
-
-function celebratesDespair(text: string): boolean {
-  return /no\s*one cares about me|nobody cares about me|nobody loves me|i(?:'m| am) worthless/i.test(
-    text,
-  );
-}
 
 export class WeaveNeedsWordsError extends Error {
   constructor() {
     super(WEAVE_NEEDS_WORDS);
     this.name = "WeaveNeedsWordsError";
   }
+}
+
+export class WeaveBlockedError extends Error {
+  constructor() {
+    super(WEAVE_BLOCKED);
+    this.name = "WeaveBlockedError";
+  }
+}
+
+function appWeaveModels(hasImage: boolean): string[] {
+  if (hasImage && MODELS.nanoOmni) {
+    return [MODELS.nanoOmni, MODELS.super].filter(Boolean);
+  }
+  return superModels();
 }
 
 function parseTitleBody(text: string): { title: string; body: string } {
@@ -114,52 +131,96 @@ async function weaveWithSuper(
   return null;
 }
 
-async function weaveAppWithSuper(input: {
-  day: string;
+function joyColourLabel(joyTitle: string): string {
+  return joyTitle
+    .toLowerCase()
+    .replace(/,/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function appWeaveUserText(input: {
   joyTitle: string;
   template: string;
   photoNotes: string;
   caption?: string;
-  reframed: boolean;
-  thread: string;
-}): Promise<{ title: string; body: string; model: string } | null> {
-  const messages = [
-    { role: "system" as const, content: APP_WEAVE_SYSTEM },
-    {
-      role: "user" as const,
-      content: [
-        `Day: ${input.day}`,
-        `Joy pick: ${input.joyTitle}`,
-        input.thread ? `Quiet continuity from last night: ${input.thread}` : "",
-        `PLAYBACK TEMPLATE (tone only — REWRITE; never copy sentences):\n${input.template}`,
-        `Photo understanding:\n${input.reframed ? "[silver lining] " : ""}${input.photoNotes}`,
-        input.caption
-          ? `Optional caption (≤80 characters; do not quote more than this line): ${clipCaption(input.caption)}`
-          : "No caption.",
-        "Write tonight's story now. Fresh sentences. Grounded in this still. Not the template.",
+  hasImage: boolean;
+}): string {
+  const caption = input.caption ? clipCaption(input.caption) : "";
+  return [
+    input.hasImage
+      ? "The photo is attached. Analyze the frame first: objects, place, light, and any text on screen. Time of day only if the picture shows it. If this is a screenshot, read the visible text."
+      : "The photo pixels are not attached. Do not invent objects, places, people, gifts, or feelings. Write only from the joy colour, the optional caption whisper, and any photo notes below. If those notes are thin, stay general and honest — still write.",
+    `Joy pick (colour only, not a lecture): ${joyColourLabel(input.joyTitle)}`,
+    `Joy playback string (TEMPLATE to rephrase — not the story; never copy its sentences):\n${input.template}`,
+    input.photoNotes
+      ? `Photo notes (use only if they name what is actually in the frame):\n${input.photoNotes}`
+      : "No extra photo notes.",
+    caption
+      ? `Optional caption (whisper beside the image; never more than these words): ${caption}`
+      : "No caption.",
+    "Write 4–6 short sentences. Target 600–900 characters. Hard max 1,200. Never under 400 unless BLOCK. Plain story text only. Or BLOCK.",
+  ].join("\n\n");
+}
+
+async function weaveAppWithNemotron(input: {
+  joyTitle: string;
+  template: string;
+  photoNotes: string;
+  caption?: string;
+  imageDataUrl?: string;
+}): Promise<{ blocked: true; model: string } | { body: string; model: string } | null> {
+  const hasImage = Boolean(input.imageDataUrl);
+  const userText = appWeaveUserText({ ...input, hasImage });
+  const userContent: ChatMessage["content"] = hasImage
+    ? [
+        { type: "text", text: userText },
+        { type: "image_url", image_url: { url: input.imageDataUrl } },
       ]
-        .filter(Boolean)
-        .join("\n\n"),
-    },
+    : userText;
+  const messages: ChatMessage[] = [
+    { role: "system", content: APP_WEAVE_SYSTEM },
+    { role: "user", content: userContent },
   ];
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  let lastBody = "";
+  let lastModel = "";
+  for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const result = await completeWithFallback(superModels(), messages, {
-        temperature: attempt === 0 ? 0.75 : 0.55,
-        maxTokens: 700,
+      const retryHint =
+        attempt === 0
+          ? messages
+          : [
+              ...messages,
+              {
+                role: "user" as const,
+                content:
+                  lastBody && lastBody.length < APP_STORY_MIN
+                    ? "The last draft was too short. Write 4–6 short sentences, 600–900 characters, grounded in the photo and caption. Plain story text only. Or BLOCK."
+                    : "Rewrite. Follow the brief exactly. Fresh sentences. No template dump. No title. No wellness words. 600–900 characters. Plain story text only. Or BLOCK.",
+              },
+            ];
+      const result = await completeWithFallback(appWeaveModels(hasImage), retryHint, {
+        temperature: attempt === 0 ? 0.7 : 0.45,
+        maxTokens: 500,
       });
-      const parsed = parseTitleBody(result.text);
-      if (
-        parsed.body.length > 80 &&
-        !celebratesDespair(parsed.body) &&
-        !usesCannedPlayback(parsed.body, input.template)
-      ) {
-        return { ...parsed, model: result.model };
+      lastModel = result.model;
+      const parsed = parseAppWeaveReply(result.text);
+      if (parsed === "BLOCK") {
+        if (!lastBody) return { blocked: true, model: result.model };
+        break;
+      }
+      lastBody = parsed;
+      const problems = appStoryProblems(parsed, input.template).filter((item) => item !== "long");
+      if (problems.length === 0) {
+        return { body: trimAppStory(parsed), model: result.model };
       }
     } catch {
-      // Retry once, then fall through to a rewritten mock.
+      // Retry, then fall through to an honest mock.
     }
+  }
+  if (lastBody && !appStoryProblems(lastBody, input.template).some((item) => item === "canned" || item === "wellness" || item === "despair")) {
+    return { body: finishAppStory(lastBody), model: lastModel || "mock-fallback" };
   }
   return null;
 }
@@ -169,6 +230,7 @@ export async function weaveStory(options: {
   day: string;
   captures: CaptureRecord[];
   lastNight: StoryRecord | null;
+  imageDataUrl?: string;
 }): Promise<StoryRecord> {
   const appCapture = options.captures.find((capture) => capture.source === "app" && capture.joyType);
   const appJoy = appCapture ? getJoyById(appCapture.joyType) : undefined;
@@ -181,10 +243,10 @@ export async function weaveStory(options: {
 
   if (appJoy && appCapture) {
     const caption = clipCaption(appCapture.caption ?? "") || undefined;
-    const photoNotes =
-      appCapture.goodMoment ||
-      caption ||
-      `You kept a still for ${appJoy.title}.`;
+    const photoNotes = (appCapture.goodMoment || "").trim();
+    if (isHorrificText(caption) || isHorrificText(photoNotes)) {
+      throw new WeaveBlockedError();
+    }
     const fallback = mockJoyStory({
       joy: appJoy,
       caption,
@@ -193,29 +255,28 @@ export async function weaveStory(options: {
       day: options.day,
     });
     if (hasTokenFactoryKey()) {
-      const { thread, model } = await continuityThread(options.lastNight, [photoNotes]);
-      continuityModel = model;
-      const live = await weaveAppWithSuper({
-        day: options.day,
+      const live = await weaveAppWithNemotron({
         joyTitle: appJoy.title,
         template: appJoy.playbackTemplate,
         photoNotes,
         caption,
-        reframed: Boolean(appCapture.reframed),
-        thread,
+        imageDataUrl: options.imageDataUrl,
       });
-      if (live) {
-        title = live.title;
+      if (live && "blocked" in live && live.blocked) {
+        throw new WeaveBlockedError();
+      }
+      if (live && "body" in live) {
+        title = "";
         body = live.body;
         weaveModel = live.model;
         mock = false;
       } else {
-        title = fallback.title;
+        title = "";
         body = fallback.body;
         weaveModel = "mock-fallback";
       }
     } else {
-      title = fallback.title;
+      title = "";
       body = fallback.body;
     }
   } else {
@@ -247,7 +308,7 @@ export async function weaveStory(options: {
     }
   }
 
-  const tts = await synthesizeStory(`${title}. ${body}`);
+  const tts = await synthesizeStory(title ? `${title}. ${body}` : body);
   let audioKey: string | undefined;
   if (tts.audio) {
     audioKey = `vaults/${options.vaultId}/stories/${options.day}.mp3`;

@@ -11,6 +11,7 @@ type YoursState =
   | { status: "loading" }
   | { status: "expired"; message: string }
   | { status: "missing"; message: string }
+  | { status: "blocked"; message: string }
   | { status: "ready"; story: StoryRecord };
 
 export default function YoursStory() {
@@ -31,6 +32,13 @@ export default function YoursStory() {
         setState({
           status: data.code === "missing" ? "missing" : "expired",
           message: data.error || "Tonight's story lived for one night.",
+        });
+        return;
+      }
+      if (open.status === 403 && data.code === "blocked") {
+        setState({
+          status: "blocked",
+          message: data.error || LANDING.app.blocked,
         });
         return;
       }
@@ -89,7 +97,8 @@ export default function YoursStory() {
       audio.onended = () => setPlaying(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(`${record.title}. ${record.body}`);
+    const spoken = record.title ? `${record.title}. ${record.body}` : record.body;
+    const utterance = new SpeechSynthesisUtterance(spoken);
     utterance.rate = 0.82;
     utterance.pitch = 0.88;
     utterance.onend = () => setPlaying(false);
@@ -113,9 +122,15 @@ export default function YoursStory() {
             <p className="card__body">Opening tonight’s story…</p>
           </section>
         ) : null}
-        {state.status === "expired" || state.status === "missing" ? (
+        {state.status === "expired" || state.status === "missing" || state.status === "blocked" ? (
           <section className="card card--cream card--compact" aria-labelledby="yours-gone">
-            <h1 id="yours-gone">{state.status === "expired" ? "That night has passed." : "Not yet."}</h1>
+            <h1 id="yours-gone">
+              {state.status === "expired"
+                ? "That night has passed."
+                : state.status === "blocked"
+                  ? "No YOURS story tonight."
+                  : "Not yet."}
+            </h1>
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
               {state.message}
             </p>
@@ -131,7 +146,7 @@ export default function YoursStory() {
             <h1 id="yours-heading" className="visually-hidden">
               {LANDING.app.yours}
             </h1>
-            <StoryPlayback id="app-story-playback" title={state.story.title}>
+            <StoryPlayback id="app-story-playback" title="">
               <p className="playback__story">{state.story.body}</p>
             </StoryPlayback>
             <div className="actions" style={{ marginTop: "1rem" }}>
@@ -155,7 +170,9 @@ export default function YoursStory() {
             <div className="status-row">
               <span className="chip">
                 {state.story.mock
-                  ? "Joyful stand-in (add NEBIUS_API_KEY for Super)"
+                  ? state.story.weaveModel === "mock-fallback"
+                    ? "Nemotron didn’t finish; a quiet stand-in from the caption and joy."
+                    : "Written without seeing the photo (add NEBIUS_API_KEY for Nemotron)"
                   : state.story.weaveModel}
               </span>
               <span className="chip">

@@ -1,3 +1,11 @@
+import {
+  APP_STORY_MIN,
+  APP_STORY_TARGET_MAX,
+  APP_STORY_TARGET_MIN,
+  finishAppStory,
+  usesCannedPlayback,
+} from "./app-story";
+import { clipCaption } from "./app-capture";
 import { JOY_TYPES, type JoyType } from "./landing";
 import {
   cleanSpokenLine,
@@ -6,6 +14,12 @@ import {
   silverLiningFor,
   type StoryMoment,
 } from "./care";
+
+export {
+  CANNED_PLAYBACK_MARKERS,
+  stripPlaybackQuotes,
+  usesCannedPlayback,
+} from "./app-story";
 
 export const NANO_INGEST_SYSTEM = `You extract one true good moment from a private daily capture.
 Return ONLY compact JSON: {"good":"one warm joyful sentence","tags":["optional"],"reframed":false}
@@ -40,24 +54,35 @@ Rules:
 - End by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally your own good moments unfolds — your own good moments multifolds." Soft, wonder-struck, never preachy, never advice.
 - First line MUST be: Title: <short title that reflects THEIR moment>`;
 
-export const APP_WEAVE_SYSTEM = `You are Gooddaynight, a private bedtime storyteller.
-Write a joyful, uplifting, emotionally warm story the listener hears as they float into sleep.
-Strong feeling, soft delivery: a smile in the chest, never a hype yell, never calm-clinical.
+export const APP_WEAVE_SYSTEM = `You write one private bedtime story from one photo and an optional caption. You are not a coach, therapist, or wellness brand.
 
-You are given a quiet-joy PLAYBACK TEMPLATE. It is an example of TONE only.
-You MUST rewrite it into a fresh story grounded in THIS photo (vision notes), THIS joy pick, and the optional caption.
-NEVER copy, quote, or lightly edit the template's distinctive sentences. New wording every time. If a sentence could have come from the canned playback, throw it away and write another.
+**Analyze the photo first**
+1. What is actually in the frame (objects, place, light, text on screen).
+2. If it is a screenshot, read the visible text (chat, tracker, gift).
+3. Time-of-day only if the picture shows it.
+4. Use the caption only as a whisper beside the image. Never more than those words.
+5. Do not invent people, places, gifts, or feelings that are not in the photo or caption.
+6. If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no story. Reply only: \`BLOCK\`
+7. Ugly, messy, blurry, ordinary, or sad: still write.
 
-Rules:
-- Second person ("you"). 180–280 words.
-- The optional caption is a whisper beside the photo — not the moment. You may use it. Never quote more than those 80 characters, and never invent extra words they did not write.
-- Same honesty as the photo: sad or hard is allowed. Do not invent a happier day.
-- Ground the story in visible or named details from THIS photo and caption. Do not invent people, places, or plots that are not in the notes.
-- If a moment is marked [silver lining], that lining IS the good. NEVER quote, repeat, or celebrate despair. Praise the courage of naming the wish; a heart that loves connection; implied worth.
-- Narrative spine: their good (or silver lining) leads → specific praise earned from THIS still → why it landed → implied worth from this moment only → float into sleep, multifold.
-- Tone: glad, tender, glowing. Ban bleak imagery, productivity framing, and negation-as-reassurance ("not as a task").
-- End by gently floating into slumber: returning to this good unfolds it, then unfolds it again — multifold. A smile in the chest.
-- First line MUST be: Title: <short title that reflects THEIR photo>`;
+**Joy pick** (use as colour, not a lecture)
+morning sunlight / a small hello / one thing done slowly / a little movement / one corner clear / just this
+
+**Write**
+- Address the listener as *you*.
+- Lovely, warm, specific, quiet at the end.
+- 4–6 short sentences.
+- No serotonin, circadian, oxytocin, tips, or morals.
+- No title. No hashtags. No emoji.
+- End on stillness, not a pep talk.
+
+**Length**
+- Target: **600–900 characters**
+- Hard max: **1,200 characters** (spaces included)
+- Never shorter than **400** unless you output \`BLOCK\`
+
+**Output**
+Plain story text only. Or \`BLOCK\`. Nothing else.`;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
 Given last night's story and today's good moments, return ONLY JSON:
@@ -341,59 +366,41 @@ function titleFromMoments(moments: string[]): string {
   return "The good that found you";
 }
 
-export function stripPlaybackQuotes(template: string): string {
-  return template.replace(/^[\s"'“”]+|[\s"'“”]+$/g, "").trim();
-}
-
-export const CANNED_PLAYBACK_MARKERS = [
-  "Ten quiet minutes. Gold on your skin",
-  "You turned yourself ON",
-  "fully, radiantly, joyfully there",
-  "That's not a small thing. That's everything",
-  "Your space is brighter. And so are you",
-  "too alive for categories",
-  "Endorphins like fireworks",
-  "breathtakingly, beautifully — with you in it",
-] as const;
-
-export function usesCannedPlayback(body: string, template: string): boolean {
-  const hay = body.replace(/\s+/g, " ");
-  const raw = stripPlaybackQuotes(template);
-  if (raw.length >= 32 && hay.includes(raw.slice(0, 32))) return true;
-  if (raw.length >= 48 && hay.includes(raw.slice(-48))) return true;
-  for (const marker of CANNED_PLAYBACK_MARKERS) {
-    if (hay.includes(marker)) return true;
-  }
-  const sentences = raw.split(/(?<=\.)\s+/).map((part) => part.trim()).filter((part) => part.length >= 28);
-  return sentences.some((sentence) => hay.includes(sentence));
-}
-
-const JOY_FRESH_OPENERS: Record<string, (detail: string) => { title: string; lead: string }> = {
-  "morning-sunlight": (detail) => ({
-    title: "Light that found you",
-    lead: `Morning met you in a still you kept. ${detail} The day did not rush; it arrived on your face first.`,
-  }),
-  "a-small-hello": (detail) => ({
-    title: "A hello that landed",
-    lead: `Someone reached you today, and you kept the proof. ${detail} Belonging showed up in a small, ordinary way — and it counted.`,
-  }),
-  "one-thing-done-slowly": (detail) => ({
-    title: "The thing you didn't rush",
-    lead: `You gave one thing your whole attention. ${detail} The phone waited. The minute was allowed to be a minute.`,
-  }),
-  "a-little-movement": (detail) => ({
-    title: "A body that remembered",
-    lead: `You moved, and the moving was yours. ${detail} Not a program. A walk, a stretch, your dance.`,
-  }),
-  "one-corner-clear": (detail) => ({
-    title: "One corner, yours",
-    lead: `A small square of the world exhaled because you touched it. ${detail} Order enough to see. Peace you could point at.`,
-  }),
-  "just-this": (detail) => ({
-    title: "This, kept",
-    lead: `It did not need a category. ${detail} You noticed it anyway, and that noticing is the whole story.`,
-  }),
+const JOY_COLOUR: Record<string, string> = {
+  "morning-sunlight": "morning sunlight",
+  "a-small-hello": "a small hello",
+  "one-thing-done-slowly": "one thing done slowly",
+  "a-little-movement": "a little movement",
+  "one-corner-clear": "one corner clear",
+  "just-this": "just this",
 };
+
+function seenFromNotes(input: {
+  joy: JoyType;
+  caption?: string;
+  goodMoment?: string;
+}): string {
+  const raw = (input.goodMoment || "").replace(/\s+/g, " ").trim();
+  if (!raw) return "";
+  if (/you kept a still/i.test(raw)) return "";
+  if (usesCannedPlayback(raw, input.joy.playbackTemplate)) return "";
+  if (isSelfNegating(raw)) return "";
+  return raw.replace(/\.$/, "");
+}
+
+function whisperFromCaption(caption?: string): string {
+  const line = clipCaption(caption || "");
+  if (!line) return "";
+  return line.replace(/\.$/, "");
+}
+
+function joinSentences(parts: string[]): string {
+  return parts
+    .map((part) => part.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .map((part) => (/[.!?]$/.test(part) ? part : `${part}.`))
+    .join(" ");
+}
 
 export function mockJoyStory(input: {
   joy: JoyType;
@@ -402,39 +409,69 @@ export function mockJoyStory(input: {
   reframed?: boolean;
   day: string;
 }): { title: string; body: string } {
-  const rawDetail = (input.goodMoment || input.caption || input.joy.tagline).replace(/\.$/, "").trim();
-  const detail = rawDetail
-    ? `${rawDetail.charAt(0).toUpperCase()}${rawDetail.slice(1)}.`
-    : input.joy.tagline;
-  if (input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment)) {
-    const lining = isSelfNegating(input.caption)
-      ? silverLiningFor(input.caption || "")
-      : input.goodMoment || silverLiningFor("this hard day");
-    const lined = mockLiningStory([lining], input.day);
-    return {
-      title: lined.title,
-      body: `${lined.body}\n\nYou still chose ${input.joy.title.toLowerCase()} as the shape of the night. The lining holds.`,
-    };
+  const colour = JOY_COLOUR[input.joy.id] ?? "just this";
+  const seen = seenFromNotes(input);
+  const whisper = whisperFromCaption(input.caption);
+  const sad = Boolean(
+    input.reframed || isSelfNegating(input.caption) || isSelfNegating(input.goodMoment),
+  );
+
+  const sentences: string[] = [];
+  if (seen) {
+    sentences.push(
+      `You kept what the frame actually holds — ${seen} — and nothing else is added to the picture`,
+    );
+  } else {
+    sentences.push(
+      "You kept one still from the day, and this telling will not invent a street or a gift or a face the picture did not keep",
+    );
   }
-  const opener =
-    JOY_FRESH_OPENERS[input.joy.id]?.(detail) ?? {
-      title: input.joy.title,
-      lead: `You kept a still for ${input.joy.title.toLowerCase()}. ${detail}.`,
-    };
-  const body = `${opener.lead}
 
-You felt it and you kept it — this ${input.joy.title.toLowerCase()}, this frame, this day. That noticing is earned.
+  if (whisper) {
+    sentences.push(
+      sad
+        ? `Beside it sits only the line you wrote — ${whisper} — a whisper, never more than those words, and no happier day is made up for you`
+        : `Beside the image sits only the whisper you wrote — ${whisper} — and never more than those words`,
+    );
+  } else {
+    sentences.push(
+      "There is no extra line beside the picture, so this telling will not speak a name or a feeling you did not write",
+    );
+  }
 
-Why did it land? Because you were there long enough to see it, and seeing it was already a kind of care.
+  sentences.push(
+    `${colour.charAt(0).toUpperCase()}${colour.slice(1)} is only a colour at the edge of this hour, warm and quiet, not a lecture and not a list`,
+  );
 
-The good reached you because you are someone a quiet moment can belong to — worthy of the still you chose.
+  if (sad) {
+    sentences.push(
+      "Ugly, messy, blurry, or heavy is allowed here; the still can stay as it is, without a pep talk or a moral",
+    );
+  } else if (seen) {
+    sentences.push(
+      "You look at that specific thing a little longer, lovely and particular, and you do not have to add anyone who was not there",
+    );
+  } else {
+    sentences.push(
+      "The picture can be ordinary or blurry or a little sad and still be the one you brought tonight",
+    );
+  }
 
-That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is yours.
+  sentences.push(
+    "The room can stay as it is; the night holds the frame, then goes still",
+  );
 
-Float toward sleep with this picture still close. Returning to this good lets it open, then open again. With time, naturally, your own good moments unfold — your own good moments multifold.
-
-Rest inside the frame you kept. A smile in the chest. The good, still bright. Yours.`;
-  return { title: opener.title, body: `${body}\n\n— ${input.day}` };
+  let body = joinSentences(sentences);
+  if (body.length < APP_STORY_TARGET_MIN) {
+    body = joinSentences([
+      ...sentences.slice(0, 5),
+      "You can leave it there, unhurried, with the last word already quiet",
+    ]);
+  }
+  if (body.length < APP_STORY_MIN || body.length > APP_STORY_TARGET_MAX) {
+    body = finishAppStory(body);
+  }
+  return { title: "", body };
 }
 
 export function allPlaybackTemplates(): string[] {

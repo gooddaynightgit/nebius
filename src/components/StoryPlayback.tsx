@@ -18,7 +18,7 @@ export default function StoryPlayback({
   return (
     <aside id={id} className="playback" aria-label="Story playback">
       {eyebrow ? <p className="playback__eyebrow">{eyebrow}</p> : null}
-      <h3>{title}</h3>
+      {title ? <h3>{title}</h3> : null}
       {typeof children === "string" ? <p>{children}</p> : children}
     </aside>
   );

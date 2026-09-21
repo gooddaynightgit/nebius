@@ -116,11 +116,20 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/PLAYBACK TEMPLATE/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/NEVER copy/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/silver lining/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/80 characters/);
-    expect(APP_WEAVE_SYSTEM).toMatch(/Do not invent a happier day/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/You write one private bedtime story from one photo/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/not a coach, therapist, or wellness brand/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Analyze the photo first/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/caption only as a whisper/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/4–6 short sentences/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/No serotonin, circadian, oxytocin/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/600–900 characters/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/1,200 characters/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Never shorter than \*\*400\*\*/);
+    expect(APP_WEAVE_SYSTEM).toMatch(/Plain story text only/);
+    expect(APP_WEAVE_SYSTEM).not.toMatch(/First line MUST be: Title/);
+    expect(APP_WEAVE_SYSTEM).not.toMatch(/180–280 words/);
+    expect(APP_WEAVE_SYSTEM).not.toMatch(/serotonin before the day/);
   });
 
   it("cleans obvious typos without corporate rewrite", () => {
@@ -233,6 +242,7 @@ describe("ingest and weave fallbacks", () => {
   it("rewrites joy playback templates instead of dumping them as the story", async () => {
     const { JOY_TYPES } = await import("./landing");
     const { mockJoyStory, usesCannedPlayback, CANNED_PLAYBACK_MARKERS } = await import("./prompts");
+    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_WELLNESS_RE } = await import("./app-story");
     for (const joy of JOY_TYPES) {
       const story = mockJoyStory({
         joy,
@@ -245,10 +255,21 @@ describe("ingest and weave fallbacks", () => {
       for (const marker of CANNED_PLAYBACK_MARKERS) {
         expect(story.body).not.toContain(marker);
       }
+      expect(story.title).toBe("");
+      expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
+      expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
+      expect(story.body).not.toMatch(APP_STORY_WELLNESS_RE);
+      expect(story.body).not.toMatch(/#\w/);
+      expect(story.body).not.toMatch(/^title:/im);
+      const sentences = story.body.split(/(?<=[.!?])\s+/).filter((part) => part.trim());
+      expect(sentences.length).toBeGreaterThanOrEqual(4);
+      expect(sentences.length).toBeLessThanOrEqual(6);
+      expect(story.body).toMatch(/still|quiet/i);
     }
   });
 
   it("weaves an app photo from the joy template without pasting the canned playback", async () => {
+    const { APP_STORY_MIN, APP_STORY_MAX } = await import("./app-story");
     const story = await weaveStory({
       vaultId: "v_test",
       day: "2026-09-21",
@@ -270,8 +291,36 @@ describe("ingest and weave fallbacks", () => {
     });
     expect(story.body).not.toMatch(/Ten quiet minutes\. Gold on your skin/);
     expect(story.body).not.toMatch(/breathtakingly, beautifully/);
-    expect(story.body).toMatch(/kitchen table|gold on the table|Light that found you/i);
-    expect(story.title).not.toBe("Story playback");
+    expect(story.body).toMatch(/kitchen table|gold on the table/i);
+    expect(story.title).toBe("");
+    expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
+    expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
+    expect(story.mock).toBe(true);
+  });
+
+  it("blocks a horrific app weave and does not produce a story", async () => {
+    const { WeaveBlockedError } = await import("./weave");
+    await expect(
+      weaveStory({
+        vaultId: "v_test",
+        day: "2026-09-21",
+        lastNight: null,
+        captures: [
+          {
+            id: "cap_block",
+            vaultId: "v_test",
+            kind: "photo",
+            createdAt: "2026-09-21T10:00:00.000Z",
+            day: "2026-09-21",
+            caption: "kill myself",
+            joyType: "just-this",
+            source: "app",
+            goodMoment: "gore on the floor",
+            ingestStatus: "mock",
+          },
+        ],
+      }),
+    ).rejects.toBeInstanceOf(WeaveBlockedError);
   });
 });
 
@@ -375,6 +424,9 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/card--lavender/);
     expect(yours).toMatch(/POST/);
     expect(yours).toMatch(/\/api\/yours/);
+    expect(yours).toMatch(/code === "blocked"/);
+    expect(yours).toMatch(/No YOURS story tonight/);
+    expect(yours).toMatch(/Written without seeing the photo/);
     expect(picker).toMatch(/playbackTemplate/);
     expect(picker).toMatch(/playbackExample/);
     expect(src).toMatch(/LANDING\.app\.captionHelp/);
@@ -383,5 +435,24 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.footer\.somethingGood/);
     expect(src).toMatch(/LANDING\.footer\.site/);
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
+  });
+});
+
+describe("YOURS Nemotron brief", () => {
+  it("sends the photo on weave and refuses BLOCK without locking", () => {
+    const weave = readFileSync(path.resolve("src/lib/weave.ts"), "utf8");
+    const yours = readFileSync(path.resolve("src/app/api/yours/route.ts"), "utf8");
+    expect(weave).toMatch(/APP_WEAVE_SYSTEM/);
+    expect(weave).toMatch(/image_url/);
+    expect(weave).toMatch(/imageDataUrl/);
+    expect(weave).toMatch(/WeaveBlockedError/);
+    expect(weave).toMatch(/parseAppWeaveReply/);
+    expect(weave).toMatch(/finishAppStory/);
+    expect(yours).toMatch(/WeaveBlockedError/);
+    expect(yours).toMatch(/code: "blocked"/);
+    expect(yours).toMatch(/imageDataUrl/);
+    expect(yours).toMatch(
+      /if \(error instanceof WeaveBlockedError\) \{\s*return forbidden\(error\.message, \{ code: "blocked" \}\)/,
+    );
   });
 });

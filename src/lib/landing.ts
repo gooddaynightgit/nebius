@@ -46,6 +46,7 @@ export const LANDING = {
     captionExamples: "a name / a step count / he wrote back",
     captionDropped: "That line couldn’t be saved. The photo still is.",
     locked: "Tonight’s photo is locked. YOURS already opened the story.",
+    blocked: "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     save: "Save today’s moment",
     replace: "Replace today’s photo",
   },
