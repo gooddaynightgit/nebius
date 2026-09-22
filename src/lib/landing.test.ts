@@ -24,11 +24,13 @@ describe("landing copy", () => {
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.tagline).toBe("One photo. One joy. One story.");
     expect(LANDING.app.yoursHint).toBe("YOURS — the link that opens tonight’s story.");
-    expect(LANDING.app.captionLabel).toBe("Optional caption");
+    expect(LANDING.app.captionLabel).toBe("What’s the good in this one?");
     expect(LANDING.app.captionLabel).not.toMatch(/80/);
+    expect(LANDING.app.captionLabel).not.toMatch(/Optional caption/i);
     expect(LANDING.app.captionHelp).toBe(
       "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     );
+    expect(LANDING.app.captionExamples).toBe("a name / a step count / he wrote back");
     expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(

@@ -109,7 +109,7 @@ nebius ai job create \
 ## Demo script (≤3 minutes)
 
 1. **0:00** Landing. Point at the colour blocks and the lime **Hear your story — free**. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender Story playback. There is no signup field. Click through.
-2. **0:20** `/app`. Heading is **One good moment today**. Tagline: **One photo. One joy. One story.** Upload one photo (screenshots count; a video can yield one still), optional 80-character caption, pick a quiet-joy radio. **Save today's moment** — then **YOURS** appears. Tap it to open `/app/yours`.
+2. **0:20** `/app`. Heading is **One good moment today**. Tagline: **One photo. One joy. One story.** Upload one photo (screenshots count; a video can yield one still), caption **What’s the good in this one?** (≤80), pick a quiet-joy radio. **Save today's moment** — then **YOURS** appears. Tap it to open `/app/yours`.
 3. **0:50** Pale lavender Story playback reads the **woven** story (not the canned joy template). Replay last night.
 4. **1:20** Header shows Token Factory vs demo mode. Mention: vision excavates the photo (MiniCPM-V or your `NEBIUS_VISION_MODEL`), Kimi writes the Nightly Reflection from the still, vault is private, Sonic is stubbed until Token Factory lists it.
 5. **1:50** After YOURS, **Keep** saves the photo with the story. Save again the same day to replace that one moment and open YOURS once more. After midnight the link expires.

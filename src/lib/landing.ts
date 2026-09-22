@@ -41,7 +41,7 @@ export const LANDING = {
     brand: "gooddaynight.com",
     tagline: "One photo. One joy. One story.",
     yoursHint: "YOURS — the link that opens tonight’s story.",
-    captionLabel: "Optional caption",
+    captionLabel: "What’s the good in this one?",
     captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     captionExamples: "a name / a step count / he wrote back",
     captionDropped: "That line couldn’t be saved. The photo still is.",

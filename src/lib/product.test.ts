@@ -575,6 +575,7 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/POST/);
     expect(yours).toMatch(/\/api\/yours/);
     expect(yours).toMatch(/code === "blocked"/);
+    expect(yours).toMatch(/LANDING\.app\.blocked/);
     expect(yours).toMatch(/No YOURS story tonight/);
     expect(yours).toMatch(/Written without seeing the photo/);
     expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
@@ -594,13 +595,20 @@ describe("app capture client contract", () => {
     expect(vault).not.toMatch(/Today's photo is locked/);
     const captures = readFileSync(path.resolve("src/app/api/captures/route.ts"), "utf8");
     expect(captures).not.toMatch(/Today's photo is locked/);
+    expect(captures).toMatch(/appPhotoRejection/);
+    expect(captures).toMatch(/inspectImageSafety/);
+    expect(captures).toMatch(/SAFETY_REFUSAL/);
     expect(picker).toMatch(/playbackTemplate/);
     expect(picker).toMatch(/playbackExample/);
     expect(src).toMatch(/LANDING\.app\.captionHelp/);
     expect(src).toMatch(/LANDING\.app\.captionLabel/);
+    expect(src).toMatch(/LANDING\.app\.captionExamples/);
+    expect(src).toMatch(/placeholder=\{LANDING\.app\.captionExamples\}/);
+    expect(src).toMatch(/\{caption\.length\}\/\{WHISPER_MAX\}/);
     expect(src).not.toMatch(/captionBeside/);
     expect(src).not.toMatch(/one line, 80 characters/);
     expect(src).not.toMatch(/It sits beside the photo/);
+    expect(src).not.toMatch(/Optional caption/);
     expect(src).toMatch(/captionDisposition/);
     expect(src).toMatch(/LANDING\.footer\.somethingGood/);
     expect(src).toMatch(/LANDING\.footer\.lookingForward/);

@@ -53,7 +53,7 @@ describe("app photo save rules", () => {
     ).toBeNull();
   });
 
-  it("rejects video, memes, old dates, and horrific filenames — not captions", () => {
+  it("rejects video, memes, borrowed stock, old dates, and horrific filenames — not captions", () => {
     expect(
       appPhotoRejection({
         day: today,
@@ -82,6 +82,39 @@ describe("app photo save rules", () => {
         joyId: "just-this",
         caption: "",
         mime: "image/jpeg",
+        filename: "unsplash-borrowed.jpg",
+        size: 1200,
+        takenDay: today,
+      }),
+    ).toMatch(/someone else's/i);
+    expect(
+      appPhotoRejection({
+        day: today,
+        joyId: "just-this",
+        caption: "",
+        mime: "image/png",
+        filename: "IMG_screenshot.png",
+        size: 1200,
+        takenDay: today,
+      }),
+    ).toBeNull();
+    expect(
+      appPhotoRejection({
+        day: today,
+        joyId: "just-this",
+        caption: "",
+        mime: "image/jpeg",
+        filename: "blurry-mess.jpg",
+        size: 1200,
+        takenDay: today,
+      }),
+    ).toBeNull();
+    expect(
+      appPhotoRejection({
+        day: today,
+        joyId: "just-this",
+        caption: "",
+        mime: "image/jpeg",
         filename: "old.jpg",
         size: 1200,
         takenDay: "1999-01-01",
@@ -98,6 +131,17 @@ describe("app photo save rules", () => {
         takenDay: today,
       }),
     ).toBeNull();
+    expect(
+      appPhotoRejection({
+        day: today,
+        joyId: "just-this",
+        caption: "",
+        mime: "image/jpeg",
+        filename: "gore-scene.jpg",
+        size: 1200,
+        takenDay: today,
+      }),
+    ).toMatch(/gentle moment/i);
   });
 
   it("keeps captions to one clipped line and drops blocked or essay lines", () => {
