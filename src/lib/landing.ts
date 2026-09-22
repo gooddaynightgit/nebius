@@ -35,12 +35,11 @@ export const LANDING = {
       "Example of tonight’s tone — not your story yet. YOURS writes yours from this photo.",
   },
   app: {
+    heading: "Today. One good moment. Go get it.",
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     yours: "YOURS",
     brand: "gooddaynight.com",
-    tagline: "One photo. One joy. One story.",
-    yoursHint: "YOURS — the link that opens tonight’s story.",
     captionLabel: "Optional caption",
     captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     captionExamples: "a name / a step count / he wrote back",
