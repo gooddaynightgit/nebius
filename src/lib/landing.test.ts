@@ -16,7 +16,8 @@ describe("landing copy", () => {
     ]);
     expect(LANDING.moment.title).toBe("One good moment today");
     expect(LANDING.moment.pictureTitle).toBe("Lay the picture here.");
-    expect(LANDING.moment.joyLegend).toBe("What kind of quiet joy was it? (pick one)");
+    expect(LANDING.moment.joyLegend).toBe("(pick one)");
+    expect(LANDING.moment.joyLegend).not.toMatch(/What kind of quiet joy/i);
     expect(LANDING.app.photoHelp).toBe(
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
@@ -24,11 +25,13 @@ describe("landing copy", () => {
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.tagline).toBe("One photo. One joy. One story.");
     expect(LANDING.app.yoursHint).toBe("YOURS — the link that opens tonight’s story.");
-    expect(LANDING.app.captionLabel).toBe("Optional caption");
+    expect(LANDING.app.captionLabel).toBe("What’s the good in this one?");
     expect(LANDING.app.captionLabel).not.toMatch(/80/);
+    expect(LANDING.app.captionLabel).not.toMatch(/Optional caption/i);
     expect(LANDING.app.captionHelp).toBe(
       "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     );
+    expect(LANDING.app.captionExamples).toBe("a name / a step count / he wrote back");
     expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(
@@ -50,6 +53,9 @@ describe("landing copy", () => {
     expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
+    expect(LANDING.app.switchJoy).toBe("Switch it");
+    expect(LANDING.app.keepMine).toBe("Keep mine");
+    expect(LANDING.app.photoNeed).toBe("Add one photo from today.");
     expect(LANDING.app.tooLarge).toBe("That photo is too large — try again after we shrink it");
     expect(LANDING.app.tooLargeKeep).toBe("Keep photos under 4.5 MB.");
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);
@@ -78,6 +84,9 @@ describe("landing copy", () => {
       "A little movement",
       "One corner, clear",
       "Just this",
+      "A sound you stopped for",
+      "Someone else's good moment",
+      "No name for it",
     ]);
     expect(JOY_TYPES[0]?.playbackTemplate).toBe(
       '"This morning, you stood in the sun. Ten quiet minutes. Gold on your skin. Your body remembered its rhythm. And the day began — gently, breathtakingly, beautifully — with you in it."',
@@ -103,9 +112,13 @@ describe("landing copy", () => {
     expect(JOY_TYPES[3]?.tagline).toBe(
       "Your body remembered it was yours. A walk. A stretch. Your dance.",
     );
-    expect(JOY_TYPES[5]?.tagline).toBe(
+    expect(getJoyById("just-this")?.tagline).toBe(
       "You don't have to name the category. The photo already knows.",
     );
+    expect(getJoyById("a-sound-you-stopped-for")?.title).toBe("A sound you stopped for");
+    expect(getJoyById("someone-elses-good-moment")?.title).toBe("Someone else's good moment");
+    expect(getJoyById("no-name-for-it")?.title).toBe("No name for it");
+    expect(getJoyById("no-name-for-it")?.playbackTemplate).toMatch(/no name/i);
     expect(JOY_TYPES[2]?.body).toContain("This is being gloriously, completely alive.");
     expect(JOY_TYPES[4]?.capture).toBe(
       "a photo of the cleared surface gleaming, your hands mid-tidy, the before-and-after smile on your face.",

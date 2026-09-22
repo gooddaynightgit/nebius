@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { WEAVE_BLOCKED } from "./app-story";
+import { LANDING } from "./landing";
 import { isHorrificFilename, isHorrificText, SAFETY_REFUSAL } from "./safety-text";
 
 describe("horrific denylist", () => {
@@ -10,5 +12,6 @@ describe("horrific denylist", () => {
     expect(isHorrificText("the light on the kettle")).toBe(false);
     expect(isHorrificText("No one cares about me")).toBe(false);
     expect(SAFETY_REFUSAL).toMatch(/gentle moment/i);
+    expect(WEAVE_BLOCKED).toBe(LANDING.app.blocked);
   });
 });

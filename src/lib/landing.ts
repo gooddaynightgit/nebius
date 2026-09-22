@@ -30,7 +30,7 @@ export const LANDING = {
       "ps: a screenshot of three things you're grateful for — handwritten ones especially welcome — your joy, already multiplying.",
     whisperLabel: "A whisper next to the photo. 80 characters.",
     whisperExamples: "the light on the kettle / he wrote back / I made it home",
-    joyLegend: "What kind of quiet joy was it? (pick one)",
+    joyLegend: "(pick one)",
     playbackExample:
       "Example of tonight’s tone — not your story yet. YOURS writes yours from this photo.",
   },
@@ -41,7 +41,7 @@ export const LANDING = {
     brand: "gooddaynight.com",
     tagline: "One photo. One joy. One story.",
     yoursHint: "YOURS — the link that opens tonight’s story.",
-    captionLabel: "Optional caption",
+    captionLabel: "What’s the good in this one?",
     captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     captionExamples: "a name / a step count / he wrote back",
     captionDropped: "That line couldn’t be saved. The photo still is.",
@@ -61,6 +61,9 @@ export const LANDING = {
     unexpected: "Couldn't read Gooddaynight's reply. Refresh and try again.",
     tryAgain: "Try again",
     joyNeed: "Pick the kind of quiet joy first.",
+    switchJoy: "Switch it",
+    keepMine: "Keep mine",
+    photoNeed: "Add one photo from today.",
     tooLarge: "That photo is too large — try again after we shrink it",
     tooLargeKeep: "Keep photos under 4.5 MB.",
     heicAsk: "That photo format isn't supported here. Save it as JPEG or PNG and try again.",
@@ -137,6 +140,33 @@ export const JOY_TYPES: JoyType[] = [
     capture: "exactly as it happened. No explanation required.",
     playbackTemplate:
       '"Today held something that doesn\'t fit in any box — and it was yours. You noticed it. You kept it. Some moments are too alive for categories, and tonight, this one is yours to relive, word by word."',
+  },
+  {
+    id: "a-sound-you-stopped-for",
+    title: "A sound you stopped for",
+    tagline: "A laugh, a bird, a song in the next room. You stayed for it.",
+    body: "Somewhere in the day a sound asked you to pause. A kettle starting. A voice you know. Rain, or a song you didn't plan to hear. You stopped, and the pause was the moment.",
+    capture: "a photo of whatever made the sound — the kettle, the street, the open window.",
+    playbackTemplate:
+      '"Today, a sound found you and you let it. You stopped. The day got quieter and closer, and you were in it."',
+  },
+  {
+    id: "someone-elses-good-moment",
+    title: "Someone else's good moment",
+    tagline: "Their joy crossed your day, and you kept a little of it.",
+    body: "A friend mid-laugh. A stranger's small win. A hello that belonged to someone else and still warmed you. You noticed their good, and a little of it became yours.",
+    capture: "a photo of their smile, their name on the screen, the moment you were glad to witness.",
+    playbackTemplate:
+      '"Today, someone else\'s good moment found you. You noticed it. You kept a little of that warmth, and tonight it is yours to hold."',
+  },
+  {
+    id: "no-name-for-it",
+    title: "No name for it",
+    tagline: "It doesn't fit a box. It still counts.",
+    body: "Some moments refuse a name. Rain on the glass. A weird lovely ordinary thing. You don't have to classify it. Noticing it was enough.",
+    capture: "exactly as it happened. No category required.",
+    playbackTemplate:
+      '"Today held something with no name — and you kept it anyway. You noticed it. Tonight it is still yours."',
   },
 ];
 

@@ -28,6 +28,7 @@ import {
   preparePhotoForUpload,
 } from "@/lib/prepare-photo";
 import { captionDisposition } from "@/lib/app-capture";
+import { applyJoyMatchChoice, suggestJoyId } from "@/lib/joy-match";
 import {
   JOY_NEED,
   explainClientFetchError,
@@ -111,6 +112,12 @@ export default function CaptureStudio() {
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
   const [phoneStash, setPhoneStash] = useState(false);
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
+  const [captionOpen, setCaptionOpen] = useState(false);
+  const [mismatch, setMismatch] = useState<{ line: string; suggestedJoyId: string | null } | null>(
+    null,
+  );
+  const [photoNeedNote, setPhotoNeedNote] = useState<string | null>(null);
+  const matchSeq = useRef(0);
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
@@ -141,12 +148,14 @@ export default function CaptureStudio() {
       if (!hydrated && sessionData.todayPhoto) {
         setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
         setCaption(sessionData.todayPhoto.caption ?? "");
+        setCaptionOpen(true);
         if (!sessionData.todayPhoto.dateVerified) {
           setDateNote(PHOTO_DATE_MESSAGES.unverified);
         }
       } else if (!hydrated && stash) {
         setSelectedJoyId(stash.joyType);
         setCaption(stash.caption);
+        setCaptionOpen(true);
       }
       setHydrated(true);
       setCaptureError((current) => (isReachabilityError(current) ? null : current));
@@ -294,6 +303,8 @@ export default function CaptureStudio() {
     }
     setCaption("");
     setCaptionNote(null);
+    setPhotoNeedNote(null);
+    setMismatch(null);
     setPhoto(next);
     setPhotoUrl((current) => {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
@@ -302,6 +313,93 @@ export default function CaptureStudio() {
     void updateCaptureStashPhoto(day, next).then((updated) => {
       if (updated) setPhoneStash(true);
     });
+    if (selectedJoy) void runJoyMatch(selectedJoy, next);
+  }
+
+  function revealCaption() {
+    setMismatch(null);
+    setPhotoNeedNote(null);
+    setCaptionOpen(true);
+    window.requestAnimationFrame(() => {
+      document.getElementById("caption-box")?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  async function photoForMatch(): Promise<File | null> {
+    if (photo) return photo;
+    const stash = await readCaptureStash(day);
+    if (stash) return stashPhotoFile(stash);
+    if (!savedPhoto?.id) return null;
+    try {
+      const res = await fetch(`/api/media/${savedPhoto.id}`, { credentials: "same-origin" });
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      if (!blob.size) return null;
+      return new File([blob], "moment.jpg", { type: blob.type || "image/jpeg" });
+    } catch {
+      return null;
+    }
+  }
+
+  async function runJoyMatch(joy: JoyType, fileOverride?: File) {
+    const seq = ++matchSeq.current;
+    setMismatch(null);
+    const file = fileOverride ?? (await photoForMatch());
+    if (seq !== matchSeq.current) return;
+    if (!file) {
+      setPhotoNeedNote(LANDING.app.photoNeed);
+      return;
+    }
+    setPhotoNeedNote(null);
+    try {
+      const form = new FormData();
+      form.set("joyType", joy.id);
+      form.set("file", file, file.name || "moment.jpg");
+      const res = await fetch("/api/joy-match", {
+        method: "POST",
+        body: form,
+        credentials: "same-origin",
+      });
+      const data = await readJson<{
+        verdict?: string;
+        line?: string;
+        suggestedJoyId?: string | null;
+      }>(res);
+      if (seq !== matchSeq.current) return;
+      if (data.verdict === "MISMATCH" && data.line?.trim()) {
+        const line = data.line.trim();
+        setCaptionOpen(false);
+        setMismatch({
+          line,
+          suggestedJoyId: data.suggestedJoyId || suggestJoyId(line),
+        });
+        window.requestAnimationFrame(() => {
+          document.getElementById("joy-mismatch")?.scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+            block: "nearest",
+          });
+        });
+        return;
+      }
+      revealCaption();
+    } catch {
+      if (seq !== matchSeq.current) return;
+      revealCaption();
+    }
+  }
+
+  function chooseJoyMatch(choice: "switch" | "keep") {
+    matchSeq.current += 1;
+    const next = applyJoyMatchChoice({
+      choice,
+      currentJoyId: selectedJoyId ?? "",
+      suggestedJoyId: mismatch?.suggestedJoyId ?? null,
+    });
+    if (next.joyId) setSelectedJoyId(next.joyId);
+    revealCaption();
   }
 
   function recoverPreview() {
@@ -320,6 +418,7 @@ export default function CaptureStudio() {
     setSelectedJoyId(joy.id);
     setJoyError(null);
     setCaptureError(null);
+    void runJoyMatch(joy);
   }
 
   async function saveMoment(event: FormEvent) {
@@ -327,7 +426,7 @@ export default function CaptureStudio() {
     const existingStash = await readCaptureStash(day);
     const uploadPhoto = photo ?? (existingStash ? stashPhotoFile(existingStash) : null);
     if (!uploadPhoto && !savedPhoto) {
-      setCaptureError("Add one photo from today.");
+      setCaptureError(LANDING.app.photoNeed);
       return;
     }
     if (!selectedJoy) {
@@ -507,28 +606,19 @@ export default function CaptureStudio() {
                   onError={recoverPreview}
                 />
               ) : null}
-              <>
-                <label className="whisper-label" htmlFor={captionId} style={{ color: "#f4f7fb" }}>
-                  {LANDING.app.captionLabel}
-                </label>
-                <p className="cta-copy" style={{ marginTop: 0 }}>
-                  {LANDING.app.captionHelp}
-                </p>
-                <input
-                  id={captionId}
-                  type="text"
-                  maxLength={WHISPER_MAX}
-                  autoComplete="off"
-                  placeholder={LANDING.app.captionExamples}
-                  value={caption}
-                  onChange={(event) =>
-                    setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
-                  }
-                />
-                <p className="whisper-count" style={{ color: "rgba(244,247,251,0.7)" }}>
-                  {caption.length}/{WHISPER_MAX}
-                </p>
-              </>
+              {mismatch ? (
+                <div id="joy-mismatch" className="joy-mismatch" role="status">
+                  <p className="joy-mismatch__line">{mismatch.line}</p>
+                  <div className="joy-mismatch__actions">
+                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("switch")}>
+                      {LANDING.app.switchJoy}
+                    </button>
+                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("keep")}>
+                      {LANDING.app.keepMine}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
             {dateNote ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
@@ -573,11 +663,16 @@ export default function CaptureStudio() {
           >
             <span className="pill">Joy</span>
             <h2 id="joy-heading" className="visually-hidden">
-              What kind of quiet joy was it?
+              {LANDING.moment.joyLegend}
             </h2>
             {joyError ? (
               <p className="error" role="alert" id="joy-need" style={{ margin: "0 0 0.85rem" }}>
                 {joyError}
+              </p>
+            ) : null}
+            {photoNeedNote ? (
+              <p className="notice" style={{ margin: "0 0 0.85rem" }}>
+                {photoNeedNote}
               </p>
             ) : null}
             <JoyPicker
@@ -588,6 +683,30 @@ export default function CaptureStudio() {
             />
             <span className="card__wash card__wash--note" aria-hidden="true"></span>
           </section>
+
+          {captionOpen ? (
+            <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
+              <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
+                {LANDING.app.captionLabel}
+              </label>
+              <p className="caption-help">{LANDING.app.captionHelp}</p>
+              <input
+                id={captionId}
+                className="whisper"
+                type="text"
+                maxLength={WHISPER_MAX}
+                autoComplete="off"
+                placeholder={LANDING.app.captionExamples}
+                value={caption}
+                onChange={(event) =>
+                  setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
+                }
+              />
+              <p className="whisper-count">
+                {caption.length}/{WHISPER_MAX}
+              </p>
+            </section>
+          ) : null}
 
           <section className="card card--lime card--compact">
             <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
