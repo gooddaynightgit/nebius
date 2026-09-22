@@ -632,6 +632,18 @@ describe("app capture client contract", () => {
     expect(src.indexOf("LANDING.app.captionLabel")).toBeGreaterThan(src.indexOf('id="joy-pick"'));
     expect(src).toMatch(/card card--peach card--compact/);
     expect(src).toMatch(/\/api\/joy-match/);
+    expect(src).toMatch(/<JoyPicker[\s\S]*?\bcompact\b/);
+    expect(src).toMatch(/joy_type/);
+    expect(src).toMatch(/photoRef/);
+    expect(src).toMatch(/verdict === "NEED_PHOTO"/);
+    expect(src).toMatch(/verdict === "UNAVAILABLE"/);
+    expect(src).toMatch(/LANDING\.app\.witnessQuiet/);
+    expect(src).toMatch(/captionScroll/);
+    expect(src).toMatch(/id="joy-witness-quiet"/);
+    expect(src).toMatch(/id="caption-box"/);
+    expect(picker).toMatch(/compact\?:/);
+    expect(picker).toMatch(/joy-pill__title/);
+    expect(picker).toMatch(/joy-fieldset--compact/);
     expect(src).toMatch(/applyJoyMatchChoice/);
     expect(src).toMatch(/suggestJoyId/);
     expect(src).toMatch(/chooseJoyMatch\("switch"\)/);

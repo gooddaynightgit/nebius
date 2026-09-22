@@ -26,6 +26,8 @@ type JoyPickerProps = {
   idPrefix?: string;
   selectedId?: string | null;
   onSelect?: (joy: JoyType) => void;
+  /** Title-only pills. Used on /app so a joy tap does not open the story panel. */
+  compact?: boolean;
 };
 
 export default function JoyPicker({
@@ -33,23 +35,49 @@ export default function JoyPicker({
   idPrefix = "joy",
   selectedId,
   onSelect,
+  compact = false,
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
   const selected = selectedId === undefined ? internalId : selectedId;
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!selected || !panelRef.current) return;
+    if (compact || !selected || !panelRef.current) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     panelRef.current.scrollIntoView({
       behavior: reduce ? "auto" : "smooth",
       block: "nearest",
     });
-  }, [selected]);
+  }, [compact, selected]);
 
   function pick(joy: JoyType) {
     if (selectedId === undefined) setInternalId(joy.id);
     onSelect?.(joy);
+  }
+
+  if (compact) {
+    return (
+      <fieldset className="joy-fieldset joy-fieldset--compact">
+        <legend className="joy-legend">{LANDING.moment.joyLegend}</legend>
+        <div className="joy-pills">
+          {JOY_TYPES.map((joy) => {
+            const open = selected === joy.id;
+            return (
+              <label key={joy.id} className={open ? "joy-pill is-selected" : "joy-pill"}>
+                <input
+                  type="radio"
+                  name={name}
+                  value={joy.id}
+                  checked={open}
+                  onChange={() => pick(joy)}
+                />
+                <span className="joy-pill__title">{joy.title}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+    );
   }
 
   return (
