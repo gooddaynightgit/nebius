@@ -141,7 +141,7 @@ export async function witnessJoyMatch(input: {
     const userContent: ChatMessage["content"] = [
       {
         type: "text",
-        text: `Joy picked: ${input.joyTitle}\nReply with one line only: MATCH, or MISMATCH | and the short line.\nPhoto:`,
+        text: `Joy picked: ${input.joyTitle}\nA screen print matches only when it clearly shows that joy. For A small hello, that means a greeting, text thread, hello bubble, wave, or laugh with someone. A settings screen, generic app chrome, article, spreadsheet, or home screen is MISMATCH.\nReply with one line only: MATCH, or MISMATCH | what you see, then feels more like ... to me.\nPhoto:`,
       },
       { type: "image_url", image_url: { url: input.imageDataUrl } },
     ];

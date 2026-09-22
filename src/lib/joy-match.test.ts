@@ -128,6 +128,11 @@ describe("joy match witness", () => {
         const system = messages[0]?.content;
         expect(system).toContain("not automatically a hello");
         expect(system).toContain(JOY_MATCH_CORE);
+        const user = messages[1]?.content;
+        const userText = Array.isArray(user) ? String(user[0]?.text ?? "") : String(user ?? "");
+        expect(userText).toContain("one line only");
+        expect(userText).toContain("A small hello");
+        expect(options?.maxTokens).toBeGreaterThanOrEqual(80);
         return { text: "MATCH", model: "test" };
       },
     });
