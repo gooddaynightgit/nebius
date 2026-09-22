@@ -484,6 +484,9 @@ describe("landing", () => {
       "A little movement",
       "One corner, clear",
       "Just this",
+      "A sound you stopped for",
+      "Someone else's good moment",
+      "No name for it",
     ]) {
       expect(copy).toContain(title);
     }
@@ -621,6 +624,18 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
     expect(src).toMatch(/explainClientFetchError/);
     expect(src).toMatch(/id="joy-pick"/);
+    expect(src.indexOf('id="caption-box"')).toBeGreaterThan(src.indexOf('id="joy-pick"'));
+    expect(src.indexOf("LANDING.app.captionLabel")).toBeGreaterThan(src.indexOf('id="joy-pick"'));
+    expect(src).toMatch(/card card--peach card--compact/);
+    expect(src).toMatch(/\/api\/joy-match/);
+    expect(src).toMatch(/applyJoyMatchChoice/);
+    expect(src).toMatch(/suggestJoyId/);
+    expect(src).toMatch(/chooseJoyMatch\("switch"\)/);
+    expect(src).toMatch(/chooseJoyMatch\("keep"\)/);
+    expect(src).toMatch(/LANDING\.app\.switchJoy/);
+    expect(src).toMatch(/LANDING\.app\.keepMine/);
+    expect(src).toMatch(/verdict === "MISMATCH"/);
+    expect(src).toMatch(/id="joy-mismatch"/);
     expect(src).toMatch(/id="joy-need"/);
     expect(src).toMatch(/JOY_NEED/);
     expect(src).toMatch(/PHOTO_DATE_MESSAGES\.unverified/);

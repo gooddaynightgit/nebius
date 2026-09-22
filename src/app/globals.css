@@ -432,6 +432,58 @@ a {
   font-weight: 650;
 }
 
+.caption-help {
+  margin: 0.35rem 0 0.75rem;
+  max-width: 28rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.caption-box .whisper-label,
+#caption-box .whisper-label {
+  display: block;
+}
+
+.joy-mismatch {
+  margin-top: 0.85rem;
+  animation: joy-mismatch-in 420ms var(--ease) both;
+}
+
+.joy-mismatch__line {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.joy-mismatch__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.joy-mismatch__actions .btn {
+  width: auto;
+  padding: 0.42rem 0.9rem;
+  font-size: 0.88rem;
+}
+
+@keyframes joy-mismatch-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .joy-mismatch {
+    animation: none;
+  }
+}
+
 .joy-fieldset {
   position: relative;
   z-index: 1;
