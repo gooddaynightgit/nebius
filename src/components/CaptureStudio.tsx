@@ -426,9 +426,7 @@ export default function CaptureStudio() {
 
       <main id="main">
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
-          <h1 id="app-moment-heading">{LANDING.moment.title}</h1>
-          <p className="app-tagline">{LANDING.app.tagline}</p>
-          <p className="app-yours-hint">{LANDING.app.yoursHint}</p>
+          <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
         </section>
 
         <form onSubmit={saveMoment}>

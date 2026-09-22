@@ -20,10 +20,9 @@ describe("landing copy", () => {
     expect(LANDING.app.photoHelp).toBe(
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
+    expect(LANDING.app.heading).toBe("Today. One good moment. Go get it.");
     expect(LANDING.app.yours).toBe("YOURS");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
-    expect(LANDING.app.tagline).toBe("One photo. One joy. One story.");
-    expect(LANDING.app.yoursHint).toBe("YOURS — the link that opens tonight’s story.");
     expect(LANDING.app.captionLabel).toBe("Optional caption");
     expect(LANDING.app.captionLabel).not.toMatch(/80/);
     expect(LANDING.app.captionHelp).toBe(

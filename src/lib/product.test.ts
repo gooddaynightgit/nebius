@@ -512,9 +512,11 @@ describe("app capture client contract", () => {
     const src = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
     const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
     const picker = readFileSync(path.resolve("src/components/JoyPicker.tsx"), "utf8");
-    expect(src).toMatch(/LANDING\.moment\.title/);
-    expect(src).toMatch(/LANDING\.app\.tagline/);
-    expect(src).toMatch(/LANDING\.app\.yoursHint/);
+    expect(src).toMatch(/LANDING\.app\.heading/);
+    expect(src).not.toMatch(/LANDING\.moment\.title/);
+    expect(src).not.toMatch(/LANDING\.app\.tagline/);
+    expect(src).not.toMatch(/LANDING\.app\.yoursHint/);
+    expect(src).not.toMatch(/app-tagline|app-yours-hint/);
     expect(src).toMatch(/LANDING\.app\.photoHelp/);
     expect(src).toMatch(/LANDING\.app\.yours/);
     expect(src).toMatch(/id="yours-door"/);
