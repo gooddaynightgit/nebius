@@ -1,6 +1,13 @@
 import { hasTokenFactoryKey } from "./config";
 import { getJoyById, JOY_TYPES } from "./landing";
-import { completeWithFallback, stripReasoning, visionModels, type ChatMessage } from "./nebius";
+import {
+  appStoryVisionModels,
+  completeWithFallback,
+  stripReasoning,
+  uniqueModels,
+  visionModels,
+  type ChatMessage,
+} from "./nebius";
 
 /** Verbatim witness prompt. Category names here follow Jasmine’s list. */
 export const JOY_MATCH_SYSTEM = `You are the witness inside Gooddaynight, an app that trains people to notice one good moment a day.
@@ -23,7 +30,14 @@ Tone rules for the mismatch line:
 
 export type JoyMatchResult =
   | { kind: "match" }
-  | { kind: "mismatch"; line: string; suggestedJoyId: string | null };
+  | { kind: "mismatch"; line: string; suggestedJoyId: string | null }
+  | { kind: "unavailable" }
+  | { kind: "need-photo" };
+
+/** Vision ids YOURS already uses, then the image2text closer if vision throws. */
+export function joyMatchModels(): string[] {
+  return uniqueModels(...visionModels(), ...appStoryVisionModels());
+}
 
 function normalizeCategory(value: string): string {
   return value
@@ -74,8 +88,8 @@ export async function witnessJoyMatch(input: {
   imageDataUrl: string;
   complete?: typeof completeWithFallback;
 }): Promise<JoyMatchResult> {
-  if (!input.imageDataUrl) return { kind: "match" };
-  if (!input.complete && !hasTokenFactoryKey()) return { kind: "match" };
+  if (!input.imageDataUrl) return { kind: "need-photo" };
+  if (!input.complete && !hasTokenFactoryKey()) return { kind: "unavailable" };
   const complete = input.complete ?? completeWithFallback;
   try {
     const userContent: ChatMessage["content"] = [
@@ -83,7 +97,7 @@ export async function witnessJoyMatch(input: {
       { type: "image_url", image_url: { url: input.imageDataUrl } },
     ];
     const result = await complete(
-      visionModels(),
+      joyMatchModels(),
       [
         { role: "system", content: JOY_MATCH_SYSTEM },
         { role: "user", content: userContent },

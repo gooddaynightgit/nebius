@@ -55,6 +55,7 @@ describe("landing copy", () => {
     expect(LANDING.app.switchJoy).toBe("Switch it");
     expect(LANDING.app.keepMine).toBe("Keep mine");
     expect(LANDING.app.photoNeed).toBe("Add one photo from today.");
+    expect(LANDING.app.witnessQuiet).toBe("The witness didn’t look. The caption is still yours.");
     expect(LANDING.app.tooLarge).toBe("That photo is too large — try again after we shrink it");
     expect(LANDING.app.tooLargeKeep).toBe("Keep photos under 4.5 MB.");
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);

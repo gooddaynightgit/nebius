@@ -121,7 +121,7 @@ nebius ai job create \
 | GET | `/api/health` | Models (including `storyText` / `excavateText`), `closerChain`, storage backend, Token Factory flag |
 | GET | `/api/session` | Anonymous cookie vault |
 | GET/POST | `/api/captures` | List / store a moment and Nano-ingest. `source=app` enforces one photo/day, today-only, joy pick, caption ≤80, no video, safety denylist |
-| POST | `/api/joy-match` | Witness whether the photo fits the joy just tapped. `MATCH` or `MISMATCH`. Model failure fails open as `MATCH` |
+| POST | `/api/joy-match` | Witness whether the photo fits the joy just tapped (`joy_type` + file). `MATCH`, `MISMATCH`, `NEED_PHOTO` (no file), or `UNAVAILABLE` (no Token Factory key). Model errors fail open as `MATCH` |
 | GET | `/api/media/:id` | Private media for this vault |
 | GET/POST | `/api/yours` | Open tonight's woven story, lock the photo; 404 after midnight or if nothing was saved |
 | POST | `/api/email` | Gate after ≥1 capture on the landing path; accepts client `captures` if the server vault is empty; migrate anon → email vault |

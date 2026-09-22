@@ -63,6 +63,7 @@ export const LANDING = {
     switchJoy: "Switch it",
     keepMine: "Keep mine",
     photoNeed: "Add one photo from today.",
+    witnessQuiet: "The witness didn’t look. The caption is still yours.",
     tooLarge: "That photo is too large — try again after we shrink it",
     tooLargeKeep: "Keep photos under 4.5 MB.",
     heicAsk: "That photo format isn't supported here. Save it as JPEG or PNG and try again.",

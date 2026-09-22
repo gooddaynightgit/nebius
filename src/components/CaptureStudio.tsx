@@ -117,7 +117,12 @@ export default function CaptureStudio() {
     null,
   );
   const [photoNeedNote, setPhotoNeedNote] = useState<string | null>(null);
+  const [witnessNote, setWitnessNote] = useState<string | null>(null);
+  const [captionScroll, setCaptionScroll] = useState(0);
+  const [mismatchScroll, setMismatchScroll] = useState(0);
   const matchSeq = useRef(0);
+  const photoRef = useRef<File | null>(null);
+  const witnessNoted = useRef(false);
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
@@ -194,6 +199,30 @@ export default function CaptureStudio() {
       liveStream?.getTracks().forEach((track) => track.stop());
     };
   }, [liveStream]);
+
+  useEffect(() => {
+    if (!captionScroll) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("caption-box")?.scrollIntoView({
+        behavior: reduce ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [captionScroll]);
+
+  useEffect(() => {
+    if (!mismatch || !mismatchScroll) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("joy-mismatch")?.scrollIntoView({
+        behavior: reduce ? "auto" : "smooth",
+        block: "nearest",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [mismatch, mismatchScroll]);
 
   function stopLiveCamera() {
     liveStream?.getTracks().forEach((track) => track.stop());
@@ -305,6 +334,7 @@ export default function CaptureStudio() {
     setCaptionNote(null);
     setPhotoNeedNote(null);
     setMismatch(null);
+    photoRef.current = next;
     setPhoto(next);
     setPhotoUrl((current) => {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
@@ -320,25 +350,35 @@ export default function CaptureStudio() {
     setMismatch(null);
     setPhotoNeedNote(null);
     setCaptionOpen(true);
-    window.requestAnimationFrame(() => {
-      document.getElementById("caption-box")?.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-        block: "start",
-      });
-    });
+    setCaptionScroll((n) => n + 1);
+  }
+
+  function noteWitnessQuiet(note: string) {
+    if (witnessNoted.current) return;
+    witnessNoted.current = true;
+    setWitnessNote(note);
   }
 
   async function photoForMatch(): Promise<File | null> {
-    if (photo) return photo;
+    const current = photoRef.current ?? photo;
+    if (current && current.size > 0) return current;
     const stash = await readCaptureStash(day);
-    if (stash) return stashPhotoFile(stash);
+    if (stash?.photo && stash.photo.size > 0) {
+      const stashed = stashPhotoFile(stash);
+      if (stashed.size > 0) {
+        photoRef.current = stashed;
+        return stashed;
+      }
+    }
     if (!savedPhoto?.id) return null;
     try {
       const res = await fetch(`/api/media/${savedPhoto.id}`, { credentials: "same-origin" });
       if (!res.ok) return null;
       const blob = await res.blob();
       if (!blob.size) return null;
-      return new File([blob], "moment.jpg", { type: blob.type || "image/jpeg" });
+      const file = new File([blob], "moment.jpg", { type: blob.type || "image/jpeg" });
+      photoRef.current = file;
+      return file;
     } catch {
       return null;
     }
@@ -347,7 +387,8 @@ export default function CaptureStudio() {
   async function runJoyMatch(joy: JoyType, fileOverride?: File) {
     const seq = ++matchSeq.current;
     setMismatch(null);
-    const file = fileOverride ?? (await photoForMatch());
+    const override = fileOverride && fileOverride.size > 0 ? fileOverride : null;
+    const file = override ?? (await photoForMatch());
     if (seq !== matchSeq.current) return;
     if (!file) {
       setPhotoNeedNote(LANDING.app.photoNeed);
@@ -356,6 +397,7 @@ export default function CaptureStudio() {
     setPhotoNeedNote(null);
     try {
       const form = new FormData();
+      form.set("joy_type", joy.id);
       form.set("joyType", joy.id);
       form.set("file", file, file.name || "moment.jpg");
       const res = await fetch("/api/joy-match", {
@@ -366,9 +408,19 @@ export default function CaptureStudio() {
       const data = await readJson<{
         verdict?: string;
         line?: string;
+        note?: string;
         suggestedJoyId?: string | null;
       }>(res);
       if (seq !== matchSeq.current) return;
+      if (data.verdict === "NEED_PHOTO") {
+        setPhotoNeedNote(LANDING.app.photoNeed);
+        return;
+      }
+      if (data.verdict === "UNAVAILABLE") {
+        noteWitnessQuiet(data.note?.trim() || LANDING.app.witnessQuiet);
+        revealCaption();
+        return;
+      }
       if (data.verdict === "MISMATCH" && data.line?.trim()) {
         const line = data.line.trim();
         setCaptionOpen(false);
@@ -376,12 +428,7 @@ export default function CaptureStudio() {
           line,
           suggestedJoyId: data.suggestedJoyId || suggestJoyId(line),
         });
-        window.requestAnimationFrame(() => {
-          document.getElementById("joy-mismatch")?.scrollIntoView({
-            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-            block: "nearest",
-          });
-        });
+        setMismatchScroll((n) => n + 1);
         return;
       }
       revealCaption();
@@ -418,7 +465,8 @@ export default function CaptureStudio() {
     setSelectedJoyId(joy.id);
     setJoyError(null);
     setCaptureError(null);
-    void runJoyMatch(joy);
+    const current = photoRef.current;
+    void runJoyMatch(joy, current && current.size > 0 ? current : undefined);
   }
 
   async function saveMoment(event: FormEvent) {
@@ -674,6 +722,7 @@ export default function CaptureStudio() {
               </p>
             ) : null}
             <JoyPicker
+              compact
               name="quiet-joy-app"
               idPrefix="app-joy"
               selectedId={selectedJoyId}
@@ -684,6 +733,11 @@ export default function CaptureStudio() {
 
           {captionOpen ? (
             <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
+              {witnessNote ? (
+                <p className="notice" id="joy-witness-quiet">
+                  {witnessNote}
+                </p>
+              ) : null}
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
               </label>

@@ -1,7 +1,11 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { getJoyById } from "./landing";
+import { POST } from "@/app/api/joy-match/route";
+import { getJoyById, LANDING } from "./landing";
 import {
   applyJoyMatchChoice,
+  joyMatchModels,
   JOY_MATCH_SYSTEM,
   parseJoyMatch,
   suggestJoyId,
@@ -102,5 +106,71 @@ describe("joy match witness", () => {
       },
     });
     expect(failed).toEqual({ kind: "match" });
+  });
+
+  it("does not pretend a witness ran without a photo or a Token Factory key", async () => {
+    let called = false;
+    const missingPhoto = await witnessJoyMatch({
+      joyTitle: "Morning sunlight",
+      imageDataUrl: "",
+      complete: async () => {
+        called = true;
+        return { text: "MATCH", model: "test" };
+      },
+    });
+    expect(missingPhoto).toEqual({ kind: "need-photo" });
+    expect(called).toBe(false);
+
+    const previous = process.env.NEBIUS_API_KEY;
+    delete process.env.NEBIUS_API_KEY;
+    try {
+      const missingKey = await witnessJoyMatch({
+        joyTitle: "Morning sunlight",
+        imageDataUrl: "data:image/jpeg;base64,abc",
+      });
+      expect(missingKey).toEqual({ kind: "unavailable" });
+    } finally {
+      if (previous === undefined) delete process.env.NEBIUS_API_KEY;
+      else process.env.NEBIUS_API_KEY = previous;
+    }
+
+    expect(joyMatchModels()).toContain("openbmb/MiniCPM-V-4_5");
+    expect(joyMatchModels()).toContain("moonshotai/Kimi-K2.6");
+    const route = readFileSync(path.resolve("src/app/api/joy-match/route.ts"), "utf8");
+    expect(route).toMatch(/JOY_MATCH_SYSTEM|witnessJoyMatch/);
+    expect(route).toMatch(/NEED_PHOTO/);
+    expect(route).toMatch(/UNAVAILABLE/);
+    expect(route).toMatch(/joy_type/);
+  });
+});
+
+describe("joy match route", () => {
+  it("returns NEED_PHOTO without a file and UNAVAILABLE when the key is absent", async () => {
+    const previous = process.env.NEBIUS_API_KEY;
+    delete process.env.NEBIUS_API_KEY;
+    try {
+      const empty = new FormData();
+      empty.set("joy_type", "morning-sunlight");
+      const needPhoto = await POST(
+        new Request("http://localhost/api/joy-match", { method: "POST", body: empty }),
+      );
+      expect(needPhoto.status).toBe(200);
+      expect(await needPhoto.json()).toEqual({ verdict: "NEED_PHOTO" });
+
+      const withFile = new FormData();
+      withFile.set("joyType", "morning-sunlight");
+      withFile.set("file", new File([Uint8Array.from([1, 2, 3, 4])], "moment.jpg", { type: "image/jpeg" }));
+      const unavailable = await POST(
+        new Request("http://localhost/api/joy-match", { method: "POST", body: withFile }),
+      );
+      expect(unavailable.status).toBe(200);
+      expect(await unavailable.json()).toEqual({
+        verdict: "UNAVAILABLE",
+        note: LANDING.app.witnessQuiet,
+      });
+    } finally {
+      if (previous === undefined) delete process.env.NEBIUS_API_KEY;
+      else process.env.NEBIUS_API_KEY = previous;
+    }
   });
 });

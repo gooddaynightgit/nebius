@@ -492,6 +492,53 @@ a {
   border: 0;
 }
 
+.joy-fieldset--compact .joy-legend {
+  font-size: 1rem;
+}
+
+.joy-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.joy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.42rem 0.8rem 0.42rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+}
+
+.joy-pill input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--navy);
+  flex: 0 0 auto;
+}
+
+.joy-pill.is-selected {
+  background: #fff;
+  box-shadow: 0 0 0 1.5px rgba(22, 50, 74, 0.28);
+}
+
+.joy-pill__title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+#caption-box,
+#joy-mismatch {
+  scroll-margin-top: 1rem;
+}
+
 .joy-legend {
   padding: 0;
   font-size: clamp(1.15rem, 4.6vw, 1.35rem);
