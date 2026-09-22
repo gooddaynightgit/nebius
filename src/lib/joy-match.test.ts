@@ -6,6 +6,7 @@ import { getJoyById, LANDING } from "./landing";
 import {
   applyJoyMatchChoice,
   joyMatchModels,
+  JOY_MATCH_CORE,
   JOY_MATCH_SYSTEM,
   parseJoyMatch,
   suggestJoyId,
@@ -44,10 +45,48 @@ describe("joy match parse", () => {
     );
     expect(suggestJoyId("feels more like Morning sunlight to me")).toBe("morning-sunlight");
     expect(suggestJoyId("rain on the glass, nothing named")).toBeNull();
-    expect(JOY_MATCH_SYSTEM).toMatch(/^You are the witness inside Gooddaynight/);
+    expect(JOY_MATCH_SYSTEM.startsWith(JOY_MATCH_CORE)).toBe(true);
+    expect(JOY_MATCH_CORE).toMatch(/^You are the witness inside Gooddaynight/);
     expect(JOY_MATCH_SYSTEM).toMatch(/respond with exactly: MATCH/);
     expect(JOY_MATCH_SYSTEM).toMatch(/MISMATCH \|/);
     expect(JOY_MATCH_SYSTEM).toMatch(/No name for it/);
+    expect(JOY_MATCH_SYSTEM).toMatch(/settings screen/);
+    expect(JOY_MATCH_SYSTEM).toMatch(/text thread/);
+    expect(JOY_MATCH_SYSTEM).toMatch(/not automatically a hello/);
+  });
+
+  it("finds a MATCH or MISMATCH line after a preamble", () => {
+    const settings =
+      "A settings screen with toggles — feels more like no name for it to me.";
+    expect(
+      parseJoyMatch(
+        `The screen is just settings, so this is unrelated.\n\nMISMATCH | ${settings}`,
+      ),
+    ).toEqual({
+      kind: "mismatch",
+      line: settings,
+      suggestedJoyId: "no-name-for-it",
+    });
+    expect(parseJoyMatch("This hello thread fits.\n\nMATCH")).toEqual({ kind: "match" });
+    expect(
+      parseJoyMatch(
+        "**MISMATCH | A home screen full of icons — feels more like no name for it to me.**",
+      ),
+    ).toEqual({
+      kind: "mismatch",
+      line: "A home screen full of icons — feels more like no name for it to me.",
+      suggestedJoyId: "no-name-for-it",
+    });
+    expect(parseJoyMatch("MATCH\nMISMATCH | ignore this later line")).toEqual({ kind: "match" });
+    expect(
+      parseJoyMatch(
+        "<think>settings, not a hello</think>\nmismatch | A settings screen — feels more like no name for it to me.",
+      ),
+    ).toEqual({
+      kind: "mismatch",
+      line: "A settings screen — feels more like no name for it to me.",
+      suggestedJoyId: "no-name-for-it",
+    });
   });
 });
 
@@ -80,11 +119,19 @@ describe("joy match choices", () => {
 
 describe("joy match witness", () => {
   it("returns the parsed verdict and fails open when the model throws", async () => {
+    let seenTemp: number | undefined;
     const match = await witnessJoyMatch({
-      joyTitle: "Morning sunlight",
+      joyTitle: "A small hello",
       imageDataUrl: "data:image/jpeg;base64,abc",
-      complete: async () => ({ text: "MATCH", model: "test" }),
+      complete: async (_models, messages, options) => {
+        seenTemp = options?.temperature;
+        const system = messages[0]?.content;
+        expect(system).toContain("not automatically a hello");
+        expect(system).toContain(JOY_MATCH_CORE);
+        return { text: "MATCH", model: "test" };
+      },
     });
+    expect(seenTemp).toBe(0);
     expect(match).toEqual({ kind: "match" });
 
     const mismatch = await witnessJoyMatch({
