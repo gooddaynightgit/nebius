@@ -573,7 +573,7 @@ export default function CaptureStudio() {
           >
             <span className="pill">Joy</span>
             <h2 id="joy-heading" className="visually-hidden">
-              What kind of quiet joy was it?
+              {LANDING.moment.joyLegend}
             </h2>
             {joyError ? (
               <p className="error" role="alert" id="joy-need" style={{ margin: "0 0 0.85rem" }}>

@@ -471,7 +471,8 @@ describe("landing", () => {
     );
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
-    expect(copy).toContain("What kind of quiet joy was it? (pick one)");
+    expect(copy).toContain('joyLegend: "(pick one)"');
+    expect(copy).not.toContain("What kind of quiet joy was it?");
     expect(copy).toContain("You can change the picture if the day gets kinder.");
     expect(copy).toContain("One moment. One story.");
     expect(copy).toContain("Something good is about to happen!");
@@ -558,6 +559,8 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/htmlFor=\{takeInputId\}/);
     expect(src).toMatch(/JoyPicker/);
     expect(src).toMatch(/quiet-joy-app/);
+    expect(src).toMatch(/LANDING\.moment\.joyLegend/);
+    expect(src).not.toMatch(/What kind of quiet joy was it\?/);
     expect(src).not.toMatch(/href="#yours"/);
     expect(src).not.toMatch(/type="email"/);
     expect(src).not.toMatch(/role="tablist"/);

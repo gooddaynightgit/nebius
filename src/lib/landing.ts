@@ -30,7 +30,7 @@ export const LANDING = {
       "ps: a screenshot of three things you're grateful for — handwritten ones especially welcome — your joy, already multiplying.",
     whisperLabel: "A whisper next to the photo. 80 characters.",
     whisperExamples: "the light on the kettle / he wrote back / I made it home",
-    joyLegend: "What kind of quiet joy was it? (pick one)",
+    joyLegend: "(pick one)",
     playbackExample:
       "Example of tonight’s tone — not your story yet. YOURS writes yours from this photo.",
   },
