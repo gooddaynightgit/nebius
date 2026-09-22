@@ -461,8 +461,10 @@ describe("landing", () => {
       "You scrolled past a hundred good moments today. None of them were yours.",
     );
     expect(copy).toContain(
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does.",
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
     );
+    expect(page).toContain('<Link href="/app" aria-label="Open the capture page">');
+    expect(page).toContain("→");
     expect(copy).toContain(
       "Snap one good moment from your day. Gooddaynight reads it back to you as a beautiful story — your own.",
     );

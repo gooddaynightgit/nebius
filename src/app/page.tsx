@@ -21,7 +21,10 @@ export default function HomePage() {
         <section className="card card--lavender">
           <p className="card__body">
             Your laugh. Your small win. Your quiet moment. Nobody turned them
-            into anything — not even you. Gooddaynight does.
+            into anything — not even you. Gooddaynight does{" "}
+            <Link href="/app" aria-label="Open the capture page">
+              →
+            </Link>
           </p>
           <span className="card__wash card__wash--ten" aria-hidden="true"></span>
         </section>

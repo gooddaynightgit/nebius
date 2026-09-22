@@ -7,7 +7,7 @@ describe("landing copy", () => {
       "You scrolled past a hundred good moments today. None of them were yours.",
     );
     expect(LANDING.hero.subheadline).toBe(
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does.",
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
     );
     expect(LANDING.hero.cta).toBe("Hear your story — free");
     expect(LANDING.hero.microcopy).toEqual([

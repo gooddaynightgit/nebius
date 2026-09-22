@@ -11,7 +11,7 @@ export const LANDING = {
   hero: {
     h1: "You scrolled past a hundred good moments today. None of them were yours.",
     subheadline:
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does.",
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
     cta: "Hear your story — free",
     microcopy: [
       "Snap one good moment from your day. Gooddaynight reads it back to you as a beautiful story — your own.",
