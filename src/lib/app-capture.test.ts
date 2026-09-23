@@ -53,7 +53,7 @@ describe("app photo save rules", () => {
     ).toBeNull();
   });
 
-  it("rejects video, memes, borrowed stock, old dates, and horrific filenames — not captions", () => {
+  it("rejects video, memes, someone else's moment, confirmed older dates, and horrific filenames — not captions", () => {
     expect(
       appPhotoRejection({
         day: today,
@@ -118,8 +118,32 @@ describe("app photo save rules", () => {
         filename: "old.jpg",
         size: 1200,
         takenDay: "1999-01-01",
+        dateVerified: true,
       }),
     ).toBe(PHOTO_DATE_MESSAGES.old);
+    expect(
+      appPhotoRejection({
+        day: today,
+        joyId: "just-this",
+        caption: "",
+        mime: "image/jpeg",
+        filename: "screenshot-watch-face.png",
+        size: 1200,
+        takenDay: "1999-01-01",
+        dateVerified: false,
+      }),
+    ).toBeNull();
+    expect(
+      appPhotoRejection({
+        day: today,
+        joyId: "just-this",
+        caption: "",
+        mime: "image/jpeg",
+        filename: "sad-hard-ordinary.jpg",
+        size: 1200,
+        takenDay: null,
+      }),
+    ).toBeNull();
     expect(
       appPhotoRejection({
         day: today,

@@ -145,8 +145,18 @@ export function inspectPhotoDate(input: {
 export const PHOTO_DATE_MESSAGES = {
   today: "Wonderful, your photo was taken today.",
   old: "This photo looks older than today. Tonight only holds today's moment.",
-  unverified:
-    "We couldn't confirm a camera date. Only today's moment counts — we'll save it as today.",
-  missing:
-    "We couldn't read when this photo was made. Only today's moment counts.",
 } as const;
+
+/** In-app and help copy. Exact wording — do not paraphrase. */
+export const PHOTO_SAVE_RULES = [
+  "Only one photo per calendar day (midnight–23:59, phone’s local time).",
+  "The photo is required. No photo, no save, no good moment.",
+  `When from today — camera roll today, message: ${PHOTO_DATE_MESSAGES.today}`,
+  "Screenshots count: a hello, a gift message, a tracker, a watch face.",
+  "A video is not saved. One still frame from it may be saved instead.",
+  "One joy pick is required (sunlight, hello, slow task, movement, clear corner, or just this).",
+  "Ugly, blurry, messy, and ordinary photos are allowed.",
+  "Sad or hard photos are allowed. The story stays honest and gentle.",
+  "Horrific photos are not saved and get no story (violence, gore, abuse, porn, hate, self-harm).",
+  "Not allowed: memes, someone else’s moment passed off as yours.",
+] as const;

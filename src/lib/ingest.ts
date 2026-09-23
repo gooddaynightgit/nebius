@@ -149,7 +149,7 @@ export async function ingestAppPhoto(input: {
     caption: fallbackSpoken,
   });
   const visionHint = input.imageDataUrl
-    ? "Look at the private daily photo. Name one true visible detail (light, object, screen, place, gesture). Ground it in the joy pick. Sad or ordinary photos are allowed; horrific content is not your job here."
+    ? "Look at the private daily photo. Name one true visible detail (light, object, screen, place, gesture). Ground it in the joy pick. Ugly, blurry, messy, ordinary, sad, or hard photos are allowed; horrific content is not your job here."
     : "No photo pixels available. Rephrase from the joy pick and caption only — still write a fresh good-moment sentence, never the canned playback template.";
 
   if (!hasTokenFactoryKey()) {
