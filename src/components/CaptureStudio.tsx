@@ -15,7 +15,6 @@ import {
   looksLikeBorrowedName,
   looksLikeMemeName,
   PHOTO_DATE_MESSAGES,
-  PHOTO_SAVE_RULES,
 } from "@/lib/photo";
 import {
   HEIC_ASK,
@@ -598,12 +597,6 @@ export default function CaptureStudio() {
             <p className="cta-copy" style={{ marginTop: 0 }}>
               {LANDING.app.photoHelp}
             </p>
-            <h3 className="photo-rules__title">Photo-save rules</h3>
-            <ol className="photo-rules">
-              {PHOTO_SAVE_RULES.map((rule) => (
-                <li key={rule}>{rule}</li>
-              ))}
-            </ol>
             <div className="studio">
               <div className="studio-photo-actions">
                 <button

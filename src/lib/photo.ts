@@ -147,7 +147,7 @@ export const PHOTO_DATE_MESSAGES = {
   old: "This photo looks older than today. Tonight only holds today's moment.",
 } as const;
 
-/** In-app and help copy. Exact wording — do not paraphrase. */
+/** Developer source of truth. Not rendered on /app. Exact wording — do not paraphrase. */
 export const PHOTO_SAVE_RULES = [
   "Only one photo per calendar day (midnight–23:59, phone’s local time).",
   "The photo is required. No photo, no save, no good moment.",

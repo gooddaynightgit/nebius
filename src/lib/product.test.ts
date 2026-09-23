@@ -694,7 +694,9 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/PHOTO_DATE_MESSAGES\.today/);
     expect(src).toMatch(/date\.verified && date\.takenDay && date\.takenDay !== day/);
     expect(src).toMatch(/date\.verified && date\.takenDay === day/);
-    expect(src).toMatch(/PHOTO_SAVE_RULES/);
+    expect(src).not.toMatch(/PHOTO_SAVE_RULES/);
+    expect(src).not.toMatch(/photo-rules/);
+    expect(src).not.toMatch(/Photo-save rules/i);
     expect(src).not.toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
     expect(src).not.toMatch(/PHOTO_DATE_MESSAGES\.missing/);
     expect(src).not.toMatch(/couldn't confirm a camera date/i);
@@ -704,6 +706,9 @@ describe("app capture client contract", () => {
     const readme = readFileSync(path.resolve("README.md"), "utf8");
     expect(readme).toContain("Only one photo per calendar day (midnight–23:59, phone’s local time).");
     expect(readme).toContain("Not allowed: memes, someone else’s moment passed off as yours.");
+    expect(readme).toMatch(/not shown on `\/app`/);
+    expect(readme).not.toMatch(/shown on this page/);
+    expect(readme).not.toMatch(/Shown on `\/app`/);
     expect(readme).not.toMatch(/today-only still, size, not a meme/);
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="pill">Photo/);
