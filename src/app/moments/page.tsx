@@ -81,7 +81,7 @@ export default function MomentsPage() {
           <span className="moments-mark" aria-hidden="true"></span>
           <h2 id="moments-price">40 good moments — $29</h2>
           <p className="moments-note">
-            Each moment: one photo → one My good moment story. Upload uses a moment. Replay and Share don’t.
+            Each moment: one photo upload → one My good moment story.
           </p>
           {/* TODO: swap this link for the moments-pack purchase when payment exists. */}
           <Link className="moments-cta" href="/app">

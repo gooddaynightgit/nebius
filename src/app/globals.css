@@ -150,6 +150,78 @@ a {
   font-size: clamp(1.7rem, 7vw, 2.15rem);
 }
 
+.go-get-it {
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+  white-space: nowrap;
+}
+
+.go-get-it__arrow {
+  display: inline-block;
+  margin-left: 0.2em;
+  text-decoration: none;
+}
+
+.already-bought {
+  position: relative;
+  z-index: 1;
+  margin: 0.9rem 0 0;
+}
+
+.already-bought__open {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding: 0.15rem 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  cursor: pointer;
+}
+
+.buyer-email {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.5rem;
+  max-width: 22rem;
+  margin-top: 0.8rem;
+}
+
+.buyer-email .btn {
+  justify-self: start;
+}
+
+.buyer-email__note {
+  margin: 0;
+  color: var(--navy);
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.card--dark .btn:disabled,
+.card--dark .btn[aria-disabled="true"] {
+  opacity: 0.32;
+  color: rgba(244, 247, 251, 0.42);
+  border-style: dashed;
+  border-color: rgba(244, 247, 251, 0.28);
+  background: transparent;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .app-tagline {
   position: relative;
   z-index: 1;

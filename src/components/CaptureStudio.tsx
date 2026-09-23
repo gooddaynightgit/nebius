@@ -128,6 +128,14 @@ export default function CaptureStudio() {
   const [answeredGeneration, setAnsweredGeneration] = useState<number | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
 
+  const [buyerOpen, setBuyerOpen] = useState(false);
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [buyerNote, setBuyerNote] = useState<string | null>(null);
+  const buyerInputRef = useRef<HTMLInputElement | null>(null);
+  const buyerId = useId();
+  // TODO: real entitlement. Noting an email does not open Take or Upload.
+  const captureOpen = false;
+
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
   const opened = Boolean(session?.yoursOpened);
@@ -139,6 +147,24 @@ export default function CaptureStudio() {
     sparkGeneration,
     answeredGeneration,
   });
+  useEffect(() => {
+    if (buyerOpen) buyerInputRef.current?.focus();
+  }, [buyerOpen]);
+
+  function noteBuyerEmail(event: FormEvent) {
+    event.preventDefault();
+    const email = buyerEmail.trim().toLowerCase();
+    const emailOk = email.length > 3 && email.length < 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailOk) {
+      setBuyerNote("That doesn’t look like an email yet.");
+      return;
+    }
+    setBuyerNote("Checking…");
+    window.setTimeout(() => {
+      setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
+    }, 500);
+  }
+
   const previewSrc = capturePreviewSrc({
     localPreviewUrl: photoUrl,
     hasLocalPhoto: Boolean(photo),
@@ -552,7 +578,55 @@ export default function CaptureStudio() {
 
       <main id="main">
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
-          <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
+          <h1 id="app-moment-heading">
+            {LANDING.app.heading.replace("Go get it.", "")}
+            <Link className="go-get-it" href="/moments">
+              Go get it.
+              <span className="go-get-it__arrow" aria-hidden="true">
+                {" →"}
+              </span>
+            </Link>
+          </h1>
+          <p className="already-bought">
+            <button
+              className="already-bought__open"
+              type="button"
+              aria-expanded={buyerOpen}
+              aria-controls={buyerId}
+              onClick={() => setBuyerOpen(true)}
+            >
+              Already bought? Enter your email
+              <span aria-hidden="true"> →</span>
+            </button>
+          </p>
+          {buyerOpen ? (
+            <form className="buyer-email" onSubmit={noteBuyerEmail}>
+              <label className="whisper-label" htmlFor={buyerId}>
+                Email
+              </label>
+              <input
+                id={buyerId}
+                ref={buyerInputRef}
+                className="whisper"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
+                value={buyerEmail}
+                onChange={(event) => {
+                  setBuyerEmail(event.target.value);
+                  setBuyerNote(null);
+                }}
+              />
+              <button className="btn btn--lime" type="submit">
+                Send
+              </button>
+              {buyerNote ? (
+                <p className="buyer-email__note" role="status">
+                  {buyerNote}
+                </p>
+              ) : null}
+            </form>
+          ) : null}
         </section>
 
         <form onSubmit={saveMoment}>
@@ -569,7 +643,9 @@ export default function CaptureStudio() {
                 <button
                   className="btn btn--ghost"
                   type="button"
+                  disabled={!captureOpen}
                   onClick={() => {
+                    if (!captureOpen) return;
                     void openTakeCamera();
                   }}
                 >
@@ -582,12 +658,20 @@ export default function CaptureStudio() {
                   type="file"
                   accept="image/*"
                   capture="environment"
+                  disabled={!captureOpen}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null, true);
                     event.target.value = "";
                   }}
                 />
-                <label className="btn btn--ghost" htmlFor={uploadInputId}>
+                <label
+                  className="btn btn--ghost"
+                  htmlFor={uploadInputId}
+                  aria-disabled={!captureOpen}
+                  onClick={(event) => {
+                    if (!captureOpen) event.preventDefault();
+                  }}
+                >
                   {LANDING.app.uploadPhoto}
                 </label>
                 <input
@@ -595,6 +679,7 @@ export default function CaptureStudio() {
                   className="visually-hidden"
                   type="file"
                   accept="image/*,video/*"
+                  disabled={!captureOpen}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null);
                     event.target.value = "";
