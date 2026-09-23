@@ -121,7 +121,12 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_EXCAVATE_SYSTEM).toMatch(/first look inside Gooddaynight/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/under 45 words/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Whoa \/ Gosh \/ Stunning/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Did I see that right\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Just making sure I saw that right\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Anything wrong\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Did I get this right\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Does that look right to you\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Am I seeing this right\?/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Did I see that right\?/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Never ask them to Switch or Keep/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/reply only BLOCK/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Do not write a bedtime story/);
@@ -135,6 +140,8 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/NOT with Whoa\/Oooh\/Wow\/Gosh\/Stunning/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Today, you/);
     expect(APP_REFLECT_SYSTEM).toMatch(/factual floor/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Photo emphasis: low/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not center the keepsake on the photo/);
     expect(APP_REFLECT_SYSTEM).toMatch(/at least three warm positive words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Fantastic/);
     expect(APP_REFLECT_SYSTEM).toMatch(/the hunting became your happiness/);
@@ -324,7 +331,7 @@ describe("ingest and weave fallbacks", () => {
     );
     expect(excavation).toMatch(/petal|bark|blossom/i);
     expect(excavation).toMatch(
-      /Did I see that right\?|I'm curious|Interesting…|Does that match what you see\?|Am I reading this right\?/,
+      /Just making sure I saw that right\?|Anything wrong\?|Did I get this right\?|Does that look right to you\?|Am I seeing this right\?/,
     );
     expect(excavation).toMatch(/Blossomimg tree/);
     expect(excavation).not.toMatch(/SUBJECTS & VIBE|CAPTION WHISPER/);
@@ -365,7 +372,7 @@ describe("ingest and weave fallbacks", () => {
       hasImage: true,
     });
     expect(excavateUser).toMatch(/Witness only what is visibly in the frame/);
-    expect(excavateUser).toMatch(/humble check/);
+    expect(excavateUser).toMatch(/humble closer/);
     expect(excavateUser).toMatch(/Under 45 words/);
     expect(excavateUser).not.toMatch(/No story/);
     expect(excavateUser).not.toMatch(/ingredients only/);
@@ -381,6 +388,37 @@ describe("ingest and weave fallbacks", () => {
     expect(user).toMatch(/Their answer: Blossomimg tree/);
     expect(user).toMatch(/blossom|petal|bark/i);
     expect(user).not.toMatch(/SUBJECTS & VIBE/);
+    const quiet = appReflectUserText({
+      joyTitle: joy!.title,
+      excavation,
+      caption: "Blossomimg tree",
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+      hasImage: true,
+    });
+    expect(quiet).toMatch(/Photo emphasis: low/);
+    expect(quiet).toMatch(/Photo: withheld/);
+    expect(quiet).toMatch(/Do not center the keepsake on the photo/);
+    expect(quiet).not.toMatch(/Photo: attached/);
+    const rejected = appReflectUserText({
+      joyTitle: joy!.title,
+      excavation,
+      caption: "Blossomimg tree",
+      photoEmphasis: "low",
+      sparkAnswer: "no",
+    });
+    expect(rejected).toMatch(/photo read was wrong/i);
+    expect(rejected).not.toMatch(/pale petals|bark/i);
+    const lowStory = mockJoyStory({
+      joy: joy!,
+      caption: "the quiet hello",
+      goodMoment: "Steam over the kettle in the morning window.",
+      day: "2026-09-21",
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+    });
+    expect(lowStory.body).toMatch(/quiet hello/i);
+    expect(lowStory.body).not.toMatch(/kettle|steam/i);
     expect(user).not.toMatch(/~35 words/);
     expect(user).not.toMatch(/four beats/i);
     expect(user).not.toMatch(/4–6 short sentences/);
@@ -723,7 +761,13 @@ describe("app capture client contract", () => {
     expect(sparkCss).toMatch(/#3dfff2/);
     expect(sparkCss).toMatch(/#ff3df0/);
     expect(sparkCss).toMatch(/#eaff6a/);
-    expect(src).toMatch(/captionOpen \? \([\s\S]*type="submit"/);
+    expect(src).toMatch(/captionOpen && sparkAnswer \? \([\s\S]*type="submit"/);
+    expect(src).toMatch(/chooseSpark\("yes"\)/);
+    expect(src).toMatch(/chooseSpark\("no"\)/);
+    expect(src).toMatch(/LANDING\.app\.sparkYes/);
+    expect(src).toMatch(/LANDING\.app\.sparkNo/);
+    expect(src).toMatch(/photoEmphasis", "low"/);
+    expect(src).toMatch(/spark-choice/);
     expect(src).not.toMatch(/verdict === "NEED_PHOTO"/);
     expect(src).not.toMatch(/verdict === "UNAVAILABLE"/);
     expect(src).not.toMatch(/LANDING\.app\.witnessQuiet/);

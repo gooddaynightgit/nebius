@@ -686,6 +686,18 @@ a {
   line-height: 1.45;
 }
 
+.spark-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.spark-choice .btn {
+  width: auto;
+  min-width: 5.5rem;
+}
+
 .photo-spark-wait {
   margin: 0.9rem 0 0;
   font-size: 1.05rem;

@@ -7,6 +7,7 @@ import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
+import { withHumbleCloser } from "@/lib/spark-closer";
 import {
   inspectPhotoDate,
   isImageMime,
@@ -110,6 +111,7 @@ export default function CaptureStudio() {
   const [captionOpen, setCaptionOpen] = useState(false);
   const [spark, setSpark] = useState<string | null>(null);
   const [sparkPending, setSparkPending] = useState(false);
+  const [sparkAnswer, setSparkAnswer] = useState<"yes" | "no" | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
 
   const day = useMemo(() => localDay(), []);
@@ -158,6 +160,8 @@ export default function CaptureStudio() {
           void runPhotoSpark(pendingFile);
         } else if (chosen && (sessionData.todayPhoto || stash)) {
           setCaption(sessionData.todayPhoto?.caption ?? stash?.caption ?? "");
+          const savedAnswer = sessionData.todayPhoto?.sparkAnswer ?? stash?.sparkAnswer;
+          setSparkAnswer(savedAnswer === "no" ? "no" : savedAnswer === "yes" ? "yes" : "yes");
           setCaptionOpen(true);
         }
       }
@@ -348,9 +352,15 @@ export default function CaptureStudio() {
     setCaptionScroll((n) => n + 1);
   }
 
-  function finishSpark(line: string) {
-    setSpark(line);
+  function finishSpark(line: string, key: string) {
+    setSpark(withHumbleCloser(line, key));
     setSparkPending(false);
+    setSparkAnswer(null);
+    setCaptionOpen(false);
+  }
+
+  function chooseSpark(answer: "yes" | "no") {
+    setSparkAnswer(answer);
     revealCaption();
   }
 
@@ -358,6 +368,7 @@ export default function CaptureStudio() {
     const seq = ++sparkSeq.current;
     setSpark(null);
     setSparkPending(true);
+    setSparkAnswer(null);
     setCaptionOpen(false);
     try {
       const form = new FormData();
@@ -369,13 +380,20 @@ export default function CaptureStudio() {
       });
       const data = await readJson<{ spark?: string; blocked?: boolean }>(res);
       if (seq !== sparkSeq.current) return;
-      const line = data.blocked
-        ? data.spark?.trim() || LANDING.app.blocked
-        : data.spark?.trim();
-      finishSpark(line || "Beautiful, this still from the day. Did I see that right?");
+      if (data.blocked) {
+        setSpark(data.spark?.trim() || LANDING.app.blocked);
+        setSparkPending(false);
+        setSparkAnswer(null);
+        setCaptionOpen(false);
+        return;
+      }
+      finishSpark(
+        data.spark?.trim() || "Beautiful, this still from the day.",
+        file.name || "moment.jpg",
+      );
     } catch {
       if (seq !== sparkSeq.current) return;
-      finishSpark("Beautiful, this still from the day. Did I see that right?");
+      finishSpark("Beautiful, this still from the day.", file.name || "moment.jpg");
     }
   }
 
@@ -397,7 +415,9 @@ export default function CaptureStudio() {
       setCaptureError(null);
       return;
     }
+    if (!sparkAnswer) return;
     const kept = captionDisposition(caption);
+    if (!kept.caption) return;
     setBusy(true);
     setCaptureError(null);
     setJoyError(null);
@@ -410,7 +430,9 @@ export default function CaptureStudio() {
       form.set("day", day);
       form.set("joyType", joy.id);
       form.set("tzOffset", String(new Date().getTimezoneOffset()));
-      if (kept.caption) form.set("caption", kept.caption);
+      form.set("caption", kept.caption);
+      form.set("sparkAnswer", sparkAnswer);
+      form.set("photoEmphasis", "low");
       if (uploadPhoto) form.set("file", uploadPhoto, uploadPhoto.name || "moment.jpg");
       const res = await fetch("/api/captures", {
         method: "POST",
@@ -430,6 +452,8 @@ export default function CaptureStudio() {
             caption: kept.caption,
             photo: uploadPhoto,
             fileName: uploadPhoto.name,
+            sparkAnswer,
+            photoEmphasis: "low",
           });
         } catch {
           // Save already succeeded; YOURS can still try the in-memory file this session.
@@ -577,6 +601,16 @@ export default function CaptureStudio() {
                   {LANDING.app.sparkWait}
                 </p>
               ) : null}
+              {spark && !sparkAnswer ? (
+                <div className="spark-choice" role="group" aria-label="Did that match?">
+                  <button className="btn btn--lime" type="button" onClick={() => chooseSpark("yes")}>
+                    {LANDING.app.sparkYes}
+                  </button>
+                  <button className="btn btn--ghost" type="button" onClick={() => chooseSpark("no")}>
+                    {LANDING.app.sparkNo}
+                  </button>
+                </div>
+              ) : null}
             </div>
             {dateNote ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
@@ -609,7 +643,7 @@ export default function CaptureStudio() {
             ) : null}
           </section>
 
-          {captionOpen ? (
+          {captionOpen && sparkAnswer ? (
             <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
@@ -622,6 +656,8 @@ export default function CaptureStudio() {
                 maxLength={WHISPER_MAX}
                 autoComplete="off"
                 placeholder={LANDING.app.captionExamples}
+                required
+                aria-required="true"
                 value={caption}
                 onChange={(event) =>
                   setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
@@ -647,9 +683,14 @@ export default function CaptureStudio() {
             </p>
           ) : null}
 
-          {captionOpen ? (
+          {captionOpen && sparkAnswer ? (
             <section className="card card--lime card--compact">
-              <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
+              <button
+                className="btn btn--lime"
+                type="submit"
+                disabled={busy || !caption.trim()}
+                style={{ width: "100%" }}
+              >
                 {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
               </button>
             </section>

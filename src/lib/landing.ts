@@ -38,6 +38,8 @@ export const LANDING = {
     brand: "gooddaynight.com",
     captionLabel: "What is the good in this moment?",
     sparkWait: "Let me see your good moment capture",
+    sparkYes: "Yes",
+    sparkNo: "No",
     captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     captionExamples: "a name / a step count / he wrote back",
     captionDropped: "That line couldn’t be saved. The photo still is.",

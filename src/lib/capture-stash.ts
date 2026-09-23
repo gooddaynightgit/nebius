@@ -13,6 +13,8 @@ export type CaptureStash = {
   mimeType: string;
   photo: Blob;
   savedAt: number;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 };
 
 export type CaptureStashInput = {
@@ -21,6 +23,8 @@ export type CaptureStashInput = {
   caption?: string;
   photo: Blob | File;
   fileName?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 };
 
 type YoursMissingBody = {
@@ -78,7 +82,10 @@ export function stashPhotoFile(stash: Pick<CaptureStash, "photo" | "fileName" | 
 }
 
 export function buildAppCaptureForm(
-  stash: Pick<CaptureStash, "day" | "joyType" | "caption" | "photo" | "fileName" | "mimeType">,
+  stash: Pick<
+    CaptureStash,
+    "day" | "joyType" | "caption" | "photo" | "fileName" | "mimeType" | "sparkAnswer" | "photoEmphasis"
+  >,
   tzOffsetMinutes = new Date().getTimezoneOffset(),
   spellDecision?: string,
 ): FormData {
@@ -91,6 +98,10 @@ export function buildAppCaptureForm(
   if (spellDecision) form.set("spellDecision", spellDecision);
   const caption = captionDisposition(stash.caption).caption;
   if (caption) form.set("caption", caption);
+  if (stash.sparkAnswer) {
+    form.set("sparkAnswer", stash.sparkAnswer);
+    form.set("photoEmphasis", stash.photoEmphasis || "low");
+  }
   const file = stashPhotoFile(stash);
   form.set("file", file, file.name || "moment.jpg");
   return form;
@@ -127,6 +138,9 @@ export async function writeCaptureStash(input: CaptureStashInput): Promise<Captu
     mimeType,
     photo: new Blob([bytes], { type: mimeType }),
     savedAt: Date.now(),
+    ...(input.sparkAnswer
+      ? { sparkAnswer: input.sparkAnswer, photoEmphasis: "low" as const }
+      : {}),
   };
   memoryStash = record;
   await writePersistedStash(record);
@@ -142,6 +156,8 @@ export async function updateCaptureStashPhoto(day: string, photo: File): Promise
     caption: existing.caption,
     photo,
     fileName: photo.name || existing.fileName,
+    photoEmphasis: existing.photoEmphasis,
+    sparkAnswer: existing.sparkAnswer,
   });
 }
 

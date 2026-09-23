@@ -207,6 +207,8 @@ async function saveAppPhoto(
     joyType: joy.id,
   });
 
+  const sparkRaw = String(form.get("sparkAnswer") ?? "");
+  const sparkAnswer = sparkRaw === "yes" || sparkRaw === "no" ? sparkRaw : undefined;
   const capture = await upsertAppPhoto(vault, {
     id,
     kind: "photo",
@@ -215,6 +217,7 @@ async function saveAppPhoto(
     caption: caption || undefined,
     joyType: joy.id,
     source: "app",
+    ...(sparkAnswer ? { sparkAnswer, photoEmphasis: "low" as const } : {}),
     dateVerified: Boolean(date.verified && date.takenDay === day),
     photoTakenAt: date.verified && date.takenDay ? date.takenDay : day,
     locked: false,

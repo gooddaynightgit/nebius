@@ -7,6 +7,7 @@ import {
 } from "./app-story";
 import { clipCaption } from "./app-capture";
 import { JOY_TYPES, type JoyType } from "./landing";
+import { HUMBLE_CLOSERS } from "./spark-closer";
 import {
   cleanSpokenLine,
   isSelfNegating,
@@ -80,14 +81,14 @@ Respond in under 45 words, following this exact shape:
 
 2. Name only what is visibly true in the photo: subject, place clues, light, colour, texture. Stay concrete and small. Do NOT invent weather, rain, wetness, puddles, glowing headlights, people, gifts, or feelings that are not clearly in the frame. If the car is dry in a garage, say a dry car in a garage — never "after the rain."
 
-3. Close with a rotating humble check — soft and curious, not one stuck line. Rotate among:
-   - Did I see that right?
-   - I'm curious — is this what the photo is?
-   - Interesting… I'm just making sure.
-   - Does that match what you see?
-   - Am I reading this right?
+3. Close with a rotating humble check — soft and curious, not one stuck line. The description MUST end on exactly one of these:
+   - Just making sure I saw that right?
+   - Anything wrong?
+   - Did I get this right?
+   - Does that look right to you?
+   - Am I seeing this right?
 
-Tone: delighted then humble. One soft exclamation max on the spark if it fits. No therapy-speak. No emojis. Never mention the app, the AI, or the process. Never ask them to Switch or Keep — there are no buttons; they answer next in their own words.
+Tone: delighted then humble. One soft exclamation max on the spark if it fits. No therapy-speak. No emojis. Never mention the app, the AI, or the process. Never ask them to Switch or Keep. End on the humble check; they answer yes or no next.
 
 If the image is blocked (violence, gore, abuse, porn, hate, self-harm): reply only BLOCK.`;
 
@@ -104,6 +105,8 @@ Respond in under 70 words, following this exact shape:
 2. Weave together: spirit of their joy, sensory detail that is factually grounded in the excavate read AND/OR clearly visible in the photo, and — most importantly — their own words, elevated but never distorted. Their answer is the heart. Honor it.
 
 3. Excavate (and their words) are the factual floor. Never invent weather, rain, wetness, puddles, headlights glowing, people, or props that excavate and the user did not establish. If excavate said a parked car in a garage and they did not mention rain, there is no rain.
+
+When the user message says "Photo emphasis: low": do not center the keepsake on the photo or the excavate read. Lean on their joy and their own words. A visual detail is allowed only when their answer already named it. If they said the photo read was wrong, ignore the excavate description and do not describe the picture.
 
 4. In the body, use at least three warm positive words or close synonyms (spread them). Draw from: wonderful, lovely, radiant, beautiful, glowing, precious, sweet, bright, tender, quiet, still, dear, warm, soft, brightening.
 
@@ -414,13 +417,7 @@ const PHOTO_SPARKS = [
   "Beautiful",
 ] as const;
 
-const HUMBLE_CHECKS = [
-  "Did I see that right?",
-  "I'm curious — is this what the photo is?",
-  "Interesting… I'm just making sure.",
-  "Does that match what you see?",
-  "Am I reading this right?",
-] as const;
+const HUMBLE_CHECKS = HUMBLE_CLOSERS;
 
 function sparkSlot(key: string, modulo: number): number {
   let n = 0;
@@ -559,6 +556,8 @@ export function mockJoyStory(input: {
   reframed?: boolean;
   day: string;
   excavation?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): { title: string; body: string } {
   const excavation =
     input.excavation?.trim() ||
@@ -572,7 +571,12 @@ export function mockJoyStory(input: {
   const slot = rotateIndex(input.joy.id, QUIET_OPENS.length);
   const whisper = whisperFromCaption(input.caption);
 
+  const lowPhoto = input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
   const assemble = (details: string[]) => {
+    if (lowPhoto) {
+      const named = whisper || "what you named";
+      return `${QUIET_OPENS[slot](named)}. ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
+    }
     const seen = details.filter((bit) => bit.toLowerCase() !== whisper.toLowerCase());
     const kept = seen.length ? seen.join(", ") : "what the hour held";
     const heart = whisper

@@ -157,7 +157,7 @@ export function appExcavateUserText(input: {
       ? `Photo notes (use only if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
     caption ? `Caption already given: ${caption}` : "No caption yet. They will answer next in their own words.",
-    "Under 45 words: a rotating surprise spark, the concrete still, then a humble check. If horrific: BLOCK.",
+    "Under 45 words: a rotating surprise spark, the concrete still, then end on exactly one humble closer: Just making sure I saw that right? / Anything wrong? / Did I get this right? / Does that look right to you? / Am I seeing this right? If horrific: BLOCK.",
   ].join("\n\n");
 }
 
@@ -166,15 +166,28 @@ export function appReflectUserText(input: {
   excavation: string;
   caption?: string;
   hasImage?: boolean;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): string {
   const caption = input.caption ? clipCaption(input.caption) : "";
-  const photo = input.hasImage ? "Photo: attached" : "Photo: description";
-  const description = input.excavation?.trim() || "No photo description.";
-  return [
-    `Joy picked: ${input.joyTitle}`,
-    `${photo}\n${description}`,
-    caption ? `Their answer: ${caption}` : "Their answer:",
-  ].join("\n\n");
+  const low =
+    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
+  const rejected = input.sparkAnswer === "no";
+  const photo = !low && input.hasImage ? "Photo: attached" : low ? "Photo: withheld" : "Photo: description";
+  const description = rejected
+    ? "Photo read withheld. They said it was wrong."
+    : input.excavation?.trim() || "No photo description.";
+  const lines = [`Joy picked: ${input.joyTitle}`, `${photo}\n${description}`];
+  if (low) {
+    lines.push("Photo emphasis: low");
+    lines.push(
+      rejected
+        ? "They said the photo read was wrong. Ignore the excavate description. Do not describe the picture. Lean on their joy and their answer."
+        : "Do not center the keepsake on the photo or the excavate read. Lean on their joy and their own words. A visual detail is allowed only when their answer already named it.",
+    );
+  }
+  lines.push(caption ? `Their answer: ${caption}` : "Their answer:");
+  return lines.join("\n\n");
 }
 
 export function appReflectUserContent(input: {
@@ -182,12 +195,16 @@ export function appReflectUserContent(input: {
   excavation: string;
   caption?: string;
   imageDataUrl?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): ChatMessage["content"] {
+  const low =
+    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
   const userText = appReflectUserText({
     ...input,
-    hasImage: Boolean(input.imageDataUrl),
+    hasImage: Boolean(input.imageDataUrl) && !low,
   });
-  if (input.imageDataUrl) {
+  if (input.imageDataUrl && !low) {
     return [
       { type: "text", text: userText },
       { type: "image_url", image_url: { url: input.imageDataUrl } },
@@ -412,8 +429,12 @@ export async function weaveAppStoryFromExcavation(input: {
   excavation: string;
   caption?: string;
   imageDataUrl?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail } | null> {
-  const visionIds = input.imageDataUrl ? appStoryVisionModels() : [];
+  const low =
+    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
+  const visionIds = input.imageDataUrl && !low ? appStoryVisionModels() : [];
   const textIds = appStoryTextModels();
   let lastFail: AppReflectFail | undefined;
 
@@ -446,6 +467,8 @@ async function weaveAppPhotoStory(input: {
   photoNotes: string;
   caption?: string;
   imageDataUrl?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): Promise<
   | { kind: "blocked"; model: string; excavateModel?: string }
   | { kind: "story"; body: string; model: string; excavateModel?: string }
@@ -454,7 +477,11 @@ async function weaveAppPhotoStory(input: {
   const imageDataUrl = input.imageDataUrl
     ? shrinkDataUrlForModels(input.imageDataUrl)
     : undefined;
-  const excavated = await excavateAppPhoto({ ...input, imageDataUrl });
+  const excavated = await excavateAppPhoto({
+    caption: input.caption,
+    photoNotes: input.photoNotes,
+    imageDataUrl,
+  });
   if (excavated && "blocked" in excavated && excavated.blocked) {
     return { kind: "blocked", model: excavated.model, excavateModel: excavated.model };
   }
@@ -469,6 +496,8 @@ async function weaveAppPhotoStory(input: {
     excavation,
     caption: input.caption,
     imageDataUrl,
+    photoEmphasis: input.photoEmphasis,
+    sparkAnswer: input.sparkAnswer,
   });
   if (live && "blocked" in live && live.blocked) {
     const fail = {
@@ -523,6 +552,8 @@ export async function weaveStory(options: {
         photoNotes,
         caption,
         imageDataUrl: options.imageDataUrl,
+        photoEmphasis: appCapture.photoEmphasis,
+        sparkAnswer: appCapture.sparkAnswer,
       });
       if (live.kind === "blocked") {
         throw new WeaveBlockedError();
@@ -541,6 +572,8 @@ export async function weaveStory(options: {
           reframed: Boolean(appCapture.reframed),
           day: options.day,
           excavation: live.excavation,
+          photoEmphasis: appCapture.photoEmphasis,
+          sparkAnswer: appCapture.sparkAnswer,
         });
         title = "";
         body = fallback.body;
@@ -555,6 +588,8 @@ export async function weaveStory(options: {
         goodMoment: photoNotes,
         reframed: Boolean(appCapture.reframed),
         day: options.day,
+        photoEmphasis: appCapture.photoEmphasis,
+        sparkAnswer: appCapture.sparkAnswer,
       });
       title = "";
       body = fallback.body;
