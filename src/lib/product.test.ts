@@ -690,7 +690,9 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/id="joy-mismatch"/);
     expect(src).toMatch(/id="joy-need"/);
     expect(src).toMatch(/JOY_NEED/);
-    expect(src).toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
+    expect(src).toMatch(/PHOTO_DATE_MESSAGES\.old/);
+    expect(src).not.toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
+    expect(src).not.toMatch(/PHOTO_DATE_MESSAGES\.missing/);
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="pill">Photo/);
     expect(joy).toMatch(/className="pill">Joy/);

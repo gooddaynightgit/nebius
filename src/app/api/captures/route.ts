@@ -4,7 +4,7 @@ import { ingestAppPhoto, ingestGood } from "@/lib/ingest";
 import { newId, todayStamp } from "@/lib/identity";
 import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
 import { badRequest, forbidden, json } from "@/lib/http";
-import { bufferToArrayBuffer, inspectPhotoDate, PHOTO_DATE_MESSAGES, type PhotoDateCheck } from "@/lib/photo";
+import { bufferToArrayBuffer, inspectPhotoDate, type PhotoDateCheck } from "@/lib/photo";
 import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
 import { loadSessionVault, presentSession, toPublicSession } from "@/lib/session";
@@ -227,7 +227,6 @@ async function saveAppPhoto(
   return json({
     capture,
     session: await presentSession(vault, sessionId, day),
-    dateNote: date.verified ? undefined : PHOTO_DATE_MESSAGES.unverified,
     captionNote: captionResult.dropped ? LANDING.app.captionDropped : undefined,
   });
 }

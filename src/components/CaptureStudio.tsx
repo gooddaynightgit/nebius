@@ -147,9 +147,6 @@ export default function CaptureStudio() {
         const phoneOnly = hasStash && !sessionData.todayPhoto;
         setPhoneNote(phoneOnly ? LANDING.app.savedOnPhone : null);
       }
-      if (!hydrated && sessionData.todayPhoto && !sessionData.todayPhoto.dateVerified) {
-        setDateNote(PHOTO_DATE_MESSAGES.unverified);
-      }
       if (!hydrated) {
         const storedId = readChosenJoy(day);
         const savedId = sessionData.todayPhoto?.joyType ?? (sessionData.yoursOpened ? null : stash?.joyType);
@@ -267,9 +264,11 @@ export default function CaptureStudio() {
     if (!file) return;
     setCaptureError(null);
     let next = file;
+    let keptVideoStill = false;
     if (isVideoMime(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
       try {
         next = await stillFromVideo(file);
+        keptVideoStill = true;
         setDateNote("Videos aren't saved. We kept one still frame.");
       } catch (error) {
         setCaptureError(
@@ -331,11 +330,7 @@ export default function CaptureStudio() {
       setCaptureError(LANDING.app.tooLargeKeep);
       return;
     }
-    if (!date.verified) {
-      setDateNote(date.reason === "none" ? PHOTO_DATE_MESSAGES.missing : PHOTO_DATE_MESSAGES.unverified);
-    } else if (!dateNote?.startsWith("Videos")) {
-      setDateNote(null);
-    }
+    if (!keptVideoStill) setDateNote(null);
     setPhoto(next);
     setPhotoUrl((current) => {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
@@ -513,7 +508,6 @@ export default function CaptureStudio() {
       });
       const data = await readJson<{
         session?: SessionState;
-        dateNote?: string;
         captionNote?: string;
       }>(res);
       if (!data.session) throw new Error("Could not save that moment.");
@@ -536,7 +530,6 @@ export default function CaptureStudio() {
       setSelectedJoyId(joy.id);
       setCaptureError(null);
       setSession(data.session);
-      if (data.dateNote) setDateNote(data.dateNote);
       if (data.captionNote) {
         setCaptionNote(data.captionNote);
         setCaption("");
