@@ -4,7 +4,10 @@ import { JOY_TYPES, LANDING, WHISPER_MAX, accordionJoys, getJoyById } from "./la
 describe("landing copy", () => {
   it("keeps hero and footer text exact", () => {
     expect(LANDING.hero.h1).toBe(
-      "Gooddaynight: an app that trains you to hunt one good moment a day, capture it in seconds, and lets the habit of looking rewire how you feel.",
+      "You scrolled past a hundred good moments today. None of them were yours.",
+    );
+    expect(LANDING.hero.subheadline).toBe(
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
     );
     expect(LANDING.hero.cta).toBe("Hear your story — free");
     expect(LANDING.moment.title).toBe("One good moment today");
