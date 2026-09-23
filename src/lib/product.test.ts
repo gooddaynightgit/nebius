@@ -755,7 +755,7 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/captionScroll/);
     expect(src).toMatch(/id="photo-spark"/);
     expect(src).toMatch(/sparkPending/);
-    expect(src).toMatch(/setCaptionOpen\(false\)/);
+    expect(src).toMatch(/setAnsweredGeneration\(null\)/);
     expect(src).toMatch(/photo-spark-wait/);
     expect(src).toMatch(/LANDING\.app\.sparkWait/);
     const sparkCss = readFileSync(path.resolve("src/app/globals.css"), "utf8");
@@ -764,7 +764,9 @@ describe("app capture client contract", () => {
     expect(sparkCss).toMatch(/#3dfff2/);
     expect(sparkCss).toMatch(/#ff3df0/);
     expect(sparkCss).toMatch(/#eaff6a/);
-    expect(src).toMatch(/captionOpen && sparkAnswer \? \([\s\S]*type="submit"/);
+    expect(src).toMatch(/questionOpen \? \([\s\S]*type="submit"/);
+    expect(src).toMatch(/isCaptureQuestionOpen/);
+    expect(src).toMatch(/setCaption\(""\)/);
     expect(src).toMatch(/chooseSpark\("yes"\)/);
     expect(src).toMatch(/chooseSpark\("no"\)/);
     expect(src).toMatch(/LANDING\.app\.sparkYes/);

@@ -16,7 +16,7 @@ import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
-import { capturePreviewSrc } from "@/lib/photo-preview";
+import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
 import { withHumbleCloser } from "@/lib/spark-closer";
 import {
   inspectPhotoDate,
@@ -102,6 +102,8 @@ export default function CaptureStudio() {
   const photoUrlRef = useRef<string | null>(null);
   const photoRef = useRef<File | null>(null);
   const previewSeq = useRef(0);
+  const flowRef = useRef(0);
+  const sparkGenRef = useRef(0);
   const savedPhotoIdRef = useRef<string | null>(null);
   const sparkSeq = useRef(0);
   const [session, setSession] = useState<SessionState | null>(null);
@@ -119,10 +121,11 @@ export default function CaptureStudio() {
   const [phoneStash, setPhoneStash] = useState(false);
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
   const [pendingReady, setPendingReady] = useState(false);
-  const [captionOpen, setCaptionOpen] = useState(false);
   const [spark, setSpark] = useState<string | null>(null);
   const [sparkPending, setSparkPending] = useState(false);
   const [sparkAnswer, setSparkAnswer] = useState<"yes" | "no" | null>(null);
+  const [sparkGeneration, setSparkGeneration] = useState(0);
+  const [answeredGeneration, setAnsweredGeneration] = useState<number | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
 
   const day = useMemo(() => localDay(), []);
@@ -130,6 +133,12 @@ export default function CaptureStudio() {
   const opened = Boolean(session?.yoursOpened);
   const savedPhoto = session?.todayPhoto ?? null;
   const yoursReady = Boolean(savedPhoto) || phoneStash;
+  const questionOpen = isCaptureQuestionOpen({
+    sparkPending,
+    hasSpark: Boolean(spark),
+    sparkGeneration,
+    answeredGeneration,
+  });
   const previewSrc = capturePreviewSrc({
     localPreviewUrl: photoUrl,
     hasLocalPhoto: Boolean(photo),
@@ -137,6 +146,7 @@ export default function CaptureStudio() {
   });
 
   const refresh = useCallback(async () => {
+    const flowAtStart = flowRef.current;
     try {
       const [sessionRes, stash, pending] = await Promise.all([
         fetch(`/api/session?day=${day}`, { credentials: "same-origin" }),
@@ -144,6 +154,10 @@ export default function CaptureStudio() {
         readPendingPhoto(day),
       ]);
       const sessionData = await readJson<SessionState>(sessionRes);
+      if (flowRef.current !== flowAtStart) {
+        setHydrated(true);
+        return;
+      }
       setSession(sessionData);
       savedPhotoIdRef.current = sessionData.todayPhoto?.id ?? null;
       setPendingReady(Boolean(pending));
@@ -172,11 +186,6 @@ export default function CaptureStudio() {
         }
         if (chosen && pendingFile) {
           void runPhotoSpark(pendingFile);
-        } else if (chosen && (sessionData.todayPhoto || stash)) {
-          setCaption(sessionData.todayPhoto?.caption ?? stash?.caption ?? "");
-          const savedAnswer = sessionData.todayPhoto?.sparkAnswer ?? stash?.sparkAnswer;
-          setSparkAnswer(savedAnswer === "no" ? "no" : savedAnswer === "yes" ? "yes" : "yes");
-          setCaptionOpen(true);
         }
       }
       setHydrated(true);
@@ -214,7 +223,7 @@ export default function CaptureStudio() {
   }, [liveStream]);
 
   useEffect(() => {
-    if (!captionScroll) return;
+    if (!captionScroll || !questionOpen) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const frame = window.requestAnimationFrame(() => {
       document.getElementById("caption-box")?.scrollIntoView({
@@ -223,7 +232,7 @@ export default function CaptureStudio() {
       });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [captionScroll]);
+  }, [captionScroll, questionOpen]);
 
   function stopLiveCamera() {
     liveStream?.getTracks().forEach((track) => track.stop());
@@ -356,6 +365,8 @@ export default function CaptureStudio() {
     photoRef.current = next;
     previewSeq.current += 1;
     sparkSeq.current += 1;
+    flowRef.current += 1;
+    sparkGenRef.current += 1;
     const nextUrl = URL.createObjectURL(next);
     photoUrlRef.current = nextUrl;
     setPhoto(next);
@@ -363,25 +374,24 @@ export default function CaptureStudio() {
     setSpark(null);
     setSparkPending(true);
     setSparkAnswer(null);
-    setCaptionOpen(false);
-  }
-
-  function revealCaption() {
-    setJoyError(null);
-    setCaptionOpen(true);
-    setCaptionScroll((n) => n + 1);
+    setSparkGeneration(sparkGenRef.current);
+    setAnsweredGeneration(null);
+    setCaption("");
   }
 
   function finishSpark(line: string, key: string) {
     setSpark(withHumbleCloser(line, key));
     setSparkPending(false);
     setSparkAnswer(null);
-    setCaptionOpen(false);
+    setAnsweredGeneration(null);
   }
 
   function chooseSpark(answer: "yes" | "no") {
+    setJoyError(null);
     setSparkAnswer(answer);
-    revealCaption();
+    setAnsweredGeneration(sparkGenRef.current);
+    setCaption("");
+    setCaptionScroll((n) => n + 1);
   }
 
   async function runPhotoSpark(file: File) {
@@ -389,7 +399,7 @@ export default function CaptureStudio() {
     setSpark(null);
     setSparkPending(true);
     setSparkAnswer(null);
-    setCaptionOpen(false);
+    setAnsweredGeneration(null);
     try {
       const form = new FormData();
       form.set("file", file, file.name || "moment.jpg");
@@ -404,7 +414,7 @@ export default function CaptureStudio() {
         setSpark(data.spark?.trim() || LANDING.app.blocked);
         setSparkPending(false);
         setSparkAnswer(null);
-        setCaptionOpen(false);
+        setAnsweredGeneration(null);
         return;
       }
       finishSpark(
@@ -627,7 +637,7 @@ export default function CaptureStudio() {
                   {LANDING.app.sparkWait}
                 </p>
               ) : null}
-              {spark && !sparkAnswer ? (
+              {spark && !sparkPending && !questionOpen ? (
                 <div className="spark-choice" role="group" aria-label="Did that match?">
                   <button className="btn btn--lime" type="button" onClick={() => chooseSpark("yes")}>
                     {LANDING.app.sparkYes}
@@ -669,7 +679,7 @@ export default function CaptureStudio() {
             ) : null}
           </section>
 
-          {captionOpen && sparkAnswer ? (
+          {questionOpen ? (
             <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
@@ -709,7 +719,7 @@ export default function CaptureStudio() {
             </p>
           ) : null}
 
-          {captionOpen && sparkAnswer ? (
+          {questionOpen ? (
             <section className="card card--lime card--compact">
               <button
                 className="btn btn--lime"
