@@ -4,16 +4,9 @@ import { JOY_TYPES, LANDING, WHISPER_MAX, accordionJoys, getJoyById } from "./la
 describe("landing copy", () => {
   it("keeps hero and footer text exact", () => {
     expect(LANDING.hero.h1).toBe(
-      "You scrolled past a hundred good moments today. None of them were yours.",
-    );
-    expect(LANDING.hero.subheadline).toBe(
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
+      "Gooddaynight: an app that trains you to hunt one good moment a day, capture it in seconds, and lets the habit of looking rewire how you feel.",
     );
     expect(LANDING.hero.cta).toBe("Hear your story — free");
-    expect(LANDING.hero.microcopy).toEqual([
-      "Snap one good moment from your day. Gooddaynight reads it back to you as a beautiful story — your own.",
-      "One good moment remembered today. More spotted tomorrow. Day by day, one unfolds in multifolds.",
-    ]);
     expect(LANDING.moment.title).toBe("One good moment today");
     expect(LANDING.moment.pictureTitle).toBe("Lay the picture here.");
     expect(LANDING.moment.joyLegend).toBe("(pick one)");
