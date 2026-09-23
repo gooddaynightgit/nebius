@@ -109,6 +109,7 @@ export default function CaptureStudio() {
   const [pendingReady, setPendingReady] = useState(false);
   const [captionOpen, setCaptionOpen] = useState(false);
   const [spark, setSpark] = useState<string | null>(null);
+  const [sparkPending, setSparkPending] = useState(false);
   const [captionScroll, setCaptionScroll] = useState(0);
 
   const day = useMemo(() => localDay(), []);
@@ -347,10 +348,17 @@ export default function CaptureStudio() {
     setCaptionScroll((n) => n + 1);
   }
 
+  function finishSpark(line: string) {
+    setSpark(line);
+    setSparkPending(false);
+    revealCaption();
+  }
+
   async function runPhotoSpark(file: File) {
     const seq = ++sparkSeq.current;
     setSpark(null);
-    revealCaption();
+    setSparkPending(true);
+    setCaptionOpen(false);
     try {
       const form = new FormData();
       form.set("file", file, file.name || "moment.jpg");
@@ -361,13 +369,13 @@ export default function CaptureStudio() {
       });
       const data = await readJson<{ spark?: string; blocked?: boolean }>(res);
       if (seq !== sparkSeq.current) return;
-      if (data.blocked) {
-        setSpark(data.spark?.trim() || LANDING.app.blocked);
-        return;
-      }
-      if (data.spark?.trim()) setSpark(data.spark.trim());
+      const line = data.blocked
+        ? data.spark?.trim() || LANDING.app.blocked
+        : data.spark?.trim();
+      finishSpark(line || "Beautiful, this still from the day. Did I see that right?");
     } catch {
       if (seq !== sparkSeq.current) return;
+      finishSpark("Beautiful, this still from the day. Did I see that right?");
     }
   }
 
@@ -564,6 +572,10 @@ export default function CaptureStudio() {
                 <p id="photo-spark" className="photo-spark" role="status">
                   {spark}
                 </p>
+              ) : sparkPending ? (
+                <p className="photo-spark-wait" role="status" aria-live="polite">
+                  {LANDING.app.sparkWait}
+                </p>
               ) : null}
             </div>
             {dateNote ? (
@@ -635,11 +647,13 @@ export default function CaptureStudio() {
             </p>
           ) : null}
 
-          <section className="card card--lime card--compact">
-            <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
-              {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
-            </button>
-          </section>
+          {captionOpen ? (
+            <section className="card card--lime card--compact">
+              <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
+                {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
+              </button>
+            </section>
+          ) : null}
         </form>
 
         {yoursReady ? (

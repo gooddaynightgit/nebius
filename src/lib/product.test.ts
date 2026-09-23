@@ -713,6 +713,17 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/photoRef/);
     expect(src).toMatch(/captionScroll/);
     expect(src).toMatch(/id="photo-spark"/);
+    expect(src).toMatch(/sparkPending/);
+    expect(src).toMatch(/setCaptionOpen\(false\)/);
+    expect(src).toMatch(/photo-spark-wait/);
+    expect(src).toMatch(/LANDING\.app\.sparkWait/);
+    const sparkCss = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(sparkCss).toMatch(/@keyframes photo-spark-wait/);
+    expect(sparkCss).toMatch(/#d4ff00/);
+    expect(sparkCss).toMatch(/#3dfff2/);
+    expect(sparkCss).toMatch(/#ff3df0/);
+    expect(sparkCss).toMatch(/#eaff6a/);
+    expect(src).toMatch(/captionOpen \? \([\s\S]*type="submit"/);
     expect(src).not.toMatch(/verdict === "NEED_PHOTO"/);
     expect(src).not.toMatch(/verdict === "UNAVAILABLE"/);
     expect(src).not.toMatch(/LANDING\.app\.witnessQuiet/);

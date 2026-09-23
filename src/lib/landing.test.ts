@@ -21,6 +21,7 @@ describe("landing copy", () => {
     expect(LANDING.app.yours).toBe("YOURS");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
+    expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");
     expect(LANDING.app.captionLabel).not.toMatch(/80/);
     expect(LANDING.app.captionLabel).not.toMatch(/Optional caption/i);
     expect(LANDING.app.captionHelp).toBe(

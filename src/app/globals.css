@@ -686,6 +686,52 @@ a {
   line-height: 1.45;
 }
 
+.photo-spark-wait {
+  margin: 0.9rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+  animation: photo-spark-wait 3.2s ease-in-out infinite;
+}
+
+@keyframes photo-spark-wait {
+  0%,
+  100% {
+    color: #d4ff00;
+    opacity: 0.7;
+    filter: brightness(0.82);
+    text-shadow: 0 0 12px rgba(212, 255, 0, 0.45);
+  }
+  25% {
+    color: #eaff6a;
+    opacity: 1;
+    filter: brightness(1.2);
+    text-shadow: 0 0 18px rgba(234, 255, 106, 0.8);
+  }
+  50% {
+    color: #3dfff2;
+    opacity: 0.78;
+    filter: brightness(0.9);
+    text-shadow: 0 0 16px rgba(61, 255, 242, 0.6);
+  }
+  75% {
+    color: #ff3df0;
+    opacity: 1;
+    filter: brightness(1.15);
+    text-shadow: 0 0 18px rgba(255, 61, 240, 0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-spark-wait {
+    animation: none;
+    color: #d4ff00;
+    opacity: 1;
+    filter: none;
+    text-shadow: none;
+  }
+}
+
 .btn--icon {
   gap: 0.5rem;
 }
