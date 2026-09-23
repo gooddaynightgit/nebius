@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "40 good moments — Gooddaynight",
-  description: "One good moment a day. 40 good moments — R450 · $28 USD. Not an archive.",
+  description: "One good moment a day. 40 good moments — R450 ZAR · $28 USD. Not an archive.",
 };
 
 export default function MomentsPage() {
@@ -76,16 +76,18 @@ export default function MomentsPage() {
 
         <section className="moments-block moments-block--poster moments-block--price" aria-labelledby="moments-price">
           <span className="moments-glyph moments-glyph--price" aria-hidden="true">
-            R450
+            R450 ZAR
           </span>
           <span className="moments-mark" aria-hidden="true"></span>
-          <h2 id="moments-price">40 good moments — R450 · $28 USD</h2>
+          <h2 id="moments-price">
+            40 good moments — <span className="moments-price-pair">R450 ZAR · $28 USD</span>
+          </h2>
           <p className="moments-note">
             Each moment: one photo upload → one My good moment story.
           </p>
           {/* TODO: swap this link for the moments-pack purchase when payment exists. */}
           <Link className="moments-cta" href="/app">
-            Start hunting — R450 / $28
+            Start hunting — R450 ZAR / $28 USD
           </Link>
           <p className="moments-aside">
             <em>40 moments. Yours to find — the finding changes you.</em>

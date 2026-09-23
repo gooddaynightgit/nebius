@@ -1686,11 +1686,28 @@ body:has(.moments-page) {
   user-select: none;
 }
 
+.moments-block--price {
+  padding-bottom: 5.4rem;
+}
+
 .moments-glyph--price {
-  right: -0.2rem;
-  bottom: -1.15rem;
-  font-size: clamp(8.5rem, 46vw, 13rem);
-  color: rgba(126, 112, 196, 0.28);
+  right: 0.85rem;
+  bottom: 1.15rem;
+  font-size: clamp(1.55rem, 7vw, 2.05rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-align: right;
+  white-space: nowrap;
+  color: rgba(126, 112, 196, 0.34);
+}
+
+.moments-block--price h2 {
+  max-width: 18rem;
+}
+
+.moments-price-pair {
+  display: block;
+  margin-top: 0.45rem;
 }
 
 .moments-mark {
@@ -1723,6 +1740,7 @@ body:has(.moments-page) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
   min-width: 14.5rem;
   min-height: 3.25rem;
   margin-top: 1.2rem;
@@ -1733,7 +1751,10 @@ body:has(.moments-page) {
   font-size: 1.05rem;
   font-weight: 750;
   letter-spacing: -0.02em;
+  line-height: 1.25;
+  text-align: center;
   text-decoration: none;
+  white-space: normal;
 }
 
 .moments-cta:hover {
