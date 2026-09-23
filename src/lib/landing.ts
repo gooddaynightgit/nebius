@@ -9,14 +9,8 @@ export type JoyType = {
 
 export const LANDING = {
   hero: {
-    h1: "You scrolled past a hundred good moments today. None of them were yours.",
-    subheadline:
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
+    h1: "Gooddaynight: an app that trains you to hunt one good moment a day, capture it in seconds, and lets the habit of looking rewire how you feel.",
     cta: "Hear your story — free",
-    microcopy: [
-      "Snap one good moment from your day. Gooddaynight reads it back to you as a beautiful story — your own.",
-      "One good moment remembered today. More spotted tomorrow. Day by day, one unfolds in multifolds.",
-    ],
   },
   moment: {
     title: "One good moment today",
