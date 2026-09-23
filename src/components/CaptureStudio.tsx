@@ -52,6 +52,25 @@ import {
 } from "@/lib/capture-stash";
 import type { SessionState } from "@/lib/types";
 
+type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
+
+async function lookupEntitlement(email: string): Promise<EntitlementLookup> {
+  try {
+    const res = await fetch("/api/payfast/entitlement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ email }),
+    });
+    const data = await readJson<{ remaining?: number; exhausted?: boolean }>(res);
+    if ((data.remaining ?? 0) > 0) return "open";
+    if (data.exhausted) return "exhausted";
+    return "closed";
+  } catch {
+    return "error";
+  }
+}
+
 async function stillFromVideo(file: File): Promise<File> {
   const url = URL.createObjectURL(file);
   try {
@@ -131,10 +150,9 @@ export default function CaptureStudio() {
   const [buyerOpen, setBuyerOpen] = useState(false);
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerNote, setBuyerNote] = useState<string | null>(null);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const buyerInputRef = useRef<HTMLInputElement | null>(null);
   const buyerId = useId();
-  // TODO: real entitlement. Noting an email does not open Take or Upload.
-  const captureOpen = false;
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
@@ -151,18 +169,46 @@ export default function CaptureStudio() {
     if (buyerOpen) buyerInputRef.current?.focus();
   }, [buyerOpen]);
 
-  function noteBuyerEmail(event: FormEvent) {
+  useEffect(() => {
+    const email = session?.email;
+    if (!email) return;
+    let cancel = false;
+    void lookupEntitlement(email).then((result) => {
+      if (!cancel && result === "open") setCaptureOpen(true);
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [session?.email]);
+
+  async function noteBuyerEmail(event: FormEvent) {
     event.preventDefault();
     const email = buyerEmail.trim().toLowerCase();
     const emailOk = email.length > 3 && email.length < 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!emailOk) {
+      setCaptureOpen(false);
       setBuyerNote("That doesn’t look like an email yet.");
       return;
     }
     setBuyerNote("Checking…");
-    window.setTimeout(() => {
-      setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
-    }, 500);
+    const result = await lookupEntitlement(email);
+    if (result === "open") {
+      setCaptureOpen(true);
+      setBuyerNote("You’re in. Take or upload today’s moment.");
+      try {
+        const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
+        setSession(await readJson<SessionState>(sessionRes));
+      } catch {
+        // This page can still take a photo. The next save reads the email cookie.
+      }
+      return;
+    }
+    setCaptureOpen(false);
+    if (result === "exhausted") {
+      setBuyerNote("Those 40 moments are used.");
+      return;
+    }
+    setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
   }
 
   const previewSrc = capturePreviewSrc({
