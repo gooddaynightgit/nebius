@@ -532,6 +532,10 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.app\.yours/);
     expect(src).toMatch(/id="yours-door"/);
     expect(src).toMatch(/href="\/app\/yours"/);
+    expect(src).toMatch(/aria-label="Previous step"/);
+    expect(src).toMatch(/href="\/app\/joy"/);
+    expect(src).toMatch(/aria-label="Next step"/);
+    expect(src).toMatch(/yoursReady \?/);
     expect(src).toMatch(/writePendingPhoto/);
     expect(src).toMatch(/readChosenJoy/);
     expect(src).toMatch(/\/api\/joy-match/);
@@ -542,7 +546,16 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/className="pill">Joy/);
     expect(joyPage).toMatch(/JoyStudio/);
     expect(joy).toMatch(/writeChosenJoy/);
-    expect(joy).toMatch(/router\.push\("\/app"\)/);
+    expect(joy).not.toMatch(/router\.push/);
+    expect(joy).toMatch(/href="\/"/);
+    expect(joy).toMatch(/aria-label="Previous step"/);
+    expect(joy).toMatch(/href="\/app"/);
+    expect(joy).toMatch(/aria-label="Next step"/);
+    expect(joy).toMatch(/photo-cue/);
+    expect(joy).toMatch(/card__mark/);
+    expect(joy).toMatch(/step-arrow--disabled/);
+    expect(joy).toMatch(/LANDING\.app\.joyNeed/);
+    expect(joy).toMatch(/selectedJoy \?/);
     expect(joy).not.toMatch(/\/api\/joy-match/);
     expect(joy).not.toMatch(/captionDisposition/);
     expect(src).toMatch(/source", "app"/);

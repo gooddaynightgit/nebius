@@ -47,6 +47,13 @@ export default function HomePage() {
           </p>
         </section>
 
+        <nav className="step-nav" aria-label="Steps">
+          <span className="step-arrow step-arrow--spacer" aria-hidden="true"></span>
+          <Link className="step-arrow" href="/app/joy" aria-label="Next step">
+            →
+          </Link>
+        </nav>
+
         <section className="card card--lime" aria-labelledby="closing-heading">
           <h2 id="closing-heading">Something good is about to happen!</h2>
         </section>

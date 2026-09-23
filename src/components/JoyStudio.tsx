@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
@@ -15,7 +14,6 @@ const JOY_PAGE_LEGEND = (
 );
 
 export default function JoyStudio() {
-  const router = useRouter();
   const day = useMemo(() => localDay(), []);
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const selectedJoy = getJoyById(selectedJoyId);
@@ -34,7 +32,6 @@ export default function JoyStudio() {
   function pickJoy(joy: JoyType) {
     writeChosenJoy(day, joy.id);
     setSelectedJoyId(joy.id);
-    router.push("/app");
   }
 
   return (
@@ -61,6 +58,29 @@ export default function JoyStudio() {
           />
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>
+
+        <nav className="step-nav" aria-label="Steps">
+          <Link className="step-arrow" href="/" aria-label="Previous step">
+            ←
+          </Link>
+          {selectedJoy ? (
+            <Link className="photo-next" href="/app" aria-label="Next step">
+              <span className="photo-cue" aria-hidden="true">
+                <span className="card__mark"></span>
+              </span>
+              <span className="photo-next__arrow" aria-hidden="true">
+                →
+              </span>
+            </Link>
+          ) : (
+            <>
+              <p className="step-nudge">{LANDING.app.joyNeed}</p>
+              <span className="step-arrow step-arrow--disabled" aria-disabled="true" aria-label="Next step">
+                →
+              </span>
+            </>
+          )}
+        </nav>
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>

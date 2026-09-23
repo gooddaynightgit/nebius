@@ -789,6 +789,21 @@ export default function CaptureStudio() {
           )}
         </section>
 
+        <nav className="step-nav" aria-label="Steps">
+          <Link className="step-arrow" href="/app/joy" aria-label="Previous step">
+            ←
+          </Link>
+          {yoursReady ? (
+            <Link className="step-arrow" href="/app/yours" aria-label="Next step">
+              →
+            </Link>
+          ) : (
+            <span className="step-arrow step-arrow--disabled" aria-disabled="true" aria-label="Next step">
+              →
+            </span>
+          )}
+        </nav>
+
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>
         </section>
