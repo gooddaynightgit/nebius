@@ -16,12 +16,14 @@ describe("moments pack page", () => {
     expect(page).toContain("a performance for anyone else");
     expect(page).toContain("one good moment a day — noticed, here until midnight, then gone.");
     expect(page).toContain("Share only if you want a card to keep. The habit of seeing stays.");
-    expect(page).toContain("40 good moments — $29");
+    expect(page).toContain("40 good moments — R450 · $28 USD");
     expect(page).toContain("Each moment: one photo upload → one My good moment story.");
     expect(page).not.toMatch(/Upload uses a moment/);
     expect(page).not.toMatch(/Replay and Share/);
-    expect(page).toContain("Start hunting — $29");
-    expect(page).toContain("40 moments. Yours to find.");
+    expect(page).toContain("Start hunting — R450 / $28");
+    expect(page).toContain("40 moments. Yours to find — the finding changes you.");
+    expect(page).not.toMatch(/\$29/);
+    expect(page).not.toMatch(/27\.80/);
     expect(page).toContain("Something good is about to happen!");
     expect(page).toContain("Gooddaynight.com");
     expect(page).toMatch(/href="\/app"/);
