@@ -157,6 +157,9 @@ export default function CaptureStudio() {
         }
         const pendingFile = pending && pending.size > 0 ? pending : null;
         if (pendingFile) photoRef.current = pendingFile;
+        else if (sessionData.todayPhoto?.dateVerified) {
+          setDateNote(PHOTO_DATE_MESSAGES.today);
+        }
         const joyChanged = Boolean(chosen && savedId && chosen.id !== savedId);
         if (chosen && (pendingFile || joyChanged)) {
           void runJoyMatch(chosen, pendingFile ?? undefined);
@@ -330,7 +333,11 @@ export default function CaptureStudio() {
       setCaptureError(LANDING.app.tooLargeKeep);
       return;
     }
-    if (!keptVideoStill) setDateNote(null);
+    if (date.verified && date.takenDay === day) {
+      setDateNote(PHOTO_DATE_MESSAGES.today);
+    } else if (!keptVideoStill) {
+      setDateNote(null);
+    }
     setPhoto(next);
     setPhotoUrl((current) => {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);

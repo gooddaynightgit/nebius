@@ -691,8 +691,12 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/id="joy-need"/);
     expect(src).toMatch(/JOY_NEED/);
     expect(src).toMatch(/PHOTO_DATE_MESSAGES\.old/);
+    expect(src).toMatch(/PHOTO_DATE_MESSAGES\.today/);
+    expect(src).toMatch(/date\.verified && date\.takenDay === day/);
     expect(src).not.toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
     expect(src).not.toMatch(/PHOTO_DATE_MESSAGES\.missing/);
+    const photo = readFileSync(path.resolve("src/lib/photo.ts"), "utf8");
+    expect(photo).toContain('today: "Wonderful, your photo was taken today."');
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="pill">Photo/);
     expect(joy).toMatch(/className="pill">Joy/);
