@@ -647,6 +647,9 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/uploadInputId/);
     expect(src).toMatch(/getUserMedia|openRearCamera|prefersLiveCamera/);
     expect(src).toMatch(/createObjectURL/);
+    expect(src).toMatch(/capturePreviewSrc/);
+    expect(src).toMatch(/showLocalPhoto/);
+    expect(src).not.toMatch(/setPhotoUrl\(\(current\)/);
     expect(src).toMatch(/preparePhotoForUpload/);
     expect(src).toMatch(/normalizePhotoFile/);
     expect(src).toMatch(/jpegFileForCameraStill/);

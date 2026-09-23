@@ -1,12 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { captionDisposition } from "@/lib/app-capture";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
+import { capturePreviewSrc } from "@/lib/photo-preview";
 import { withHumbleCloser } from "@/lib/spark-closer";
 import {
   inspectPhotoDate,
@@ -91,6 +101,7 @@ export default function CaptureStudio() {
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const photoUrlRef = useRef<string | null>(null);
   const photoRef = useRef<File | null>(null);
+  const previewSeq = useRef(0);
   const savedPhotoIdRef = useRef<string | null>(null);
   const sparkSeq = useRef(0);
   const [session, setSession] = useState<SessionState | null>(null);
@@ -119,8 +130,11 @@ export default function CaptureStudio() {
   const opened = Boolean(session?.yoursOpened);
   const savedPhoto = session?.todayPhoto ?? null;
   const yoursReady = Boolean(savedPhoto) || phoneStash;
-  const previewSrc =
-    photoUrl || (savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null);
+  const previewSrc = capturePreviewSrc({
+    localPreviewUrl: photoUrl,
+    hasLocalPhoto: Boolean(photo),
+    savedMediaUrl: savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null,
+  });
 
   const refresh = useCallback(async () => {
     try {
@@ -177,15 +191,11 @@ export default function CaptureStudio() {
   }, [refresh]);
 
   useEffect(() => {
-    photoUrlRef.current = photoUrl;
-  }, [photoUrl]);
-
-  useEffect(() => {
+    const url = photoUrl;
     return () => {
-      const url = photoUrlRef.current;
       if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
     };
-  }, []);
+  }, [photoUrl]);
 
   useEffect(() => {
     const video = liveVideoRef.current;
@@ -323,12 +333,7 @@ export default function CaptureStudio() {
     } else if (!keptVideoStill) {
       setDateNote(null);
     }
-    setPhoto(next);
-    setPhotoUrl((current) => {
-      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
-      return URL.createObjectURL(next);
-    });
-    photoRef.current = next;
+    showLocalPhoto(next);
     try {
       await writePendingPhoto(day, next);
       setPendingReady(true);
@@ -342,8 +347,23 @@ export default function CaptureStudio() {
     if (joy) {
       void runPhotoSpark(next);
     } else {
+      setSparkPending(false);
       setJoyError(JOY_NEED);
     }
+  }
+
+  function showLocalPhoto(next: File) {
+    photoRef.current = next;
+    previewSeq.current += 1;
+    sparkSeq.current += 1;
+    const nextUrl = URL.createObjectURL(next);
+    photoUrlRef.current = nextUrl;
+    setPhoto(next);
+    setPhotoUrl(nextUrl);
+    setSpark(null);
+    setSparkPending(true);
+    setSparkAnswer(null);
+    setCaptionOpen(false);
   }
 
   function revealCaption() {
@@ -491,16 +511,22 @@ export default function CaptureStudio() {
     }
   }
 
-  function recoverPreview() {
-    if (!photo) return;
+  function recoverPreview(event: SyntheticEvent<HTMLImageElement>) {
+    const failed = event.currentTarget.currentSrc || event.currentTarget.src;
+    const active = photoUrlRef.current;
+    if (active && failed && failed !== active && !failed.endsWith(active)) return;
+    const current = photoRef.current;
+    if (!current) return;
+    const seq = previewSeq.current;
     const reader = new FileReader();
     reader.onload = () => {
-      setPhotoUrl((current) => {
-        if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
-        return String(reader.result);
-      });
+      if (seq !== previewSeq.current || photoRef.current !== current) return;
+      const dataUrl = String(reader.result || "");
+      if (!dataUrl.startsWith("data:")) return;
+      photoUrlRef.current = dataUrl;
+      setPhotoUrl(dataUrl);
     };
-    reader.readAsDataURL(photo);
+    reader.readAsDataURL(current);
   }
 
   return (
