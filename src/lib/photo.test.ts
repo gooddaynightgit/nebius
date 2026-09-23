@@ -5,6 +5,8 @@ import {
   isVideoMime,
   looksLikeBorrowedName,
   looksLikeMemeName,
+  PHOTO_DATE_MESSAGES,
+  PHOTO_SAVE_RULES,
   readExifTakenDay,
 } from "./photo";
 
@@ -35,6 +37,29 @@ function jpegWithExifDate(date = "2026:09:21 08:00:00"): ArrayBuffer {
   ]);
   return jpeg.buffer.slice(jpeg.byteOffset, jpeg.byteOffset + jpeg.byteLength) as ArrayBuffer;
 }
+
+describe("photo save rules copy", () => {
+  it("keeps Jasmine’s ten rules exact and drops the soft date note", () => {
+    expect(PHOTO_SAVE_RULES).toEqual([
+      "Only one photo per calendar day (midnight–23:59, phone’s local time).",
+      "The photo is required. No photo, no save, no good moment.",
+      "When from today — camera roll today, message: Wonderful, your photo was taken today.",
+      "Screenshots count: a hello, a gift message, a tracker, a watch face.",
+      "A video is not saved. One still frame from it may be saved instead.",
+      "One joy pick is required (sunlight, hello, slow task, movement, clear corner, or just this).",
+      "Ugly, blurry, messy, and ordinary photos are allowed.",
+      "Sad or hard photos are allowed. The story stays honest and gentle.",
+      "Horrific photos are not saved and get no story (violence, gore, abuse, porn, hate, self-harm).",
+      "Not allowed: memes, someone else’s moment passed off as yours.",
+    ]);
+    expect(PHOTO_DATE_MESSAGES.today).toBe("Wonderful, your photo was taken today.");
+    expect(PHOTO_DATE_MESSAGES.old).toBe(
+      "This photo looks older than today. Tonight only holds today's moment.",
+    );
+    expect(JSON.stringify(PHOTO_DATE_MESSAGES)).not.toMatch(/couldn't confirm/i);
+    expect(JSON.stringify(PHOTO_SAVE_RULES)).not.toMatch(/\bstock\b|\bold photos\b/i);
+  });
+});
 
 describe("photo checks", () => {
   it("tells images from video and flags meme or stock names", () => {

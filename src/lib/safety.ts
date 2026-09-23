@@ -23,7 +23,7 @@ export async function inspectImageSafety(input: {
     const userContent: ChatMessage["content"] = [
       {
         type: "text",
-        text: "Does this private daily photo contain violence, gore, abuse, pornography, hate, or self-harm? Reply ONLY JSON {\"safe\":true} or {\"safe\":false}. Sad or ordinary life photos are safe.",
+        text: "Does this private daily photo contain violence, gore, abuse, pornography, hate, or self-harm? Reply ONLY JSON {\"safe\":true} or {\"safe\":false}. Ugly, blurry, messy, ordinary, sad, or hard life photos are safe.",
       },
       { type: "image_url", image_url: { url: input.imageDataUrl } },
     ];
@@ -33,7 +33,7 @@ export async function inspectImageSafety(input: {
         {
           role: "system",
           content:
-            "You are a narrow safety filter for a private bedtime-journal photo. Block only horrific content: violence, gore, abuse, porn, hate, self-harm. Allow blurry, messy, ordinary, and sad photos. JSON only.",
+            "You are a narrow safety filter for a private bedtime-journal photo. Block only horrific content: violence, gore, abuse, porn, hate, self-harm. Allow ugly, blurry, messy, ordinary, sad, and hard photos. JSON only.",
         },
         { role: "user", content: userContent },
       ],

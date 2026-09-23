@@ -173,6 +173,7 @@ async function saveAppPhoto(
     filename,
     size: hasNewFile && file instanceof File ? file.size : existing ? 1 : 0,
     takenDay: date.takenDay,
+    dateVerified: date.verified,
   });
   if (rejected) {
     return rejected === SAFETY_REFUSAL ? forbidden(rejected) : badRequest(rejected);
@@ -214,8 +215,8 @@ async function saveAppPhoto(
     caption: caption || undefined,
     joyType: joy.id,
     source: "app",
-    dateVerified: date.verified && date.takenDay === day,
-    photoTakenAt: date.takenDay ?? undefined,
+    dateVerified: Boolean(date.verified && date.takenDay === day),
+    photoTakenAt: date.verified && date.takenDay ? date.takenDay : day,
     locked: false,
     goodMoment: ingest.goodMoment,
     reframed: ingest.reframed,

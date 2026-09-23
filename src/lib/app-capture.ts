@@ -52,6 +52,8 @@ export function appPhotoRejection(input: {
   filename: string;
   size: number;
   takenDay: string | null;
+  /** True only when EXIF confirmed the camera day. Unverified dates save as today. */
+  dateVerified?: boolean;
 }): string | null {
   if (!isPlausibleClientDay(input.day)) return "Use today's date on your phone.";
   if (!getJoyById(input.joyId)) return "Pick the kind of quiet joy first.";
@@ -67,7 +69,7 @@ export function appPhotoRejection(input: {
   if (looksLikeBorrowedName(input.filename)) {
     return "Tonight is for your own moment — not someone else's picture.";
   }
-  if (input.takenDay && input.takenDay !== input.day) {
+  if (input.dateVerified && input.takenDay && input.takenDay !== input.day) {
     return PHOTO_DATE_MESSAGES.old;
   }
   if (isHorrificFilename(input.filename)) {
