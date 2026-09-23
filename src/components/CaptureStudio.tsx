@@ -1,13 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { captionDisposition } from "@/lib/app-capture";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
-import { applyJoyMatchChoice, suggestJoyId } from "@/lib/joy-match";
-import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById, type JoyType } from "@/lib/landing";
+import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
+import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
+import { withHumbleCloser } from "@/lib/spark-closer";
 import {
   inspectPhotoDate,
   isImageMime,
@@ -41,6 +51,25 @@ import {
   writePendingPhoto,
 } from "@/lib/capture-stash";
 import type { SessionState } from "@/lib/types";
+
+type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
+
+async function lookupEntitlement(email: string): Promise<EntitlementLookup> {
+  try {
+    const res = await fetch("/api/payfast/entitlement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ email }),
+    });
+    const data = await readJson<{ remaining?: number; exhausted?: boolean }>(res);
+    if ((data.remaining ?? 0) > 0) return "open";
+    if (data.exhausted) return "exhausted";
+    return "closed";
+  } catch {
+    return "error";
+  }
+}
 
 async function stillFromVideo(file: File): Promise<File> {
   const url = URL.createObjectURL(file);
@@ -91,10 +120,11 @@ export default function CaptureStudio() {
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const photoUrlRef = useRef<string | null>(null);
   const photoRef = useRef<File | null>(null);
+  const previewSeq = useRef(0);
+  const flowRef = useRef(0);
+  const sparkGenRef = useRef(0);
   const savedPhotoIdRef = useRef<string | null>(null);
-  const matchSeq = useRef(0);
-  const witnessNoted = useRef(false);
-  const witnessedKey = useRef("");
+  const sparkSeq = useRef(0);
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -110,23 +140,85 @@ export default function CaptureStudio() {
   const [phoneStash, setPhoneStash] = useState(false);
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
   const [pendingReady, setPendingReady] = useState(false);
-  const [captionOpen, setCaptionOpen] = useState(false);
-  const [mismatch, setMismatch] = useState<{ line: string; suggestedJoyId: string | null } | null>(
-    null,
-  );
-  const [witnessNote, setWitnessNote] = useState<string | null>(null);
+  const [spark, setSpark] = useState<string | null>(null);
+  const [sparkPending, setSparkPending] = useState(false);
+  const [sparkAnswer, setSparkAnswer] = useState<"yes" | "no" | null>(null);
+  const [sparkGeneration, setSparkGeneration] = useState(0);
+  const [answeredGeneration, setAnsweredGeneration] = useState<number | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
-  const [mismatchScroll, setMismatchScroll] = useState(0);
+
+  const [buyerOpen, setBuyerOpen] = useState(false);
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [buyerNote, setBuyerNote] = useState<string | null>(null);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const buyerInputRef = useRef<HTMLInputElement | null>(null);
+  const buyerId = useId();
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
   const opened = Boolean(session?.yoursOpened);
   const savedPhoto = session?.todayPhoto ?? null;
   const yoursReady = Boolean(savedPhoto) || phoneStash;
-  const previewSrc =
-    photoUrl || (savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null);
+  const questionOpen = isCaptureQuestionOpen({
+    sparkPending,
+    hasSpark: Boolean(spark),
+    sparkGeneration,
+    answeredGeneration,
+  });
+  useEffect(() => {
+    if (buyerOpen) buyerInputRef.current?.focus();
+  }, [buyerOpen]);
+
+  useEffect(() => {
+    const email = session?.email;
+    if (!email) return;
+    let cancel = false;
+    void lookupEntitlement(email).then((result) => {
+      if (!cancel && result === "open") setCaptureOpen(true);
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [session?.email]);
+
+  async function noteBuyerEmail(event: FormEvent) {
+    event.preventDefault();
+    const email = buyerEmail.trim().toLowerCase();
+    const emailOk = email.length > 3 && email.length < 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailOk) {
+      setCaptureOpen(false);
+      setBuyerNote("That doesn’t look like an email yet.");
+      return;
+    }
+    setBuyerNote("Checking…");
+    const result = await lookupEntitlement(email);
+    if (result === "open") {
+      setCaptureOpen(true);
+      setBuyerNote("You’re in. Take or upload today’s moment.");
+      try {
+        const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
+        setSession(await readJson<SessionState>(sessionRes));
+      } catch {
+        // This page can still take a photo. The next save reads the email cookie.
+      }
+      return;
+    }
+    setCaptureOpen(false);
+    if (result === "exhausted") {
+      setBuyerNote("Those 40 moments are used.");
+      return;
+    }
+    setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
+  }
+
+  const previewSrc = capturePreviewSrc({
+    localPreviewUrl: photoUrl,
+    hasLocalPhoto: Boolean(photo),
+    savedMediaUrl: savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null,
+  });
 
   const refresh = useCallback(async () => {
+    const flowAtStart = flowRef.current;
     try {
       const [sessionRes, stash, pending] = await Promise.all([
         fetch(`/api/session?day=${day}`, { credentials: "same-origin" }),
@@ -134,6 +226,10 @@ export default function CaptureStudio() {
         readPendingPhoto(day),
       ]);
       const sessionData = await readJson<SessionState>(sessionRes);
+      if (flowRef.current !== flowAtStart) {
+        setHydrated(true);
+        return;
+      }
       setSession(sessionData);
       savedPhotoIdRef.current = sessionData.todayPhoto?.id ?? null;
       setPendingReady(Boolean(pending));
@@ -160,12 +256,8 @@ export default function CaptureStudio() {
         else if (sessionData.todayPhoto?.dateVerified) {
           setDateNote(PHOTO_DATE_MESSAGES.today);
         }
-        const joyChanged = Boolean(chosen && savedId && chosen.id !== savedId);
-        if (chosen && (pendingFile || joyChanged)) {
-          void runJoyMatch(chosen, pendingFile ?? undefined);
-        } else if (chosen && (sessionData.todayPhoto || stash)) {
-          setCaption(sessionData.todayPhoto?.caption ?? stash?.caption ?? "");
-          setCaptionOpen(true);
+        if (chosen && pendingFile) {
+          void runPhotoSpark(pendingFile);
         }
       }
       setHydrated(true);
@@ -180,15 +272,11 @@ export default function CaptureStudio() {
   }, [refresh]);
 
   useEffect(() => {
-    photoUrlRef.current = photoUrl;
-  }, [photoUrl]);
-
-  useEffect(() => {
+    const url = photoUrl;
     return () => {
-      const url = photoUrlRef.current;
       if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
     };
-  }, []);
+  }, [photoUrl]);
 
   useEffect(() => {
     const video = liveVideoRef.current;
@@ -207,7 +295,7 @@ export default function CaptureStudio() {
   }, [liveStream]);
 
   useEffect(() => {
-    if (!captionScroll) return;
+    if (!captionScroll || !questionOpen) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const frame = window.requestAnimationFrame(() => {
       document.getElementById("caption-box")?.scrollIntoView({
@@ -216,19 +304,7 @@ export default function CaptureStudio() {
       });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [captionScroll]);
-
-  useEffect(() => {
-    if (!mismatch || !mismatchScroll) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById("joy-mismatch")?.scrollIntoView({
-        behavior: reduce ? "auto" : "smooth",
-        block: "nearest",
-      });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [mismatch, mismatchScroll]);
+  }, [captionScroll, questionOpen]);
 
   function stopLiveCamera() {
     liveStream?.getTracks().forEach((track) => track.stop());
@@ -338,12 +414,7 @@ export default function CaptureStudio() {
     } else if (!keptVideoStill) {
       setDateNote(null);
     }
-    setPhoto(next);
-    setPhotoUrl((current) => {
-      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
-      return URL.createObjectURL(next);
-    });
-    photoRef.current = next;
+    showLocalPhoto(next);
     try {
       await writePendingPhoto(day, next);
       setPendingReady(true);
@@ -355,124 +426,77 @@ export default function CaptureStudio() {
     });
     const joy = getJoyById(readChosenJoy(day) ?? selectedJoyId);
     if (joy) {
-      witnessedKey.current = "";
-      void runJoyMatch(joy, next);
+      void runPhotoSpark(next);
     } else {
+      setSparkPending(false);
       setJoyError(JOY_NEED);
     }
   }
 
-  function revealCaption() {
-    setMismatch(null);
+  function showLocalPhoto(next: File) {
+    photoRef.current = next;
+    previewSeq.current += 1;
+    sparkSeq.current += 1;
+    flowRef.current += 1;
+    sparkGenRef.current += 1;
+    const nextUrl = URL.createObjectURL(next);
+    photoUrlRef.current = nextUrl;
+    setPhoto(next);
+    setPhotoUrl(nextUrl);
+    setSpark(null);
+    setSparkPending(true);
+    setSparkAnswer(null);
+    setSparkGeneration(sparkGenRef.current);
+    setAnsweredGeneration(null);
+    setCaption("");
+  }
+
+  function finishSpark(line: string, key: string) {
+    setSpark(withHumbleCloser(line, key));
+    setSparkPending(false);
+    setSparkAnswer(null);
+    setAnsweredGeneration(null);
+  }
+
+  function chooseSpark(answer: "yes" | "no") {
     setJoyError(null);
-    setCaptionOpen(true);
+    setSparkAnswer(answer);
+    setAnsweredGeneration(sparkGenRef.current);
+    setCaption("");
     setCaptionScroll((n) => n + 1);
   }
 
-  function noteWitnessQuiet(note: string) {
-    if (witnessNoted.current) return;
-    witnessNoted.current = true;
-    setWitnessNote(note);
-  }
-
-  async function photoForMatch(fileOverride?: File): Promise<File | null> {
-    const override = fileOverride && fileOverride.size > 0 ? fileOverride : null;
-    if (override) {
-      photoRef.current = override;
-      return override;
-    }
-    const current = photoRef.current;
-    if (current && current.size > 0) return current;
-    const pending = await readPendingPhoto(day);
-    if (pending && pending.size > 0) {
-      photoRef.current = pending;
-      return pending;
-    }
-    const stash = await readCaptureStash(day);
-    if (stash?.photo && stash.photo.size > 0) {
-      const stashed = stashPhotoFile(stash);
-      if (stashed.size > 0) {
-        photoRef.current = stashed;
-        return stashed;
-      }
-    }
-    const mediaId = savedPhotoIdRef.current ?? savedPhoto?.id;
-    if (!mediaId) return null;
-    try {
-      const res = await fetch(`/api/media/${mediaId}`, { credentials: "same-origin" });
-      if (!res.ok) return null;
-      const blob = await res.blob();
-      if (!blob.size) return null;
-      const file = new File([blob], "moment.jpg", { type: blob.type || "image/jpeg" });
-      photoRef.current = file;
-      return file;
-    } catch {
-      return null;
-    }
-  }
-
-  async function runJoyMatch(joy: JoyType, fileOverride?: File) {
-    const file = await photoForMatch(fileOverride);
-    const key = file ? `${joy.id}:${file.size}:${file.lastModified}` : "";
-    if (key && witnessedKey.current === key) return;
-    if (key) witnessedKey.current = key;
-    const seq = ++matchSeq.current;
-    setMismatch(null);
-    setSelectedJoyId(joy.id);
-    if (!file) return;
+  async function runPhotoSpark(file: File) {
+    const seq = ++sparkSeq.current;
+    setSpark(null);
+    setSparkPending(true);
+    setSparkAnswer(null);
+    setAnsweredGeneration(null);
     try {
       const form = new FormData();
-      form.set("joy_type", joy.id);
-      form.set("joyType", joy.id);
       form.set("file", file, file.name || "moment.jpg");
-      const res = await fetch("/api/joy-match", {
+      const res = await fetch("/api/photo-spark", {
         method: "POST",
         body: form,
         credentials: "same-origin",
       });
-      const data = await readJson<{
-        verdict?: string;
-        line?: string;
-        note?: string;
-        suggestedJoyId?: string | null;
-      }>(res);
-      if (seq !== matchSeq.current) return;
-      if (data.verdict === "NEED_PHOTO") return;
-      if (data.verdict === "UNAVAILABLE") {
-        noteWitnessQuiet(data.note?.trim() || LANDING.app.witnessQuiet);
-        revealCaption();
+      const data = await readJson<{ spark?: string; blocked?: boolean }>(res);
+      if (seq !== sparkSeq.current) return;
+      if (data.blocked) {
+        setSpark(data.spark?.trim() || LANDING.app.blocked);
+        setSparkPending(false);
+        setSparkAnswer(null);
+        setAnsweredGeneration(null);
         return;
       }
-      if (data.verdict === "MISMATCH" && data.line?.trim()) {
-        const line = data.line.trim();
-        setCaptionOpen(false);
-        setMismatch({
-          line,
-          suggestedJoyId: data.suggestedJoyId || suggestJoyId(line),
-        });
-        setMismatchScroll((n) => n + 1);
-        return;
-      }
-      revealCaption();
+      finishSpark(
+        data.spark?.trim() || "Beautiful, this still from the day.",
+        file.name || "moment.jpg",
+      );
     } catch {
-      if (seq !== matchSeq.current) return;
-      revealCaption();
+      if (seq !== sparkSeq.current) return;
+      finishSpark("Beautiful, this still from the day.", file.name || "moment.jpg");
     }
-  }
-
-  function chooseJoyMatch(choice: "switch" | "keep") {
-    matchSeq.current += 1;
-    const next = applyJoyMatchChoice({
-      choice,
-      currentJoyId: selectedJoyId ?? "",
-      suggestedJoyId: mismatch?.suggestedJoyId ?? null,
-    });
-    if (next.joyId) {
-      setSelectedJoyId(next.joyId);
-      writeChosenJoy(day, next.joyId);
-      witnessedKey.current = `${next.joyId}:choice`;
-    }
-    revealCaption();
   }
 
   async function saveMoment(event: FormEvent) {
@@ -493,7 +517,9 @@ export default function CaptureStudio() {
       setCaptureError(null);
       return;
     }
+    if (!sparkAnswer) return;
     const kept = captionDisposition(caption);
+    if (!kept.caption) return;
     setBusy(true);
     setCaptureError(null);
     setJoyError(null);
@@ -506,7 +532,9 @@ export default function CaptureStudio() {
       form.set("day", day);
       form.set("joyType", joy.id);
       form.set("tzOffset", String(new Date().getTimezoneOffset()));
-      if (kept.caption) form.set("caption", kept.caption);
+      form.set("caption", kept.caption);
+      form.set("sparkAnswer", sparkAnswer);
+      form.set("photoEmphasis", "low");
       if (uploadPhoto) form.set("file", uploadPhoto, uploadPhoto.name || "moment.jpg");
       const res = await fetch("/api/captures", {
         method: "POST",
@@ -526,6 +554,8 @@ export default function CaptureStudio() {
             caption: kept.caption,
             photo: uploadPhoto,
             fileName: uploadPhoto.name,
+            sparkAnswer,
+            photoEmphasis: "low",
           });
         } catch {
           // Save already succeeded; YOURS can still try the in-memory file this session.
@@ -563,16 +593,22 @@ export default function CaptureStudio() {
     }
   }
 
-  function recoverPreview() {
-    if (!photo) return;
+  function recoverPreview(event: SyntheticEvent<HTMLImageElement>) {
+    const failed = event.currentTarget.currentSrc || event.currentTarget.src;
+    const active = photoUrlRef.current;
+    if (active && failed && failed !== active && !failed.endsWith(active)) return;
+    const current = photoRef.current;
+    if (!current) return;
+    const seq = previewSeq.current;
     const reader = new FileReader();
     reader.onload = () => {
-      setPhotoUrl((current) => {
-        if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
-        return String(reader.result);
-      });
+      if (seq !== previewSeq.current || photoRef.current !== current) return;
+      const dataUrl = String(reader.result || "");
+      if (!dataUrl.startsWith("data:")) return;
+      photoUrlRef.current = dataUrl;
+      setPhotoUrl(dataUrl);
     };
-    reader.readAsDataURL(photo);
+    reader.readAsDataURL(current);
   }
 
   return (
@@ -581,11 +617,62 @@ export default function CaptureStudio() {
         <Link className="badge" href="/">
           {LANDING.app.brand}
         </Link>
+        <Link className="moments-entry" href="/moments">
+          Start hunting
+        </Link>
       </header>
 
       <main id="main">
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
-          <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
+          <h1 id="app-moment-heading">
+            {LANDING.app.heading.replace("Go get it.", "")}
+            <Link className="go-get-it" href="/moments">
+              Go get it.
+              <span className="go-get-it__arrow" aria-hidden="true">
+                {" →"}
+              </span>
+            </Link>
+          </h1>
+          <p className="already-bought">
+            <button
+              className="already-bought__open"
+              type="button"
+              aria-expanded={buyerOpen}
+              aria-controls={buyerId}
+              onClick={() => setBuyerOpen(true)}
+            >
+              Already bought? Enter your email
+              <span aria-hidden="true"> →</span>
+            </button>
+          </p>
+          {buyerOpen ? (
+            <form className="buyer-email" onSubmit={noteBuyerEmail}>
+              <label className="whisper-label" htmlFor={buyerId}>
+                Email
+              </label>
+              <input
+                id={buyerId}
+                ref={buyerInputRef}
+                className="whisper"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
+                value={buyerEmail}
+                onChange={(event) => {
+                  setBuyerEmail(event.target.value);
+                  setBuyerNote(null);
+                }}
+              />
+              <button className="btn btn--lime" type="submit">
+                Send
+              </button>
+              {buyerNote ? (
+                <p className="buyer-email__note" role="status">
+                  {buyerNote}
+                </p>
+              ) : null}
+            </form>
+          ) : null}
         </section>
 
         <form onSubmit={saveMoment}>
@@ -602,7 +689,9 @@ export default function CaptureStudio() {
                 <button
                   className="btn btn--ghost"
                   type="button"
+                  disabled={!captureOpen}
                   onClick={() => {
+                    if (!captureOpen) return;
                     void openTakeCamera();
                   }}
                 >
@@ -615,12 +704,20 @@ export default function CaptureStudio() {
                   type="file"
                   accept="image/*"
                   capture="environment"
+                  disabled={!captureOpen}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null, true);
                     event.target.value = "";
                   }}
                 />
-                <label className="btn btn--ghost" htmlFor={uploadInputId}>
+                <label
+                  className="btn btn--ghost"
+                  htmlFor={uploadInputId}
+                  aria-disabled={!captureOpen}
+                  onClick={(event) => {
+                    if (!captureOpen) event.preventDefault();
+                  }}
+                >
                   {LANDING.app.uploadPhoto}
                 </label>
                 <input
@@ -628,6 +725,7 @@ export default function CaptureStudio() {
                   className="visually-hidden"
                   type="file"
                   accept="image/*,video/*"
+                  disabled={!captureOpen}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null);
                     event.target.value = "";
@@ -664,17 +762,23 @@ export default function CaptureStudio() {
                   onError={recoverPreview}
                 />
               ) : null}
-              {mismatch ? (
-                <div id="joy-mismatch" className="joy-mismatch" role="status">
-                  <p className="joy-mismatch__line">{mismatch.line}</p>
-                  <div className="joy-mismatch__actions">
-                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("switch")}>
-                      {LANDING.app.switchJoy}
-                    </button>
-                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("keep")}>
-                      {LANDING.app.keepMine}
-                    </button>
-                  </div>
+              {spark ? (
+                <p id="photo-spark" className="photo-spark" role="status">
+                  {spark}
+                </p>
+              ) : sparkPending ? (
+                <p className="photo-spark-wait" role="status" aria-live="polite">
+                  {LANDING.app.sparkWait}
+                </p>
+              ) : null}
+              {spark && !sparkPending && !questionOpen ? (
+                <div className="spark-choice" role="group" aria-label="Did that match?">
+                  <button className="btn btn--lime" type="button" onClick={() => chooseSpark("yes")}>
+                    {LANDING.app.sparkYes}
+                  </button>
+                  <button className="btn btn--ghost" type="button" onClick={() => chooseSpark("no")}>
+                    {LANDING.app.sparkNo}
+                  </button>
                 </div>
               ) : null}
             </div>
@@ -709,13 +813,8 @@ export default function CaptureStudio() {
             ) : null}
           </section>
 
-          {captionOpen ? (
+          {questionOpen ? (
             <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
-              {witnessNote ? (
-                <p className="notice" id="joy-witness-quiet">
-                  {witnessNote}
-                </p>
-              ) : null}
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
               </label>
@@ -727,6 +826,8 @@ export default function CaptureStudio() {
                 maxLength={WHISPER_MAX}
                 autoComplete="off"
                 placeholder={LANDING.app.captionExamples}
+                required
+                aria-required="true"
                 value={caption}
                 onChange={(event) =>
                   setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
@@ -752,11 +853,18 @@ export default function CaptureStudio() {
             </p>
           ) : null}
 
-          <section className="card card--lime card--compact">
-            <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
-              {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
-            </button>
-          </section>
+          {questionOpen ? (
+            <section className="card card--lime card--compact">
+              <button
+                className="btn btn--lime"
+                type="submit"
+                disabled={busy || !caption.trim()}
+                style={{ width: "100%" }}
+              >
+                {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
+              </button>
+            </section>
+          ) : null}
         </form>
 
         {yoursReady ? (
@@ -777,7 +885,7 @@ export default function CaptureStudio() {
           <h2 id="today-heading">Today’s moment</h2>
           {!savedPhoto && !phoneStash ? (
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
-              Nothing saved yet. One photo and one joy, then YOURS.
+              Nothing saved yet. One photo and one joy, then My good moment.
             </p>
           ) : (
             <div className="moment-list">

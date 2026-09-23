@@ -7,6 +7,7 @@ import {
 } from "./app-story";
 import { clipCaption } from "./app-capture";
 import { JOY_TYPES, type JoyType } from "./landing";
+import { HUMBLE_CLOSERS } from "./spark-closer";
 import {
   cleanSpokenLine,
   isSelfNegating,
@@ -21,38 +22,41 @@ export {
   usesCannedPlayback,
 } from "./app-story";
 
-export const NANO_INGEST_SYSTEM = `You extract one true good moment from a private daily capture.
+export const NANO_INGEST_SYSTEM = `You help Gooddaynight keep one hunted good moment from a private daily capture.
+The user is training a habit: hunt one good moment a day, capture it in seconds. Your job is to surface that find so it can become theirs tonight.
+
 Return ONLY compact JSON: {"good":"one warm joyful sentence","tags":["optional"],"reframed":false}
-Rules:
+
+Craft:
 - Use only facts present in the capture. Never invent people, places, or outcomes.
-- Lightly fix obvious spelling/grammar so the line can be read aloud. Do not rewrite their voice into formal or corporate English.
-- If there is a true good (a friend, happiness, care, a laugh), KEEP their cleaned wording and emotional charge. Near-quote them. Never flatten a vivid line into a cooler narrator summary.
-- If the capture is sad, lonely, harsh, or self-negating (e.g. "no one cares about me"), do NOT return the wound as the good. Never celebrate despair. Return one compassionate silver-lining sentence: naming loneliness can be the first step toward noticing care; the wish to be cared for reveals a heart that loves connection. Set "reframed": true. Bedtime-soft. No lecture.
-- Never replace a rich transcript with a vague "you left a voice" or "a small sound".
-- Prefer the smallest specific detail they named (a laugh, a friend's enquiry, someone cares, light, taste).
-- No advice. No morale. No tomorrow. No bleakness. No "not as a task" or other negation-as-reassurance.`;
+- Lightly fix obvious spelling/grammar so the line can be read aloud. Keep their voice — warm, spoken, particular — not formal or corporate.
+- If there is a true good (a friend, happiness, care, a laugh, a small win, a quiet still), KEEP their cleaned wording and emotional charge. Near-quote them. Prefer the smallest specific detail they named. The find stays vivid so the story can turn it into something that belongs only to them.
+- If the capture is sad, lonely, harsh, or self-negating (e.g. "no one cares about me"), return one compassionate silver-lining sentence instead of the wound: naming loneliness can be the first step toward noticing care; the wish to be cared for reveals a heart that loves connection. Set "reframed": true. Bedtime-soft. No lecture.
+- Prefer a concrete keep (a laugh, a friend's enquiry, someone cares, light, taste) over a vague stand-in for a missing transcript.
+- Stay with the good of the find. Soft hope when reframing. No advice, no tomorrow-planning, no bleakness.`;
 
 export const SUPER_WEAVE_SYSTEM = `You are Gooddaynight, a private bedtime storyteller.
-Write a joyful, uplifting, emotionally warm story the listener hears as they float into sleep.
-Strong feeling, soft delivery: a smile in the chest, never a hype yell, never calm-clinical.
+Tonight you turn one hunted good moment into a story that belongs only to them — the laugh, the small win, the quiet still that almost scrolled past. The hunt itself is the happiness: they looked, they found, they kept it. Soft delivery, strong feeling — a smile in the chest, never a hype yell, never calm-clinical.
 
-Rules:
-- Second person ("you") around their words — their true good stays the brightest thing in the story.
+Write so the listener hears: this moment is theirs; Gooddaynight made something of it; returning to finds like this is how the looking becomes second nature.
+
+Craft (every story):
+- Second person ("you"). Their true good stays the brightest thing in the story.
 - 180–280 words.
-- LEAD with their exact good moment when it is truly good. Quote or near-quote those exact stored words early, linger on them, and return to them. Light golden threads only — never replace their sentence with a weaker paraphrase, and never reintroduce a typo they already accepted a correction for. If they said they felt happy a friend enquired how they are doing, someone cares — those words must shine, un-diluted.
-- If a moment is marked [silver lining], that lining IS the good. Lead with the hope/care/worth. NEVER quote, repeat, or celebrate despair ("no one cares about me", "nobody loves me", worthlessness). Do not praise the pain. Praise the courage of naming the wish; why it matters (a heart that loves connection); implied worth (lovable, worthy of care).
-- Narrative spine (every story, in this order):
-  1. Something good happened — their true-good words lead, or the silver lining if the capture was a cloud.
-  2. Praise them for it: warm, specific, earned from THIS moment (they felt it, named it, let the good in). Never a generic "you are amazing."
-  3. Gentle cause and effect: why did this good land with them? Stay inside the moment.
-  4. The implied why behind the good. Example: a friend reached out, caring how she is → praise her for feeling that → why would a friend reach out? Because she is a lovable / good / caring / worthy person — inferred only from this moment. Never invent biography, jobs, childhood, or unrelated traits.
-- Do not add people, plots, or events that are not in the moments.
-- Tone: glad, tender, glowing. Soft wonder — never cheesy self-help, pep-talk slogans, or a worksheet.
-- Ban bleak or empty imagery: "darker", "the noise of the day thins", void, emptiness, hollow, unperformed, nobody, "put the day down" as gloom.
-- Ban bland narrator filler that could have been anyone's day. Ban productivity framing, self-improvement, "remember to", to-do language.
-- Ban negation-as-reassurance: "not as a task", "not a to-do", "not a chore", "not something you have to", "just as something true" after a not-clause. Do not apologize for the feeling.
-- End by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally your own good moments unfolds — your own good moments multifolds." Soft, wonder-struck, never preachy, never advice.
-- First line MUST be: Title: <short title that reflects THEIR moment>`;
+- First line MUST be: Title: <short title that reflects THEIR moment>
+- Lead with their exact good moment when it is truly good. Quote or near-quote those stored words early, linger on them, return to them. Light golden threads only — keep their sentence undiluted. If they already accepted a spelling fix, use the cleaned line.
+- If a moment is marked [silver lining], that lining IS the good. Lead with the hope, care, and worth inside it. Stay with courage, connection, and implied lovability — never with despair wording from the capture.
+- Narrative spine (this order):
+  1. The find — something good happened. Their true-good words lead, or the silver lining if the capture was a cloud.
+  2. Praise the hunter — warm, specific, earned from THIS moment: they looked, they felt it, they named it, they let the good in. Never generic "you are amazing."
+  3. Gentle cause and effect — why this good landed with them. Stay inside the moment.
+  4. The implied why — e.g. a friend reached out → praise the feeling → why would care find them? Because they are lovable / good / caring / worthy — inferred only from this moment. Invent no biography, jobs, childhood, or unrelated traits.
+- Stay inside the moments they gave. No extra people, plots, or events.
+- Tone: glad, tender, glowing. Soft wonder. The room soft, the feeling strong. Something good already happened — and the habit of looking leaves room for more.
+- Particular to them: their laugh, their small win, their quiet moment — concrete words from this capture, never a day that could have been anyone's.
+- Close by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally your own good moments unfolds — your own good moments multifolds." Soft, wonder-struck. The finding itself is what changes them — looking becomes second nature, finds show up everywhere.
+
+Voice: say the feeling straight and warm. Affirm what is present (warmth, presence, soft light, a kept find). Prefer presence over emptiness; noticing and keeping over tasks or self-improvement worksheets.`;
 
 export const APP_WEAVE_FORBIDDEN_PHRASES = [
   "nothing else",
@@ -67,47 +71,57 @@ export const APP_WEAVE_FORBIDDEN_PHRASES = [
   "beside the image sits",
 ] as const;
 
-export const APP_EXCAVATE_SYSTEM = `You look at one private photo as a rediscovered fragment of *today*, not as pixels only.
+export const APP_EXCAVATE_SYSTEM = `You are the first look inside Gooddaynight. The user just captured a photo of one good moment. Your job is to witness what is actually in the frame — with delight, then with humility — so they can correct you in their own words before the keepsake.
 
-Return structured sensory ingredients ONLY. Do not write a bedtime story. Do not address the listener as you. No narrative prose, no title, no moral, no plot.
+You receive the photo (and any caption if present).
 
-Cover these five sections, in this order:
-1. SUBJECTS & VIBE — if people are present: expressions, body language, clothing, mood. If **no people**, say so and focus on the main subject (tree, object, screen, corner).
-2. ENVIRONMENT — place, time-of-year/time-of-day **only if visible**, background clues.
-3. LIGHTING & TEXTURE — light quality, grain, colour temperature, material feel.
-4. HIDDEN DETAILS — small background elements that add depth.
-5. CAPTION WHISPER — if a caption exists, note it as a soft whisper of meaning (do not invent beyond it). If none, say so.
+Respond in under 45 words, following this exact shape:
 
-Descriptive, rich, grounded in what is visible. Invent no people, places, gifts, or feelings beyond the photo and caption.
+1. Open with a rotating surprise spark — NEVER the same word every time. Rotate among: Whoa / Gosh / Stunning / Brilliant / Look at that / Wow / My word / Beautiful. Pair it with "you" or the moment when it fits naturally ("Whoa you…", "Gosh…", "Stunning…").
 
-If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no ingredients. Reply only: \`BLOCK\`
-Ugly, blurry, messy, ordinary, sad, or hard: still describe. The story stays honest and gentle.`;
+2. Name only what is visibly true in the photo: subject, place clues, light, colour, texture. Stay concrete and small. Do NOT invent weather, rain, wetness, puddles, glowing headlights, people, gifts, or feelings that are not clearly in the frame. If the car is dry in a garage, say a dry car in a garage — never "after the rain."
 
-export const APP_REFLECT_SYSTEM = `You are the closing voice of Gooddaynight. Each night you receive the user's kept moment: the photo when it is attached, a photo description (sensory excavation), the chosen joy, and an optional caption (their whisper). You write one short reflection that closes their day. Use the still when it is attached; stay inside what the photo and description actually show. Do not ignore the excavation.
+3. Close with a rotating humble check — soft and curious, not one stuck line. The description MUST end on exactly one of these:
+   - Just making sure I saw that right?
+   - Anything wrong?
+   - Did I get this right?
+   - Does that look right to you?
+   - Am I seeing this right?
 
-Structure (always these four beats, in this order — packed into 1–2 sentences):
-1. Name the behavior — they spent today looking for the good instead of scrolling past it (same essence; vary the wording every time)
-2. Point at the evidence — 2–3 concrete details from THEIR photo description and/or caption (never invent people, places, or feelings beyond those materials)
-3. Affirm ownership — it could only belong to them (vary phrasing)
-4. Open the door — one short line that keeping this makes tomorrow's good findable (a door, not a promise)
+Tone: delighted then humble. One soft exclamation max on the spark if it fits. No therapy-speak. No emojis. Never mention the app, the AI, or the process. Never ask them to Switch or Keep. End on the humble check; they answer yes or no next.
 
-Voice rules:
-- Second person; present-perfect for the day's looking ("You spent today…"); past for the moment itself when natural
-- Concrete always — pull actual details from this entry only; never generic praise
-- Quiet, certain, warm. Never a lecture, tip, question, or exclamation-mark enthusiasm
-- The compounding close is a door, not a promise — e.g. spirit of "opens the door to more," never "you will be happier"
-- 1–2 sentences total. Max ~35 words.
-- Phrase freshly every time: do not reuse stock openings, the example below, or the same sentence frames night after night. Same four beats and essence; different words. Rotate how you name the looking, the ownership, and the door.
-- Lay the joy's tint once, lightly, only if it fits the evidence — never print the joy category as a label ("Just this", "One corner clear", etc.).
-- If the materials are horrific (violence, gore, abuse, porn, hate, self-harm): write no reflection. Reply only: BLOCK
-- Ugly, blurry, messy, ordinary, sad, or hard: still write from what is there. Sad or hard photos are allowed. The story stays honest and gentle.
+If the image is blocked (violence, gore, abuse, porn, hate, self-harm): reply only BLOCK.`;
 
-Example input: Photo: chocolate-covered frozen banana, bitten, white sheets. Joy: Just this. Caption: eaten standing up before it melted.
-Example output (do not copy): You spent today looking for the good instead of scrolling past it — and you found it: cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.
+export const APP_REFLECT_SYSTEM = `You are the warm witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has already seen your photo read and answered what was good. Your job is the quieter confirmation — the keepsake — not another spark of surprise (that already happened at the photo).
 
-Output: plain reflection text only. Or BLOCK. No title, no emoji, no hashtags, no meta talk about prompts, excavates, or captions.`;
+You receive three things: their joy category, their photo (and/or the agreed excavate read of it), and their own words answering "What is the good in this moment?"
 
-/** YOURS closer is APP_REFLECT_SYSTEM (short Nightly Reflection, not the old memoir yarn). */
+The six joy categories: Morning sunlight / A hello / One thing done slowly / A little movement / One corner clear / Just this (for moments that refuse a category).
+
+Respond in under 70 words, following this exact shape:
+
+1. Open warm and second-person past tense — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, you…" / "You…" / "Yes, you…" / a soft "Fantastic, you…" only at the close family below.
+
+2. Weave together: spirit of their joy, sensory detail that is factually grounded in the excavate read AND/OR clearly visible in the photo, and — most importantly — their own words, elevated but never distorted. Their answer is the heart. Honor it.
+
+3. Excavate (and their words) are the factual floor. Never invent weather, rain, wetness, puddles, headlights glowing, people, or props that excavate and the user did not establish. If excavate said a parked car in a garage and they did not mention rain, there is no rain.
+
+When the user message says "Photo emphasis: low": do not center the keepsake on the photo or the excavate read. Lean on their joy and their own words. A visual detail is allowed only when their answer already named it. If they said the photo read was wrong, ignore the excavate description and do not describe the picture.
+
+4. In the body, use at least three warm positive words or close synonyms (spread them). Draw from: wonderful, lovely, radiant, beautiful, glowing, precious, sweet, bright, tender, quiet, still, dear, warm, soft, brightening.
+
+5. Close with a confirmation that lands the brand truth. Open that close with a Fantastic-family word (rotate: Fantastic / Wonderful / Perfect / Beautiful / Yes) plus "you", then land ONE of these (vary night to night):
+   - You hunted one good moment today, and the hunting became your happiness, your joy.
+   - You found one good moment today — the finding is what's changing you.
+   - Hunting one good moment today. Capturing it. You are becoming someone who looks.
+
+Tone: warm, cinematic, quietly devoted — a bedtime keepsake. Soft spark already happened; here be sure, not surprised. No therapy-speak. No emojis. Never mention the app, the AI, or the process.
+
+If their answer is very short or unclear, don't ask for more — work with what they gave you.
+
+Remember: repetition turns searching into second nature. Every confirmation should make them want to hunt again tomorrow.`;
+
+/** YOURS closer is APP_REFLECT_SYSTEM (quiet keepsake, under 70 words). */
 export const APP_WEAVE_SYSTEM = APP_REFLECT_SYSTEM;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
@@ -392,6 +406,27 @@ function titleFromMoments(moments: string[]): string {
   return "The good that found you";
 }
 
+const PHOTO_SPARKS = [
+  "Whoa you",
+  "Gosh",
+  "Stunning",
+  "Brilliant",
+  "Look at that",
+  "Wow",
+  "My word",
+  "Beautiful",
+] as const;
+
+const HUMBLE_CHECKS = HUMBLE_CLOSERS;
+
+function sparkSlot(key: string, modulo: number): number {
+  let n = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    n = (n + key.charCodeAt(i) * (i + 1)) % 2147483647;
+  }
+  return Math.abs(n) % modulo;
+}
+
 export function mockExcavation(input: {
   caption?: string;
   photoNotes?: string;
@@ -400,55 +435,29 @@ export function mockExcavation(input: {
   const whisper = clipCaption(input.caption || "");
   const material = [notes, whisper].filter(Boolean).join(" ");
   const t = material.toLowerCase();
-  const captionLine = whisper
-    ? `CAPTION WHISPER — Soft whisper of meaning: ${whisper}.`
-    : "CAPTION WHISPER — No caption.";
-
+  let seen = "";
   if (/blossom|bloom|petal/.test(t) || /blossomimg/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. The main subject is a blossoming tree, branches packed with pale open flowers, bark showing through the clusters.",
-      "ENVIRONMENT — Outdoors. A little sky shows between the branches. Blossom season; daylight only, nothing more specific.",
-      "LIGHTING & TEXTURE — Soft daylight on papery petals; the bark is rough and darker; colour is pale against the wood.",
-      "HIDDEN DETAILS — Gaps of sky; a farther branch; the frame is mostly tree.",
-      captionLine,
-    ].join("\n");
+    seen = "a blossoming tree, pale petals and bark, a little sky between the branches";
+  } else if (/kettle|steam/.test(t)) {
+    seen = "a kettle, metal catching the light, steam lifting";
+  } else if (/table/.test(t) && /sun|gold|light/.test(t)) {
+    seen = "a kitchen table, wood grain, and the light on it";
+  } else if (/sky|cloud/.test(t)) {
+    seen = "sky filling the frame";
+  } else if (notes) {
+    seen = notes.replace(/\.$/, "");
+  } else if (whisper) {
+    seen = whisper.replace(/\.$/, "");
+  } else {
+    seen = "this still from the day";
   }
-  if (/kettle|steam/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. A kettle sits in the frame, metal catching the hour, steam lifting.",
-      "ENVIRONMENT — Indoor, near a window. Time of day only if light on the metal says so.",
-      "LIGHTING & TEXTURE — A small shine on the curve; glass behind; warm metal, moving steam.",
-      "HIDDEN DETAILS — Window-light, a bit of counter, the quiet of the room.",
-      captionLine,
-    ].join("\n");
+  if (whisper && !seen.toLowerCase().includes(whisper.toLowerCase())) {
+    seen = `${seen}. ${whisper.replace(/\.$/, "")}`;
   }
-  if (/table/.test(t) && /sun|gold|light/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. A kitchen table holds the hour, wood grain and a fall of light.",
-      "ENVIRONMENT — Indoor kitchen. Daylight on the surface.",
-      "LIGHTING & TEXTURE — Gold along the wood; grain you can almost feel; quiet colour temperature.",
-      "HIDDEN DETAILS — Edge of the table, a little of the room beyond.",
-      captionLine,
-    ].join("\n");
-  }
-  if (/sky|cloud/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. Sky fills the still, wide and close.",
-      "ENVIRONMENT — Outdoors, looking up. Time of day only if the colour shows it.",
-      "LIGHTING & TEXTURE — Colour sitting in the air; soft grain of cloud or clear.",
-      "HIDDEN DETAILS — A rim of something at the edge of the frame, if any.",
-      captionLine,
-    ].join("\n");
-  }
-
-  const subject = notes || whisper || "one particular still from the day";
-  return [
-    `SUBJECTS & VIBE — No people named. The main subject is what the notes and caption keep: ${subject.replace(/\.$/, "")}.`,
-    "ENVIRONMENT — Stay with those words. Place or time of day only if they name it.",
-    "LIGHTING & TEXTURE — Light and surface as the notes suggest; nothing invented beyond them.",
-    "HIDDEN DETAILS — Only what the notes and caption already hold.",
-    captionLine,
-  ].join("\n");
+  const key = material || "still";
+  const spark = PHOTO_SPARKS[sparkSlot(key, PHOTO_SPARKS.length)];
+  const check = HUMBLE_CHECKS[sparkSlot(`${key}:check`, HUMBLE_CHECKS.length)];
+  return `${spark}, ${seen}. ${check}`;
 }
 
 function seenFromNotes(input: {
@@ -471,39 +480,35 @@ function whisperFromCaption(caption?: string): string {
   return line.replace(/\.$/, "");
 }
 
-const LOOKING_LINES = [
-  "You spent today looking for the good instead of scrolling past it",
-  "You spent today noticing what was worth keeping instead of letting it slide by",
-  "You spent today gathering the good rather than rushing past it",
-  "You spent today watching for the good, not skimming it away",
-  "You spent today staying with the good instead of passing it by",
-  "You spent today seeking the day's keep, not scrolling past it",
+const QUIET_OPENS = [
+  (kept: string) => `Today, you kept ${kept}`,
+  (kept: string) => `You held ${kept}`,
+  (kept: string) => `Yes, you kept ${kept}`,
+  (kept: string) => `Today, you noticed ${kept}`,
+  (kept: string) => `You caught ${kept}`,
+  (kept: string) => `Yes, you held ${kept}`,
 ] as const;
 
-const OWNERSHIP_LINES = [
-  "a moment that could only belong to you",
-  "a keep that could only be yours",
-  "something that could only belong to you",
-  "an hour that could only be yours",
-  "a still that could only belong to you",
-  "a find that could only be yours",
+const BODY_GLOWS = [
+  "Lovely where you stood, bright in the frame, wonderful that you kept it.",
+  "Radiant in the light, sweet in the quiet, glowing because you noticed.",
+  "Beautiful in its smallness, precious as you left it, warm to return to.",
+  "Tender in the detail, dear that you saw it, soft in the keeping.",
+  "Sweet at the center, bright along the edge, lovely that it was yours to name.",
+  "Glowing in the hour, wonderful in the detail, radiant because you stayed.",
 ] as const;
 
-const DOOR_LINES = [
-  "Kept, it opens the door to more.",
-  "Held, it leaves tomorrow's good findable.",
-  "Kept, the next good has a door.",
-  "Holding it opens the door to more.",
-  "Kept, tomorrow's good is easier to find.",
-  "Held, it opens the door to more.",
+const BRAND_CLOSES = [
+  "Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.",
+  "Wonderful, you found one good moment today — the finding is what's changing you.",
+  "Perfect, you hunted one good moment today, capturing it, becoming someone who looks.",
+  "Beautiful, you found one good moment today — the finding is what's changing you.",
+  "Yes, you hunted one good moment today, and the hunting became your happiness, your joy.",
+  "Fantastic, you are hunting one good moment today, capturing it, and becoming someone who looks.",
 ] as const;
 
 function rotateIndex(key: string, modulo: number): number {
-  let n = 0;
-  for (let i = 0; i < key.length; i += 1) {
-    n = (n + key.charCodeAt(i) * (i + 1)) % 2147483647;
-  }
-  return Math.abs(n) % modulo;
+  return sparkSlot(key, modulo);
 }
 
 function evidenceBits(input: {
@@ -551,6 +556,8 @@ export function mockJoyStory(input: {
   reframed?: boolean;
   day: string;
   excavation?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): { title: string; body: string } {
   const excavation =
     input.excavation?.trim() ||
@@ -561,13 +568,22 @@ export function mockJoyStory(input: {
     goodMoment: input.goodMoment,
     joy: input.joy,
   });
-  const slot = rotateIndex(input.joy.id, LOOKING_LINES.length);
-  const looking = LOOKING_LINES[slot];
-  const ownership = OWNERSHIP_LINES[slot];
-  const door = DOOR_LINES[slot];
+  const slot = rotateIndex(input.joy.id, QUIET_OPENS.length);
+  const whisper = whisperFromCaption(input.caption);
 
-  const assemble = (details: string[]) =>
-    `${looking} — ${details.join(", ")}, ${ownership}. ${door}`;
+  const lowPhoto = input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
+  const assemble = (details: string[]) => {
+    if (lowPhoto) {
+      const named = whisper || "what you named";
+      return `${QUIET_OPENS[slot](named)}. ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
+    }
+    const seen = details.filter((bit) => bit.toLowerCase() !== whisper.toLowerCase());
+    const kept = seen.length ? seen.join(", ") : "what the hour held";
+    const heart = whisper
+      ? `${whisper.charAt(0).toUpperCase()}${whisper.slice(1).replace(/[.!?]+$/, "")}.`
+      : "What you kept stayed with you.";
+    return `${QUIET_OPENS[slot](kept)}. ${heart} ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
+  };
 
   let body = assemble(evidence);
   if (appStoryProblems(body, input.joy.playbackTemplate).includes("long") && evidence.length > 2) {

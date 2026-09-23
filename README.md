@@ -9,8 +9,9 @@ Apache 2.0 — see [LICENSE](LICENSE).
 ## Funnel
 
 1. Landing: **You scrolled past a hundred good moments today. None of them were yours.** Lavender card: **Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →** — that arrow and the step next arrow open `/app/joy` (the quiet-joy accordion), not the photo page. Closer: **Something good is about to happen!** No email form. Landing photos/whispers still save through the same `/api/captures` vault as the app.
-2. `/app/joy` is the accordion — **What kind of quiet joy was it?** *(pick one)* — with six expandable joys (title, tagline, body, Capture it, story playback). Newer joy ids stay in data for mismatch suggestions and are not listed. Choosing a joy stays on the accordion. A photo and arrow then open `/app`; the previous arrow returns to the landing. `/app` is **photo only**: heading **Today. One good moment. Go get it.** Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* The ten photo-save rules below are not shown on `/app`. They stay in this README and in `PHOTO_SAVE_RULES`, and they are still enforced on save. Once that still and the stored joy both exist, `/api/joy-match` runs: MATCH opens the optional one-line caption (≤80 characters); MISMATCH offers **Switch it** / **Keep mine**. Horrific/essay lines are dropped and the photo still saves. **Save today's moment**, then **YOURS** appears — the only door to tonight's story (`/app/yours`). The photo page’s previous arrow returns to the joy; its next arrow continues to YOURS once that door is open. Photo weaves run two steps: vision excavates sensory ingredients, then **Kimi** writes a short **Nightly Reflection** (1–2 sentences, ~35 words) from the **photo** (Kimi-K2.6 / K3 are image2text — the still is attached, JPEG-shrunk to ~1440px / ~1MB for Token Factory), the photo description, chosen joy, and optional caption. Caption is their whisper; joy is a light tint (never printed as a label). If Kimi cannot finish, Qwen instruct then Super write from the text brief — that text chain is never empty even if Vercel model envs are blank. Vision when a Token Factory key is present; an honest caption+joy stand-in when it is not, or if every live closer fails. Mock-fallback JSON may include a short non-secret `closerHint` (last model / problems / truncated error) for debug; the YOURS chip stays soft. If the model returns `BLOCK` (horrific image), YOURS shows a gentle refusal and does not lock the photo. After a real story opens, the caption is deleted. Saving again the same day replaces that one still (no archive) so YOURS can weave a fresh reflection. **Keep** saves the photo and story as one picture. At midnight the night expires. Closing: **Something good is about to happen!** / **Gooddaynight.com**.
-3. Private vault only — not shared, posted, or used to train public models. Email remains available on the landing path; `/app` does not ask for it to open YOURS.
+2. `/app/joy` is the accordion — **What kind of quiet joy is it?** *(pick one for a new good moment)* — with six expandable joys (title, tagline, body, Capture it, My good moment playback). Newer joy ids stay in data for mismatch suggestions and are not listed. Choosing a joy stays on the accordion. A photo and arrow then open `/app`; the previous arrow returns to the landing. `/app` is **photo only**: heading **Today. One good moment. Go get it.** Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* The ten photo-save rules below are not shown on `/app`. They stay in this README and in `PHOTO_SAVE_RULES`, and they are still enforced on save. Once that still and the stored joy both exist, the photo page shows a spark that ends on a humble check, then **Yes** / **No**. Only after that answer does it ask **What is the good in this moment?** (required). Either answer tells My good moment not to center the keepsake on the photo. Horrific/essay lines are dropped and the photo still saves. **Save today's moment**, then **My good moment** appears — the only door to tonight's story (`/app/yours`). The photo page’s previous arrow returns to the joy; its next arrow continues to My good moment once that door is open. Photo weaves run two steps: vision sparks what is actually in the frame, then **Kimi** writes a quieter **Nightly Reflection** (under 70 words) from the **photo** (Kimi-K2.6 / K3 are image2text — the still is attached, JPEG-shrunk to ~1440px / ~1MB for Token Factory), the excavate read, chosen joy, and their answer. Their answer is the heart; joy is a light tint (never printed as a label). If Kimi cannot finish, Qwen instruct then Super write from the text brief — that text chain is never empty even if Vercel model envs are blank. Vision when a Token Factory key is present; an honest caption+joy stand-in when it is not, or if every live closer fails. Mock-fallback JSON may include a short non-secret `closerHint` (last model / problems / truncated error) for debug; the My good moment chip stays soft. If the model returns `BLOCK` (horrific image), My good moment shows a gentle refusal and does not lock the photo. After a real story opens, the caption is deleted. Saving again the same day replaces that one still (no archive) so My good moment can weave a fresh reflection. **Share** opens the system share sheet for the photo-and-story card, or downloads it. At midnight the night expires. Closing: **Something good is about to happen!** / **Gooddaynight.com**.
+3. Private vault only — not shared, posted, or used to train public models. Email remains available on the landing path; `/app` does not ask for it to open My good moment.
+4. `/moments` is the pack page (not inside the photo form). It says what this is and what it is not, then **40 good moments — R450 ZAR · $28 USD**. **Start hunting — R450 ZAR / $28 USD** asks for an email and posts to Payfast. The page keeps that R450 / $28 display. The live test charge Payfast collects is **5.00 ZAR**, and a confirmed payment still credits **40** moment saves. The photo page header **Start hunting** returns to `/moments`. **Already bought?** on `/app` opens Take / Upload when that email still has moments left.
 
 ## Photo-save rules
 
@@ -34,7 +35,7 @@ Internal product rules — not shown on `/app`. Source of truth: `PHOTO_SAVE_RUL
 | Frontend | Next.js App Router on Vercel. Landing + `/app` capture UI + story player with replay-last-night. |
 | API | `/api/captures` ingest (`source=app` enforces photo-day rules), `/api/yours` open tonight's story (a same-day Save replaces the one still and weaves again — no archive), `/api/email` gate (landing path), `/api/weave` story, `/api/story` + `/api/story/audio` playback. |
 | Ingest | Nemotron Nano via Token Factory extracts “the good.” Photos try Nano-Omni, then Nano. |
-| Weave | `/app` YOURS: vision excavates the photo, then image2text Kimi writes a short Nightly Reflection from the still + excavation (Qwen instruct, then Super, if Kimi cannot finish). Landing path: Super + optional Ultra continuity. |
+| Weave | `/app` My good moment: vision excavates the photo, then image2text Kimi writes a short Nightly Reflection from the still + excavation (Qwen instruct, then Super, if Kimi cannot finish). Landing path: Super + optional Ultra continuity. |
 | Voice | NVIDIA Sonic via Token Factory when a model id is listable; otherwise stub TTS and play the story in a calm browser voice. |
 | Storage | **Vercel Blob** when `BLOB_READ_WRITE_TOKEN` is set; else Nebius AI Cloud object storage (S3 API); filesystem only for local dev. On Vercel without Blob/S3, health reports `ephemeral`. |
 | Nightly | `POST /api/weave` with `WEAVE_CRON_SECRET`, wrapped by `jobs/weave-nightly.sh` as a Nebius Serverless Job at 21:00. UI also has **Weave now**. |
@@ -49,8 +50,8 @@ Checked against the public catalog (`/api/public/models_info`) on 2026-09-21:
 | --- | --- | --- |
 | Ingest / extract the good | `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` | In catalog |
 | Photo / multimodal ingest | `nvidia/nemotron-3-nano-omni` | Cookbook id; not in that catalog snapshot — tried then Nano fallback |
-| YOURS visual excavation | `openbmb/MiniCPM-V-4_5` (`NEBIUS_VISION_MODEL`) | image2text, in catalog (eu-north1). Fallback: Nano-Omni, then text-only from caption/notes with Qwen instruct (`NEBIUS_EXCAVATE_TEXT_MODEL`). **No Qwen VL id in this snapshot**; Token Factory vision docs still mention `Qwen/Qwen2-VL-72B-Instruct` — set `NEBIUS_VISION_MODEL` to that if it is available on your key |
-| YOURS Nightly Reflection | `moonshotai/Kimi-K2.6` (`NEBIUS_STORY_MODEL`) | **image2text**, in catalog (us-central1). YOURS attaches a JPEG-shrunk copy of the photo with the excavation, joy, and optional caption (Keep/download still uses the original blob). `moonshotai/Kimi-K3` is also image2text; `Kimi-K2.7-Code` is text2text (coding). A text-only `NEBIUS_STORY_MODEL` stays text-only. Fallback: Qwen instruct (`NEBIUS_STORY_TEXT_MODEL`), then Super — both hard-defaulted if env is blank. Mock only if every live path fails |
+| My good moment visual excavation | `openbmb/MiniCPM-V-4_5` (`NEBIUS_VISION_MODEL`) | image2text, in catalog (eu-north1). Fallback: Nano-Omni, then text-only from caption/notes with Qwen instruct (`NEBIUS_EXCAVATE_TEXT_MODEL`). **No Qwen VL id in this snapshot**; Token Factory vision docs still mention `Qwen/Qwen2-VL-72B-Instruct` — set `NEBIUS_VISION_MODEL` to that if it is available on your key |
+| My good moment Nightly Reflection | `moonshotai/Kimi-K2.6` (`NEBIUS_STORY_MODEL`) | **image2text**, in catalog (us-central1). My good moment attaches a JPEG-shrunk copy of the photo with the excavation, joy, and optional caption (Keep/download still uses the original blob). `moonshotai/Kimi-K3` is also image2text; `Kimi-K2.7-Code` is text2text (coding). A text-only `NEBIUS_STORY_MODEL` stays text-only. Fallback: Qwen instruct (`NEBIUS_STORY_TEXT_MODEL`), then Super — both hard-defaulted if env is blank. Mock only if every live path fails |
 | Text-only excavation / reflection fallback | `Qwen/Qwen3-235B-A22B-Instruct-2507` (`NEBIUS_STORY_TEXT_MODEL` / `NEBIUS_EXCAVATE_TEXT_MODEL`) | In catalog (eu-north1). Nightly Reflection if image2text Kimi cannot finish; also text-only excavation if vision fails |
 | Story weave (landing / Super fallback) | `nvidia/nemotron-3-super-120b-a12b` | In catalog |
 | Private vault continuity | `nvidia/Nemotron-3-Ultra-550b-a55b`, then `nvidia/Llama-3_1-Nemotron-Ultra-253B-v1` | Ultra-3 is in catalog; Llama Ultra is a fallback. Off unless `NEBIUS_USE_ULTRA=1` |
@@ -74,7 +75,7 @@ Open [http://localhost:3000](http://localhost:3000). Landing CTA goes to `/app/j
 
 ### With Token Factory
 
-Set `NEBIUS_API_KEY` in `.env.local`. `/app` YOURS excavates with `NEBIUS_VISION_MODEL` (then Omni), then writes the Nightly Reflection with `NEBIUS_STORY_MODEL` (multimodal Kimi when the photo is present; text-only if you override to an instruct id), then `NEBIUS_STORY_TEXT_MODEL` (Qwen), then Super. Landing weave calls Super. Ingest calls Nano (and Omni for photos when available).
+Set `NEBIUS_API_KEY` in `.env.local`. `/app` My good moment excavates with `NEBIUS_VISION_MODEL` (then Omni), then writes the Nightly Reflection with `NEBIUS_STORY_MODEL` (multimodal Kimi when the photo is present; text-only if you override to an instruct id), then `NEBIUS_STORY_TEXT_MODEL` (Qwen), then Super. Landing weave calls Super. Ingest calls Nano (and Omni for photos when available).
 
 ### With Nebius object storage
 
@@ -123,11 +124,11 @@ nebius ai job create \
 
 ## Demo script (≤3 minutes)
 
-1. **0:00** Landing. Point at the mint and lavender cards and the **Gooddaynight does →** arrow into `/app/joy`. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender Story playback. There is no signup field. Click through.
-2. **0:20** Landing arrow opens the joy accordion. Pick one quiet joy — the accordion stays open, and the photo arrow opens `/app`. Heading is **Today. One good moment. Go get it.** Upload one photo (screenshots count; a video can yield one still). Caption **What’s the good in this one?** (≤80) opens after the joy witness. **Save today's moment** — then **YOURS** appears. Tap it to open `/app/yours`.
-3. **0:50** Pale lavender Story playback reads the **woven** story (not the canned joy template). Replay last night.
+1. **0:00** Landing. Point at the mint and lavender cards and the **Gooddaynight does →** arrow into `/app/joy`. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender My good moment playback. There is no signup field. Click through.
+2. **0:20** Landing arrow opens the joy accordion. Pick one quiet joy — the accordion stays open, and the photo arrow opens `/app`. Heading is **Today. One good moment. Go get it.** Upload one photo (screenshots count; a video can yield one still). The photo spark ends on a humble check. **Yes** or **No**, then the caption asks **What is the good in this moment?** (≤80, required). **Save today's moment** — then **My good moment** appears. Tap it to open `/app/yours`.
+3. **0:50** Pale lavender My good moment playback reads the **woven** story (not the canned joy template). **Play this good moment** reads it aloud.
 4. **1:20** Header shows Token Factory vs demo mode. Mention: vision excavates the photo (MiniCPM-V or your `NEBIUS_VISION_MODEL`), Kimi writes the Nightly Reflection from the still, vault is private, Sonic is stubbed until Token Factory lists it.
-5. **1:50** After YOURS, **Keep** saves the photo with the story. Save again the same day to replace that one moment and open YOURS once more. After midnight the link expires.
+5. **1:50** After My good moment, **Share** opens the system share sheet for the photo-and-story card (or downloads it when share is unavailable). Save again the same day to replace that one moment and open My good moment once more. After midnight the link expires.
 
 ## API sketch
 
@@ -136,13 +137,43 @@ nebius ai job create \
 | GET | `/api/health` | Models (including `storyText` / `excavateText`), `closerChain`, storage backend, Token Factory flag |
 | GET | `/api/session` | Anonymous cookie vault |
 | GET/POST | `/api/captures` | List / store a moment and Nano-ingest. `source=app` enforces the ten photo-save rules, and blocks a confirmed camera date older than today |
-| POST | `/api/joy-match` | Witness whether the photo fits the joy just tapped (`joy_type` + file). `MATCH`, `MISMATCH`, `NEED_PHOTO` (no file), or `UNAVAILABLE` (no Token Factory key). Model errors fail open as `MATCH` |
+| POST | `/api/photo-spark` | First look when a photo lands. Returns a surprise spark plus a humble check of the frame, or `blocked` |
+| POST | `/api/joy-match` | Unused by the photo page. Still witnesses whether a photo fits a joy (`joy_type` + file): `MATCH`, `MISMATCH`, `NEED_PHOTO` (no file), or `UNAVAILABLE` (no Token Factory key). Model errors fail open as `MATCH` |
 | GET | `/api/media/:id` | Private media for this vault |
 | GET/POST | `/api/yours` | Open tonight's woven story, lock the photo; 404 after midnight or if nothing was saved |
 | POST | `/api/email` | Gate after ≥1 capture on the landing path; accepts client `captures` if the server vault is empty; migrate anon → email vault |
+| GET/POST | `/api/payfast/checkout` | Health, or an auto-submitting Payfast form. Charge is 5.00 ZAR; a confirmed payment credits 40 moments |
+| POST | `/api/payfast/itn` | Payfast ITN. Verifies signature, VALID, and amount, then credits 40 moments once |
+| POST | `/api/payfast/entitlement` | Already bought: remaining moments for an email; sets the gate cookie when any remain |
 | POST | `/api/weave` | Super weave (session or cron) |
 | GET | `/api/story` | Last story |
 | GET | `/api/story/audio` | Sonic audio when present |
+
+## Payfast (checkout + ITN)
+
+The pack is still **40** good moments. `/moments` still shows **R450 ZAR · $28 USD** and “40 good moments”. Payfast is charged the string **5.00** for this live test. `item_name` stays `GoodDayNight — 40 good moments`. The 5.00 figure is not shown on that price block.
+
+The buy button posts the email to `POST /api/payfast/checkout`. That route signs the fields and returns an HTML form that auto-submits to Payfast (a 302 is not enough). Payfast then POSTs the ITN to `POST /api/payfast/itn`.
+
+The signature rules match the Longevity Greenlight / whycantisleep checkout and ITN handlers:
+
+- Secrets come only from `PF_MERCHANT_ID`, `PF_MERCHANT_KEY`, and `PF_PASSPHRASE`. They are never hardcoded.
+- Checkout walks the documented `FIELD_ORDER`, skips blanks, trims values, percent-encodes like Python `quote_plus` with uppercase hex, appends the passphrase last, and MD5s to a lowercase hex digest.
+- ITN rebuilds that digest from the pairs in the order Payfast sent (the signature field is skipped), requires `payment_status` `COMPLETE` and `amount_gross` of at least `5.00`, POSTs the raw notify body to Payfast’s validate URL, and requires the response body to start with `VALID`.
+- Any failure before the entitlement write returns **500** so Payfast retries. **200** is returned only after the write. The same `pf_payment_id` does not credit a second pack.
+- `SANDBOX` defaults to false (`www.payfast.co.za`). Leave it unset or set `SANDBOX=false` with the **live** `PF_MERCHANT_ID`, `PF_MERCHANT_KEY`, and `PF_PASSPHRASE`. Vercel Preview for this R5 test must use those live keys and `SANDBOX=false`. Set `SANDBOX=true` only for `sandbox.payfast.co.za`, and only with sandbox keys. Do not mix them.
+
+`APP_URL` is the public origin for `return_url` (`/app?paid=1&ref=…`), `cancel_url` (`/moments?cancelled=1`), and `notify_url` (`{APP_URL}/api/payfast/itn`). If `APP_URL` is unset, `VERCEL_URL` is used. Payfast has to reach the notify URL from the internet.
+
+A confirmed ITN credits 40 moment saves on the buyer email vault id (`em_` plus the email hash) in the same Blob, S3, or `DATA_DIR` store as the vault. A moment save is one new day’s photo that can become My good moment. On `/app`, **Already bought?** checks that balance and opens Take / Upload while the pack is active. Replay, Share, joy picks, and saving again the same day do not spend a moment. An underpaid ITN (`amount_gross` below `5.00`) credits 0 and is not stored.
+
+### Live R5 test
+
+1. Use the production Payfast merchant id, key, and passphrase. On Vercel Preview set those live `PF_*` values and `SANDBOX=false` (or leave `SANDBOX` unset). Checkout and ITN then use `www.payfast.co.za`.
+2. Set `APP_URL` to the public https origin Payfast can call (the Preview URL is enough). Notify URL is `{APP_URL}/api/payfast/itn`.
+3. Open `/moments`. The price block still says **40 good moments — R450 ZAR · $28 USD**. Enter an email and pay. Payfast charges **5.00 ZAR**. `GET /api/payfast/checkout` should show `"sandbox": false`, `"amount": "5.00"`, `"moments": 40`, and no secrets.
+4. The browser returns to `/app?paid=1`. After the ITN, choose **Already bought?** and enter the same email. Take / Upload should enable, with 40 moment saves. Cancel returns to `/moments?cancelled=1`.
+5. Set `SANDBOX=true` only if you switch to sandbox keys. Do not point sandbox keys at the live host.
 
 ## License
 

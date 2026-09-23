@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import StoryPlayback from "@/components/StoryPlayback";
 import { explainClientFetchError, readJson, readResponsePayload } from "@/lib/client-fetch";
 import {
   buildAppCaptureForm,
@@ -20,6 +19,34 @@ import {
 import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
+
+function PlayIcon() {
+  return (
+    <svg className="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+      <polygon points="8 5 19 12 8 19" fill="currentColor" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg className="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
+      <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg className="btn__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="18" cy="5" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="6" cy="12" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="18" cy="19" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.4 10.8 15.6 6.6M8.4 13.2 15.6 17.4" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
 
 type YoursState =
   | { status: "loading" }
@@ -41,8 +68,15 @@ export default function YoursStory() {
   const [playing, setPlaying] = useState(false);
   const [keepBusy, setKeepBusy] = useState(false);
   const [keepNote, setKeepNote] = useState<string | null>(null);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [cardError, setCardError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const cardBlobRef = useRef<Blob | null>(null);
   const day = localDay();
+  const readyStoryId = state.status === "ready" ? state.story.id : "";
+  const readyBody = state.status === "ready" ? state.story.body : "";
+  const readyPhotoId =
+    state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
 
   const weaveYours = useCallback(async (): Promise<WeaveResult> => {
     const open = await fetch("/api/yours", {
@@ -190,6 +224,39 @@ export default function YoursStory() {
     };
   }, [day, restoreFromStashAndWeave, weaveYours]);
 
+  useEffect(() => {
+    if (!readyPhotoId) {
+      cardBlobRef.current = null;
+      setCardUrl(null);
+      setCardError(Boolean(readyStoryId));
+      return;
+    }
+    let cancelled = false;
+    let url: string | null = null;
+    setCardError(false);
+    setCardUrl(null);
+    (async () => {
+      try {
+        const photo = await loadKeepCardPhoto(keepCardPhotoSrc(readyPhotoId, readyStoryId));
+        const blob = await composeKeepCardJpeg({ photo, story: readyBody });
+        if (cancelled) return;
+        cardBlobRef.current = blob;
+        url = URL.createObjectURL(blob);
+        setCardUrl(url);
+      } catch {
+        if (!cancelled) {
+          cardBlobRef.current = null;
+          setCardUrl(null);
+          setCardError(true);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [readyBody, readyPhotoId, readyStoryId]);
+
   function speakStory(record: StoryRecord) {
     window.speechSynthesis?.cancel();
     if (record.tts.status === "sonic") {
@@ -220,8 +287,12 @@ export default function YoursStory() {
     setKeepBusy(true);
     setKeepNote(null);
     try {
-      const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
-      const blob = await composeKeepCardJpeg({ photo, story: state.story.body });
+      let blob = cardBlobRef.current;
+      if (!blob) {
+        const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
+        blob = await composeKeepCardJpeg({ photo, story: state.story.body });
+        cardBlobRef.current = blob;
+      }
       const result = await shareOrDownloadKeepCard({
         blob,
         filename: keepCardFilename(day),
@@ -264,7 +335,7 @@ export default function YoursStory() {
               {state.status === "expired"
                 ? "That night has passed."
                 : state.status === "blocked"
-                  ? "No YOURS story tonight."
+                  ? "No story for My good moment tonight."
                   : state.status === "error"
                     ? "Couldn’t keep this moment."
                     : "Not yet."}
@@ -284,13 +355,18 @@ export default function YoursStory() {
             <h1 id="yours-heading" className="visually-hidden">
               {LANDING.app.yours}
             </h1>
-            <StoryPlayback id="app-story-playback" title="">
-              <p className="playback__story">{state.story.body}</p>
-            </StoryPlayback>
+            {cardUrl ? (
+              <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
+            ) : (
+              <p className="card__body">
+                {cardError ? LANDING.app.keepFailed : "Opening tonight’s story…"}
+              </p>
+            )}
             <div className="actions" style={{ marginTop: "1rem" }}>
               <button
-                className="btn"
+                className="btn btn--icon"
                 type="button"
+                aria-label={playing ? LANDING.app.pause : LANDING.app.playMoment}
                 onClick={() => {
                   if (playing) {
                     window.speechSynthesis?.cancel();
@@ -302,10 +378,11 @@ export default function YoursStory() {
                 }}
                 style={{ color: "var(--navy)", borderColor: "rgba(22,50,74,0.25)" }}
               >
-                {playing ? "Pause" : "Replay last night"}
+                {playing ? <PauseIcon /> : <PlayIcon />}
+                {playing ? LANDING.app.pause : LANDING.app.playMoment}
               </button>
               <button
-                className="btn btn--keep"
+                className="btn btn--keep btn--icon"
                 type="button"
                 aria-label={LANDING.app.keepLabel}
                 aria-busy={keepBusy}
@@ -314,6 +391,7 @@ export default function YoursStory() {
                   void keepTonight();
                 }}
               >
+                <ShareIcon />
                 {keepBusy ? LANDING.app.keepBusy : LANDING.app.keep}
               </button>
               {keepNote ? (

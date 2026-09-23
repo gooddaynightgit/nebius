@@ -121,7 +121,7 @@ describe("joy match witness", () => {
   it("returns the parsed verdict and fails open when the model throws", async () => {
     let seenTemp: number | undefined;
     const match = await witnessJoyMatch({
-      joyTitle: "A small hello",
+      joyTitle: "A hello",
       imageDataUrl: "data:image/jpeg;base64,abc",
       complete: async (_models, messages, options) => {
         seenTemp = options?.temperature;
@@ -131,7 +131,7 @@ describe("joy match witness", () => {
         const user = messages[1]?.content;
         const userText = Array.isArray(user) ? String(user[0]?.text ?? "") : String(user ?? "");
         expect(userText).toContain("one line only");
-        expect(userText).toContain("A small hello");
+        expect(userText).toContain("A hello");
         expect(options?.maxTokens).toBeGreaterThanOrEqual(80);
         return { text: "MATCH", model: "test" };
       },

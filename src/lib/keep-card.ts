@@ -280,7 +280,7 @@ export async function shareOrDownloadKeepCard(input: {
   const file = keepCardFile(input.blob, input.filename);
   if (canShareKeepCard(file)) {
     try {
-      await navigator.share({ files: [file], title: input.title ?? "YOURS" });
+      await navigator.share({ files: [file], title: input.title ?? "My good moment" });
       return "shared";
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return "cancelled";

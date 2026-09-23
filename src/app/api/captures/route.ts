@@ -1,5 +1,6 @@
 import { appPhotoRejection, captionDisposition } from "@/lib/app-capture";
 import { chooseSpokenLine, proposeSpokenLine } from "@/lib/care";
+import { consumeMoment, getEntitlement } from "@/lib/entitlement";
 import { ingestAppPhoto, ingestGood } from "@/lib/ingest";
 import { newId, todayStamp } from "@/lib/identity";
 import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
@@ -138,6 +139,15 @@ async function saveAppPhoto(
   const tzOffset = Number(form.get("tzOffset"));
   const file = form.get("file");
   const existing = appPhotoForDay(vault, day);
+  const email = vault.email;
+  if (!email) {
+    return forbidden("Capture stays closed until this purchase is confirmed.");
+  }
+  const entitlement = await getEntitlement(email);
+  const replacing = Boolean(existing);
+  if (!replacing && (entitlement?.remaining ?? 0) < 1) {
+    return forbidden("Capture stays closed until this purchase is confirmed.");
+  }
 
   const hasNewFile = file instanceof File && file.size > 0;
   if (!hasNewFile && !existing) {
@@ -207,6 +217,8 @@ async function saveAppPhoto(
     joyType: joy.id,
   });
 
+  const sparkRaw = String(form.get("sparkAnswer") ?? "");
+  const sparkAnswer = sparkRaw === "yes" || sparkRaw === "no" ? sparkRaw : undefined;
   const capture = await upsertAppPhoto(vault, {
     id,
     kind: "photo",
@@ -215,6 +227,7 @@ async function saveAppPhoto(
     caption: caption || undefined,
     joyType: joy.id,
     source: "app",
+    ...(sparkAnswer ? { sparkAnswer, photoEmphasis: "low" as const } : {}),
     dateVerified: Boolean(date.verified && date.takenDay === day),
     photoTakenAt: date.verified && date.takenDay ? date.takenDay : day,
     locked: false,
@@ -225,6 +238,7 @@ async function saveAppPhoto(
     ingestModel: ingest.model,
     ingestStatus: ingest.status,
   });
+  if (!replacing) await consumeMoment(email);
   return json({
     capture,
     session: await presentSession(vault, sessionId, day),

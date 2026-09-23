@@ -143,14 +143,6 @@ async function weaveWithSuper(
   return null;
 }
 
-function joyColourLabel(joyTitle: string): string {
-  return joyTitle
-    .toLowerCase()
-    .replace(/,/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export function appExcavateUserText(input: {
   caption?: string;
   photoNotes: string;
@@ -159,13 +151,13 @@ export function appExcavateUserText(input: {
   const caption = input.caption ? clipCaption(input.caption) : "";
   return [
     input.hasImage
-      ? "The photo is attached. Treat it as a fragment of today. Return the five ingredient sections. No story."
-      : "The photo pixels are not attached. Do your best from the caption and any photo notes. Do not invent a scene beyond those words. Return the five ingredient sections. No story.",
+      ? "The photo is attached. Witness only what is visibly in the frame."
+      : "The photo pixels are not attached. Stay inside the caption and photo notes. Do not invent a scene, weather, or people beyond those words.",
     input.photoNotes
       ? `Photo notes (use only if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
-    caption ? `Optional caption: ${caption}` : "No caption.",
-    "If horrific: BLOCK. Otherwise ingredients only — no bedtime story.",
+    caption ? `Caption already given: ${caption}` : "No caption yet. They will answer next in their own words.",
+    "Under 45 words: a rotating surprise spark, the concrete still, then end on exactly one humble closer: Just making sure I saw that right? / Anything wrong? / Did I get this right? / Does that look right to you? / Am I seeing this right? If horrific: BLOCK.",
   ].join("\n\n");
 }
 
@@ -174,20 +166,28 @@ export function appReflectUserText(input: {
   excavation: string;
   caption?: string;
   hasImage?: boolean;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): string {
   const caption = input.caption ? clipCaption(input.caption) : "";
-  return [
-    input.hasImage
-      ? "The photo is attached. Use it together with the photo description. Stay inside what the still actually shows; the description names the ingredients. No invented scene."
-      : "The photo pixels are not attached. Stay inside the photo description, chosen joy, and optional caption. Do not invent a scene beyond those words.",
-    "Photo description (sensory excavation of today's kept still):",
-    input.excavation,
-    `Chosen joy (lay this tint once, lightly, only if it fits the evidence — never print it as a label): ${joyColourLabel(input.joyTitle)}`,
-    caption
-      ? `Optional caption (their whisper): ${caption}`
-      : "No caption.",
-    "Write one short Nightly Reflection. Four beats in this order, packed into 1–2 sentences (max ~35 words): name the looking, 2–3 concrete details from the photo (and/or photo description and caption), ownership, door. Second person. Plain reflection text only. Or BLOCK.",
-  ].join("\n\n");
+  const low =
+    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
+  const rejected = input.sparkAnswer === "no";
+  const photo = !low && input.hasImage ? "Photo: attached" : low ? "Photo: withheld" : "Photo: description";
+  const description = rejected
+    ? "Photo read withheld. They said it was wrong."
+    : input.excavation?.trim() || "No photo description.";
+  const lines = [`Joy picked: ${input.joyTitle}`, `${photo}\n${description}`];
+  if (low) {
+    lines.push("Photo emphasis: low");
+    lines.push(
+      rejected
+        ? "They said the photo read was wrong. Ignore the excavate description. Do not describe the picture. Lean on their joy and their answer."
+        : "Do not center the keepsake on the photo or the excavate read. Lean on their joy and their own words. A visual detail is allowed only when their answer already named it.",
+    );
+  }
+  lines.push(caption ? `Their answer: ${caption}` : "Their answer:");
+  return lines.join("\n\n");
 }
 
 export function appReflectUserContent(input: {
@@ -195,12 +195,16 @@ export function appReflectUserContent(input: {
   excavation: string;
   caption?: string;
   imageDataUrl?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): ChatMessage["content"] {
+  const low =
+    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
   const userText = appReflectUserText({
     ...input,
-    hasImage: Boolean(input.imageDataUrl),
+    hasImage: Boolean(input.imageDataUrl) && !low,
   });
-  if (input.imageDataUrl) {
+  if (input.imageDataUrl && !low) {
     return [
       { type: "text", text: userText },
       { type: "image_url", image_url: { url: input.imageDataUrl } },
@@ -278,15 +282,15 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 
 function reflectRetryHint(problems: string[], lastBody: string): string {
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
-    return "The last draft was too short. Write 1–2 sentences, about 35 words, with all four beats: looking, 2–3 concrete details from the photo description and/or caption, ownership, door. Plain reflection text only. Or BLOCK.";
+    return 'The last draft was too short. Open quietly: "Today, you", "You", or "Yes, you" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. At least three warm words. Close with Fantastic, Wonderful, Perfect, Beautiful, or Yes, plus you, and one hunt-find truth. Under 70 words.';
   }
   if (problems.includes("long")) {
-    return "The last draft was too long. Cut to 1–2 sentences, max ~35 words. Keep the four beats. No extra scene. Plain reflection text only. Or BLOCK.";
+    return 'The last draft was too long. Keep it under 70 words and at most four sentences. Quiet open, only established details, warm words, then the brand close.';
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return "Rewrite without questions, exclamation marks, or meta talk about prompts, excavates, captions, or instructions. Four beats. 1–2 sentences. ~35 words. Plain reflection text only. Or BLOCK.";
+    return 'Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet keepsake. Under 70 words. Do not invent weather or props the excavate and their answer did not establish.';
   }
-  return "Rewrite. Follow the brief. Fresh phrasing — do not copy the example. 1–2 sentences, ~35 words. Concrete details from this entry only. No title. No joy labels. Plain reflection text only. Or BLOCK.";
+  return 'Rewrite the quieter keepsake. Open with "Today, you", "You", or "Yes, you". Weave the excavate read and their answer to "What is the good in this moment?" Close with a Fantastic-family word plus you and one hunt-find truth. Under 70 words. Invent nothing beyond that floor.';
 }
 
 async function excavateAppPhoto(input: {
@@ -346,6 +350,18 @@ async function excavateAppPhoto(input: {
   }
 }
 
+/** First look when a photo lands: live excavate spark, or a frame-grounded stand-in. */
+export async function sparkForPhoto(imageDataUrl?: string): Promise<
+  { blocked: true } | { spark: string }
+> {
+  if (imageDataUrl && hasTokenFactoryKey()) {
+    const live = await excavateAppPhoto({ photoNotes: "", imageDataUrl });
+    if (live && "blocked" in live && live.blocked) return { blocked: true };
+    if (live && "text" in live && live.text.trim()) return { spark: live.text.trim() };
+  }
+  return { spark: mockExcavation({}) };
+}
+
 const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak"]);
 
 async function reflectWithModels(
@@ -374,7 +390,7 @@ async function reflectWithModels(
             ];
       const result = await completeWithFallback(models, retryHint, {
         temperature: attempt === 0 ? 0.75 : 0.5,
-        maxTokens: 180,
+        maxTokens: 420,
       });
       fail.lastModel = result.model;
       const parsed = parseAppWeaveReply(result.text);
@@ -413,8 +429,12 @@ export async function weaveAppStoryFromExcavation(input: {
   excavation: string;
   caption?: string;
   imageDataUrl?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail } | null> {
-  const visionIds = input.imageDataUrl ? appStoryVisionModels() : [];
+  const low =
+    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
+  const visionIds = input.imageDataUrl && !low ? appStoryVisionModels() : [];
   const textIds = appStoryTextModels();
   let lastFail: AppReflectFail | undefined;
 
@@ -447,6 +467,8 @@ async function weaveAppPhotoStory(input: {
   photoNotes: string;
   caption?: string;
   imageDataUrl?: string;
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 }): Promise<
   | { kind: "blocked"; model: string; excavateModel?: string }
   | { kind: "story"; body: string; model: string; excavateModel?: string }
@@ -455,7 +477,11 @@ async function weaveAppPhotoStory(input: {
   const imageDataUrl = input.imageDataUrl
     ? shrinkDataUrlForModels(input.imageDataUrl)
     : undefined;
-  const excavated = await excavateAppPhoto({ ...input, imageDataUrl });
+  const excavated = await excavateAppPhoto({
+    caption: input.caption,
+    photoNotes: input.photoNotes,
+    imageDataUrl,
+  });
   if (excavated && "blocked" in excavated && excavated.blocked) {
     return { kind: "blocked", model: excavated.model, excavateModel: excavated.model };
   }
@@ -470,6 +496,8 @@ async function weaveAppPhotoStory(input: {
     excavation,
     caption: input.caption,
     imageDataUrl,
+    photoEmphasis: input.photoEmphasis,
+    sparkAnswer: input.sparkAnswer,
   });
   if (live && "blocked" in live && live.blocked) {
     const fail = {
@@ -524,6 +552,8 @@ export async function weaveStory(options: {
         photoNotes,
         caption,
         imageDataUrl: options.imageDataUrl,
+        photoEmphasis: appCapture.photoEmphasis,
+        sparkAnswer: appCapture.sparkAnswer,
       });
       if (live.kind === "blocked") {
         throw new WeaveBlockedError();
@@ -542,6 +572,8 @@ export async function weaveStory(options: {
           reframed: Boolean(appCapture.reframed),
           day: options.day,
           excavation: live.excavation,
+          photoEmphasis: appCapture.photoEmphasis,
+          sparkAnswer: appCapture.sparkAnswer,
         });
         title = "";
         body = fallback.body;
@@ -556,6 +588,8 @@ export async function weaveStory(options: {
         goodMoment: photoNotes,
         reframed: Boolean(appCapture.reframed),
         day: options.day,
+        photoEmphasis: appCapture.photoEmphasis,
+        sparkAnswer: appCapture.sparkAnswer,
       });
       title = "";
       body = fallback.body;

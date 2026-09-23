@@ -20,6 +20,9 @@ export type CaptureRecord = {
   mediaContentType?: string;
   ingestModel?: string;
   ingestStatus: "pending" | "ok" | "skipped" | "mock";
+  /** Set after Yes or No on the photo spark. YOURS must not center the keepsake on the picture. */
+  photoEmphasis?: "low";
+  sparkAnswer?: "yes" | "no";
 };
 
 export type StoryRecord = {

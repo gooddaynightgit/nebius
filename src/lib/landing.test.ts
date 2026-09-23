@@ -18,9 +18,12 @@ describe("landing copy", () => {
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
     expect(LANDING.app.heading).toBe("Today. One good moment. Go get it.");
-    expect(LANDING.app.yours).toBe("YOURS");
+    expect(LANDING.app.yours).toBe("My good moment");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
-    expect(LANDING.app.captionLabel).toBe("What’s the good in this one?");
+    expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
+    expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");
+    expect(LANDING.app.sparkYes).toBe("Yes");
+    expect(LANDING.app.sparkNo).toBe("No");
     expect(LANDING.app.captionLabel).not.toMatch(/80/);
     expect(LANDING.app.captionLabel).not.toMatch(/Optional caption/i);
     expect(LANDING.app.captionHelp).toBe(
@@ -30,10 +33,13 @@ describe("landing copy", () => {
     expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(
-      "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
+      "Tonight isn’t a story for My good moment. This picture isn’t one we can tell. Keep the night gentle.",
     );
-    expect(LANDING.app.keep).toBe("Keep");
-    expect(LANDING.app.keepLabel).toMatch(/photo/i);
+    expect(LANDING.app.playMoment).toBe("Play this good moment");
+    expect(LANDING.app.pause).toBe("Pause");
+    expect(LANDING.app.keep).toBe("Share");
+    expect(LANDING.app.keepLabel).toBe("Share tonight’s story with the photo");
+    expect(LANDING.app.keepBusy).toBe("Sharing…");
     expect(LANDING.app.replace).toBe("Replace today’s photo");
     expect(LANDING.app.reach).toBe(
       "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
@@ -48,11 +54,14 @@ describe("landing copy", () => {
     expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
-    expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy was it?");
-    expect(LANDING.app.joyPickHint).toBe("(pick one)");
+    expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy is it?");
+    expect(LANDING.app.joyPickHint).toBe("(pick one for a new good moment)");
+    expect(LANDING.app.alreadyPickedLead).toBe("Already picked one?");
+    expect(LANDING.app.alreadyPickedLink).toBe("see your saved good moment");
+    expect(LANDING.app.alreadyPickedEmpty).toBe("Nothing saved yet. Pick a new one.");
     expect(LANDING.app.nextJoy).toBe("Pick the quiet joy");
-    expect(LANDING.app.switchJoy).toBe("Switch it");
-    expect(LANDING.app.keepMine).toBe("Keep mine");
+    expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
+    expect(JSON.stringify(LANDING.app)).not.toMatch(/Keep mine/);
     expect(LANDING.app.photoNeed).toBe("Add one photo from today.");
     expect(LANDING.app.witnessQuiet).toBe("The witness didn’t look. The caption is still yours.");
     expect(LANDING.app.tooLarge).toBe("That photo is too large — try again after we shrink it");
@@ -60,10 +69,19 @@ describe("landing copy", () => {
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);
     expect(LANDING.app.yoursMissing).toBe("Save today's photo and pick a joy first.");
     expect(LANDING.app.keepingMoment).toBe("Keeping your moment…");
-    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open YOURS from here");
+    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open My good moment from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
-    expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
+    expect(LANDING.moment.playbackTitle).toBe("My good moment playback");
+    expect(LANDING.moment.playbackExample).toBe(
+      "Example of tonight’s tone — not your story yet. My good moment writes yours from this photo.",
+    );
+    expect(LANDING.moment.playbackExample).not.toMatch(/YOURS/);
+    expect(
+      JOY_TYPES.every(
+        (joy) => !/\bYOURS\b/.test(joy.playbackTemplate) && !/story playback/i.test(joy.playbackTemplate),
+      ),
+    ).toBe(true);
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",
     );
@@ -78,7 +96,7 @@ describe("landing copy", () => {
   it("keeps all six quiet-joy playback quotes exact", () => {
     expect(JOY_TYPES.map((joy) => joy.title)).toEqual([
       "Morning sunlight",
-      "A small hello",
+      "A hello",
       "One thing, done slowly",
       "A little movement",
       "One corner, clear",

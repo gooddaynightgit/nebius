@@ -106,34 +106,53 @@ describe("ingest and weave fallbacks", () => {
   });
 
   it("asks Super to keep her words brightest, feel joy, and close multifold", () => {
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/LEAD with their exact good moment/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/weaker paraphrase/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Lead with their exact good moment/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/keep their sentence undiluted/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Narrative spine/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/lovable \/ good \/ caring \/ worthy/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/cheesy self-help/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Soft wonder/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/silver lining/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/no one cares about me/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/not as a task/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/despair wording from the capture/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/noticing and keeping/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/multifold/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Do not write a bedtime story/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/sensory ingredients ONLY/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/no people/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/CAPTION WHISPER/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Prefer presence over emptiness/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/hunted good moment/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/first look inside Gooddaynight/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/under 45 words/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Whoa \/ Gosh \/ Stunning/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Just making sure I saw that right\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Anything wrong\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Did I get this right\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Does that look right to you\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Am I seeing this right\?/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Did I see that right\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Never ask them to Switch or Keep/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/reply only BLOCK/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Do not write a bedtime story/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/sensory ingredients ONLY/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/CAPTION WHISPER/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/4–6 short sentences/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/closing voice of Gooddaynight/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/photo when it is attached/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/photo description \(sensory excavation\)/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/chosen joy/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/optional caption \(their whisper\)/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/four beats/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Max ~35 words/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/1–2 sentences/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Reply only: BLOCK/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/opens the door to more/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/quieter confirmation/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/hunt one good moment a day/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/What is the good in this moment\?/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/under 70 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/NOT with Whoa\/Oooh\/Wow\/Gosh\/Stunning/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Today, you/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/factual floor/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Photo emphasis: low/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not center the keepsake on the photo/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/at least three warm positive words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Fantastic/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/the hunting became your happiness/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/the finding is what's changing you/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/becoming someone who looks/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/here be sure, not surprised/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Oooh you/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/How awesome is this, you/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/at least three exciting positive words/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/three sacred things/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/chosen joy/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/4–6 short sentences/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/600–900 characters/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/1,200 characters/);
@@ -141,8 +160,8 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).not.toMatch(/gifted warm writer/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/First line MUST be: Title/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/180–280 words/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/plain reflection text only/i);
-    expect(APP_REFLECT_SYSTEM).toMatch(/never print the joy category as a label/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Max ~35 words/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/four beats/);
     expect(APP_REFLECT_SYSTEM).toMatch(/\byou\b/i);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Analyze the photo first/);
   });
@@ -257,7 +276,7 @@ describe("ingest and weave fallbacks", () => {
   it("rewrites joy playback templates instead of dumping them as the story", async () => {
     const { JOY_TYPES } = await import("./landing");
     const { mockJoyStory, usesCannedPlayback, CANNED_PLAYBACK_MARKERS } = await import("./prompts");
-    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_SENTENCE_MAX, APP_STORY_WELLNESS_RE, countAppStorySentences, countAppStoryWords } = await import("./app-story");
+    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_SENTENCE_MAX, APP_STORY_WORD_MAX, APP_STORY_WELLNESS_RE, countAppStorySentences, countAppStoryWords } = await import("./app-story");
     for (const joy of JOY_TYPES) {
       const story = mockJoyStory({
         joy,
@@ -273,15 +292,24 @@ describe("ingest and weave fallbacks", () => {
       expect(story.title).toBe("");
       expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
       expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
-      expect(countAppStoryWords(story.body)).toBeLessThanOrEqual(45);
+      expect(countAppStoryWords(story.body)).toBeLessThanOrEqual(APP_STORY_WORD_MAX);
       expect(countAppStorySentences(story.body)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
       expect(story.body).not.toMatch(APP_STORY_WELLNESS_RE);
       expect(story.body).not.toMatch(/#\w/);
       expect(story.body).not.toMatch(/^title:/im);
       expect(story.body).not.toContain(joy.title);
       expect(story.body).not.toMatch(/Just this is|One corner clear/i);
-      expect(story.body).toMatch(/You spent today/i);
-      expect(story.body).toMatch(/door|belong|yours/i);
+      expect(story.body).toMatch(/^(Today, you|Yes, you|You\b)/);
+      expect(story.body).not.toMatch(/^(Whoa|Oooh|Wow you|Gosh|Stunning|Look at that)/);
+      expect(story.body).toMatch(/\b(Fantastic|Wonderful|Perfect|Beautiful|Yes), you\b/);
+      expect(story.body).toMatch(
+        /hunted one good moment today|found one good moment today|becoming someone who looks/,
+      );
+      expect(
+        story.body.match(
+          /\b(wonderful|lovely|radiant|beautiful|glowing|precious|sweet|bright|tender|quiet|still|dear|warm|soft|brightening)\b/gi,
+        )?.length ?? 0,
+      ).toBeGreaterThanOrEqual(3);
       expect(story.body).toMatch(/kettle|steam/i);
       expect(story.body).not.toMatch(/nothing else|never more|not a lecture|not a list|do not have to|beside the image sits/i);
     }
@@ -298,11 +326,16 @@ describe("ingest and weave fallbacks", () => {
       caption: "Blossomimg tree",
       photoNotes: "A blossoming tree against the sky.",
     });
-    expect(excavation).toMatch(/SUBJECTS & VIBE/);
-    expect(excavation).toMatch(/No people/);
+    expect(excavation).toMatch(
+      /^(Whoa you|Gosh|Stunning|Brilliant|Look at that|Wow|My word|Beautiful)/,
+    );
     expect(excavation).toMatch(/petal|bark|blossom/i);
-    expect(excavation).toMatch(/CAPTION WHISPER/);
+    expect(excavation).toMatch(
+      /Just making sure I saw that right\?|Anything wrong\?|Did I get this right\?|Does that look right to you\?|Am I seeing this right\?/,
+    );
     expect(excavation).toMatch(/Blossomimg tree/);
+    expect(excavation).not.toMatch(/SUBJECTS & VIBE|CAPTION WHISPER/);
+    expect(excavation).not.toMatch(/rain|wet|puddle/i);
     expect(excavation).not.toMatch(/once upon|you look|bedtime story/i);
     const story = mockJoyStory({
       joy: joy!,
@@ -312,7 +345,12 @@ describe("ingest and weave fallbacks", () => {
       excavation,
     });
     expect(story.body).toMatch(/blossom|petal|bark|tree|sky/i);
-    expect(story.body).toMatch(/door|belong|kept|yours/i);
+    expect(story.body).toMatch(/^(Today, you|Yes, you|You\b)/);
+    expect(story.body).not.toMatch(/^(Whoa|Oooh|Wow you|Gosh|Stunning|Look at that)/);
+    expect(story.body).toMatch(/\b(Fantastic|Wonderful|Perfect|Beautiful|Yes), you\b/);
+    expect(story.body).toMatch(
+      /hunted one good moment today|found one good moment today|becoming someone who looks/,
+    );
     expect(story.body).toMatch(/Blossomimg tree/);
     expect(story.body.match(/Blossomimg tree/g)?.length).toBe(1);
     expect(leaksAppStoryInstruction(story.body)).toBe(false);
@@ -333,8 +371,11 @@ describe("ingest and weave fallbacks", () => {
       caption: "Blossomimg tree",
       hasImage: true,
     });
-    expect(excavateUser).toMatch(/No story/);
-    expect(excavateUser).toMatch(/ingredients only/);
+    expect(excavateUser).toMatch(/Witness only what is visibly in the frame/);
+    expect(excavateUser).toMatch(/humble closer/);
+    expect(excavateUser).toMatch(/Under 45 words/);
+    expect(excavateUser).not.toMatch(/No story/);
+    expect(excavateUser).not.toMatch(/ingredients only/);
     expect(excavateUser).not.toMatch(/Write 4–6 short sentences/);
 
     const user = appReflectUserText({
@@ -342,12 +383,44 @@ describe("ingest and weave fallbacks", () => {
       excavation,
       caption: "Blossomimg tree",
     });
-    expect(user).toMatch(/Chosen joy/);
-    expect(user).toMatch(/never print it as a label/);
-    expect(user).toMatch(/1–2 sentences/);
-    expect(user).toMatch(/~35 words/);
-    expect(user).toMatch(/Optional caption \(their whisper\)/);
-    expect(user).toMatch(/photo pixels are not attached/);
+    expect(user).toMatch(/Joy picked: Just this/);
+    expect(user).toMatch(/Photo: description/);
+    expect(user).toMatch(/Their answer: Blossomimg tree/);
+    expect(user).toMatch(/blossom|petal|bark/i);
+    expect(user).not.toMatch(/SUBJECTS & VIBE/);
+    const quiet = appReflectUserText({
+      joyTitle: joy!.title,
+      excavation,
+      caption: "Blossomimg tree",
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+      hasImage: true,
+    });
+    expect(quiet).toMatch(/Photo emphasis: low/);
+    expect(quiet).toMatch(/Photo: withheld/);
+    expect(quiet).toMatch(/Do not center the keepsake on the photo/);
+    expect(quiet).not.toMatch(/Photo: attached/);
+    const rejected = appReflectUserText({
+      joyTitle: joy!.title,
+      excavation,
+      caption: "Blossomimg tree",
+      photoEmphasis: "low",
+      sparkAnswer: "no",
+    });
+    expect(rejected).toMatch(/photo read was wrong/i);
+    expect(rejected).not.toMatch(/pale petals|bark/i);
+    const lowStory = mockJoyStory({
+      joy: joy!,
+      caption: "the quiet hello",
+      goodMoment: "Steam over the kettle in the morning window.",
+      day: "2026-09-21",
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+    });
+    expect(lowStory.body).toMatch(/quiet hello/i);
+    expect(lowStory.body).not.toMatch(/kettle|steam/i);
+    expect(user).not.toMatch(/~35 words/);
+    expect(user).not.toMatch(/four beats/i);
     expect(user).not.toMatch(/4–6 short sentences/);
     expect(user).not.toMatch(/600–900 characters/);
     expect(user).not.toMatch(/Joy playback string/);
@@ -364,7 +437,7 @@ describe("ingest and weave fallbacks", () => {
     expect(Array.isArray(withPhoto)).toBe(true);
     expect(withPhoto).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ type: "text", text: expect.stringMatching(/photo is attached/) }),
+        expect.objectContaining({ type: "text", text: expect.stringMatching(/Photo: attached/) }),
         expect.objectContaining({
           type: "image_url",
           image_url: { url: "data:image/jpeg;base64,abc" },
@@ -377,7 +450,7 @@ describe("ingest and weave fallbacks", () => {
         excavation,
         caption: "Blossomimg tree",
       }),
-    ).toEqual(expect.stringMatching(/photo pixels are not attached/));
+    ).toEqual(expect.stringMatching(/Photo: description/));
   });
 
   it("weaves an app photo from the joy template without pasting the canned playback", async () => {
@@ -475,15 +548,17 @@ describe("landing", () => {
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
     expect(copy).toContain('joyLegend: "(pick one)"');
-    expect(copy).toContain('joyQuestion: "What kind of quiet joy was it?"');
-    expect(copy).toContain('joyPickHint: "(pick one)"');
+    expect(copy).toContain('joyQuestion: "What kind of quiet joy is it?"');
+    expect(copy).toContain('joyPickHint: "(pick one for a new good moment)"');
+    expect(copy).toContain('alreadyPickedLead: "Already picked one?"');
+    expect(copy).toContain('alreadyPickedLink: "see your saved good moment"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
     expect(copy).toContain("One moment. One story.");
     expect(copy).toContain("Something good is about to happen!");
     expect(copy).toContain("Gooddaynight.com");
     for (const title of [
       "Morning sunlight",
-      "A small hello",
+      "A hello",
       "One thing, done slowly",
       "A little movement",
       "One corner, clear",
@@ -508,7 +583,9 @@ describe("landing", () => {
     expect(picker).toMatch(/joy__tagline/);
     expect(picker).toMatch(/Capture it/);
     expect(picker).toMatch(/<StoryPlayback/);
-    expect(playback).toMatch(/Story playback/);
+    expect(playback).toMatch(/LANDING\.moment\.playbackTitle/);
+    expect(playback).not.toMatch(/Story playback/);
+    expect(copy).toContain('playbackTitle: "My good moment playback"');
     expect(playback).toMatch(/className="playback"/);
     expect(styles).toMatch(/#f0f0ff/);
     expect(styles).toMatch(/--docs-lavender/);
@@ -538,7 +615,9 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/yoursReady \?/);
     expect(src).toMatch(/writePendingPhoto/);
     expect(src).toMatch(/readChosenJoy/);
-    expect(src).toMatch(/\/api\/joy-match/);
+    expect(src).toMatch(/\/api\/photo-spark/);
+    expect(src).toMatch(/runPhotoSpark/);
+    expect(src).not.toMatch(/\/api\/joy-match/);
     expect(src).not.toMatch(/JoyPicker/);
     expect(src).not.toMatch(/joy-pill/);
     expect(src).not.toMatch(/What kind of quiet joy was it\?/);
@@ -572,6 +651,9 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/uploadInputId/);
     expect(src).toMatch(/getUserMedia|openRearCamera|prefersLiveCamera/);
     expect(src).toMatch(/createObjectURL/);
+    expect(src).toMatch(/capturePreviewSrc/);
+    expect(src).toMatch(/showLocalPhoto/);
+    expect(src).not.toMatch(/setPhotoUrl\(\(current\)/);
     expect(src).toMatch(/preparePhotoForUpload/);
     expect(src).toMatch(/normalizePhotoFile/);
     expect(src).toMatch(/jpegFileForCameraStill/);
@@ -600,6 +682,12 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/LANDING\.app\.joyQuestion/);
     expect(joy).toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).toMatch(/<em>/);
+    expect(joy).toMatch(/LANDING\.app\.alreadyPickedLead/);
+    expect(joy).toMatch(/<em>\{LANDING\.app\.alreadyPickedLink\}<\/em>/);
+    expect(joy).toMatch(/already-picked/);
+    expect(joy).toMatch(/href="\/app\/yours"/);
+    expect(joy).toMatch(/LANDING\.app\.alreadyPickedEmpty/);
+    expect(joy).toMatch(/hasSavedGoodMoment/);
     expect(picker).toMatch(/accordionJoys/);
     expect(src).not.toMatch(/What kind of quiet joy was it\?/);
     expect(src).not.toMatch(/href="#yours"/);
@@ -613,22 +701,29 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/disabled=\{locked\}/);
     expect(src).not.toMatch(/if \(locked\)/);
     expect(src).not.toMatch(/setCaptureError\(LANDING\.app\.locked\)/);
-    expect(yours).toMatch(/StoryPlayback/);
-    expect(yours).toMatch(/app-story-playback/);
+    expect(yours).toMatch(/keep-card-view/);
+    expect(yours).toMatch(/composeKeepCardJpeg/);
+    expect(yours).not.toMatch(/StoryPlayback/);
+    expect(yours).not.toMatch(/app-story-playback/);
     expect(yours).toMatch(/card--lavender/);
     expect(yours).toMatch(/POST/);
     expect(yours).toMatch(/\/api\/yours/);
     expect(yours).toMatch(/code === "blocked"/);
     expect(yours).toMatch(/LANDING\.app\.blocked/);
-    expect(yours).toMatch(/No YOURS story tonight/);
+    expect(yours).toMatch(/No story for My good moment tonight/);
     expect(yours).toMatch(/Written without seeing the photo/);
     expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
     expect(yours).toMatch(/Couldn’t finish tonight’s close/);
     expect(yours).not.toMatch(/closerHint/);
     expect(yours).not.toMatch(/Kimi didn’t finish/);
     expect(yours).toMatch(/keepCardPhotoSrc|composeKeepCardJpeg/);
+    expect(yours).toMatch(/LANDING\.app\.playMoment/);
+    expect(yours).toMatch(/PlayIcon/);
+    expect(yours).not.toMatch(/Replay last night/);
     expect(yours).toMatch(/LANDING\.app\.keep/);
     expect(yours).toMatch(/keepLabel/);
+    expect(yours).toMatch(/ShareIcon/);
+    expect(yours).toMatch(/shareOrDownloadKeepCard/);
     expect(yours).toMatch(/btn--keep/);
     const session = readFileSync(path.resolve("src/lib/session.ts"), "utf8");
     expect(session).toMatch(/canReplacePhoto: Boolean\(todayPhoto\)/);
@@ -667,27 +762,48 @@ describe("app capture client contract", () => {
     const pickerJsx = joy.match(/<JoyPicker[\s\S]*?\/>/)?.[0] ?? "";
     expect(pickerJsx).not.toMatch(/\bcompact\b/);
     expect(pickerJsx).toMatch(/legend=\{JOY_PAGE_LEGEND\}/);
-    expect(src).toMatch(/joy_type/);
+    expect(src).not.toMatch(/joy_type/);
     expect(src).toMatch(/photoRef/);
-    expect(src).toMatch(/verdict === "NEED_PHOTO"/);
-    expect(src).toMatch(/verdict === "UNAVAILABLE"/);
-    expect(src).toMatch(/LANDING\.app\.witnessQuiet/);
     expect(src).toMatch(/captionScroll/);
-    expect(src).toMatch(/id="joy-witness-quiet"/);
+    expect(src).toMatch(/id="photo-spark"/);
+    expect(src).toMatch(/sparkPending/);
+    expect(src).toMatch(/setAnsweredGeneration\(null\)/);
+    expect(src).toMatch(/photo-spark-wait/);
+    expect(src).toMatch(/LANDING\.app\.sparkWait/);
+    const sparkCss = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(sparkCss).toMatch(/@keyframes photo-spark-wait/);
+    expect(sparkCss).toMatch(/#d4ff00/);
+    expect(sparkCss).toMatch(/#3dfff2/);
+    expect(sparkCss).toMatch(/#ff3df0/);
+    expect(sparkCss).toMatch(/#eaff6a/);
+    expect(src).toMatch(/questionOpen \? \([\s\S]*type="submit"/);
+    expect(src).toMatch(/isCaptureQuestionOpen/);
+    expect(src).toMatch(/setCaption\(""\)/);
+    expect(src).toMatch(/chooseSpark\("yes"\)/);
+    expect(src).toMatch(/chooseSpark\("no"\)/);
+    expect(src).toMatch(/LANDING\.app\.sparkYes/);
+    expect(src).toMatch(/LANDING\.app\.sparkNo/);
+    expect(src).toMatch(/photoEmphasis", "low"/);
+    expect(src).toMatch(/spark-choice/);
+    expect(src).not.toMatch(/verdict === "NEED_PHOTO"/);
+    expect(src).not.toMatch(/verdict === "UNAVAILABLE"/);
+    expect(src).not.toMatch(/LANDING\.app\.witnessQuiet/);
+    expect(src).not.toMatch(/id="joy-witness-quiet"/);
     expect(src).toMatch(/id="caption-box"/);
     expect(picker).not.toMatch(/compact\?:/);
     expect(picker).not.toMatch(/joy-pill/);
     expect(picker).toMatch(/joy__title/);
     expect(picker).toMatch(/joy__tagline/);
     expect(picker).toMatch(/Capture it/);
-    expect(src).toMatch(/applyJoyMatchChoice/);
-    expect(src).toMatch(/suggestJoyId/);
-    expect(src).toMatch(/chooseJoyMatch\("switch"\)/);
-    expect(src).toMatch(/chooseJoyMatch\("keep"\)/);
-    expect(src).toMatch(/LANDING\.app\.switchJoy/);
-    expect(src).toMatch(/LANDING\.app\.keepMine/);
-    expect(src).toMatch(/verdict === "MISMATCH"/);
-    expect(src).toMatch(/id="joy-mismatch"/);
+    expect(src).not.toMatch(/applyJoyMatchChoice/);
+    expect(src).not.toMatch(/suggestJoyId/);
+    expect(src).not.toMatch(/chooseJoyMatch/);
+    expect(src).not.toMatch(/LANDING\.app\.switchJoy/);
+    expect(src).not.toMatch(/LANDING\.app\.keepMine/);
+    expect(src).not.toMatch(/Switch it/);
+    expect(src).not.toMatch(/Keep mine/);
+    expect(src).not.toMatch(/verdict === "MISMATCH"/);
+    expect(src).not.toMatch(/id="joy-mismatch"/);
     expect(src).toMatch(/id="joy-need"/);
     expect(src).toMatch(/JOY_NEED/);
     expect(src).toMatch(/PHOTO_DATE_MESSAGES\.old/);
