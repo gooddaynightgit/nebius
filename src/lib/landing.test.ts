@@ -20,7 +20,7 @@ describe("landing copy", () => {
     expect(LANDING.app.heading).toBe("Today. One good moment. Go get it.");
     expect(LANDING.app.yours).toBe("YOURS");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
-    expect(LANDING.app.captionLabel).toBe("What’s the good in this one?");
+    expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
     expect(LANDING.app.captionLabel).not.toMatch(/80/);
     expect(LANDING.app.captionLabel).not.toMatch(/Optional caption/i);
     expect(LANDING.app.captionHelp).toBe(
@@ -54,8 +54,8 @@ describe("landing copy", () => {
     expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy was it?");
     expect(LANDING.app.joyPickHint).toBe("(pick one)");
     expect(LANDING.app.nextJoy).toBe("Pick the quiet joy");
-    expect(LANDING.app.switchJoy).toBe("Switch it");
-    expect(LANDING.app.keepMine).toBe("Keep mine");
+    expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
+    expect(JSON.stringify(LANDING.app)).not.toMatch(/Keep mine/);
     expect(LANDING.app.photoNeed).toBe("Add one photo from today.");
     expect(LANDING.app.witnessQuiet).toBe("The witness didn’t look. The caption is still yours.");
     expect(LANDING.app.tooLarge).toBe("That photo is too large — try again after we shrink it");

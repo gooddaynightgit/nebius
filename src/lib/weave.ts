@@ -151,13 +151,13 @@ export function appExcavateUserText(input: {
   const caption = input.caption ? clipCaption(input.caption) : "";
   return [
     input.hasImage
-      ? "The photo is attached. Treat it as a fragment of today. Return the five ingredient sections. No story."
-      : "The photo pixels are not attached. Do your best from the caption and any photo notes. Do not invent a scene beyond those words. Return the five ingredient sections. No story.",
+      ? "The photo is attached. Witness only what is visibly in the frame."
+      : "The photo pixels are not attached. Stay inside the caption and photo notes. Do not invent a scene, weather, or people beyond those words.",
     input.photoNotes
       ? `Photo notes (use only if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
-    caption ? `Optional caption: ${caption}` : "No caption.",
-    "If horrific: BLOCK. Otherwise ingredients only — no bedtime story.",
+    caption ? `Caption already given: ${caption}` : "No caption yet. They will answer next in their own words.",
+    "Under 45 words: a rotating surprise spark, the concrete still, then a humble check. If horrific: BLOCK.",
   ].join("\n\n");
 }
 
@@ -265,15 +265,15 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 
 function reflectRetryHint(problems: string[], lastBody: string): string {
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
-    return 'The last draft was too short. Open with excitement — Oooh you, Today, Wow you, How awesome is this, you, Brilliant, or Look at you. Weave the photo, the joy, and their answer with at least three bright words. Close with Fantastic, Wonderful, Perfect, Beautiful, or Yes, plus you, and one hunt-find truth. Under 70 words. One soft exclamation on the opening is welcome.';
+    return 'The last draft was too short. Open quietly: "Today, you", "You", or "Yes, you" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. At least three warm words. Close with Fantastic, Wonderful, Perfect, Beautiful, or Yes, plus you, and one hunt-find truth. Under 70 words.';
   }
   if (problems.includes("long")) {
-    return 'The last draft was too long. Keep it under 70 words and at most four sentences. Open with excitement, weave the photo, the joy, and their answer, and close with a Fantastic-family word plus you and one hunt-find truth. One soft exclamation on the opening is welcome.';
+    return 'The last draft was too long. Keep it under 70 words and at most four sentences. Quiet open, only established details, warm words, then the brand close.';
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return 'Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. One soft exclamation on the opening is welcome. Under 70 words. Exciting open, three bright words, brand close.';
+    return 'Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet keepsake. Under 70 words. Do not invent weather or props the excavate and their answer did not establish.';
   }
-  return 'Rewrite the confirmation. Rotate an exciting open (Oooh you, Today, Wow you, How awesome is this, you, Brilliant, Look at you). Weave photo, joy, and their words with at least three bright words. Close with Fantastic, Wonderful, Perfect, Beautiful, or Yes, plus you, and one hunt-find truth. Under 70 words.';
+  return 'Rewrite the quieter keepsake. Open with "Today, you", "You", or "Yes, you". Weave the excavate read and their answer to "What is the good in this moment?" Close with a Fantastic-family word plus you and one hunt-find truth. Under 70 words. Invent nothing beyond that floor.';
 }
 
 async function excavateAppPhoto(input: {
@@ -331,6 +331,18 @@ async function excavateAppPhoto(input: {
   } catch {
     return null;
   }
+}
+
+/** First look when a photo lands: live excavate spark, or a frame-grounded stand-in. */
+export async function sparkForPhoto(imageDataUrl?: string): Promise<
+  { blocked: true } | { spark: string }
+> {
+  if (imageDataUrl && hasTokenFactoryKey()) {
+    const live = await excavateAppPhoto({ photoNotes: "", imageDataUrl });
+    if (live && "blocked" in live && live.blocked) return { blocked: true };
+    if (live && "text" in live && live.text.trim()) return { spark: live.text.trim() };
+  }
+  return { spark: mockExcavation({}) };
 }
 
 const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak"]);

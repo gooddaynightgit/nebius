@@ -70,48 +70,55 @@ export const APP_WEAVE_FORBIDDEN_PHRASES = [
   "beside the image sits",
 ] as const;
 
-export const APP_EXCAVATE_SYSTEM = `You look at one private photo as a rediscovered fragment of *today*, not as pixels only.
+export const APP_EXCAVATE_SYSTEM = `You are the first look inside Gooddaynight. The user just captured a photo of one good moment. Your job is to witness what is actually in the frame — with delight, then with humility — so they can correct you in their own words before the keepsake.
 
-Return structured sensory ingredients ONLY. Do not write a bedtime story. Do not address the listener as you. No narrative prose, no title, no moral, no plot.
+You receive the photo (and any caption if present).
 
-Cover these five sections, in this order:
-1. SUBJECTS & VIBE — if people are present: expressions, body language, clothing, mood. If **no people**, say so and focus on the main subject (tree, object, screen, corner).
-2. ENVIRONMENT — place, time-of-year/time-of-day **only if visible**, background clues.
-3. LIGHTING & TEXTURE — light quality, grain, colour temperature, material feel.
-4. HIDDEN DETAILS — small background elements that add depth.
-5. CAPTION WHISPER — if a caption exists, note it as a soft whisper of meaning (do not invent beyond it). If none, say so.
+Respond in under 45 words, following this exact shape:
 
-Descriptive, rich, grounded in what is visible. Invent no people, places, gifts, or feelings beyond the photo and caption.
+1. Open with a rotating surprise spark — NEVER the same word every time. Rotate among: Whoa / Gosh / Stunning / Brilliant / Look at that / Wow / My word / Beautiful. Pair it with "you" or the moment when it fits naturally ("Whoa you…", "Gosh…", "Stunning…").
 
-If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no ingredients. Reply only: \`BLOCK\`
-Ugly, blurry, messy, ordinary, sad, or hard: still describe. The story stays honest and gentle.`;
+2. Name only what is visibly true in the photo: subject, place clues, light, colour, texture. Stay concrete and small. Do NOT invent weather, rain, wetness, puddles, glowing headlights, people, gifts, or feelings that are not clearly in the frame. If the car is dry in a garage, say a dry car in a garage — never "after the rain."
 
-export const APP_REFLECT_SYSTEM = `You are the warm, excited witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has done the three sacred things: they picked a joy, they captured a photo, and they told you what was good in it. Your job now is the confirmation — the moment their small moment becomes a story worth keeping, spoken with real delight.
+3. Close with a rotating humble check — soft and curious, not one stuck line. Rotate among:
+   - Did I see that right?
+   - I'm curious — is this what the photo is?
+   - Interesting… I'm just making sure.
+   - Does that match what you see?
+   - Am I reading this right?
 
-You receive three things: their joy category, their photo, and their own words about what was good in it.
+Tone: delighted then humble. One soft exclamation max on the spark if it fits. No therapy-speak. No emojis. Never mention the app, the AI, or the process. Never ask them to Switch or Keep — there are no buttons; they answer next in their own words.
+
+If the image is blocked (violence, gore, abuse, porn, hate, self-harm): reply only BLOCK.`;
+
+export const APP_REFLECT_SYSTEM = `You are the warm witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has already seen your photo read and answered what was good. Your job is the quieter confirmation — the keepsake — not another spark of surprise (that already happened at the photo).
+
+You receive three things: their joy category, their photo (and/or the agreed excavate read of it), and their own words answering "What is the good in this moment?"
 
 The six joy categories: Morning sunlight / A small hello / One thing done slowly / A little movement / One corner clear / Just this (for moments that refuse a category).
 
 Respond in under 70 words, following this exact shape:
 
-1. Open with an exciting positive start — rotate among openings like: "Oooh you…", "Today…", "Wow you…", "How awesome is this, you…", "Brilliant…", "Look at you…". Make it feel like someone who truly saw them just lit up.
+1. Open warm and second-person past tense — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, you…" / "You…" / "Yes, you…" / a soft "Fantastic, you…" only at the close family below.
 
-2. Weave together all three inputs: the sensory detail from the photo, the spirit of their chosen joy, and — most importantly — their own words, elevated but never distorted. Their answer is the heart of the story. Honor it.
+2. Weave together: spirit of their joy, sensory detail that is factually grounded in the excavate read AND/OR clearly visible in the photo, and — most importantly — their own words, elevated but never distorted. Their answer is the heart. Honor it.
 
-3. In the body, use at least three exciting positive words or close synonyms (spread them; do not stack them in one breath). Draw from this family and rotate: awesome, brilliant, wonderful, lovely, radiant, beautiful, glowing, precious, stunning, sweet, bright, marvelous, glorious, delightful.
+3. Excavate (and their words) are the factual floor. Never invent weather, rain, wetness, puddles, headlights glowing, people, or props that excavate and the user did not establish. If excavate said a parked car in a garage and they did not mention rain, there is no rain.
 
-4. Close with a confirmation conclusion that lands the brand truth. Open that close with a Fantastic-family word (rotate: Fantastic / Wonderful / Perfect / Beautiful / Yes) plus "you", then land ONE of these truths (vary night to night; keep their voice):
+4. In the body, use at least three warm positive words or close synonyms (spread them). Draw from: wonderful, lovely, radiant, beautiful, glowing, precious, sweet, bright, tender, quiet, still, dear, warm, soft, brightening.
+
+5. Close with a confirmation that lands the brand truth. Open that close with a Fantastic-family word (rotate: Fantastic / Wonderful / Perfect / Beautiful / Yes) plus "you", then land ONE of these (vary night to night):
    - You hunted one good moment today, and the hunting became your happiness, your joy.
    - You found one good moment today — the finding is what's changing you.
    - Hunting one good moment today. Capturing it. You are becoming someone who looks.
 
-Tone: warm, cinematic, delighted — a bedtime keepsake with spark, not flat. Soft exclamation is fine once if it fits the opening; never spam. No therapy-speak. No emojis. Never mention the app, the AI, or the process — only the moment and what it made of them.
+Tone: warm, cinematic, quietly devoted — a bedtime keepsake. Soft spark already happened; here be sure, not surprised. No therapy-speak. No emojis. Never mention the app, the AI, or the process.
 
-If their answer is very short or unclear, don't ask for more — work with what they gave you. Even two words contain a whole moment when witnessed well.
+If their answer is very short or unclear, don't ask for more — work with what they gave you.
 
 Remember: repetition turns searching into second nature. Every confirmation should make them want to hunt again tomorrow.`;
 
-/** YOURS closer is APP_REFLECT_SYSTEM (excited warm-witness confirmation, under 70 words). */
+/** YOURS closer is APP_REFLECT_SYSTEM (quiet keepsake, under 70 words). */
 export const APP_WEAVE_SYSTEM = APP_REFLECT_SYSTEM;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
@@ -396,6 +403,33 @@ function titleFromMoments(moments: string[]): string {
   return "The good that found you";
 }
 
+const PHOTO_SPARKS = [
+  "Whoa you",
+  "Gosh",
+  "Stunning",
+  "Brilliant",
+  "Look at that",
+  "Wow",
+  "My word",
+  "Beautiful",
+] as const;
+
+const HUMBLE_CHECKS = [
+  "Did I see that right?",
+  "I'm curious — is this what the photo is?",
+  "Interesting… I'm just making sure.",
+  "Does that match what you see?",
+  "Am I reading this right?",
+] as const;
+
+function sparkSlot(key: string, modulo: number): number {
+  let n = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    n = (n + key.charCodeAt(i) * (i + 1)) % 2147483647;
+  }
+  return Math.abs(n) % modulo;
+}
+
 export function mockExcavation(input: {
   caption?: string;
   photoNotes?: string;
@@ -404,55 +438,29 @@ export function mockExcavation(input: {
   const whisper = clipCaption(input.caption || "");
   const material = [notes, whisper].filter(Boolean).join(" ");
   const t = material.toLowerCase();
-  const captionLine = whisper
-    ? `CAPTION WHISPER — Soft whisper of meaning: ${whisper}.`
-    : "CAPTION WHISPER — No caption.";
-
+  let seen = "";
   if (/blossom|bloom|petal/.test(t) || /blossomimg/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. The main subject is a blossoming tree, branches packed with pale open flowers, bark showing through the clusters.",
-      "ENVIRONMENT — Outdoors. A little sky shows between the branches. Blossom season; daylight only, nothing more specific.",
-      "LIGHTING & TEXTURE — Soft daylight on papery petals; the bark is rough and darker; colour is pale against the wood.",
-      "HIDDEN DETAILS — Gaps of sky; a farther branch; the frame is mostly tree.",
-      captionLine,
-    ].join("\n");
+    seen = "a blossoming tree, pale petals and bark, a little sky between the branches";
+  } else if (/kettle|steam/.test(t)) {
+    seen = "a kettle, metal catching the light, steam lifting";
+  } else if (/table/.test(t) && /sun|gold|light/.test(t)) {
+    seen = "a kitchen table, wood grain, and the light on it";
+  } else if (/sky|cloud/.test(t)) {
+    seen = "sky filling the frame";
+  } else if (notes) {
+    seen = notes.replace(/\.$/, "");
+  } else if (whisper) {
+    seen = whisper.replace(/\.$/, "");
+  } else {
+    seen = "this still from the day";
   }
-  if (/kettle|steam/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. A kettle sits in the frame, metal catching the hour, steam lifting.",
-      "ENVIRONMENT — Indoor, near a window. Time of day only if light on the metal says so.",
-      "LIGHTING & TEXTURE — A small shine on the curve; glass behind; warm metal, moving steam.",
-      "HIDDEN DETAILS — Window-light, a bit of counter, the quiet of the room.",
-      captionLine,
-    ].join("\n");
+  if (whisper && !seen.toLowerCase().includes(whisper.toLowerCase())) {
+    seen = `${seen}. ${whisper.replace(/\.$/, "")}`;
   }
-  if (/table/.test(t) && /sun|gold|light/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. A kitchen table holds the hour, wood grain and a fall of light.",
-      "ENVIRONMENT — Indoor kitchen. Daylight on the surface.",
-      "LIGHTING & TEXTURE — Gold along the wood; grain you can almost feel; quiet colour temperature.",
-      "HIDDEN DETAILS — Edge of the table, a little of the room beyond.",
-      captionLine,
-    ].join("\n");
-  }
-  if (/sky|cloud/.test(t)) {
-    return [
-      "SUBJECTS & VIBE — No people. Sky fills the still, wide and close.",
-      "ENVIRONMENT — Outdoors, looking up. Time of day only if the colour shows it.",
-      "LIGHTING & TEXTURE — Colour sitting in the air; soft grain of cloud or clear.",
-      "HIDDEN DETAILS — A rim of something at the edge of the frame, if any.",
-      captionLine,
-    ].join("\n");
-  }
-
-  const subject = notes || whisper || "one particular still from the day";
-  return [
-    `SUBJECTS & VIBE — No people named. The main subject is what the notes and caption keep: ${subject.replace(/\.$/, "")}.`,
-    "ENVIRONMENT — Stay with those words. Place or time of day only if they name it.",
-    "LIGHTING & TEXTURE — Light and surface as the notes suggest; nothing invented beyond them.",
-    "HIDDEN DETAILS — Only what the notes and caption already hold.",
-    captionLine,
-  ].join("\n");
+  const key = material || "still";
+  const spark = PHOTO_SPARKS[sparkSlot(key, PHOTO_SPARKS.length)];
+  const check = HUMBLE_CHECKS[sparkSlot(`${key}:check`, HUMBLE_CHECKS.length)];
+  return `${spark}, ${seen}. ${check}`;
 }
 
 function seenFromNotes(input: {
@@ -475,20 +483,20 @@ function whisperFromCaption(caption?: string): string {
   return line.replace(/\.$/, "");
 }
 
-const EXCITED_OPENS = [
-  (kept: string) => `Oooh you kept ${kept}`,
-  (kept: string) => `Today you held ${kept}`,
-  (kept: string) => `Wow you caught ${kept}`,
-  (kept: string) => `How awesome is this, you named ${kept}`,
-  (kept: string) => `Brilliant, you noticed ${kept}`,
-  (kept: string) => `Look at you finding ${kept}`,
+const QUIET_OPENS = [
+  (kept: string) => `Today, you kept ${kept}`,
+  (kept: string) => `You held ${kept}`,
+  (kept: string) => `Yes, you kept ${kept}`,
+  (kept: string) => `Today, you noticed ${kept}`,
+  (kept: string) => `You caught ${kept}`,
+  (kept: string) => `Yes, you held ${kept}`,
 ] as const;
 
 const BODY_GLOWS = [
   "Lovely where you stood, bright in the frame, wonderful that you kept it.",
   "Radiant in the light, sweet in the quiet, glowing because you noticed.",
-  "Beautiful in its smallness, precious as you left it, delightful to return to.",
-  "Stunning in the detail, marvelous that you saw it, glorious in the keeping.",
+  "Beautiful in its smallness, precious as you left it, warm to return to.",
+  "Tender in the detail, dear that you saw it, soft in the keeping.",
   "Sweet at the center, bright along the edge, lovely that it was yours to name.",
   "Glowing in the hour, wonderful in the detail, radiant because you stayed.",
 ] as const;
@@ -503,11 +511,7 @@ const BRAND_CLOSES = [
 ] as const;
 
 function rotateIndex(key: string, modulo: number): number {
-  let n = 0;
-  for (let i = 0; i < key.length; i += 1) {
-    n = (n + key.charCodeAt(i) * (i + 1)) % 2147483647;
-  }
-  return Math.abs(n) % modulo;
+  return sparkSlot(key, modulo);
 }
 
 function evidenceBits(input: {
@@ -565,7 +569,7 @@ export function mockJoyStory(input: {
     goodMoment: input.goodMoment,
     joy: input.joy,
   });
-  const slot = rotateIndex(input.joy.id, EXCITED_OPENS.length);
+  const slot = rotateIndex(input.joy.id, QUIET_OPENS.length);
   const whisper = whisperFromCaption(input.caption);
 
   const assemble = (details: string[]) => {
@@ -574,8 +578,7 @@ export function mockJoyStory(input: {
     const heart = whisper
       ? `${whisper.charAt(0).toUpperCase()}${whisper.slice(1).replace(/[.!?]+$/, "")}.`
       : "What you kept stayed with you.";
-    const bang = slot % 2 === 0 ? "!" : ".";
-    return `${EXCITED_OPENS[slot](kept)}${bang} ${heart} ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
+    return `${QUIET_OPENS[slot](kept)}. ${heart} ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
   };
 
   let body = assemble(evidence);

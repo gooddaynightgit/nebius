@@ -20,7 +20,7 @@ import {
 } from "./weave";
 
 const GOOD =
-  "Wow you kept the cold chocolate and the quiet sheets, eaten standing up before it melted! Lovely on the tongue, bright against the linen, wonderful that you stayed. Fantastic, you found one good moment today — the finding is what's changing you.";
+  "Today, you kept the cold chocolate and the quiet sheets, eaten standing up before it melted. Lovely on the tongue, bright against the linen, wonderful that you stayed. Fantastic, you found one good moment today — the finding is what's changing you.";
 
 const IMAGE = "data:image/jpeg;base64,abc";
 
@@ -28,7 +28,7 @@ const input = {
   joyTitle: "Just this",
   template:
     "Ten quiet minutes. Gold on your skin and a longer canned playback that should not appear in the story at all.",
-  excavation: "SUBJECTS & VIBE — No people. A frozen banana with chocolate.",
+  excavation: "Whoa you, a frozen banana with chocolate. Did I see that right?",
   caption: "eaten standing up",
   imageDataUrl: IMAGE,
 };

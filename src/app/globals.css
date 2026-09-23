@@ -446,62 +446,9 @@ a {
   display: block;
 }
 
-.joy-mismatch {
-  margin-top: 0.85rem;
-  animation: joy-mismatch-in 420ms var(--ease) both;
-}
-
-.joy-mismatch__line {
-  margin: 0 0 0.65rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  line-height: 1.45;
-}
-
-.joy-mismatch__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.joy-mismatch__actions .btn {
-  width: auto;
-  padding: 0.42rem 0.9rem;
-  font-size: 0.88rem;
-}
-
 .card--cream .error,
 .card--moment .error {
   color: #8a3b12;
-}
-
-.card--cream .joy-mismatch__actions .btn,
-.card--moment .joy-mismatch__actions .btn {
-  color: var(--navy);
-  border-color: rgba(22, 50, 74, 0.35);
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.card--cream .joy-mismatch__actions .btn:hover,
-.card--moment .joy-mismatch__actions .btn:hover {
-  background: var(--lime);
-  border-color: var(--lime);
-  color: var(--navy);
-}
-
-@keyframes joy-mismatch-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .joy-mismatch {
-    animation: none;
-  }
 }
 
 .joy-fieldset {
@@ -518,7 +465,7 @@ a {
 }
 
 #caption-box,
-#joy-mismatch {
+#photo-spark {
   scroll-margin-top: 1rem;
 }
 
@@ -730,6 +677,13 @@ a {
 
 .btn--ghost {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.photo-spark {
+  margin: 0.9rem 0 0;
+  color: #fff;
+  font-size: 1.02rem;
+  line-height: 1.45;
 }
 
 .btn--icon {

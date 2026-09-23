@@ -6,8 +6,7 @@ import { captionDisposition } from "@/lib/app-capture";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
-import { applyJoyMatchChoice, suggestJoyId } from "@/lib/joy-match";
-import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById, type JoyType } from "@/lib/landing";
+import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import {
   inspectPhotoDate,
   isImageMime,
@@ -92,9 +91,7 @@ export default function CaptureStudio() {
   const photoUrlRef = useRef<string | null>(null);
   const photoRef = useRef<File | null>(null);
   const savedPhotoIdRef = useRef<string | null>(null);
-  const matchSeq = useRef(0);
-  const witnessNoted = useRef(false);
-  const witnessedKey = useRef("");
+  const sparkSeq = useRef(0);
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -111,12 +108,8 @@ export default function CaptureStudio() {
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
   const [pendingReady, setPendingReady] = useState(false);
   const [captionOpen, setCaptionOpen] = useState(false);
-  const [mismatch, setMismatch] = useState<{ line: string; suggestedJoyId: string | null } | null>(
-    null,
-  );
-  const [witnessNote, setWitnessNote] = useState<string | null>(null);
+  const [spark, setSpark] = useState<string | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
-  const [mismatchScroll, setMismatchScroll] = useState(0);
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
@@ -160,9 +153,8 @@ export default function CaptureStudio() {
         else if (sessionData.todayPhoto?.dateVerified) {
           setDateNote(PHOTO_DATE_MESSAGES.today);
         }
-        const joyChanged = Boolean(chosen && savedId && chosen.id !== savedId);
-        if (chosen && (pendingFile || joyChanged)) {
-          void runJoyMatch(chosen, pendingFile ?? undefined);
+        if (chosen && pendingFile) {
+          void runPhotoSpark(pendingFile);
         } else if (chosen && (sessionData.todayPhoto || stash)) {
           setCaption(sessionData.todayPhoto?.caption ?? stash?.caption ?? "");
           setCaptionOpen(true);
@@ -217,18 +209,6 @@ export default function CaptureStudio() {
     });
     return () => window.cancelAnimationFrame(frame);
   }, [captionScroll]);
-
-  useEffect(() => {
-    if (!mismatch || !mismatchScroll) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById("joy-mismatch")?.scrollIntoView({
-        behavior: reduce ? "auto" : "smooth",
-        block: "nearest",
-      });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [mismatch, mismatchScroll]);
 
   function stopLiveCamera() {
     liveStream?.getTracks().forEach((track) => track.stop());
@@ -355,124 +335,40 @@ export default function CaptureStudio() {
     });
     const joy = getJoyById(readChosenJoy(day) ?? selectedJoyId);
     if (joy) {
-      witnessedKey.current = "";
-      void runJoyMatch(joy, next);
+      void runPhotoSpark(next);
     } else {
       setJoyError(JOY_NEED);
     }
   }
 
   function revealCaption() {
-    setMismatch(null);
     setJoyError(null);
     setCaptionOpen(true);
     setCaptionScroll((n) => n + 1);
   }
 
-  function noteWitnessQuiet(note: string) {
-    if (witnessNoted.current) return;
-    witnessNoted.current = true;
-    setWitnessNote(note);
-  }
-
-  async function photoForMatch(fileOverride?: File): Promise<File | null> {
-    const override = fileOverride && fileOverride.size > 0 ? fileOverride : null;
-    if (override) {
-      photoRef.current = override;
-      return override;
-    }
-    const current = photoRef.current;
-    if (current && current.size > 0) return current;
-    const pending = await readPendingPhoto(day);
-    if (pending && pending.size > 0) {
-      photoRef.current = pending;
-      return pending;
-    }
-    const stash = await readCaptureStash(day);
-    if (stash?.photo && stash.photo.size > 0) {
-      const stashed = stashPhotoFile(stash);
-      if (stashed.size > 0) {
-        photoRef.current = stashed;
-        return stashed;
-      }
-    }
-    const mediaId = savedPhotoIdRef.current ?? savedPhoto?.id;
-    if (!mediaId) return null;
-    try {
-      const res = await fetch(`/api/media/${mediaId}`, { credentials: "same-origin" });
-      if (!res.ok) return null;
-      const blob = await res.blob();
-      if (!blob.size) return null;
-      const file = new File([blob], "moment.jpg", { type: blob.type || "image/jpeg" });
-      photoRef.current = file;
-      return file;
-    } catch {
-      return null;
-    }
-  }
-
-  async function runJoyMatch(joy: JoyType, fileOverride?: File) {
-    const file = await photoForMatch(fileOverride);
-    const key = file ? `${joy.id}:${file.size}:${file.lastModified}` : "";
-    if (key && witnessedKey.current === key) return;
-    if (key) witnessedKey.current = key;
-    const seq = ++matchSeq.current;
-    setMismatch(null);
-    setSelectedJoyId(joy.id);
-    if (!file) return;
+  async function runPhotoSpark(file: File) {
+    const seq = ++sparkSeq.current;
+    setSpark(null);
+    revealCaption();
     try {
       const form = new FormData();
-      form.set("joy_type", joy.id);
-      form.set("joyType", joy.id);
       form.set("file", file, file.name || "moment.jpg");
-      const res = await fetch("/api/joy-match", {
+      const res = await fetch("/api/photo-spark", {
         method: "POST",
         body: form,
         credentials: "same-origin",
       });
-      const data = await readJson<{
-        verdict?: string;
-        line?: string;
-        note?: string;
-        suggestedJoyId?: string | null;
-      }>(res);
-      if (seq !== matchSeq.current) return;
-      if (data.verdict === "NEED_PHOTO") return;
-      if (data.verdict === "UNAVAILABLE") {
-        noteWitnessQuiet(data.note?.trim() || LANDING.app.witnessQuiet);
-        revealCaption();
+      const data = await readJson<{ spark?: string; blocked?: boolean }>(res);
+      if (seq !== sparkSeq.current) return;
+      if (data.blocked) {
+        setSpark(data.spark?.trim() || LANDING.app.blocked);
         return;
       }
-      if (data.verdict === "MISMATCH" && data.line?.trim()) {
-        const line = data.line.trim();
-        setCaptionOpen(false);
-        setMismatch({
-          line,
-          suggestedJoyId: data.suggestedJoyId || suggestJoyId(line),
-        });
-        setMismatchScroll((n) => n + 1);
-        return;
-      }
-      revealCaption();
+      if (data.spark?.trim()) setSpark(data.spark.trim());
     } catch {
-      if (seq !== matchSeq.current) return;
-      revealCaption();
+      if (seq !== sparkSeq.current) return;
     }
-  }
-
-  function chooseJoyMatch(choice: "switch" | "keep") {
-    matchSeq.current += 1;
-    const next = applyJoyMatchChoice({
-      choice,
-      currentJoyId: selectedJoyId ?? "",
-      suggestedJoyId: mismatch?.suggestedJoyId ?? null,
-    });
-    if (next.joyId) {
-      setSelectedJoyId(next.joyId);
-      writeChosenJoy(day, next.joyId);
-      witnessedKey.current = `${next.joyId}:choice`;
-    }
-    revealCaption();
   }
 
   async function saveMoment(event: FormEvent) {
@@ -664,18 +560,10 @@ export default function CaptureStudio() {
                   onError={recoverPreview}
                 />
               ) : null}
-              {mismatch ? (
-                <div id="joy-mismatch" className="joy-mismatch" role="status">
-                  <p className="joy-mismatch__line">{mismatch.line}</p>
-                  <div className="joy-mismatch__actions">
-                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("switch")}>
-                      {LANDING.app.switchJoy}
-                    </button>
-                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("keep")}>
-                      {LANDING.app.keepMine}
-                    </button>
-                  </div>
-                </div>
+              {spark ? (
+                <p id="photo-spark" className="photo-spark" role="status">
+                  {spark}
+                </p>
               ) : null}
             </div>
             {dateNote ? (
@@ -711,11 +599,6 @@ export default function CaptureStudio() {
 
           {captionOpen ? (
             <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
-              {witnessNote ? (
-                <p className="notice" id="joy-witness-quiet">
-                  {witnessNote}
-                </p>
-              ) : null}
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
               </label>

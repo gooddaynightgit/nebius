@@ -14,13 +14,12 @@ export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
 const EMPTY_REFLECTION =
-  "Look at you keeping a small good from the day, lovely, bright, and wonderful. Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.";
+  "Today, you kept a small good from the day, lovely, bright, and wonderful. Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.";
 
 const HUNT_CLOSE =
   "Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.";
 
-const EXCITED_OPEN_RE =
-  /^(oooh you|today\b|wow you|how awesome is this, you|brilliant\b|look at you)\b/i;
+const QUIET_OPEN_RE = /^(today,\s+you|yes,\s+you|you\b)/i;
 
 export const APP_STORY_LEAK_RE =
   /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper/i;
@@ -122,13 +121,12 @@ function softenPunctuation(text: string): string {
   });
 }
 
-function ensureExcitedOpen(text: string): string {
+function ensureQuietOpen(text: string): string {
   const trimmed = text.replace(/\s+/g, " ").trim();
   if (!trimmed) return EMPTY_REFLECTION;
-  if (EXCITED_OPEN_RE.test(trimmed)) return trimmed;
-  const rest = trimmed.replace(/^you\s+/i, "").replace(/[.!?]+$/, "");
-  const keeping = rest.replace(/^kept\b/i, "keeping");
-  return `Look at you ${keeping}, lovely, bright, and wonderful.`;
+  if (QUIET_OPEN_RE.test(trimmed)) return trimmed;
+  const rest = trimmed.replace(/[.!?]+$/, "");
+  return `Today, you ${rest.charAt(0).toLowerCase()}${rest.slice(1)}.`;
 }
 
 function hasBrandClose(text: string): boolean {
@@ -151,7 +149,7 @@ export function hasLecturePunctuation(body: string): boolean {
 export function expandAppStory(body: string, min = APP_STORY_MIN): string {
   let next = softenPunctuation(body);
   if (!next) next = EMPTY_REFLECTION;
-  next = ensureExcitedOpen(next);
+  next = ensureQuietOpen(next);
   if (!/[.!?]$/.test(next)) next = `${next}.`;
   const needsMore =
     next.length < min || countAppStoryWords(next) < APP_STORY_WORD_MIN;
