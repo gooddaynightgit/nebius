@@ -72,7 +72,16 @@ describe("landing copy", () => {
     expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open My good moment from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
-    expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
+    expect(LANDING.moment.playbackTitle).toBe("My good moment playback");
+    expect(LANDING.moment.playbackExample).toBe(
+      "Example of tonight’s tone — not your story yet. My good moment writes yours from this photo.",
+    );
+    expect(LANDING.moment.playbackExample).not.toMatch(/YOURS/);
+    expect(
+      JOY_TYPES.every(
+        (joy) => !/\bYOURS\b/.test(joy.playbackTemplate) && !/story playback/i.test(joy.playbackTemplate),
+      ),
+    ).toBe(true);
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",
     );

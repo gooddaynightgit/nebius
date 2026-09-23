@@ -27,6 +27,7 @@ export const LANDING = {
     whisperLabel: "A whisper next to the photo. 80 characters.",
     whisperExamples: "the light on the kettle / he wrote back / I made it home",
     joyLegend: "(pick one)",
+    playbackTitle: "My good moment playback",
     playbackExample:
       "Example of tonight’s tone — not your story yet. My good moment writes yours from this photo.",
   },

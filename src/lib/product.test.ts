@@ -583,7 +583,9 @@ describe("landing", () => {
     expect(picker).toMatch(/joy__tagline/);
     expect(picker).toMatch(/Capture it/);
     expect(picker).toMatch(/<StoryPlayback/);
-    expect(playback).toMatch(/Story playback/);
+    expect(playback).toMatch(/LANDING\.moment\.playbackTitle/);
+    expect(playback).not.toMatch(/Story playback/);
+    expect(copy).toContain('playbackTitle: "My good moment playback"');
     expect(playback).toMatch(/className="playback"/);
     expect(styles).toMatch(/#f0f0ff/);
     expect(styles).toMatch(/--docs-lavender/);
