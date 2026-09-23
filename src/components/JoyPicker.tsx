@@ -73,6 +73,9 @@ export default function JoyPicker({
                   checked={open}
                   aria-controls={panelId}
                   aria-expanded={open}
+                  onClick={() => {
+                    if (open) pick(joy);
+                  }}
                   onChange={() => pick(joy)}
                 />
                 <span className="joy__copy">

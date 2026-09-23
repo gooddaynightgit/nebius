@@ -446,8 +446,8 @@ describe("landing", () => {
   const playback = readFileSync(path.resolve("src/components/StoryPlayback.tsx"), "utf8");
   const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
 
-  it("has a lime CTA into /app and no email form", () => {
-    expect(page).toMatch(/href="\/app"/);
+  it("has a lime CTA into the joy page and no email form", () => {
+    expect(page).toMatch(/href="\/app\/joy"/);
     expect(copy).toMatch(/Hear your story — free/);
     expect(page).not.toMatch(/type="email"/);
     expect(accordion).not.toMatch(/type="email"/);
@@ -463,7 +463,8 @@ describe("landing", () => {
     expect(copy).toContain(
       "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
     );
-    expect(page).toContain('<Link href="/app" aria-label="Open the capture page">');
+    expect(page).toContain('<Link href="/app/joy" aria-label="Open the joy page">');
+    expect(page).toContain('href="/app/joy"');
     expect(page).toContain("→");
     expect(copy).toContain(
       "Snap one good moment from your day. Gooddaynight reads it back to you as a beautiful story — your own.",
@@ -515,7 +516,7 @@ describe("landing", () => {
 });
 
 describe("app capture client contract", () => {
-  it("keeps /app photo-only and moves joy, caption, and save to /app/joy", () => {
+  it("opens joy before the photo page and witnesses after the still is ready", () => {
     const src = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
     const joy = readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8");
     const joyPage = readFileSync(path.resolve("src/app/app/joy/page.tsx"), "utf8");
@@ -531,20 +532,23 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.app\.yours/);
     expect(src).toMatch(/id="yours-door"/);
     expect(src).toMatch(/href="\/app\/yours"/);
-    expect(src).toMatch(/href="\/app\/joy"/);
-    expect(src).toMatch(/LANDING\.app\.nextJoy/);
     expect(src).toMatch(/writePendingPhoto/);
+    expect(src).toMatch(/readChosenJoy/);
+    expect(src).toMatch(/\/api\/joy-match/);
     expect(src).not.toMatch(/JoyPicker/);
     expect(src).not.toMatch(/joy-pill/);
-    expect(src).not.toMatch(/\/api\/joy-match/);
     expect(src).not.toMatch(/What kind of quiet joy was it\?/);
     expect(src).not.toMatch(/id="joy-pick"/);
     expect(src).not.toMatch(/className="pill">Joy/);
     expect(joyPage).toMatch(/JoyStudio/);
-    expect(joy).toMatch(/source", "app"/);
-    expect(joy).toMatch(/joyType/);
-    expect(joy).toMatch(/tzOffset/);
-    expect(joy).toMatch(/WHISPER_MAX/);
+    expect(joy).toMatch(/writeChosenJoy/);
+    expect(joy).toMatch(/router\.push\("\/app"\)/);
+    expect(joy).not.toMatch(/\/api\/joy-match/);
+    expect(joy).not.toMatch(/captionDisposition/);
+    expect(src).toMatch(/source", "app"/);
+    expect(src).toMatch(/joyType/);
+    expect(src).toMatch(/tzOffset/);
+    expect(src).toMatch(/WHISPER_MAX/);
     expect(src).toMatch(/stillFromVideo/);
     expect(src).toMatch(/LANDING\.app\.takePhoto/);
     expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
@@ -591,8 +595,7 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/Save this voice note/);
     expect(src).not.toMatch(/See the story/);
     expect(src).not.toMatch(/StoryPlayback/);
-    expect(joy).toMatch(/LANDING\.app\.replace/);
-    expect(src).not.toMatch(/LANDING\.app\.replace/);
+    expect(src).toMatch(/LANDING\.app\.replace/);
     expect(src).not.toMatch(/LANDING\.app\.locked/);
     expect(src).not.toMatch(/disabled=\{locked\}/);
     expect(src).not.toMatch(/if \(locked\)/);
@@ -628,18 +631,16 @@ describe("app capture client contract", () => {
     expect(captures).toMatch(/SAFETY_REFUSAL/);
     expect(picker).toMatch(/playbackTemplate/);
     expect(picker).toMatch(/playbackExample/);
-    expect(joy).toMatch(/LANDING\.app\.captionHelp/);
-    expect(joy).toMatch(/LANDING\.app\.captionLabel/);
-    expect(joy).toMatch(/LANDING\.app\.captionExamples/);
-    expect(joy).toMatch(/placeholder=\{LANDING\.app\.captionExamples\}/);
-    expect(joy).toMatch(/\{caption\.length\}\/\{WHISPER_MAX\}/);
-    expect(joy).not.toMatch(/captionBeside/);
-    expect(joy).not.toMatch(/one line, 80 characters/);
-    expect(joy).not.toMatch(/It sits beside the photo/);
-    expect(joy).not.toMatch(/Optional caption/);
-    expect(joy).toMatch(/captionDisposition/);
-    expect(src).not.toMatch(/captionDisposition/);
-    expect(src).not.toMatch(/LANDING\.app\.captionLabel/);
+    expect(src).toMatch(/LANDING\.app\.captionHelp/);
+    expect(src).toMatch(/LANDING\.app\.captionLabel/);
+    expect(src).toMatch(/LANDING\.app\.captionExamples/);
+    expect(src).toMatch(/placeholder=\{LANDING\.app\.captionExamples\}/);
+    expect(src).toMatch(/\{caption\.length\}\/\{WHISPER_MAX\}/);
+    expect(src).not.toMatch(/captionBeside/);
+    expect(src).not.toMatch(/one line, 80 characters/);
+    expect(src).not.toMatch(/It sits beside the photo/);
+    expect(src).not.toMatch(/Optional caption/);
+    expect(src).toMatch(/captionDisposition/);
     expect(src).toMatch(/LANDING\.footer\.somethingGood/);
     expect(src).toMatch(/LANDING\.footer\.lookingForward/);
     expect(src).toMatch(/LANDING\.footer\.hello/);
@@ -648,52 +649,47 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
     expect(src).toMatch(/explainClientFetchError/);
     expect(joy).toMatch(/id="joy-pick"/);
-    expect(joy.indexOf('id="caption-box"')).toBeGreaterThan(joy.indexOf('id="joy-pick"'));
-    expect(joy.indexOf("LANDING.app.captionLabel")).toBeGreaterThan(joy.indexOf('id="joy-pick"'));
-    expect(joy).toMatch(/card card--peach card--compact/);
-    expect(joy).toMatch(/\/api\/joy-match/);
+    expect(src).toMatch(/card card--peach card--compact/);
     expect(route).toMatch(/joy_type|joyType/);
     const pickerJsx = joy.match(/<JoyPicker[\s\S]*?\/>/)?.[0] ?? "";
     expect(pickerJsx).not.toMatch(/\bcompact\b/);
     expect(pickerJsx).toMatch(/legend=\{JOY_PAGE_LEGEND\}/);
-    expect(joy).toMatch(/joy_type/);
-    expect(joy).toMatch(/photoRef/);
-    expect(joy).toMatch(/verdict === "NEED_PHOTO"/);
-    expect(joy).toMatch(/verdict === "UNAVAILABLE"/);
-    expect(joy).toMatch(/LANDING\.app\.witnessQuiet/);
-    expect(joy).toMatch(/captionScroll/);
-    expect(joy).toMatch(/id="joy-witness-quiet"/);
-    expect(joy).toMatch(/id="caption-box"/);
+    expect(src).toMatch(/joy_type/);
+    expect(src).toMatch(/photoRef/);
+    expect(src).toMatch(/verdict === "NEED_PHOTO"/);
+    expect(src).toMatch(/verdict === "UNAVAILABLE"/);
+    expect(src).toMatch(/LANDING\.app\.witnessQuiet/);
+    expect(src).toMatch(/captionScroll/);
+    expect(src).toMatch(/id="joy-witness-quiet"/);
+    expect(src).toMatch(/id="caption-box"/);
     expect(picker).not.toMatch(/compact\?:/);
     expect(picker).not.toMatch(/joy-pill/);
     expect(picker).toMatch(/joy__title/);
     expect(picker).toMatch(/joy__tagline/);
     expect(picker).toMatch(/Capture it/);
-    expect(joy).toMatch(/applyJoyMatchChoice/);
-    expect(joy).toMatch(/suggestJoyId/);
-    expect(joy).toMatch(/chooseJoyMatch\("switch"\)/);
-    expect(joy).toMatch(/chooseJoyMatch\("keep"\)/);
-    expect(joy).toMatch(/LANDING\.app\.switchJoy/);
-    expect(joy).toMatch(/LANDING\.app\.keepMine/);
-    expect(joy).toMatch(/verdict === "MISMATCH"/);
-    expect(joy).toMatch(/id="joy-mismatch"/);
-    expect(joy).toMatch(/id="joy-need"/);
-    expect(joy).toMatch(/JOY_NEED/);
-    expect(joy).toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
+    expect(src).toMatch(/applyJoyMatchChoice/);
+    expect(src).toMatch(/suggestJoyId/);
+    expect(src).toMatch(/chooseJoyMatch\("switch"\)/);
+    expect(src).toMatch(/chooseJoyMatch\("keep"\)/);
+    expect(src).toMatch(/LANDING\.app\.switchJoy/);
+    expect(src).toMatch(/LANDING\.app\.keepMine/);
+    expect(src).toMatch(/verdict === "MISMATCH"/);
+    expect(src).toMatch(/id="joy-mismatch"/);
+    expect(src).toMatch(/id="joy-need"/);
+    expect(src).toMatch(/JOY_NEED/);
     expect(src).toMatch(/PHOTO_DATE_MESSAGES\.unverified/);
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="pill">Photo/);
     expect(joy).toMatch(/className="pill">Joy/);
-    expect(joy).toMatch(/<span className="pill">Story<\/span>\s*<h2 id="today-heading">/);
+    expect(src).toMatch(/<span className="pill">Story<\/span>\s*<h2 id="today-heading">/);
     expect(src).not.toMatch(/card--mint[\s\S]{0,180}<span className="pill">Story/);
-    expect(joy).not.toMatch(/card--mint[\s\S]{0,180}<span className="pill">Story/);
+    expect(joy).not.toMatch(/<span className="pill">Story/);
     expect(src).toMatch(/LANDING\.app\.brand/);
     expect(src).not.toMatch(/header-meta/);
     expect(src).not.toMatch(/Token Factory/);
     expect(src).not.toMatch(/Demo mode/);
-    expect(joy).toMatch(/writeCaptureStash/);
+    expect(src).toMatch(/writeCaptureStash/);
     expect(src).toMatch(/updateCaptureStashPhoto/);
-    expect(joy).toMatch(/savedOnPhone/);
     expect(src).toMatch(/savedOnPhone/);
     expect(yours).toMatch(/buildAppCaptureForm/);
     expect(yours).toMatch(/readCaptureStash/);
