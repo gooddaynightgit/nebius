@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import FeedbackRibbon from "@/components/FeedbackRibbon";
 import "./globals.css";
 
 const inter = Inter({
@@ -53,6 +54,7 @@ export default function RootLayout({
           Skip to content
         </a>
         {children}
+        <FeedbackRibbon />
       </body>
     </html>
   );
