@@ -1513,6 +1513,10 @@ a {
   }
 }
 
+body:has(.moments-page) {
+  background: #f3f0fb;
+}
+
 .moments-page {
   width: min(100%, 40rem);
 }
@@ -1528,10 +1532,15 @@ a {
 .moments-block {
   position: relative;
   overflow: hidden;
-  margin: 0 0 0.7rem;
-  padding: 1.75rem 1.35rem 1.9rem;
-  border-radius: 1.35rem;
-  min-height: 10.5rem;
+  margin: 0 0 0.75rem;
+  padding: 1.55rem 1.3rem 1.7rem;
+  border-radius: 1.15rem;
+  min-height: 0;
+}
+
+.moments-block--poster {
+  min-height: 22rem;
+  padding: 1.65rem 1.35rem 2.4rem;
 }
 
 .moments-block h1,
@@ -1593,118 +1602,145 @@ a {
 
 .moments-glyph {
   position: absolute;
-  right: -0.15rem;
-  bottom: -0.85rem;
+  right: -0.35rem;
+  bottom: -1.5rem;
   z-index: 0;
-  font-size: clamp(5.5rem, 28vw, 8.5rem);
+  font-size: clamp(9.5rem, 52vw, 14rem);
   font-weight: 800;
-  letter-spacing: -0.07em;
-  line-height: 0.8;
-  color: rgba(22, 50, 74, 0.08);
+  letter-spacing: -0.08em;
+  line-height: 0.72;
+  color: rgba(22, 50, 74, 0.12);
   pointer-events: none;
   user-select: none;
 }
 
 .moments-glyph--price {
-  font-size: clamp(6.5rem, 34vw, 10rem);
-  color: rgba(212, 255, 0, 0.16);
+  right: -0.2rem;
+  bottom: -1.15rem;
+  font-size: clamp(8.5rem, 46vw, 13rem);
+  color: rgba(126, 112, 196, 0.28);
 }
 
 .moments-mark {
   position: absolute;
-  top: 1.15rem;
-  right: 1.15rem;
+  left: 1.15rem;
+  bottom: 1.15rem;
   z-index: 1;
-  width: 2.15rem;
-  height: 2.15rem;
-  border-radius: 0.55rem;
+  width: 2.65rem;
+  height: 2.65rem;
+  border-radius: 0.7rem;
   background: var(--lime-badge);
 }
 
 .moments-mark::after {
   content: "";
   position: absolute;
-  inset: 0.48rem;
+  inset: 0.55rem;
   border-radius: 50%;
   background: var(--navy);
 }
 
+.moments-block--photo .moments-mark,
+.moments-block--lavender .moments-mark,
+.moments-block--yes .moments-mark,
+.moments-block--price .moments-mark {
+  background: #fff;
+}
+
 .moments-cta {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 22rem;
-  min-height: 3.3rem;
-  margin-top: 1.15rem;
-  padding: 0.8rem 1.1rem;
-  border-radius: 0.75rem;
-  background: var(--lime);
-  color: var(--navy);
-  font-size: 1.12rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  min-width: 14.5rem;
+  min-height: 3.25rem;
+  margin-top: 1.2rem;
+  padding: 0.8rem 1.25rem;
+  border-radius: 0.45rem;
+  background: var(--navy);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
   text-decoration: none;
 }
 
 .moments-cta:hover {
-  background: #e4ff4a;
+  background: #0e2436;
 }
 
 .moments-block--night {
-  min-height: 14rem;
-  color: #f4f7fb;
-  background: linear-gradient(165deg, #1c4660 0%, #0d2433 62%, #081820 100%);
+  color: #f7f8fb;
+  background: linear-gradient(165deg, #16345a 0%, #0c1c33 58%, #081426 100%);
 }
 
 .moments-block--night .moments-glyph {
-  color: rgba(244, 247, 251, 0.08);
+  font-size: clamp(11rem, 62vw, 16rem);
+  right: -1rem;
+  bottom: -2.4rem;
+  background: linear-gradient(120deg, #d4ff6a 0%, #3dfff2 46%, #8eb6ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .moments-block--photo {
-  min-height: 13rem;
   color: var(--navy);
-  background: linear-gradient(160deg, #d7f3e4 0%, #e7f8c4 46%, #eaff6a 100%);
+  background: linear-gradient(165deg, #e7f8c8 0%, #d4ff6a 48%, #b6f27a 100%);
+}
+
+.moments-block--photo .moments-glyph {
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .moments-block--lavender {
   color: var(--navy);
-  background: linear-gradient(180deg, #ebe7fb 0%, #f4eef8 100%);
+  background: linear-gradient(180deg, #ece7fb 0%, #e7f6ea 70%, #f7f7f2 100%);
 }
 
-.moments-block--peach {
-  color: var(--navy);
-  background: linear-gradient(165deg, #f8ead6 0%, #f6d5e3 100%);
+.moments-block--lavender .moments-glyph {
+  color: rgba(150, 140, 210, 0.35);
 }
 
-.moments-block--blue {
-  color: var(--navy);
-  background: linear-gradient(180deg, #e7f3fb 0%, #d5e8f8 100%);
+.moments-block--violet {
+  color: #f7f8ff;
+  background: #5b4dff;
 }
 
-.moments-block--rose {
+.moments-block--violet .moments-glyph {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.moments-block--sheet-a {
   color: var(--navy);
-  background: linear-gradient(165deg, #f7e4ee 0%, #f3d6e4 100%);
+  background: #e6e4fb;
+}
+
+.moments-block--sheet-b {
+  color: var(--navy);
+  background: #ece9f8;
+}
+
+.moments-block--sheet h2 {
+  font-size: clamp(1.45rem, 6vw, 1.9rem);
 }
 
 .moments-block--yes {
-  min-height: 13.5rem;
   color: var(--navy);
-  background: linear-gradient(160deg, #eaff6a 0%, #d4ff00 55%, #c8ff80 100%);
+  background: linear-gradient(160deg, #f3ffe0 0%, #d4ff6a 42%, #9ee8c8 100%);
+}
+
+.moments-block--yes .moments-glyph {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .moments-block--price {
-  min-height: 16rem;
-  color: #f4f7fb;
-  background: linear-gradient(165deg, #16324a 0%, #0c2233 100%);
+  color: var(--navy);
+  background: linear-gradient(180deg, #f7f4ff 0%, #e4e0f8 100%);
 }
 
-.moments-block--price .moments-note {
-  color: rgba(244, 247, 251, 0.88);
-}
-
+.moments-block--price .moments-note,
 .moments-block--price .moments-aside {
-  color: rgba(244, 247, 251, 0.82);
+  color: var(--navy);
 }
 
 .moments-block--close {
