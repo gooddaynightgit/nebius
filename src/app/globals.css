@@ -469,6 +469,25 @@ a {
   font-size: 0.88rem;
 }
 
+.card--cream .error,
+.card--moment .error {
+  color: #8a3b12;
+}
+
+.card--cream .joy-mismatch__actions .btn,
+.card--moment .joy-mismatch__actions .btn {
+  color: var(--navy);
+  border-color: rgba(22, 50, 74, 0.35);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.card--cream .joy-mismatch__actions .btn:hover,
+.card--moment .joy-mismatch__actions .btn:hover {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+}
+
 @keyframes joy-mismatch-in {
   from {
     opacity: 0;
@@ -492,46 +511,9 @@ a {
   border: 0;
 }
 
-.joy-fieldset--compact .joy-legend {
-  font-size: 1rem;
-}
-
-.joy-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.75rem;
-}
-
-.joy-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0;
-  padding: 0.42rem 0.8rem 0.42rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
-  cursor: pointer;
-}
-
-.joy-pill input {
-  width: 1rem;
-  height: 1rem;
-  margin: 0;
-  accent-color: var(--navy);
-  flex: 0 0 auto;
-}
-
-.joy-pill.is-selected {
-  background: #fff;
-  box-shadow: 0 0 0 1.5px rgba(22, 50, 74, 0.28);
-}
-
-.joy-pill__title {
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+.joy-legend em {
+  font-style: italic;
+  font-weight: 650;
 }
 
 #caption-box,

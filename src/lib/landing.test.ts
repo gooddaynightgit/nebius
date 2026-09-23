@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JOY_TYPES, LANDING, WHISPER_MAX, getJoyById } from "./landing";
+import { JOY_TYPES, LANDING, WHISPER_MAX, accordionJoys, getJoyById } from "./landing";
 
 describe("landing copy", () => {
   it("keeps hero and footer text exact", () => {
@@ -52,6 +52,9 @@ describe("landing copy", () => {
     expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
+    expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy was it?");
+    expect(LANDING.app.joyPickHint).toBe("(pick one)");
+    expect(LANDING.app.nextJoy).toBe("Pick the quiet joy");
     expect(LANDING.app.switchJoy).toBe("Switch it");
     expect(LANDING.app.keepMine).toBe("Keep mine");
     expect(LANDING.app.photoNeed).toBe("Add one photo from today.");
@@ -110,8 +113,20 @@ describe("landing copy", () => {
       "You stepped into the early gold and let the day find you.",
     );
     expect(JOY_TYPES[3]?.tagline).toBe(
-      "Your body remembered it was yours. A walk. A stretch. Your dance.",
+      "Your body remembered it was yours. A walk. A stretch. The long way home.",
     );
+    expect(accordionJoys().map((joy) => joy.id)).toEqual([
+      "morning-sunlight",
+      "a-small-hello",
+      "one-thing-done-slowly",
+      "a-little-movement",
+      "one-corner-clear",
+      "just-this",
+    ]);
+    expect(accordionJoys()).toHaveLength(6);
+    expect(JOY_TYPES.map((joy) => joy.id)).toContain("a-sound-you-stopped-for");
+    expect(JOY_TYPES.map((joy) => joy.id)).toContain("someone-elses-good-moment");
+    expect(JOY_TYPES.map((joy) => joy.id)).toContain("no-name-for-it");
     expect(getJoyById("just-this")?.tagline).toBe(
       "You don't have to name the category. The photo already knows.",
     );

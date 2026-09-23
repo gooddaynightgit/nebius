@@ -1,16 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import JoyPicker from "@/components/JoyPicker";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { localDay } from "@/lib/day";
-import {
-  LANDING,
-  PHOTO_MAX_BYTES,
-  WHISPER_MAX,
-  getJoyById,
-  type JoyType,
-} from "@/lib/landing";
+import { LANDING, PHOTO_MAX_BYTES } from "@/lib/landing";
 import {
   inspectPhotoDate,
   isImageMime,
@@ -27,10 +20,7 @@ import {
   normalizePhotoFile,
   preparePhotoForUpload,
 } from "@/lib/prepare-photo";
-import { captionDisposition } from "@/lib/app-capture";
-import { applyJoyMatchChoice, suggestJoyId } from "@/lib/joy-match";
 import {
-  JOY_NEED,
   explainClientFetchError,
   isReachabilityError,
   readJson,
@@ -44,9 +34,9 @@ import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import {
   clearCaptureStashIfOpened,
   readCaptureStash,
-  stashPhotoFile,
+  readPendingPhoto,
   updateCaptureStashPhoto,
-  writeCaptureStash,
+  writePendingPhoto,
 } from "@/lib/capture-stash";
 import type { SessionState } from "@/lib/types";
 
@@ -94,52 +84,37 @@ async function stillFromVideo(file: File): Promise<File> {
 export default function CaptureStudio() {
   const takeInputId = useId();
   const uploadInputId = useId();
-  const captionId = useId();
   const takeInputRef = useRef<HTMLInputElement | null>(null);
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const photoUrlRef = useRef<string | null>(null);
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [caption, setCaption] = useState("");
-  const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
-  const [joyError, setJoyError] = useState<string | null>(null);
   const [dateNote, setDateNote] = useState<string | null>(null);
-  const [captionNote, setCaptionNote] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
   const [phoneStash, setPhoneStash] = useState(false);
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
-  const [captionOpen, setCaptionOpen] = useState(false);
-  const [mismatch, setMismatch] = useState<{ line: string; suggestedJoyId: string | null } | null>(
-    null,
-  );
-  const [photoNeedNote, setPhotoNeedNote] = useState<string | null>(null);
-  const [witnessNote, setWitnessNote] = useState<string | null>(null);
-  const [captionScroll, setCaptionScroll] = useState(0);
-  const [mismatchScroll, setMismatchScroll] = useState(0);
-  const matchSeq = useRef(0);
-  const photoRef = useRef<File | null>(null);
-  const witnessNoted = useRef(false);
+  const [pendingReady, setPendingReady] = useState(false);
 
   const day = useMemo(() => localDay(), []);
-  const selectedJoy = getJoyById(selectedJoyId);
-  const opened = Boolean(session?.yoursOpened);
   const savedPhoto = session?.todayPhoto ?? null;
   const yoursReady = Boolean(savedPhoto) || phoneStash;
+  const photoReady = Boolean(photo || pendingReady || phoneStash || savedPhoto);
   const previewSrc =
     photoUrl || (savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null);
 
   const refresh = useCallback(async () => {
     try {
-      const [sessionRes, stash] = await Promise.all([
+      const [sessionRes, stash, pending] = await Promise.all([
         fetch(`/api/session?day=${day}`, { credentials: "same-origin" }),
         readCaptureStash(day),
+        readPendingPhoto(day),
       ]);
       const sessionData = await readJson<SessionState>(sessionRes);
       setSession(sessionData);
+      setPendingReady(Boolean(pending));
       if (sessionData.yoursOpened) {
         await clearCaptureStashIfOpened(day, true);
         setPhoneStash(false);
@@ -150,17 +125,8 @@ export default function CaptureStudio() {
         const phoneOnly = hasStash && !sessionData.todayPhoto;
         setPhoneNote(phoneOnly ? LANDING.app.savedOnPhone : null);
       }
-      if (!hydrated && sessionData.todayPhoto) {
-        setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
-        setCaption(sessionData.todayPhoto.caption ?? "");
-        setCaptionOpen(true);
-        if (!sessionData.todayPhoto.dateVerified) {
-          setDateNote(PHOTO_DATE_MESSAGES.unverified);
-        }
-      } else if (!hydrated && stash) {
-        setSelectedJoyId(stash.joyType);
-        setCaption(stash.caption);
-        setCaptionOpen(true);
+      if (!hydrated && sessionData.todayPhoto && !sessionData.todayPhoto.dateVerified) {
+        setDateNote(PHOTO_DATE_MESSAGES.unverified);
       }
       setHydrated(true);
       setCaptureError((current) => (isReachabilityError(current) ? null : current));
@@ -199,30 +165,6 @@ export default function CaptureStudio() {
       liveStream?.getTracks().forEach((track) => track.stop());
     };
   }, [liveStream]);
-
-  useEffect(() => {
-    if (!captionScroll) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById("caption-box")?.scrollIntoView({
-        behavior: reduce ? "auto" : "smooth",
-        block: "start",
-      });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [captionScroll]);
-
-  useEffect(() => {
-    if (!mismatch || !mismatchScroll) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById("joy-mismatch")?.scrollIntoView({
-        behavior: reduce ? "auto" : "smooth",
-        block: "nearest",
-      });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [mismatch, mismatchScroll]);
 
   function stopLiveCamera() {
     liveStream?.getTracks().forEach((track) => track.stop());
@@ -330,123 +272,20 @@ export default function CaptureStudio() {
     } else if (!dateNote?.startsWith("Videos")) {
       setDateNote(null);
     }
-    setCaption("");
-    setCaptionNote(null);
-    setPhotoNeedNote(null);
-    setMismatch(null);
-    photoRef.current = next;
     setPhoto(next);
     setPhotoUrl((current) => {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
       return URL.createObjectURL(next);
     });
+    try {
+      await writePendingPhoto(day, next);
+      setPendingReady(true);
+    } catch {
+      setPendingReady(true);
+    }
     void updateCaptureStashPhoto(day, next).then((updated) => {
       if (updated) setPhoneStash(true);
     });
-    if (selectedJoy) void runJoyMatch(selectedJoy, next);
-  }
-
-  function revealCaption() {
-    setMismatch(null);
-    setPhotoNeedNote(null);
-    setCaptionOpen(true);
-    setCaptionScroll((n) => n + 1);
-  }
-
-  function noteWitnessQuiet(note: string) {
-    if (witnessNoted.current) return;
-    witnessNoted.current = true;
-    setWitnessNote(note);
-  }
-
-  async function photoForMatch(): Promise<File | null> {
-    const current = photoRef.current ?? photo;
-    if (current && current.size > 0) return current;
-    const stash = await readCaptureStash(day);
-    if (stash?.photo && stash.photo.size > 0) {
-      const stashed = stashPhotoFile(stash);
-      if (stashed.size > 0) {
-        photoRef.current = stashed;
-        return stashed;
-      }
-    }
-    if (!savedPhoto?.id) return null;
-    try {
-      const res = await fetch(`/api/media/${savedPhoto.id}`, { credentials: "same-origin" });
-      if (!res.ok) return null;
-      const blob = await res.blob();
-      if (!blob.size) return null;
-      const file = new File([blob], "moment.jpg", { type: blob.type || "image/jpeg" });
-      photoRef.current = file;
-      return file;
-    } catch {
-      return null;
-    }
-  }
-
-  async function runJoyMatch(joy: JoyType, fileOverride?: File) {
-    const seq = ++matchSeq.current;
-    setMismatch(null);
-    const override = fileOverride && fileOverride.size > 0 ? fileOverride : null;
-    const file = override ?? (await photoForMatch());
-    if (seq !== matchSeq.current) return;
-    if (!file) {
-      setPhotoNeedNote(LANDING.app.photoNeed);
-      return;
-    }
-    setPhotoNeedNote(null);
-    try {
-      const form = new FormData();
-      form.set("joy_type", joy.id);
-      form.set("joyType", joy.id);
-      form.set("file", file, file.name || "moment.jpg");
-      const res = await fetch("/api/joy-match", {
-        method: "POST",
-        body: form,
-        credentials: "same-origin",
-      });
-      const data = await readJson<{
-        verdict?: string;
-        line?: string;
-        note?: string;
-        suggestedJoyId?: string | null;
-      }>(res);
-      if (seq !== matchSeq.current) return;
-      if (data.verdict === "NEED_PHOTO") {
-        setPhotoNeedNote(LANDING.app.photoNeed);
-        return;
-      }
-      if (data.verdict === "UNAVAILABLE") {
-        noteWitnessQuiet(data.note?.trim() || LANDING.app.witnessQuiet);
-        revealCaption();
-        return;
-      }
-      if (data.verdict === "MISMATCH" && data.line?.trim()) {
-        const line = data.line.trim();
-        setCaptionOpen(false);
-        setMismatch({
-          line,
-          suggestedJoyId: data.suggestedJoyId || suggestJoyId(line),
-        });
-        setMismatchScroll((n) => n + 1);
-        return;
-      }
-      revealCaption();
-    } catch {
-      if (seq !== matchSeq.current) return;
-      revealCaption();
-    }
-  }
-
-  function chooseJoyMatch(choice: "switch" | "keep") {
-    matchSeq.current += 1;
-    const next = applyJoyMatchChoice({
-      choice,
-      currentJoyId: selectedJoyId ?? "",
-      suggestedJoyId: mismatch?.suggestedJoyId ?? null,
-    });
-    if (next.joyId) setSelectedJoyId(next.joyId);
-    revealCaption();
   }
 
   function recoverPreview() {
@@ -459,108 +298,6 @@ export default function CaptureStudio() {
       });
     };
     reader.readAsDataURL(photo);
-  }
-
-  function pickJoy(joy: JoyType) {
-    setSelectedJoyId(joy.id);
-    setJoyError(null);
-    setCaptureError(null);
-    const current = photoRef.current;
-    void runJoyMatch(joy, current && current.size > 0 ? current : undefined);
-  }
-
-  async function saveMoment(event: FormEvent) {
-    event.preventDefault();
-    const existingStash = await readCaptureStash(day);
-    const uploadPhoto = photo ?? (existingStash ? stashPhotoFile(existingStash) : null);
-    if (!uploadPhoto && !savedPhoto) {
-      setCaptureError(LANDING.app.photoNeed);
-      return;
-    }
-    if (!selectedJoy) {
-      setJoyError(JOY_NEED);
-      setCaptureError(null);
-      window.requestAnimationFrame(() => {
-        document.getElementById("joy-pick")?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start",
-        });
-      });
-      return;
-    }
-    const kept = captionDisposition(caption);
-    setBusy(true);
-    setCaptureError(null);
-    setJoyError(null);
-    setCaptionNote(kept.dropped ? LANDING.app.captionDropped : null);
-    if (kept.dropped) setCaption("");
-    try {
-      const form = new FormData();
-      form.set("source", "app");
-      form.set("kind", "photo");
-      form.set("day", day);
-      form.set("joyType", selectedJoy.id);
-      form.set("tzOffset", String(new Date().getTimezoneOffset()));
-      if (kept.caption) form.set("caption", kept.caption);
-      if (uploadPhoto) form.set("file", uploadPhoto, uploadPhoto.name || "moment.jpg");
-      const res = await fetch("/api/captures", {
-        method: "POST",
-        body: form,
-        credentials: "same-origin",
-      });
-      const data = await readJson<{
-        session?: SessionState;
-        dateNote?: string;
-        captionNote?: string;
-      }>(res);
-      if (!data.session) {
-        throw new Error("Could not save that moment.");
-      }
-      if (uploadPhoto) {
-        try {
-          await writeCaptureStash({
-            day,
-            joyType: selectedJoy.id,
-            caption: kept.caption,
-            photo: uploadPhoto,
-            fileName: uploadPhoto.name,
-          });
-        } catch {
-          // Save already succeeded; YOURS can still try the in-memory file this session.
-        }
-        setPhoneStash(true);
-      }
-      setCaptureError(null);
-      setSession(data.session);
-      if (data.dateNote) setDateNote(data.dateNote);
-      if (data.captionNote) {
-        setCaptionNote(data.captionNote);
-        setCaption("");
-      }
-      let latest = data.session;
-      try {
-        const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
-        latest = await readJson<SessionState>(sessionRes);
-        setSession(latest);
-      } catch {
-        latest = data.session;
-      }
-      if (!latest.todayPhoto) {
-        setPhoneNote(LANDING.app.savedOnPhone);
-      } else {
-        setPhoneNote(null);
-      }
-      window.requestAnimationFrame(() => {
-        document.getElementById("yours-door")?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start",
-        });
-      });
-    } catch (err) {
-      setCaptureError(explainClientFetchError(err));
-    } finally {
-      setBusy(false);
-    }
   }
 
   return (
@@ -576,8 +313,7 @@ export default function CaptureStudio() {
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
         </section>
 
-        <form onSubmit={saveMoment}>
-          <section className="card card--dark" aria-labelledby="capture-heading">
+        <section className="card card--dark" aria-labelledby="capture-heading">
             <span className="pill">Photo</span>
             <h2 id="capture-heading" className="visually-hidden">
               Add a photo
@@ -652,28 +388,10 @@ export default function CaptureStudio() {
                   onError={recoverPreview}
                 />
               ) : null}
-              {mismatch ? (
-                <div id="joy-mismatch" className="joy-mismatch" role="status">
-                  <p className="joy-mismatch__line">{mismatch.line}</p>
-                  <div className="joy-mismatch__actions">
-                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("switch")}>
-                      {LANDING.app.switchJoy}
-                    </button>
-                    <button className="btn btn--ghost" type="button" onClick={() => chooseJoyMatch("keep")}>
-                      {LANDING.app.keepMine}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
             </div>
             {dateNote ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
                 {dateNote}
-              </p>
-            ) : null}
-            {captionNote ? (
-              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
-                {captionNote}
               </p>
             ) : null}
             {captureError ? (
@@ -702,70 +420,13 @@ export default function CaptureStudio() {
             ) : null}
           </section>
 
-          <section
-            id="joy-pick"
-            className="card card--cream card--moment card--compact"
-            aria-labelledby="joy-heading"
-          >
-            <span className="pill">Joy</span>
-            <h2 id="joy-heading" className="visually-hidden">
-              {LANDING.moment.joyLegend}
-            </h2>
-            {joyError ? (
-              <p className="error" role="alert" id="joy-need" style={{ margin: "0 0 0.85rem" }}>
-                {joyError}
-              </p>
-            ) : null}
-            {photoNeedNote ? (
-              <p className="notice" style={{ margin: "0 0 0.85rem" }}>
-                {photoNeedNote}
-              </p>
-            ) : null}
-            <JoyPicker
-              compact
-              name="quiet-joy-app"
-              idPrefix="app-joy"
-              selectedId={selectedJoyId}
-              onSelect={pickJoy}
-            />
-            <span className="card__wash card__wash--note" aria-hidden="true"></span>
+        {photoReady ? (
+          <section id="joy-next" className="card card--lime card--compact">
+            <Link className="btn btn--lime" href="/app/joy">
+              {LANDING.app.nextJoy}
+            </Link>
           </section>
-
-          {captionOpen ? (
-            <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
-              {witnessNote ? (
-                <p className="notice" id="joy-witness-quiet">
-                  {witnessNote}
-                </p>
-              ) : null}
-              <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
-                {LANDING.app.captionLabel}
-              </label>
-              <p className="caption-help">{LANDING.app.captionHelp}</p>
-              <input
-                id={captionId}
-                className="whisper"
-                type="text"
-                maxLength={WHISPER_MAX}
-                autoComplete="off"
-                placeholder={LANDING.app.captionExamples}
-                value={caption}
-                onChange={(event) =>
-                  setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
-                }
-              />
-              <p className="whisper-count">
-                {caption.length}/{WHISPER_MAX}
-              </p>
-            </section>
-          ) : null}
-
-          <section className="card card--lime card--compact">
-            <button className="btn btn--lime" type="submit" disabled={busy} style={{ width: "100%" }}>
-              {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
-            </button>
-          </section>
-        </form>
+        ) : null}
 
         {yoursReady ? (
           <section id="yours-door" className="card card--lime card--compact" aria-label={LANDING.app.yours}>
@@ -779,25 +440,6 @@ export default function CaptureStudio() {
             ) : null}
           </section>
         ) : null}
-
-        <section className="card card--cream card--compact" aria-labelledby="today-heading">
-          <span className="pill">Story</span>
-          <h2 id="today-heading">Today’s moment</h2>
-          {!savedPhoto && !phoneStash ? (
-            <p className="card__body" style={{ marginTop: "0.8rem" }}>
-              Nothing saved yet. One photo and one joy, then YOURS.
-            </p>
-          ) : (
-            <div className="moment-list">
-              <article className="moment">
-                <span className="moment__kind">photo</span>
-                <p>
-                  {getJoyById(savedPhoto?.joyType ?? selectedJoyId)?.title ?? "A still from today."}
-                </p>
-              </article>
-            </div>
-          )}
-        </section>
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>

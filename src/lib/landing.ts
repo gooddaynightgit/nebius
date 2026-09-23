@@ -60,6 +60,9 @@ export const LANDING = {
     unexpected: "Couldn't read Gooddaynight's reply. Refresh and try again.",
     tryAgain: "Try again",
     joyNeed: "Pick the kind of quiet joy first.",
+    joyQuestion: "What kind of quiet joy was it?",
+    joyPickHint: "(pick one)",
+    nextJoy: "Pick the quiet joy",
     switchJoy: "Switch it",
     keepMine: "Keep mine",
     photoNeed: "Add one photo from today.",
@@ -115,7 +118,7 @@ export const JOY_TYPES: JoyType[] = [
   {
     id: "a-little-movement",
     title: "A little movement",
-    tagline: "Your body remembered it was yours. A walk. A stretch. Your dance.",
+    tagline: "Your body remembered it was yours. A walk. A stretch. The long way home.",
     body: "Ten minutes and your whole chemistry changes. A walk brisk enough to feel your heart sing. A stretch long and luxurious, spine waking, shoulders opening. Endorphins flood through you — your body's own joy, made by you, for you, on demand. You are powerful and it feels incredible.",
     capture:
       "a photo of your shoes on the pavement, your arms reaching wide to the sky, the path stretching out ahead of you.",
@@ -172,6 +175,24 @@ export const JOY_TYPES: JoyType[] = [
 
 export const WHISPER_MAX = 80;
 export const PHOTO_MAX_BYTES = Math.floor(4.5 * 1024 * 1024);
+
+/** Visible accordion. Later ids stay in JOY_TYPES for mismatch suggestions only. */
+export const ACCORDION_JOY_IDS = [
+  "morning-sunlight",
+  "a-small-hello",
+  "one-thing-done-slowly",
+  "a-little-movement",
+  "one-corner-clear",
+  "just-this",
+] as const;
+
+export function accordionJoys(): JoyType[] {
+  return ACCORDION_JOY_IDS.map((id) => {
+    const joy = JOY_TYPES.find((item) => item.id === id);
+    if (!joy) throw new Error(`Missing accordion joy ${id}`);
+    return joy;
+  });
+}
 
 export function getJoyById(id: string | null | undefined): JoyType | undefined {
   if (!id) return undefined;

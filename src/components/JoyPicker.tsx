@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import StoryPlayback from "@/components/StoryPlayback";
-import { JOY_TYPES, LANDING, type JoyType } from "@/lib/landing";
+import { accordionJoys, LANDING, type JoyType } from "@/lib/landing";
 
 const EMPHASIS = /(\*[^*]+\*)/g;
 
@@ -26,8 +26,8 @@ type JoyPickerProps = {
   idPrefix?: string;
   selectedId?: string | null;
   onSelect?: (joy: JoyType) => void;
-  /** Title-only pills. Used on /app so a joy tap does not open the story panel. */
-  compact?: boolean;
+  joys?: readonly JoyType[];
+  legend?: ReactNode;
 };
 
 export default function JoyPicker({
@@ -35,56 +35,32 @@ export default function JoyPicker({
   idPrefix = "joy",
   selectedId,
   onSelect,
-  compact = false,
+  joys = accordionJoys(),
+  legend = LANDING.moment.joyLegend,
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
   const selected = selectedId === undefined ? internalId : selectedId;
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (compact || !selected || !panelRef.current) return;
+    if (!selected || !panelRef.current) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     panelRef.current.scrollIntoView({
       behavior: reduce ? "auto" : "smooth",
       block: "nearest",
     });
-  }, [compact, selected]);
+  }, [selected]);
 
   function pick(joy: JoyType) {
     if (selectedId === undefined) setInternalId(joy.id);
     onSelect?.(joy);
   }
 
-  if (compact) {
-    return (
-      <fieldset className="joy-fieldset joy-fieldset--compact">
-        <legend className="joy-legend">{LANDING.moment.joyLegend}</legend>
-        <div className="joy-pills">
-          {JOY_TYPES.map((joy) => {
-            const open = selected === joy.id;
-            return (
-              <label key={joy.id} className={open ? "joy-pill is-selected" : "joy-pill"}>
-                <input
-                  type="radio"
-                  name={name}
-                  value={joy.id}
-                  checked={open}
-                  onChange={() => pick(joy)}
-                />
-                <span className="joy-pill__title">{joy.title}</span>
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
-    );
-  }
-
   return (
     <fieldset className="joy-fieldset">
-      <legend className="joy-legend">{LANDING.moment.joyLegend}</legend>
+      <legend className="joy-legend">{legend}</legend>
       <div className="joy-list">
-        {JOY_TYPES.map((joy) => {
+        {joys.map((joy) => {
           const open = selected === joy.id;
           const panelId = `${idPrefix}-panel-${joy.id}`;
           return (
