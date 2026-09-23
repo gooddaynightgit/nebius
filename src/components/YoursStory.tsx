@@ -335,7 +335,7 @@ export default function YoursStory() {
               {state.status === "expired"
                 ? "That night has passed."
                 : state.status === "blocked"
-                  ? "No YOURS story tonight."
+                  ? "No story for My good moment tonight."
                   : state.status === "error"
                     ? "Couldn’t keep this moment."
                     : "Not yet."}

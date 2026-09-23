@@ -485,7 +485,8 @@ a {
 
 .already-picked__link {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
+  flex-wrap: wrap;
   min-height: 2.75rem;
   padding: 0.1rem 0;
   border: 0;
@@ -500,6 +501,11 @@ a {
   text-decoration: underline;
   text-underline-offset: 0.18em;
   cursor: pointer;
+}
+
+.already-picked__link em {
+  font-style: italic;
+  font-weight: 650;
 }
 
 .already-picked__note {
@@ -819,12 +825,11 @@ a {
   background: var(--navy);
   color: var(--lime);
   font-family: inherit;
-  font-size: clamp(1.7rem, 8vw, 2.35rem);
+  font-size: clamp(1.35rem, 6vw, 1.85rem);
   font-weight: 800;
-  letter-spacing: 0.16em;
-  line-height: 1;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
   text-decoration: none;
-  text-transform: uppercase;
   cursor: pointer;
 }
 

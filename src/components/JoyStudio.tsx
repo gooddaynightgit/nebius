@@ -16,6 +16,12 @@ const JOY_PAGE_LEGEND = (
   </>
 );
 
+const ALREADY_PICKED = (
+  <>
+    {LANDING.app.alreadyPickedLead} <em>{LANDING.app.alreadyPickedLink}</em> →
+  </>
+);
+
 function AlreadyPicked({ day }: { day: string }) {
   const [saved, setSaved] = useState<boolean | null>(null);
   const [emptyNote, setEmptyNote] = useState(false);
@@ -70,7 +76,7 @@ function AlreadyPicked({ day }: { day: string }) {
     <p className="already-picked">
       {saved ? (
         <Link className="already-picked__link" href="/app/yours">
-          {LANDING.app.alreadyPicked}
+          {ALREADY_PICKED}
         </Link>
       ) : (
         <button
@@ -85,7 +91,7 @@ function AlreadyPicked({ day }: { day: string }) {
             setPending(true);
           }}
         >
-          {LANDING.app.alreadyPicked}
+          {ALREADY_PICKED}
         </button>
       )}
       {emptyNote ? (

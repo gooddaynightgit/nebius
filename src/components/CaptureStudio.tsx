@@ -751,7 +751,7 @@ export default function CaptureStudio() {
           <h2 id="today-heading">Today’s moment</h2>
           {!savedPhoto && !phoneStash ? (
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
-              Nothing saved yet. One photo and one joy, then YOURS.
+              Nothing saved yet. One photo and one joy, then My good moment.
             </p>
           ) : (
             <div className="moment-list">

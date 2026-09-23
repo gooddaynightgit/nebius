@@ -550,7 +550,8 @@ describe("landing", () => {
     expect(copy).toContain('joyLegend: "(pick one)"');
     expect(copy).toContain('joyQuestion: "What kind of quiet joy is it?"');
     expect(copy).toContain('joyPickHint: "(pick one for a new good moment)"');
-    expect(copy).toContain('alreadyPicked: "Already picked one? See saved good moment →"');
+    expect(copy).toContain('alreadyPickedLead: "Already picked one?"');
+    expect(copy).toContain('alreadyPickedLink: "see your saved good moment"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
     expect(copy).toContain("One moment. One story.");
     expect(copy).toContain("Something good is about to happen!");
@@ -679,7 +680,8 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/LANDING\.app\.joyQuestion/);
     expect(joy).toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).toMatch(/<em>/);
-    expect(joy).toMatch(/LANDING\.app\.alreadyPicked/);
+    expect(joy).toMatch(/LANDING\.app\.alreadyPickedLead/);
+    expect(joy).toMatch(/<em>\{LANDING\.app\.alreadyPickedLink\}<\/em>/);
     expect(joy).toMatch(/already-picked/);
     expect(joy).toMatch(/href="\/app\/yours"/);
     expect(joy).toMatch(/LANDING\.app\.alreadyPickedEmpty/);
@@ -706,7 +708,7 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/\/api\/yours/);
     expect(yours).toMatch(/code === "blocked"/);
     expect(yours).toMatch(/LANDING\.app\.blocked/);
-    expect(yours).toMatch(/No YOURS story tonight/);
+    expect(yours).toMatch(/No story for My good moment tonight/);
     expect(yours).toMatch(/Written without seeing the photo/);
     expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
     expect(yours).toMatch(/Couldn’t finish tonight’s close/);

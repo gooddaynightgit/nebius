@@ -18,7 +18,7 @@ describe("landing copy", () => {
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
     expect(LANDING.app.heading).toBe("Today. One good moment. Go get it.");
-    expect(LANDING.app.yours).toBe("YOURS");
+    expect(LANDING.app.yours).toBe("My good moment");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
     expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");
@@ -33,7 +33,7 @@ describe("landing copy", () => {
     expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(
-      "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
+      "Tonight isn’t a story for My good moment. This picture isn’t one we can tell. Keep the night gentle.",
     );
     expect(LANDING.app.playMoment).toBe("Play this good moment");
     expect(LANDING.app.pause).toBe("Pause");
@@ -56,7 +56,8 @@ describe("landing copy", () => {
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
     expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy is it?");
     expect(LANDING.app.joyPickHint).toBe("(pick one for a new good moment)");
-    expect(LANDING.app.alreadyPicked).toBe("Already picked one? See saved good moment →");
+    expect(LANDING.app.alreadyPickedLead).toBe("Already picked one?");
+    expect(LANDING.app.alreadyPickedLink).toBe("see your saved good moment");
     expect(LANDING.app.alreadyPickedEmpty).toBe("Nothing saved yet. Pick a new one.");
     expect(LANDING.app.nextJoy).toBe("Pick the quiet joy");
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
@@ -68,7 +69,7 @@ describe("landing copy", () => {
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);
     expect(LANDING.app.yoursMissing).toBe("Save today's photo and pick a joy first.");
     expect(LANDING.app.keepingMoment).toBe("Keeping your moment…");
-    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open YOURS from here");
+    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open My good moment from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
     expect(LANDING.moment.playbackExample).toMatch(/Example of tonight/i);
