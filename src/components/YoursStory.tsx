@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import StoryPlayback from "@/components/StoryPlayback";
 import { explainClientFetchError, readJson, readResponsePayload } from "@/lib/client-fetch";
 import {
   buildAppCaptureForm,
@@ -69,8 +68,15 @@ export default function YoursStory() {
   const [playing, setPlaying] = useState(false);
   const [keepBusy, setKeepBusy] = useState(false);
   const [keepNote, setKeepNote] = useState<string | null>(null);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [cardError, setCardError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const cardBlobRef = useRef<Blob | null>(null);
   const day = localDay();
+  const readyStoryId = state.status === "ready" ? state.story.id : "";
+  const readyBody = state.status === "ready" ? state.story.body : "";
+  const readyPhotoId =
+    state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
 
   const weaveYours = useCallback(async (): Promise<WeaveResult> => {
     const open = await fetch("/api/yours", {
@@ -218,6 +224,39 @@ export default function YoursStory() {
     };
   }, [day, restoreFromStashAndWeave, weaveYours]);
 
+  useEffect(() => {
+    if (!readyPhotoId) {
+      cardBlobRef.current = null;
+      setCardUrl(null);
+      setCardError(Boolean(readyStoryId));
+      return;
+    }
+    let cancelled = false;
+    let url: string | null = null;
+    setCardError(false);
+    setCardUrl(null);
+    (async () => {
+      try {
+        const photo = await loadKeepCardPhoto(keepCardPhotoSrc(readyPhotoId, readyStoryId));
+        const blob = await composeKeepCardJpeg({ photo, story: readyBody });
+        if (cancelled) return;
+        cardBlobRef.current = blob;
+        url = URL.createObjectURL(blob);
+        setCardUrl(url);
+      } catch {
+        if (!cancelled) {
+          cardBlobRef.current = null;
+          setCardUrl(null);
+          setCardError(true);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [readyBody, readyPhotoId, readyStoryId]);
+
   function speakStory(record: StoryRecord) {
     window.speechSynthesis?.cancel();
     if (record.tts.status === "sonic") {
@@ -248,8 +287,12 @@ export default function YoursStory() {
     setKeepBusy(true);
     setKeepNote(null);
     try {
-      const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
-      const blob = await composeKeepCardJpeg({ photo, story: state.story.body });
+      let blob = cardBlobRef.current;
+      if (!blob) {
+        const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
+        blob = await composeKeepCardJpeg({ photo, story: state.story.body });
+        cardBlobRef.current = blob;
+      }
       const result = await shareOrDownloadKeepCard({
         blob,
         filename: keepCardFilename(day),
@@ -312,9 +355,13 @@ export default function YoursStory() {
             <h1 id="yours-heading" className="visually-hidden">
               {LANDING.app.yours}
             </h1>
-            <StoryPlayback id="app-story-playback" title="">
-              <p className="playback__story">{state.story.body}</p>
-            </StoryPlayback>
+            {cardUrl ? (
+              <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
+            ) : (
+              <p className="card__body">
+                {cardError ? LANDING.app.keepFailed : "Opening tonight’s story…"}
+              </p>
+            )}
             <div className="actions" style={{ marginTop: "1rem" }}>
               <button
                 className="btn btn--icon"

@@ -61,8 +61,10 @@ export const LANDING = {
     unexpected: "Couldn't read Gooddaynight's reply. Refresh and try again.",
     tryAgain: "Try again",
     joyNeed: "Pick the kind of quiet joy first.",
-    joyQuestion: "What kind of quiet joy was it?",
-    joyPickHint: "(pick one)",
+    joyQuestion: "What kind of quiet joy is it?",
+    joyPickHint: "(pick one for a new good moment)",
+    alreadyPicked: "Already picked one? See saved good moment →",
+    alreadyPickedEmpty: "Nothing saved yet. Pick a new one.",
     nextJoy: "Pick the quiet joy",
     photoNeed: "Add one photo from today.",
     witnessQuiet: "The witness didn’t look. The caption is still yours.",
@@ -97,7 +99,7 @@ export const JOY_TYPES: JoyType[] = [
   },
   {
     id: "a-small-hello",
-    title: "A small hello",
+    title: "A hello",
     tagline: "Someone was reached. A wave, a laugh, a blue bubble.",
     body: "A roaring laugh with a coworker. A huge wave to your neighbor across the street. A text to a friend that says *you crossed my mind and it made me grin.* Each one floods you with oxytocin — the chemistry of pure belonging — and the whole world lights up like it's in on the joy with you.",
     capture:

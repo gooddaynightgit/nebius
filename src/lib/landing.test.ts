@@ -54,8 +54,10 @@ describe("landing copy", () => {
     expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
-    expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy was it?");
-    expect(LANDING.app.joyPickHint).toBe("(pick one)");
+    expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy is it?");
+    expect(LANDING.app.joyPickHint).toBe("(pick one for a new good moment)");
+    expect(LANDING.app.alreadyPicked).toBe("Already picked one? See saved good moment →");
+    expect(LANDING.app.alreadyPickedEmpty).toBe("Nothing saved yet. Pick a new one.");
     expect(LANDING.app.nextJoy).toBe("Pick the quiet joy");
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Keep mine/);
@@ -84,7 +86,7 @@ describe("landing copy", () => {
   it("keeps all six quiet-joy playback quotes exact", () => {
     expect(JOY_TYPES.map((joy) => joy.title)).toEqual([
       "Morning sunlight",
-      "A small hello",
+      "A hello",
       "One thing, done slowly",
       "A little movement",
       "One corner, clear",

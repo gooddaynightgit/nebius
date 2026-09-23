@@ -19,7 +19,7 @@ Your job: decide if the photo plausibly matches the category. Be generous — mo
 If it matches (or is close enough), respond with exactly: MATCH
 
 If it clearly doesn't match, respond in this exact format:
-MISMATCH | [one short line: what you actually see, then a humble suggestion of a better-fitting category from this list: Morning sunlight / A small hello / One thing done slowly / A little movement / One corner clear / A sound you stopped for / Someone else's good moment / No name for it]
+MISMATCH | [one short line: what you actually see, then a humble suggestion of a better-fitting category from this list: Morning sunlight / A hello / One thing done slowly / A little movement / One corner clear / A sound you stopped for / Someone else's good moment / No name for it]
 
 Tone rules for the mismatch line:
 - Under 20 words
@@ -32,14 +32,14 @@ Tone rules for the mismatch line:
 export const JOY_MATCH_SYSTEM = `${JOY_MATCH_CORE}
 
 Clear cases — stay generous when a moment is borderline, and do not rubber-stamp a scene that is unrelated:
-- MATCH "A small hello" when the image clearly shows a greeting: a text thread, a hello bubble, a gift message, a wave, a laugh with someone, or their name in a message. A screenshot may be that hello.
-- MISMATCH "A small hello" for a generic UI screenshot, a settings screen, random app chrome, a home screen, or any photo with no greeting, wave, message, or laugh-with-someone. A screen print is not automatically a hello.
+- MATCH "A hello" when the image clearly shows a greeting: a text thread, a hello bubble, a gift message, a wave, a laugh with someone, or their name in a message. A screenshot may be that hello.
+- MISMATCH "A hello" for a generic UI screenshot, a settings screen, random app chrome, a home screen, or any photo with no greeting, wave, message, or laugh-with-someone. A screen print is not automatically a hello.
 - Use that same bar for every category. When the scene and the picked joy are clearly unrelated, answer MISMATCH and suggest a better fit from the list with "feels more like... to me".
 
 Examples:
-Joy picked: A small hello. Photo: a phone settings screen, toggles, no message.
+Joy picked: A hello. Photo: a phone settings screen, toggles, no message.
 MISMATCH | A settings screen with toggles — feels more like no name for it to me.
-Joy picked: A small hello. Photo: a text thread that says hello.
+Joy picked: A hello. Photo: a text thread that says hello.
 MATCH
 Joy picked: Morning sunlight. Photo: rain on a window and a wiper.
 MISMATCH | Rain on the glass and a wiper — feels more like no name for it to me.
@@ -141,7 +141,7 @@ export async function witnessJoyMatch(input: {
     const userContent: ChatMessage["content"] = [
       {
         type: "text",
-        text: `Joy picked: ${input.joyTitle}\nA screen print matches only when it clearly shows that joy. For A small hello, that means a greeting, text thread, hello bubble, wave, or laugh with someone. A settings screen, generic app chrome, article, spreadsheet, or home screen is MISMATCH.\nReply with one line only: MATCH, or MISMATCH | what you see, then feels more like ... to me.\nPhoto:`,
+        text: `Joy picked: ${input.joyTitle}\nA screen print matches only when it clearly shows that joy. For A hello, that means a greeting, text thread, hello bubble, wave, or laugh with someone. A settings screen, generic app chrome, article, spreadsheet, or home screen is MISMATCH.\nReply with one line only: MATCH, or MISMATCH | what you see, then feels more like ... to me.\nPhoto:`,
       },
       { type: "image_url", image_url: { url: input.imageDataUrl } },
     ];

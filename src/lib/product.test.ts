@@ -548,15 +548,16 @@ describe("landing", () => {
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
     expect(copy).toContain('joyLegend: "(pick one)"');
-    expect(copy).toContain('joyQuestion: "What kind of quiet joy was it?"');
-    expect(copy).toContain('joyPickHint: "(pick one)"');
+    expect(copy).toContain('joyQuestion: "What kind of quiet joy is it?"');
+    expect(copy).toContain('joyPickHint: "(pick one for a new good moment)"');
+    expect(copy).toContain('alreadyPicked: "Already picked one? See saved good moment →"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
     expect(copy).toContain("One moment. One story.");
     expect(copy).toContain("Something good is about to happen!");
     expect(copy).toContain("Gooddaynight.com");
     for (const title of [
       "Morning sunlight",
-      "A small hello",
+      "A hello",
       "One thing, done slowly",
       "A little movement",
       "One corner, clear",
@@ -678,6 +679,11 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/LANDING\.app\.joyQuestion/);
     expect(joy).toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).toMatch(/<em>/);
+    expect(joy).toMatch(/LANDING\.app\.alreadyPicked/);
+    expect(joy).toMatch(/already-picked/);
+    expect(joy).toMatch(/href="\/app\/yours"/);
+    expect(joy).toMatch(/LANDING\.app\.alreadyPickedEmpty/);
+    expect(joy).toMatch(/hasSavedGoodMoment/);
     expect(picker).toMatch(/accordionJoys/);
     expect(src).not.toMatch(/What kind of quiet joy was it\?/);
     expect(src).not.toMatch(/href="#yours"/);
@@ -691,8 +697,10 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/disabled=\{locked\}/);
     expect(src).not.toMatch(/if \(locked\)/);
     expect(src).not.toMatch(/setCaptureError\(LANDING\.app\.locked\)/);
-    expect(yours).toMatch(/StoryPlayback/);
-    expect(yours).toMatch(/app-story-playback/);
+    expect(yours).toMatch(/keep-card-view/);
+    expect(yours).toMatch(/composeKeepCardJpeg/);
+    expect(yours).not.toMatch(/StoryPlayback/);
+    expect(yours).not.toMatch(/app-story-playback/);
     expect(yours).toMatch(/card--lavender/);
     expect(yours).toMatch(/POST/);
     expect(yours).toMatch(/\/api\/yours/);
