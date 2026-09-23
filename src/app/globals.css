@@ -1512,3 +1512,207 @@ a {
     white-space: normal;
   }
 }
+
+.moments-page {
+  width: min(100%, 40rem);
+}
+
+.moments-entry {
+  color: var(--navy);
+  font-size: 0.95rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-underline-offset: 0.16em;
+}
+
+.moments-block {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 0.7rem;
+  padding: 1.75rem 1.35rem 1.9rem;
+  border-radius: 1.35rem;
+  min-height: 10.5rem;
+}
+
+.moments-block h1,
+.moments-block h2,
+.moments-kicker,
+.moments-note,
+.moments-aside,
+.moments-cta {
+  position: relative;
+  z-index: 1;
+}
+
+.moments-block h1,
+.moments-block h2 {
+  margin: 0;
+  max-width: 16ch;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.08;
+}
+
+.moments-block h1 {
+  font-size: clamp(1.9rem, 8.2vw, 2.65rem);
+}
+
+.moments-block h2 {
+  font-size: clamp(1.65rem, 7vw, 2.25rem);
+}
+
+.moments-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.moments-follow {
+  display: block;
+  margin-top: 0.75rem;
+}
+
+.moments-note {
+  max-width: 28rem;
+  margin: 0.95rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.moments-aside {
+  margin: 0.8rem 0 0;
+  font-size: 1.02rem;
+}
+
+.moments-aside em {
+  font-style: italic;
+  font-weight: 650;
+}
+
+.moments-glyph {
+  position: absolute;
+  right: -0.15rem;
+  bottom: -0.85rem;
+  z-index: 0;
+  font-size: clamp(5.5rem, 28vw, 8.5rem);
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  line-height: 0.8;
+  color: rgba(22, 50, 74, 0.08);
+  pointer-events: none;
+  user-select: none;
+}
+
+.moments-glyph--price {
+  font-size: clamp(6.5rem, 34vw, 10rem);
+  color: rgba(212, 255, 0, 0.16);
+}
+
+.moments-mark {
+  position: absolute;
+  top: 1.15rem;
+  right: 1.15rem;
+  z-index: 1;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 0.55rem;
+  background: var(--lime-badge);
+}
+
+.moments-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0.48rem;
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+.moments-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 22rem;
+  min-height: 3.3rem;
+  margin-top: 1.15rem;
+  padding: 0.8rem 1.1rem;
+  border-radius: 0.75rem;
+  background: var(--lime);
+  color: var(--navy);
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.moments-cta:hover {
+  background: #e4ff4a;
+}
+
+.moments-block--night {
+  min-height: 14rem;
+  color: #f4f7fb;
+  background: linear-gradient(165deg, #1c4660 0%, #0d2433 62%, #081820 100%);
+}
+
+.moments-block--night .moments-glyph {
+  color: rgba(244, 247, 251, 0.08);
+}
+
+.moments-block--photo {
+  min-height: 13rem;
+  color: var(--navy);
+  background: linear-gradient(160deg, #d7f3e4 0%, #e7f8c4 46%, #eaff6a 100%);
+}
+
+.moments-block--lavender {
+  color: var(--navy);
+  background: linear-gradient(180deg, #ebe7fb 0%, #f4eef8 100%);
+}
+
+.moments-block--peach {
+  color: var(--navy);
+  background: linear-gradient(165deg, #f8ead6 0%, #f6d5e3 100%);
+}
+
+.moments-block--blue {
+  color: var(--navy);
+  background: linear-gradient(180deg, #e7f3fb 0%, #d5e8f8 100%);
+}
+
+.moments-block--rose {
+  color: var(--navy);
+  background: linear-gradient(165deg, #f7e4ee 0%, #f3d6e4 100%);
+}
+
+.moments-block--yes {
+  min-height: 13.5rem;
+  color: var(--navy);
+  background: linear-gradient(160deg, #eaff6a 0%, #d4ff00 55%, #c8ff80 100%);
+}
+
+.moments-block--price {
+  min-height: 16rem;
+  color: #f4f7fb;
+  background: linear-gradient(165deg, #16324a 0%, #0c2233 100%);
+}
+
+.moments-block--price .moments-note {
+  color: rgba(244, 247, 251, 0.88);
+}
+
+.moments-block--price .moments-aside {
+  color: rgba(244, 247, 251, 0.82);
+}
+
+.moments-block--close {
+  min-height: 8.5rem;
+  color: var(--navy);
+  background: linear-gradient(160deg, #eaff6a 0%, var(--lime) 58%, #c8ff80 100%);
+}
+
+.moments-block--close h2 {
+  max-width: 14ch;
+}

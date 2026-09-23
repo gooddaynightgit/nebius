@@ -545,6 +545,9 @@ export default function CaptureStudio() {
         <Link className="badge" href="/">
           {LANDING.app.brand}
         </Link>
+        <Link className="moments-entry" href="/moments">
+          Start hunting
+        </Link>
       </header>
 
       <main id="main">
