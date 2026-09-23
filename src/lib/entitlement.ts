@@ -80,7 +80,7 @@ export async function creditMoments(input: {
   return { remaining: next.remaining, duplicate: already };
 }
 
-/** Spend one good moment. Same-day replaces do not call this. */
+/** Spend one moment save (a new day's photo → My good moment). Replay, Share, joy picks, and same-day replaces do not call this. */
 export async function consumeMoment(email: string): Promise<number | null> {
   const current = await getEntitlement(email);
   if (!current || current.remaining < 1) return null;

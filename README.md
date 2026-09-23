@@ -163,9 +163,9 @@ The signature rules match the Longevity Greenlight / whycantisleep checkout and 
 - Any failure before the entitlement write returns **500** so Payfast retries. **200** is returned only after the write. The same `pf_payment_id` does not credit a second pack.
 - `SANDBOX` defaults to true (`sandbox.payfast.co.za`). Set `SANDBOX=false` to use live Payfast (`www.payfast.co.za`) with the live merchant id, key, and passphrase. Do not mix sandbox and live secrets.
 
-`APP_URL` is the public origin for `return_url` (`/moments?paid=1&ref=…`), `cancel_url` (`/moments?cancelled=1`), and `notify_url` (`{APP_URL}/api/payfast/itn`). If `APP_URL` is unset, `VERCEL_URL` is used. Payfast has to reach the notify URL from the internet.
+`APP_URL` is the public origin for `return_url` (`/app?paid=1&ref=…`), `cancel_url` (`/moments?cancelled=1`), and `notify_url` (`{APP_URL}/api/payfast/itn`). If `APP_URL` is unset, `VERCEL_URL` is used. Payfast has to reach the notify URL from the internet.
 
-A confirmed ITN credits 40 moments on the buyer email vault id (`em_` plus the email hash) in the same Blob, S3, or `DATA_DIR` store as the vault. On `/app`, **Already bought?** checks that balance and opens Take / Upload while moments remain. Each new day’s app photo spends one. Saving again the same day does not. An underpaid ITN (`amount_gross` below `450.00`) credits 0 and is not stored.
+A confirmed ITN credits 40 moment saves on the buyer email vault id (`em_` plus the email hash) in the same Blob, S3, or `DATA_DIR` store as the vault. A moment save is one new day’s photo that can become My good moment. On `/app`, **Already bought?** checks that balance and opens Take / Upload while the pack is active. Replay, Share, joy picks, and saving again the same day do not spend a moment. An underpaid ITN (`amount_gross` below `450.00`) credits 0 and is not stored.
 
 ### Sandbox test
 
@@ -173,7 +173,7 @@ A confirmed ITN credits 40 moments on the buyer email vault id (`em_` plus the e
 2. Set `PF_MERCHANT_ID`, `PF_MERCHANT_KEY`, and `PF_PASSPHRASE` in the host env. Leave `SANDBOX` unset or `true`.
 3. Set `APP_URL` to a public https origin Payfast can call (a Vercel URL is enough).
 4. Open `/moments`, enter an email, and pay **450.00 ZAR** with a Payfast sandbox card. `GET /api/payfast/checkout` should show `"sandbox": true`, `"amount": "450.00"`, `"moments": 40`, and no secrets.
-5. The browser returns to `/moments?paid=1`. After the ITN, open `/app`, choose **Already bought?**, and enter the same email. Take / Upload should enable.
+5. The browser returns to `/app?paid=1`. After the ITN, choose **Already bought?** and enter the same email. Take / Upload should enable. Cancel returns to `/moments?cancelled=1`.
 6. For live charges, set `SANDBOX=false` and replace the three `PF_*` values with the live merchant credentials.
 
 ## License

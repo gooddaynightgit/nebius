@@ -247,7 +247,7 @@ export function buildCheckoutFields(email: string, mPaymentId: string): Checkout
   return {
     merchant_id: merchant.merchantId,
     merchant_key: merchant.merchantKey,
-    return_url: `${origin}/moments?paid=1&ref=${ref}`,
+    return_url: `${origin}/app?paid=1&ref=${ref}`,
     cancel_url: `${origin}/moments?cancelled=1`,
     notify_url: `${origin}/api/payfast/itn`,
     email_address: normalized,

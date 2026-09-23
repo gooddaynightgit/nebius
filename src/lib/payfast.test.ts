@@ -146,8 +146,9 @@ describe("payfast checkout and ITN", () => {
     expect(result.html).toContain('name="email_address" value="amy@example.com"');
     expect(result.html).toContain(`name="custom_str1" value="${emailVaultId("amy@example.com")}"`);
     expect(result.html).toContain("https://gooddaynight.com/api/payfast/itn");
+    expect(result.html).toContain("https://gooddaynight.com/app?paid=1&amp;ref=");
     expect(result.html).toContain("https://gooddaynight.com/moments?cancelled=1");
-    expect(result.html).toContain("moments?paid=1&amp;ref=");
+    expect(result.html).not.toContain("/moments?paid=1");
     expect(result.html).toContain('document.getElementById("payfast-checkout").submit()');
     expect(result.html).not.toContain("test-passphrase");
     expect(result.html).not.toContain('name="passphrase"');
@@ -250,8 +251,16 @@ describe("payfast checkout and ITN", () => {
     expect(route).not.toMatch(/Access-Control-Allow-Origin/);
     expect(route).toMatch(/handlePayfastItn/);
     const captures = readFileSync(path.resolve("src/app/api/captures/route.ts"), "utf8");
+    const yours = readFileSync(path.resolve("src/app/api/yours/route.ts"), "utf8");
+    const story = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
+    const keep = readFileSync(path.resolve("src/lib/keep-card.ts"), "utf8");
+    const joy = readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8");
     expect(captures).toMatch(/getEntitlement/);
-    expect(captures).toMatch(/consumeMoment/);
+    expect(captures).toMatch(/if \(!replacing\) await consumeMoment/);
+    expect(yours).not.toMatch(/consumeMoment/);
+    expect(story).not.toMatch(/consumeMoment/);
+    expect(keep).not.toMatch(/consumeMoment/);
+    expect(joy).not.toMatch(/consumeMoment/);
     expect(captures).not.toMatch(/Today's photo is locked/);
   });
 });
