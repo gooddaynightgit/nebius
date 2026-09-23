@@ -42,13 +42,17 @@ export const FIELD_ORDER = [
   "payment_method",
 ] as const;
 
-export const PACK_AMOUNT = "450.00";
+/**
+ * Payfast charge for Jasmine’s live R5 test. The `/moments` price block stays
+ * “40 good moments — R450 ZAR · $28 USD”. Do not print this amount there.
+ */
+export const PACK_AMOUNT = "5.00";
 export const PACK_MOMENTS = 40;
 export const ITEM_NAME = "GoodDayNight — 40 good moments";
 export const ITEM_DESCRIPTION =
   "Each moment: one photo upload → one My good moment story.";
 
-const PACK_CENTS = 45000;
+const PACK_CENTS = 500;
 
 export type PayfastMerchant = {
   merchantId: string;
@@ -58,11 +62,14 @@ export type PayfastMerchant = {
 
 export type CheckoutFieldMap = Record<string, string>;
 
-/** Sandbox unless SANDBOX is explicitly turned off. Shared by checkout and ITN. */
+/**
+ * Live Payfast (`www.payfast.co.za`) unless SANDBOX is explicitly on.
+ * Preview for this R5 test uses the live PF_* keys with SANDBOX unset or false.
+ */
 export function payfastSandbox(): boolean {
   const raw = process.env.SANDBOX;
-  if (raw == null || raw.trim() === "") return true;
-  return !["0", "false", "no", "off"].includes(raw.trim().toLowerCase());
+  if (raw == null || raw.trim() === "") return false;
+  return ["1", "true", "yes", "on"].includes(raw.trim().toLowerCase());
 }
 
 export function payfastHost(): string {
@@ -190,7 +197,7 @@ export function signaturesMatch(given: string, expected: string): boolean {
   return timingSafeEqual(left, right);
 }
 
-/** 450.00 ZAR (and any greater confirmed gross) credits 40 moments. Underpay credits 0. */
+/** At least 5.00 ZAR credits 40 moment saves. Below 5.00 credits 0. */
 export function momentsForAmount(amount: string | number): number {
   const cents = zarToCents(amount);
   if (cents == null || cents < PACK_CENTS) return 0;
@@ -281,6 +288,9 @@ export function createCheckout(email: string): CheckoutResult {
     ...orderedCheckoutFields(fields),
     signature: signCheckout(fields, merchant.passphrase),
   };
+  console.info(
+    `[payfast] test charge amount=${PACK_AMOUNT} ZAR credits=${PACK_MOMENTS} display remains R450`,
+  );
   return {
     ok: true,
     status: 200,

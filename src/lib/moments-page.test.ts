@@ -18,6 +18,8 @@ describe("moments pack page", () => {
     expect(page).toContain("Share only if you want a card to keep. The habit of seeing stays.");
     expect(page).toContain("40 good moments —");
     expect(page).toContain("R450 ZAR · $28 USD");
+    expect(page).not.toContain("5.00");
+    expect(page).not.toMatch(/R5(?!0)/);
     expect(page).toContain("Each moment: one photo upload → one My good moment story.");
     expect(page).not.toMatch(/Upload uses a moment/);
     expect(page).not.toMatch(/Replay and Share/);

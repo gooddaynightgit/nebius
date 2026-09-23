@@ -91,18 +91,18 @@ describe("payfast signature", () => {
 });
 
 describe("amount to moments", () => {
-  it("credits 40 moments at 450.00 ZAR and 0 when the gross is short", () => {
-    expect(PACK_AMOUNT).toBe("450.00");
+  it("credits 40 moments at 5.00 ZAR and 0 when the gross is under 5.00", () => {
+    expect(PACK_AMOUNT).toBe("5.00");
     expect(PACK_MOMENTS).toBe(40);
-    expect(momentsForAmount("450.00")).toBe(40);
-    expect(momentsForAmount("450")).toBe(40);
-    expect(momentsForAmount("450.01")).toBe(40);
-    expect(momentsForAmount(450)).toBe(40);
-    expect(momentsForAmount("449.99")).toBe(0);
-    expect(momentsForAmount(449.99)).toBe(0);
+    expect(momentsForAmount("5.00")).toBe(40);
+    expect(momentsForAmount("5")).toBe(40);
+    expect(momentsForAmount("5.01")).toBe(40);
+    expect(momentsForAmount(5)).toBe(40);
+    expect(momentsForAmount("4.99")).toBe(0);
+    expect(momentsForAmount(4.99)).toBe(0);
     expect(momentsForAmount("0")).toBe(0);
     expect(momentsForAmount("")).toBe(0);
-    expect(momentsForAmount("450.000")).toBe(0);
+    expect(momentsForAmount("5.000")).toBe(0);
     expect(momentsForAmount("nope")).toBe(0);
   });
 });
@@ -131,16 +131,16 @@ describe("payfast checkout and ITN", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("defaults to sandbox and returns an auto-submitting checkout for 450.00 ZAR", () => {
-    expect(payfastSandbox()).toBe(true);
-    expect(payfastProcessUrl()).toBe("https://sandbox.payfast.co.za/eng/process");
+  it("defaults to live Payfast and returns an auto-submitting checkout for 5.00 ZAR", () => {
+    expect(payfastSandbox()).toBe(false);
+    expect(payfastProcessUrl()).toBe("https://www.payfast.co.za/eng/process");
     const result = createCheckout("Amy@Example.com");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.status).toBe(200);
-    expect(result.html).toContain('action="https://sandbox.payfast.co.za/eng/process"');
+    expect(result.html).toContain('action="https://www.payfast.co.za/eng/process"');
     expect(result.html).toContain('method="post"');
-    expect(result.html).toContain('name="amount" value="450.00"');
+    expect(result.html).toContain('name="amount" value="5.00"');
     expect(result.html).toContain(`name="item_name" value="${ITEM_NAME}"`);
     expect(result.html).toContain(`name="item_description" value="${ITEM_DESCRIPTION}"`);
     expect(result.html).toContain('name="email_address" value="amy@example.com"');
@@ -159,15 +159,16 @@ describe("payfast checkout and ITN", () => {
     expect(signature).toBe(signCheckout(fields, "test-passphrase"));
   });
 
-  it("uses the live host only when SANDBOX is turned off", () => {
-    process.env.SANDBOX = "false";
-    expect(payfastSandbox()).toBe(false);
-    expect(payfastProcessUrl()).toBe("https://www.payfast.co.za/eng/process");
-    expect(payfastValidateUrl()).toBe("https://www.payfast.co.za/eng/query/validate");
+  it("uses the sandbox host only when SANDBOX is turned on", () => {
+    process.env.SANDBOX = "true";
+    expect(payfastSandbox()).toBe(true);
+    expect(payfastProcessUrl()).toBe("https://sandbox.payfast.co.za/eng/process");
+    expect(payfastValidateUrl()).toBe("https://sandbox.payfast.co.za/eng/query/validate");
     const result = createCheckout("amy@example.com");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.html).toContain('action="https://www.payfast.co.za/eng/process"');
+    expect(result.html).toContain('action="https://sandbox.payfast.co.za/eng/process"');
+    expect(result.html).toContain('name="amount" value="5.00"');
   });
 
   it("refuses checkout without merchant secrets", () => {
@@ -181,7 +182,7 @@ describe("payfast checkout and ITN", () => {
     let calls = 0;
     const fetchImpl: typeof fetch = async (input, init) => {
       calls += 1;
-      expect(String(input)).toBe("https://sandbox.payfast.co.za/eng/query/validate");
+      expect(String(input)).toBe("https://www.payfast.co.za/eng/query/validate");
       expect(init?.method).toBe("POST");
       expect(init?.body).toBe(raw);
       return new Response("VALID", { status: 200 });
@@ -197,8 +198,8 @@ describe("payfast checkout and ITN", () => {
     expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089250"]);
   });
 
-  it("fails closed before fulfilment when the gross is under 450.00", async () => {
-    const raw = signedItn({ amount_gross: "449.99" });
+  it("fails closed before fulfilment when the gross is under 5.00", async () => {
+    const raw = signedItn({ amount_gross: "4.99" });
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;
@@ -213,7 +214,7 @@ describe("payfast checkout and ITN", () => {
 
   it("fails closed when the signature or Payfast validate check does not pass", async () => {
     const raw = signedItn();
-    const tampered = raw.replace("amount_gross=450.00", "amount_gross=450.01");
+    const tampered = raw.replace(`amount_gross=${PACK_AMOUNT}`, "amount_gross=5.01");
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;
