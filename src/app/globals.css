@@ -26,6 +26,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom));
   font-family: var(--sans);
   font-size: 1.0625rem;
   line-height: 1.5;
@@ -926,6 +927,85 @@ a {
   color: var(--navy);
 }
 
+.feedback-ribbon {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  height: calc(2.75rem + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
+  background: linear-gradient(90deg, #061820 0%, #0b3c4a 42%, #08222f 100%);
+  color: #f4f7fb;
+  border-top: 1px solid rgba(212, 255, 0, 0.45);
+  font-size: clamp(0.82rem, 2.7vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.feedback-ribbon::before,
+.feedback-ribbon::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.75rem;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.feedback-ribbon::before {
+  left: 0;
+  background: linear-gradient(90deg, #061820, transparent);
+}
+
+.feedback-ribbon::after {
+  right: 0;
+  background: linear-gradient(270deg, #08222f, transparent);
+}
+
+.feedback-ribbon__track {
+  display: flex;
+  width: max-content;
+  animation: feedback-marquee 46s linear infinite;
+}
+
+.feedback-ribbon:hover .feedback-ribbon__track,
+.feedback-ribbon:focus-within .feedback-ribbon__track {
+  animation-play-state: paused;
+}
+
+.feedback-ribbon__group {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-width: 100vw;
+  gap: 4rem;
+  padding-right: 4rem;
+}
+
+.feedback-ribbon__item {
+  white-space: nowrap;
+}
+
+.feedback-ribbon__label {
+  color: var(--lime);
+  font-weight: 800;
+}
+
+@keyframes feedback-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .mode-row {
   position: relative;
   z-index: 1;
@@ -1339,11 +1419,52 @@ a {
     scroll-behavior: auto;
   }
 
+  body {
+    padding-bottom: 0;
+  }
+
   .btn,
   .record__btn,
   .accordion > summary::after,
-  .dropzone {
+  .dropzone,
+  .feedback-ribbon__track {
     transition: none;
     animation: none;
+  }
+
+  .feedback-ribbon {
+    position: static;
+    height: auto;
+    padding: 0.7rem 0 0.85rem;
+  }
+
+  .feedback-ribbon::before,
+  .feedback-ribbon::after {
+    display: none;
+  }
+
+  .feedback-ribbon__track {
+    width: min(100%, 42rem);
+    margin: 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    transform: none;
+  }
+
+  .feedback-ribbon__group[aria-hidden="true"] {
+    display: none;
+  }
+
+  .feedback-ribbon__group {
+    min-width: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+    padding: 0 1rem;
+  }
+
+  .feedback-ribbon__item {
+    white-space: normal;
   }
 }
