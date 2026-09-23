@@ -732,6 +732,16 @@ a {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.btn--icon {
+  gap: 0.5rem;
+}
+
+.btn__icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+}
+
 .btn--keep {
   background: var(--docs-lavender);
   border-color: rgba(22, 50, 74, 0.18);

@@ -125,9 +125,9 @@ nebius ai job create \
 
 1. **0:00** Landing. Point at the mint and lavender cards and the **Gooddaynight does →** arrow into `/app/joy`. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender Story playback. There is no signup field. Click through.
 2. **0:20** Landing arrow opens the joy accordion. Pick one quiet joy — the accordion stays open, and the photo arrow opens `/app`. Heading is **Today. One good moment. Go get it.** Upload one photo (screenshots count; a video can yield one still). Caption **What’s the good in this one?** (≤80) opens after the joy witness. **Save today's moment** — then **YOURS** appears. Tap it to open `/app/yours`.
-3. **0:50** Pale lavender Story playback reads the **woven** story (not the canned joy template). Replay last night.
+3. **0:50** Pale lavender Story playback reads the **woven** story (not the canned joy template). **Play this good moment** reads it aloud.
 4. **1:20** Header shows Token Factory vs demo mode. Mention: vision excavates the photo (MiniCPM-V or your `NEBIUS_VISION_MODEL`), Kimi writes the Nightly Reflection from the still, vault is private, Sonic is stubbed until Token Factory lists it.
-5. **1:50** After YOURS, **Keep** saves the photo with the story. Save again the same day to replace that one moment and open YOURS once more. After midnight the link expires.
+5. **1:50** After YOURS, **Share** opens the system share sheet for the photo-and-story card (or downloads it when share is unavailable). Save again the same day to replace that one moment and open YOURS once more. After midnight the link expires.
 
 ## API sketch
 

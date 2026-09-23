@@ -647,8 +647,13 @@ describe("app capture client contract", () => {
     expect(yours).not.toMatch(/closerHint/);
     expect(yours).not.toMatch(/Kimi didn’t finish/);
     expect(yours).toMatch(/keepCardPhotoSrc|composeKeepCardJpeg/);
+    expect(yours).toMatch(/LANDING\.app\.playMoment/);
+    expect(yours).toMatch(/PlayIcon/);
+    expect(yours).not.toMatch(/Replay last night/);
     expect(yours).toMatch(/LANDING\.app\.keep/);
     expect(yours).toMatch(/keepLabel/);
+    expect(yours).toMatch(/ShareIcon/);
+    expect(yours).toMatch(/shareOrDownloadKeepCard/);
     expect(yours).toMatch(/btn--keep/);
     const session = readFileSync(path.resolve("src/lib/session.ts"), "utf8");
     expect(session).toMatch(/canReplacePhoto: Boolean\(todayPhoto\)/);

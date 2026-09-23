@@ -32,8 +32,11 @@ describe("landing copy", () => {
     expect(LANDING.app.blocked).toBe(
       "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.",
     );
-    expect(LANDING.app.keep).toBe("Keep");
-    expect(LANDING.app.keepLabel).toMatch(/photo/i);
+    expect(LANDING.app.playMoment).toBe("Play this good moment");
+    expect(LANDING.app.pause).toBe("Pause");
+    expect(LANDING.app.keep).toBe("Share");
+    expect(LANDING.app.keepLabel).toBe("Share tonight’s story with the photo");
+    expect(LANDING.app.keepBusy).toBe("Sharing…");
     expect(LANDING.app.replace).toBe("Replace today’s photo");
     expect(LANDING.app.reach).toBe(
       "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",

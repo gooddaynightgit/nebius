@@ -21,6 +21,34 @@ import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
 
+function PlayIcon() {
+  return (
+    <svg className="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+      <polygon points="8 5 19 12 8 19" fill="currentColor" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg className="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
+      <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg className="btn__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="18" cy="5" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="6" cy="12" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="18" cy="19" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.4 10.8 15.6 6.6M8.4 13.2 15.6 17.4" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
 type YoursState =
   | { status: "loading" }
   | { status: "keeping" }
@@ -289,8 +317,9 @@ export default function YoursStory() {
             </StoryPlayback>
             <div className="actions" style={{ marginTop: "1rem" }}>
               <button
-                className="btn"
+                className="btn btn--icon"
                 type="button"
+                aria-label={playing ? LANDING.app.pause : LANDING.app.playMoment}
                 onClick={() => {
                   if (playing) {
                     window.speechSynthesis?.cancel();
@@ -302,10 +331,11 @@ export default function YoursStory() {
                 }}
                 style={{ color: "var(--navy)", borderColor: "rgba(22,50,74,0.25)" }}
               >
-                {playing ? "Pause" : "Replay last night"}
+                {playing ? <PauseIcon /> : <PlayIcon />}
+                {playing ? LANDING.app.pause : LANDING.app.playMoment}
               </button>
               <button
-                className="btn btn--keep"
+                className="btn btn--keep btn--icon"
                 type="button"
                 aria-label={LANDING.app.keepLabel}
                 aria-busy={keepBusy}
@@ -314,6 +344,7 @@ export default function YoursStory() {
                   void keepTonight();
                 }}
               >
+                <ShareIcon />
                 {keepBusy ? LANDING.app.keepBusy : LANDING.app.keep}
               </button>
               {keepNote ? (
