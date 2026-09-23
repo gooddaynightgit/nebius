@@ -29,6 +29,16 @@ type YoursMissingBody = {
 };
 
 let memoryStash: CaptureStash | null = null;
+let memoryPending: PendingPhoto | null = null;
+
+export const CAPTURE_PENDING_RECORD_KEY = "pending";
+
+export type PendingPhoto = {
+  day: string;
+  fileName: string;
+  mimeType: string;
+  photo: Blob;
+};
 
 export function stashDayKey(day: string): string {
   return `capture:${day}`;
@@ -150,8 +160,41 @@ export async function clearCaptureStashIfOpened(day: string, yoursOpened: boolea
   await clearCaptureStash();
 }
 
+export async function writePendingPhoto(day: string, photo: File): Promise<PendingPhoto> {
+  const mimeType = photo.type || "image/jpeg";
+  const fileName = photo.name || "moment.jpg";
+  const bytes = await photo.arrayBuffer();
+  const record: PendingPhoto = {
+    day,
+    fileName,
+    mimeType,
+    photo: new Blob([bytes], { type: mimeType }),
+  };
+  memoryPending = record;
+  await writePersistedRecord(CAPTURE_PENDING_RECORD_KEY, record);
+  return record;
+}
+
+export async function readPendingPhoto(day: string): Promise<File | null> {
+  const cached = memoryPending?.day === day ? memoryPending : null;
+  const record = cached ?? (await readPersistedPending());
+  if (!record || record.day !== day || !(record.photo instanceof Blob) || record.photo.size === 0) {
+    return null;
+  }
+  memoryPending = record;
+  return new File([record.photo], record.fileName || "moment.jpg", {
+    type: record.mimeType || record.photo.type || "image/jpeg",
+  });
+}
+
+export async function clearPendingPhoto(): Promise<void> {
+  memoryPending = null;
+  await deletePersistedRecord(CAPTURE_PENDING_RECORD_KEY);
+}
+
 export function resetCaptureStashForTests(): void {
   memoryStash = null;
+  memoryPending = null;
 }
 
 function idbAvailable(): boolean {
@@ -218,14 +261,56 @@ async function writePersistedStash(record: CaptureStash): Promise<void> {
 }
 
 async function clearPersistedStash(): Promise<void> {
+  await deletePersistedRecord(CAPTURE_STASH_RECORD_KEY);
+}
+
+async function readPersistedPending(): Promise<PendingPhoto | null> {
+  const record = await readPersistedRecord(CAPTURE_PENDING_RECORD_KEY);
+  return isPendingPhoto(record) ? record : null;
+}
+
+async function readPersistedRecord(key: string): Promise<unknown> {
+  if (!idbAvailable()) return null;
+  try {
+    const db = await openStashDb();
+    try {
+      return await idbReq(
+        db.transaction(CAPTURE_STASH_STORE, "readonly").objectStore(CAPTURE_STASH_STORE).get(key),
+      );
+    } finally {
+      db.close();
+    }
+  } catch {
+    return null;
+  }
+}
+
+async function writePersistedRecord(key: string, record: unknown): Promise<void> {
   if (!idbAvailable()) return;
   try {
     const db = await openStashDb();
     try {
       await idbReq(
-        db.transaction(CAPTURE_STASH_STORE, "readwrite").objectStore(CAPTURE_STASH_STORE).delete(
-          CAPTURE_STASH_RECORD_KEY,
+        db.transaction(CAPTURE_STASH_STORE, "readwrite").objectStore(CAPTURE_STASH_STORE).put(
+          record,
+          key,
         ),
+      );
+    } finally {
+      db.close();
+    }
+  } catch {
+    // Memory still covers same-tab navigation when IndexedDB is unavailable.
+  }
+}
+
+async function deletePersistedRecord(key: string): Promise<void> {
+  if (!idbAvailable()) return;
+  try {
+    const db = await openStashDb();
+    try {
+      await idbReq(
+        db.transaction(CAPTURE_STASH_STORE, "readwrite").objectStore(CAPTURE_STASH_STORE).delete(key),
       );
     } finally {
       db.close();
@@ -233,6 +318,16 @@ async function clearPersistedStash(): Promise<void> {
   } catch {
     // Ignore persistence failures; memory is already cleared.
   }
+}
+
+function isPendingPhoto(value: unknown): value is PendingPhoto {
+  if (!value || typeof value !== "object") return false;
+  const record = value as PendingPhoto;
+  return (
+    typeof record.day === "string" &&
+    typeof record.fileName === "string" &&
+    record.photo instanceof Blob
+  );
 }
 
 function isCaptureStash(value: unknown): value is CaptureStash {

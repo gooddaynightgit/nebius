@@ -22,7 +22,7 @@ export default function HomePage() {
           <p className="card__body">
             Your laugh. Your small win. Your quiet moment. Nobody turned them
             into anything — not even you. Gooddaynight does{" "}
-            <Link href="/app" aria-label="Open the capture page">
+            <Link href="/app/joy" aria-label="Open the joy page">
               →
             </Link>
           </p>
@@ -34,7 +34,7 @@ export default function HomePage() {
           <h2 id="cta-heading" className="visually-hidden">
             Hear your story
           </h2>
-          <Link className="btn btn--lime" href="/app">
+          <Link className="btn btn--lime" href="/app/joy">
             Hear your story — free
           </Link>
           <p className="cta-copy">
@@ -46,6 +46,13 @@ export default function HomePage() {
             day, one moment becomes many.
           </p>
         </section>
+
+        <nav className="step-nav" aria-label="Steps">
+          <span className="step-arrow step-arrow--spacer" aria-hidden="true"></span>
+          <Link className="step-arrow" href="/app/joy" aria-label="Next step">
+            →
+          </Link>
+        </nav>
 
         <section className="card card--lime" aria-labelledby="closing-heading">
           <h2 id="closing-heading">Something good is about to happen!</h2>

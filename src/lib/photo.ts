@@ -143,6 +143,7 @@ export function inspectPhotoDate(input: {
 }
 
 export const PHOTO_DATE_MESSAGES = {
+  today: "Wonderful, your photo was taken today.",
   old: "This photo looks older than today. Tonight only holds today's moment.",
   unverified:
     "We couldn't confirm a camera date. Only today's moment counts — we'll save it as today.",

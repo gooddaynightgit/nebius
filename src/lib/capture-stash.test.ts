@@ -4,10 +4,13 @@ import {
   buildAppCaptureForm,
   clearCaptureStash,
   clearCaptureStashIfOpened,
+  clearPendingPhoto,
   isStashForDay,
   isYoursMissingPayload,
   readCaptureStash,
+  readPendingPhoto,
   resetCaptureStashForTests,
+  writePendingPhoto,
   shouldClearCaptureStash,
   stashDayKey,
   updateCaptureStashPhoto,
@@ -117,5 +120,17 @@ describe("capture stash helpers", () => {
     await clearCaptureStash();
     expect(await readCaptureStash("2026-09-21")).toBeNull();
     expect(await updateCaptureStashPhoto("2026-09-21", jpegFile("nope.jpg"))).toBeNull();
+  });
+
+  it("keeps a photo waiting for the joy page without counting as a saved joy", async () => {
+    const photo = jpegFile("porch.jpg");
+    await writePendingPhoto("2026-09-21", photo);
+    const pending = await readPendingPhoto("2026-09-21");
+    expect(pending?.name).toBe("porch.jpg");
+    expect(pending?.type).toBe("image/jpeg");
+    expect(await readCaptureStash("2026-09-21")).toBeNull();
+    expect(await readPendingPhoto("2026-09-22")).toBeNull();
+    await clearPendingPhoto();
+    expect(await readPendingPhoto("2026-09-21")).toBeNull();
   });
 });

@@ -2,15 +2,12 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import JoyPicker from "@/components/JoyPicker";
+import { captionDisposition } from "@/lib/app-capture";
+import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
+import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
-import {
-  LANDING,
-  PHOTO_MAX_BYTES,
-  WHISPER_MAX,
-  getJoyById,
-  type JoyType,
-} from "@/lib/landing";
+import { applyJoyMatchChoice, suggestJoyId } from "@/lib/joy-match";
+import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById, type JoyType } from "@/lib/landing";
 import {
   inspectPhotoDate,
   isImageMime,
@@ -27,14 +24,6 @@ import {
   normalizePhotoFile,
   preparePhotoForUpload,
 } from "@/lib/prepare-photo";
-import { captionDisposition } from "@/lib/app-capture";
-import { applyJoyMatchChoice, suggestJoyId } from "@/lib/joy-match";
-import {
-  JOY_NEED,
-  explainClientFetchError,
-  isReachabilityError,
-  readJson,
-} from "@/lib/client-fetch";
 import {
   openRearCamera,
   prefersLiveCamera,
@@ -43,10 +32,13 @@ import {
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import {
   clearCaptureStashIfOpened,
+  clearPendingPhoto,
   readCaptureStash,
+  readPendingPhoto,
   stashPhotoFile,
   updateCaptureStashPhoto,
   writeCaptureStash,
+  writePendingPhoto,
 } from "@/lib/capture-stash";
 import type { SessionState } from "@/lib/types";
 
@@ -98,6 +90,11 @@ export default function CaptureStudio() {
   const takeInputRef = useRef<HTMLInputElement | null>(null);
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const photoUrlRef = useRef<string | null>(null);
+  const photoRef = useRef<File | null>(null);
+  const savedPhotoIdRef = useRef<string | null>(null);
+  const matchSeq = useRef(0);
+  const witnessNoted = useRef(false);
+  const witnessedKey = useRef("");
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -112,17 +109,14 @@ export default function CaptureStudio() {
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
   const [phoneStash, setPhoneStash] = useState(false);
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
+  const [pendingReady, setPendingReady] = useState(false);
   const [captionOpen, setCaptionOpen] = useState(false);
   const [mismatch, setMismatch] = useState<{ line: string; suggestedJoyId: string | null } | null>(
     null,
   );
-  const [photoNeedNote, setPhotoNeedNote] = useState<string | null>(null);
   const [witnessNote, setWitnessNote] = useState<string | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
   const [mismatchScroll, setMismatchScroll] = useState(0);
-  const matchSeq = useRef(0);
-  const photoRef = useRef<File | null>(null);
-  const witnessNoted = useRef(false);
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
@@ -134,12 +128,15 @@ export default function CaptureStudio() {
 
   const refresh = useCallback(async () => {
     try {
-      const [sessionRes, stash] = await Promise.all([
+      const [sessionRes, stash, pending] = await Promise.all([
         fetch(`/api/session?day=${day}`, { credentials: "same-origin" }),
         readCaptureStash(day),
+        readPendingPhoto(day),
       ]);
       const sessionData = await readJson<SessionState>(sessionRes);
       setSession(sessionData);
+      savedPhotoIdRef.current = sessionData.todayPhoto?.id ?? null;
+      setPendingReady(Boolean(pending));
       if (sessionData.yoursOpened) {
         await clearCaptureStashIfOpened(day, true);
         setPhoneStash(false);
@@ -150,17 +147,26 @@ export default function CaptureStudio() {
         const phoneOnly = hasStash && !sessionData.todayPhoto;
         setPhoneNote(phoneOnly ? LANDING.app.savedOnPhone : null);
       }
-      if (!hydrated && sessionData.todayPhoto) {
-        setSelectedJoyId(sessionData.todayPhoto.joyType ?? null);
-        setCaption(sessionData.todayPhoto.caption ?? "");
-        setCaptionOpen(true);
-        if (!sessionData.todayPhoto.dateVerified) {
-          setDateNote(PHOTO_DATE_MESSAGES.unverified);
+      if (!hydrated) {
+        const storedId = readChosenJoy(day);
+        const savedId = sessionData.todayPhoto?.joyType ?? (sessionData.yoursOpened ? null : stash?.joyType);
+        const chosen = getJoyById(storedId || savedId);
+        if (chosen) {
+          setSelectedJoyId(chosen.id);
+          if (!storedId) writeChosenJoy(day, chosen.id);
         }
-      } else if (!hydrated && stash) {
-        setSelectedJoyId(stash.joyType);
-        setCaption(stash.caption);
-        setCaptionOpen(true);
+        const pendingFile = pending && pending.size > 0 ? pending : null;
+        if (pendingFile) photoRef.current = pendingFile;
+        else if (sessionData.todayPhoto?.dateVerified) {
+          setDateNote(PHOTO_DATE_MESSAGES.today);
+        }
+        const joyChanged = Boolean(chosen && savedId && chosen.id !== savedId);
+        if (chosen && (pendingFile || joyChanged)) {
+          void runJoyMatch(chosen, pendingFile ?? undefined);
+        } else if (chosen && (sessionData.todayPhoto || stash)) {
+          setCaption(sessionData.todayPhoto?.caption ?? stash?.caption ?? "");
+          setCaptionOpen(true);
+        }
       }
       setHydrated(true);
       setCaptureError((current) => (isReachabilityError(current) ? null : current));
@@ -261,9 +267,11 @@ export default function CaptureStudio() {
     if (!file) return;
     setCaptureError(null);
     let next = file;
+    let keptVideoStill = false;
     if (isVideoMime(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
       try {
         next = await stillFromVideo(file);
+        keptVideoStill = true;
         setDateNote("Videos aren't saved. We kept one still frame.");
       } catch (error) {
         setCaptureError(
@@ -325,30 +333,38 @@ export default function CaptureStudio() {
       setCaptureError(LANDING.app.tooLargeKeep);
       return;
     }
-    if (!date.verified) {
-      setDateNote(date.reason === "none" ? PHOTO_DATE_MESSAGES.missing : PHOTO_DATE_MESSAGES.unverified);
-    } else if (!dateNote?.startsWith("Videos")) {
+    if (date.verified && date.takenDay === day) {
+      setDateNote(PHOTO_DATE_MESSAGES.today);
+    } else if (!keptVideoStill) {
       setDateNote(null);
     }
-    setCaption("");
-    setCaptionNote(null);
-    setPhotoNeedNote(null);
-    setMismatch(null);
-    photoRef.current = next;
     setPhoto(next);
     setPhotoUrl((current) => {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
       return URL.createObjectURL(next);
     });
+    photoRef.current = next;
+    try {
+      await writePendingPhoto(day, next);
+      setPendingReady(true);
+    } catch {
+      setPendingReady(true);
+    }
     void updateCaptureStashPhoto(day, next).then((updated) => {
       if (updated) setPhoneStash(true);
     });
-    if (selectedJoy) void runJoyMatch(selectedJoy, next);
+    const joy = getJoyById(readChosenJoy(day) ?? selectedJoyId);
+    if (joy) {
+      witnessedKey.current = "";
+      void runJoyMatch(joy, next);
+    } else {
+      setJoyError(JOY_NEED);
+    }
   }
 
   function revealCaption() {
     setMismatch(null);
-    setPhotoNeedNote(null);
+    setJoyError(null);
     setCaptionOpen(true);
     setCaptionScroll((n) => n + 1);
   }
@@ -359,9 +375,19 @@ export default function CaptureStudio() {
     setWitnessNote(note);
   }
 
-  async function photoForMatch(): Promise<File | null> {
-    const current = photoRef.current ?? photo;
+  async function photoForMatch(fileOverride?: File): Promise<File | null> {
+    const override = fileOverride && fileOverride.size > 0 ? fileOverride : null;
+    if (override) {
+      photoRef.current = override;
+      return override;
+    }
+    const current = photoRef.current;
     if (current && current.size > 0) return current;
+    const pending = await readPendingPhoto(day);
+    if (pending && pending.size > 0) {
+      photoRef.current = pending;
+      return pending;
+    }
     const stash = await readCaptureStash(day);
     if (stash?.photo && stash.photo.size > 0) {
       const stashed = stashPhotoFile(stash);
@@ -370,9 +396,10 @@ export default function CaptureStudio() {
         return stashed;
       }
     }
-    if (!savedPhoto?.id) return null;
+    const mediaId = savedPhotoIdRef.current ?? savedPhoto?.id;
+    if (!mediaId) return null;
     try {
-      const res = await fetch(`/api/media/${savedPhoto.id}`, { credentials: "same-origin" });
+      const res = await fetch(`/api/media/${mediaId}`, { credentials: "same-origin" });
       if (!res.ok) return null;
       const blob = await res.blob();
       if (!blob.size) return null;
@@ -385,16 +412,14 @@ export default function CaptureStudio() {
   }
 
   async function runJoyMatch(joy: JoyType, fileOverride?: File) {
+    const file = await photoForMatch(fileOverride);
+    const key = file ? `${joy.id}:${file.size}:${file.lastModified}` : "";
+    if (key && witnessedKey.current === key) return;
+    if (key) witnessedKey.current = key;
     const seq = ++matchSeq.current;
     setMismatch(null);
-    const override = fileOverride && fileOverride.size > 0 ? fileOverride : null;
-    const file = override ?? (await photoForMatch());
-    if (seq !== matchSeq.current) return;
-    if (!file) {
-      setPhotoNeedNote(LANDING.app.photoNeed);
-      return;
-    }
-    setPhotoNeedNote(null);
+    setSelectedJoyId(joy.id);
+    if (!file) return;
     try {
       const form = new FormData();
       form.set("joy_type", joy.id);
@@ -412,10 +437,7 @@ export default function CaptureStudio() {
         suggestedJoyId?: string | null;
       }>(res);
       if (seq !== matchSeq.current) return;
-      if (data.verdict === "NEED_PHOTO") {
-        setPhotoNeedNote(LANDING.app.photoNeed);
-        return;
-      }
+      if (data.verdict === "NEED_PHOTO") return;
       if (data.verdict === "UNAVAILABLE") {
         noteWitnessQuiet(data.note?.trim() || LANDING.app.witnessQuiet);
         revealCaption();
@@ -445,47 +467,30 @@ export default function CaptureStudio() {
       currentJoyId: selectedJoyId ?? "",
       suggestedJoyId: mismatch?.suggestedJoyId ?? null,
     });
-    if (next.joyId) setSelectedJoyId(next.joyId);
+    if (next.joyId) {
+      setSelectedJoyId(next.joyId);
+      writeChosenJoy(day, next.joyId);
+      witnessedKey.current = `${next.joyId}:choice`;
+    }
     revealCaption();
-  }
-
-  function recoverPreview() {
-    if (!photo) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPhotoUrl((current) => {
-        if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
-        return String(reader.result);
-      });
-    };
-    reader.readAsDataURL(photo);
-  }
-
-  function pickJoy(joy: JoyType) {
-    setSelectedJoyId(joy.id);
-    setJoyError(null);
-    setCaptureError(null);
-    const current = photoRef.current;
-    void runJoyMatch(joy, current && current.size > 0 ? current : undefined);
   }
 
   async function saveMoment(event: FormEvent) {
     event.preventDefault();
+    const joy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
+    const pending = await readPendingPhoto(day);
     const existingStash = await readCaptureStash(day);
-    const uploadPhoto = photo ?? (existingStash ? stashPhotoFile(existingStash) : null);
+    const uploadPhoto =
+      (photoRef.current && photoRef.current.size > 0 ? photoRef.current : null) ??
+      (pending && pending.size > 0 ? pending : null) ??
+      (existingStash ? stashPhotoFile(existingStash) : null);
     if (!uploadPhoto && !savedPhoto) {
       setCaptureError(LANDING.app.photoNeed);
       return;
     }
-    if (!selectedJoy) {
+    if (!joy) {
       setJoyError(JOY_NEED);
       setCaptureError(null);
-      window.requestAnimationFrame(() => {
-        document.getElementById("joy-pick")?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start",
-        });
-      });
       return;
     }
     const kept = captionDisposition(caption);
@@ -499,7 +504,7 @@ export default function CaptureStudio() {
       form.set("source", "app");
       form.set("kind", "photo");
       form.set("day", day);
-      form.set("joyType", selectedJoy.id);
+      form.set("joyType", joy.id);
       form.set("tzOffset", String(new Date().getTimezoneOffset()));
       if (kept.caption) form.set("caption", kept.caption);
       if (uploadPhoto) form.set("file", uploadPhoto, uploadPhoto.name || "moment.jpg");
@@ -510,17 +515,14 @@ export default function CaptureStudio() {
       });
       const data = await readJson<{
         session?: SessionState;
-        dateNote?: string;
         captionNote?: string;
       }>(res);
-      if (!data.session) {
-        throw new Error("Could not save that moment.");
-      }
+      if (!data.session) throw new Error("Could not save that moment.");
       if (uploadPhoto) {
         try {
           await writeCaptureStash({
             day,
-            joyType: selectedJoy.id,
+            joyType: joy.id,
             caption: kept.caption,
             photo: uploadPhoto,
             fileName: uploadPhoto.name,
@@ -530,9 +532,11 @@ export default function CaptureStudio() {
         }
         setPhoneStash(true);
       }
+      await clearPendingPhoto();
+      writeChosenJoy(day, joy.id);
+      setSelectedJoyId(joy.id);
       setCaptureError(null);
       setSession(data.session);
-      if (data.dateNote) setDateNote(data.dateNote);
       if (data.captionNote) {
         setCaptionNote(data.captionNote);
         setCaption("");
@@ -545,11 +549,7 @@ export default function CaptureStudio() {
       } catch {
         latest = data.session;
       }
-      if (!latest.todayPhoto) {
-        setPhoneNote(LANDING.app.savedOnPhone);
-      } else {
-        setPhoneNote(null);
-      }
+      setPhoneNote(latest.todayPhoto ? null : LANDING.app.savedOnPhone);
       window.requestAnimationFrame(() => {
         document.getElementById("yours-door")?.scrollIntoView({
           behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
@@ -561,6 +561,18 @@ export default function CaptureStudio() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function recoverPreview() {
+    if (!photo) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPhotoUrl((current) => {
+        if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+        return String(reader.result);
+      });
+    };
+    reader.readAsDataURL(photo);
   }
 
   return (
@@ -577,7 +589,7 @@ export default function CaptureStudio() {
         </section>
 
         <form onSubmit={saveMoment}>
-          <section className="card card--dark" aria-labelledby="capture-heading">
+        <section className="card card--dark" aria-labelledby="capture-heading">
             <span className="pill">Photo</span>
             <h2 id="capture-heading" className="visually-hidden">
               Add a photo
@@ -671,11 +683,6 @@ export default function CaptureStudio() {
                 {dateNote}
               </p>
             ) : null}
-            {captionNote ? (
-              <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
-                {captionNote}
-              </p>
-            ) : null}
             {captureError ? (
               <p className="error" role="alert">
                 {captureError}
@@ -700,35 +707,6 @@ export default function CaptureStudio() {
                 {phoneNote}
               </p>
             ) : null}
-          </section>
-
-          <section
-            id="joy-pick"
-            className="card card--cream card--moment card--compact"
-            aria-labelledby="joy-heading"
-          >
-            <span className="pill">Joy</span>
-            <h2 id="joy-heading" className="visually-hidden">
-              {LANDING.moment.joyLegend}
-            </h2>
-            {joyError ? (
-              <p className="error" role="alert" id="joy-need" style={{ margin: "0 0 0.85rem" }}>
-                {joyError}
-              </p>
-            ) : null}
-            {photoNeedNote ? (
-              <p className="notice" style={{ margin: "0 0 0.85rem" }}>
-                {photoNeedNote}
-              </p>
-            ) : null}
-            <JoyPicker
-              compact
-              name="quiet-joy-app"
-              idPrefix="app-joy"
-              selectedId={selectedJoyId}
-              onSelect={pickJoy}
-            />
-            <span className="card__wash card__wash--note" aria-hidden="true"></span>
           </section>
 
           {captionOpen ? (
@@ -758,6 +736,20 @@ export default function CaptureStudio() {
                 {caption.length}/{WHISPER_MAX}
               </p>
             </section>
+          ) : null}
+
+          {joyError ? (
+            <section className="card card--cream card--compact">
+              <p className="error" role="alert" id="joy-need">
+                {joyError}{" "}
+                <Link href="/app/joy">{LANDING.app.nextJoy}</Link>
+              </p>
+            </section>
+          ) : null}
+          {captionNote ? (
+            <p className="notice" style={{ marginTop: "0.85rem" }}>
+              {captionNote}
+            </p>
           ) : null}
 
           <section className="card card--lime card--compact">
@@ -791,13 +783,26 @@ export default function CaptureStudio() {
             <div className="moment-list">
               <article className="moment">
                 <span className="moment__kind">photo</span>
-                <p>
-                  {getJoyById(savedPhoto?.joyType ?? selectedJoyId)?.title ?? "A still from today."}
-                </p>
+                <p>{getJoyById(savedPhoto?.joyType ?? selectedJoyId)?.title ?? "A still from today."}</p>
               </article>
             </div>
           )}
         </section>
+
+        <nav className="step-nav" aria-label="Steps">
+          <Link className="step-arrow" href="/app/joy" aria-label="Previous step">
+            ←
+          </Link>
+          {yoursReady ? (
+            <Link className="step-arrow" href="/app/yours" aria-label="Next step">
+              →
+            </Link>
+          ) : (
+            <span className="step-arrow step-arrow--disabled" aria-disabled="true" aria-label="Next step">
+              →
+            </span>
+          )}
+        </nav>
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>
