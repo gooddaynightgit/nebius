@@ -106,18 +106,18 @@ describe("ingest and weave fallbacks", () => {
   });
 
   it("asks Super to keep her words brightest, feel joy, and close multifold", () => {
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/LEAD with their exact good moment/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/weaker paraphrase/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Lead with their exact good moment/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/keep their sentence undiluted/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Narrative spine/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/lovable \/ good \/ caring \/ worthy/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/cheesy self-help/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Soft wonder/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/silver lining/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/no one cares about me/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/not as a task/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/despair wording from the capture/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/noticing and keeping/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/multifold/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/Ban bleak/);
-    expect(SUPER_WEAVE_SYSTEM).toMatch(/darker/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/Prefer presence over emptiness/);
+    expect(SUPER_WEAVE_SYSTEM).toMatch(/hunted good moment/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Do not write a bedtime story/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/sensory ingredients ONLY/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/no people/);
