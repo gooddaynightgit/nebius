@@ -124,16 +124,14 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_EXCAVATE_SYSTEM).toMatch(/CAPTION WHISPER/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Reply only: `BLOCK`/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/4–6 short sentences/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/closing voice of Gooddaynight/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/photo when it is attached/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/photo description \(sensory excavation\)/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/warm witness/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/hunt one good moment a day/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/three sacred things/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/under 60 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Today, you/);
     expect(APP_REFLECT_SYSTEM).toMatch(/chosen joy/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/optional caption \(their whisper\)/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/four beats/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Max ~35 words/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/1–2 sentences/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Reply only: BLOCK/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/opens the door to more/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/they found one/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/The looking is what changed the day/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/4–6 short sentences/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/600–900 characters/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/1,200 characters/);
@@ -141,8 +139,8 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).not.toMatch(/gifted warm writer/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/First line MUST be: Title/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/180–280 words/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/plain reflection text only/i);
-    expect(APP_REFLECT_SYSTEM).toMatch(/never print the joy category as a label/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Max ~35 words/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/four beats/);
     expect(APP_REFLECT_SYSTEM).toMatch(/\byou\b/i);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Analyze the photo first/);
   });
@@ -257,7 +255,7 @@ describe("ingest and weave fallbacks", () => {
   it("rewrites joy playback templates instead of dumping them as the story", async () => {
     const { JOY_TYPES } = await import("./landing");
     const { mockJoyStory, usesCannedPlayback, CANNED_PLAYBACK_MARKERS } = await import("./prompts");
-    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_SENTENCE_MAX, APP_STORY_WELLNESS_RE, countAppStorySentences, countAppStoryWords } = await import("./app-story");
+    const { APP_STORY_MIN, APP_STORY_MAX, APP_STORY_SENTENCE_MAX, APP_STORY_WORD_MAX, APP_STORY_WELLNESS_RE, countAppStorySentences, countAppStoryWords } = await import("./app-story");
     for (const joy of JOY_TYPES) {
       const story = mockJoyStory({
         joy,
@@ -273,15 +271,15 @@ describe("ingest and weave fallbacks", () => {
       expect(story.title).toBe("");
       expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
       expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
-      expect(countAppStoryWords(story.body)).toBeLessThanOrEqual(45);
+      expect(countAppStoryWords(story.body)).toBeLessThanOrEqual(APP_STORY_WORD_MAX);
       expect(countAppStorySentences(story.body)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
       expect(story.body).not.toMatch(APP_STORY_WELLNESS_RE);
       expect(story.body).not.toMatch(/#\w/);
       expect(story.body).not.toMatch(/^title:/im);
       expect(story.body).not.toContain(joy.title);
       expect(story.body).not.toMatch(/Just this is|One corner clear/i);
-      expect(story.body).toMatch(/You spent today/i);
-      expect(story.body).toMatch(/door|belong|yours/i);
+      expect(story.body).toMatch(/^Today, you /);
+      expect(story.body).toMatch(/found|looking/i);
       expect(story.body).toMatch(/kettle|steam/i);
       expect(story.body).not.toMatch(/nothing else|never more|not a lecture|not a list|do not have to|beside the image sits/i);
     }
@@ -312,7 +310,8 @@ describe("ingest and weave fallbacks", () => {
       excavation,
     });
     expect(story.body).toMatch(/blossom|petal|bark|tree|sky/i);
-    expect(story.body).toMatch(/door|belong|kept|yours/i);
+    expect(story.body).toMatch(/^Today, you /);
+    expect(story.body).toMatch(/found|looking/i);
     expect(story.body).toMatch(/Blossomimg tree/);
     expect(story.body.match(/Blossomimg tree/g)?.length).toBe(1);
     expect(leaksAppStoryInstruction(story.body)).toBe(false);
@@ -342,12 +341,12 @@ describe("ingest and weave fallbacks", () => {
       excavation,
       caption: "Blossomimg tree",
     });
-    expect(user).toMatch(/Chosen joy/);
-    expect(user).toMatch(/never print it as a label/);
-    expect(user).toMatch(/1–2 sentences/);
-    expect(user).toMatch(/~35 words/);
-    expect(user).toMatch(/Optional caption \(their whisper\)/);
-    expect(user).toMatch(/photo pixels are not attached/);
+    expect(user).toMatch(/Joy picked: Just this/);
+    expect(user).toMatch(/Photo: description/);
+    expect(user).toMatch(/Their answer: Blossomimg tree/);
+    expect(user).toMatch(/SUBJECTS & VIBE/);
+    expect(user).not.toMatch(/~35 words/);
+    expect(user).not.toMatch(/four beats/i);
     expect(user).not.toMatch(/4–6 short sentences/);
     expect(user).not.toMatch(/600–900 characters/);
     expect(user).not.toMatch(/Joy playback string/);
@@ -364,7 +363,7 @@ describe("ingest and weave fallbacks", () => {
     expect(Array.isArray(withPhoto)).toBe(true);
     expect(withPhoto).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ type: "text", text: expect.stringMatching(/photo is attached/) }),
+        expect.objectContaining({ type: "text", text: expect.stringMatching(/Photo: attached/) }),
         expect.objectContaining({
           type: "image_url",
           image_url: { url: "data:image/jpeg;base64,abc" },
@@ -377,7 +376,7 @@ describe("ingest and weave fallbacks", () => {
         excavation,
         caption: "Blossomimg tree",
       }),
-    ).toEqual(expect.stringMatching(/photo pixels are not attached/));
+    ).toEqual(expect.stringMatching(/Photo: description/));
   });
 
   it("weaves an app photo from the joy template without pasting the canned playback", async () => {

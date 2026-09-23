@@ -86,31 +86,27 @@ Descriptive, rich, grounded in what is visible. Invent no people, places, gifts,
 If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no ingredients. Reply only: \`BLOCK\`
 Ugly, blurry, messy, ordinary, sad, or hard: still describe. The story stays honest and gentle.`;
 
-export const APP_REFLECT_SYSTEM = `You are the closing voice of Gooddaynight. Each night you receive the user's kept moment: the photo when it is attached, a photo description (sensory excavation), the chosen joy, and an optional caption (their whisper). You write one short reflection that closes their day. Use the still when it is attached; stay inside what the photo and description actually show. Do not ignore the excavation.
+export const APP_REFLECT_SYSTEM = `You are the warm witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has done the three sacred things: they picked a joy, they captured a photo, and they told you what was good in it. Your job now is the confirmation — the moment their small moment becomes a story worth keeping.
 
-Structure (always these four beats, in this order — packed into 1–2 sentences):
-1. Name the behavior — they spent today looking for the good instead of scrolling past it (same essence; vary the wording every time)
-2. Point at the evidence — 2–3 concrete details from THEIR photo description and/or caption (never invent people, places, or feelings beyond those materials)
-3. Affirm ownership — it could only belong to them (vary phrasing)
-4. Open the door — one short line that keeping this makes tomorrow's good findable (a door, not a promise)
+You receive three things: their joy category, their photo, and their own words about what was good in it.
 
-Voice rules:
-- Second person; present-perfect for the day's looking ("You spent today…"); past for the moment itself when natural
-- Concrete always — pull actual details from this entry only; never generic praise
-- Quiet, certain, warm. Never a lecture, tip, question, or exclamation-mark enthusiasm
-- The compounding close is a door, not a promise — e.g. spirit of "opens the door to more," never "you will be happier"
-- 1–2 sentences total. Max ~35 words.
-- Phrase freshly every time: do not reuse stock openings, the example below, or the same sentence frames night after night. Same four beats and essence; different words. Rotate how you name the looking, the ownership, and the door.
-- Lay the joy's tint once, lightly, only if it fits the evidence — never print the joy category as a label ("Just this", "One corner clear", etc.).
-- If the materials are horrific (violence, gore, abuse, porn, hate, self-harm): write no reflection. Reply only: BLOCK
-- Ugly, blurry, messy, ordinary, sad, or hard: still write from what is there. Sad or hard photos are allowed. The story stays honest and gentle.
+The six joy categories: Morning sunlight / A small hello / One thing done slowly / A little movement / One corner clear / Just this (for moments that refuse a category).
 
-Example input: Photo: chocolate-covered frozen banana, bitten, white sheets. Joy: Just this. Caption: eaten standing up before it melted.
-Example output (do not copy): You spent today looking for the good instead of scrolling past it — and you found it: cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.
+Respond in under 60 words, following this exact shape:
 
-Output: plain reflection text only. Or BLOCK. No title, no emoji, no hashtags, no meta talk about prompts, excavates, or captions.`;
+1. Open with "Today, you" — this is their story, told back to them in second person, past tense, like a keepsake.
 
-/** YOURS closer is APP_REFLECT_SYSTEM (short Nightly Reflection, not the old memoir yarn). */
+2. Weave together all three inputs: the sensory detail from the photo, the spirit of their chosen joy, and — most importantly — their own words, elevated but never distorted. Their answer is the heart of the story. Honor it.
+
+3. Close with one line that lands the deeper truth: they didn't just have a good moment — they found one. The looking is what changed the day. Something good is always about to happen, and today they proved it.
+
+Tone: warm, cinematic, quietly devoted — a bedtime story about their own day. No exclamation marks. No therapy-speak. No emojis. Never mention the app, the AI, or the process — only the moment and what it made of them.
+
+If their answer is very short or unclear, don't ask for more — work with what they gave you. Even two words contain a whole moment when witnessed well.
+
+Remember: repetition turns searching into second nature. Every confirmation should make them want to hunt again tomorrow.`;
+
+/** YOURS closer is APP_REFLECT_SYSTEM (warm-witness confirmation, under 60 words). */
 export const APP_WEAVE_SYSTEM = APP_REFLECT_SYSTEM;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
@@ -474,31 +470,15 @@ function whisperFromCaption(caption?: string): string {
   return line.replace(/\.$/, "");
 }
 
-const LOOKING_LINES = [
-  "You spent today looking for the good instead of scrolling past it",
-  "You spent today noticing what was worth keeping instead of letting it slide by",
-  "You spent today gathering the good rather than rushing past it",
-  "You spent today watching for the good, not skimming it away",
-  "You spent today staying with the good instead of passing it by",
-  "You spent today seeking the day's keep, not scrolling past it",
-] as const;
+const TODAY_VERBS = ["kept", "found", "held", "caught", "named", "noticed"] as const;
 
-const OWNERSHIP_LINES = [
-  "a moment that could only belong to you",
-  "a keep that could only be yours",
-  "something that could only belong to you",
-  "an hour that could only be yours",
-  "a still that could only belong to you",
-  "a find that could only be yours",
-] as const;
-
-const DOOR_LINES = [
-  "Kept, it opens the door to more.",
-  "Held, it leaves tomorrow's good findable.",
-  "Kept, the next good has a door.",
-  "Holding it opens the door to more.",
-  "Kept, tomorrow's good is easier to find.",
-  "Held, it opens the door to more.",
+const HUNT_CLOSES = [
+  "You found one, and the looking is what changed the day.",
+  "The looking is what changed the day, and you found one.",
+  "You found one, and the looking changed the day.",
+  "You found it, and the looking is what changed the day.",
+  "The looking changed the day, because you found one.",
+  "You found one, and looking became the good of the day.",
 ] as const;
 
 function rotateIndex(key: string, modulo: number): number {
@@ -564,13 +544,17 @@ export function mockJoyStory(input: {
     goodMoment: input.goodMoment,
     joy: input.joy,
   });
-  const slot = rotateIndex(input.joy.id, LOOKING_LINES.length);
-  const looking = LOOKING_LINES[slot];
-  const ownership = OWNERSHIP_LINES[slot];
-  const door = DOOR_LINES[slot];
+  const slot = rotateIndex(input.joy.id, TODAY_VERBS.length);
+  const whisper = whisperFromCaption(input.caption);
 
-  const assemble = (details: string[]) =>
-    `${looking} — ${details.join(", ")}, ${ownership}. ${door}`;
+  const assemble = (details: string[]) => {
+    const seen = details.filter((bit) => bit.toLowerCase() !== whisper.toLowerCase());
+    const kept = seen.length ? seen.join(", ") : "what the hour held";
+    const heart = whisper
+      ? `${whisper.charAt(0).toUpperCase()}${whisper.slice(1).replace(/[.!?]+$/, "")}.`
+      : "What you kept stayed with you.";
+    return `Today, you ${TODAY_VERBS[slot]} ${kept}. ${heart} ${HUNT_CLOSES[slot]}`;
+  };
 
   let body = assemble(evidence);
   if (appStoryProblems(body, input.joy.playbackTemplate).includes("long") && evidence.length > 2) {

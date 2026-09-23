@@ -34,14 +34,36 @@ describe("app story length and BLOCK", () => {
     expect(body).toMatch(/kettle/);
   });
 
-  it("keeps a ~35-word reflection and trims yarn without padding to 400", () => {
+  it("keeps an under-60-word confirmation and trims yarn without padding to 400", () => {
     const reflection =
-      "You spent today looking for the good instead of scrolling past it — cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.";
-    expect(countAppStoryWords(reflection)).toBeLessThanOrEqual(APP_STORY_WORD_MAX + 4);
+      "Today, you kept the cold chocolate and the quiet sheets, eaten standing up before it melted. You found one, and the looking is what changed the day.";
+    expect(countAppStoryWords(reflection)).toBeLessThanOrEqual(APP_STORY_WORD_MAX);
+    expect(countAppStoryWords(reflection)).toBeGreaterThanOrEqual(12);
     expect(countAppStorySentences(reflection)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
     expect(appStoryProblems(reflection, "")).toEqual([]);
     expect(trimAppStory(reflection).length).toBeLessThanOrEqual(APP_STORY_MAX);
     expect(finishAppStory(reflection)).toBe(reflection);
+
+    const keepsake = [
+      "Today, you stood with the bitten chocolate banana on white sheets, cold and sweet where you ate it before it melted.",
+      "You named it yourself, and the photo held the melt, the sheets, and the courage of keeping that still.",
+      "You found one, and the looking is what changed the day.",
+    ].join(" ");
+    expect(countAppStoryWords(keepsake)).toBeGreaterThan(40);
+    expect(countAppStoryWords(keepsake)).toBeLessThanOrEqual(APP_STORY_WORD_MAX);
+    expect(countAppStorySentences(keepsake)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
+    expect(keepsake.length).toBeLessThanOrEqual(APP_STORY_MAX);
+    expect(appStoryProblems(keepsake, "")).toEqual([]);
+    expect(keepsake.startsWith("Today, you ")).toBe(true);
+
+    const nearHardCap = keepsake.replace(
+      "keeping that still.",
+      "keeping that still warm, particular, and wholly yours in the quiet morning hour.",
+    );
+    expect(countAppStoryWords(nearHardCap)).toBeGreaterThan(APP_STORY_WORD_MAX);
+    expect(countAppStoryWords(nearHardCap)).toBeLessThanOrEqual(APP_STORY_WORD_HARD_MAX);
+    expect(countAppStorySentences(nearHardCap)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
+    expect(appStoryProblems(nearHardCap, "")).toEqual([]);
 
     const yarn = `${"You kept the still. ".repeat(80)}The night goes quiet.`;
     const trimmed = trimAppStory(yarn);
@@ -54,7 +76,8 @@ describe("app story length and BLOCK", () => {
     expect(expanded.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(expanded.length).toBeLessThanOrEqual(APP_STORY_MAX);
     expect(countAppStorySentences(expanded)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
-    expect(expanded).toMatch(/door/i);
+    expect(expanded).toMatch(/^Today, you /);
+    expect(expanded).toMatch(/found|looking/i);
     expect(parseAppWeaveReply("BLOCK")).toBe("BLOCK");
     expect(finishAppStory(short).length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(leaksAppStoryInstruction(expanded)).toBe(false);
@@ -68,23 +91,23 @@ describe("app story length and BLOCK", () => {
     expect(appStoryProblems(leaked, "")).toContain("leak");
     expect(
       leaksAppStoryInstruction(
-        "You spent today gathering the good — pale petals, bark, a moment that could only belong to you. Kept, it opens the door to more.",
+        "Today, you kept pale petals and bark. You found one, and the looking is what changed the day.",
       ),
     ).toBe(false);
   });
 
   it("does not treat ordinary caption or whisper words as instruction leak", () => {
     const screenshot =
-      "You spent today looking for the good — three handwritten lines, the screenshot caption, a moment that could only belong to you. Kept, it opens the door to more.";
+      "Today, you kept three handwritten lines and the screenshot caption. You found one, and the looking is what changed the day.";
     const steam =
-      "You spent today looking for the good — a whisper of steam, the kettle, a moment that could only belong to you. Kept, it opens the door to more.";
+      "Today, you kept a whisper of steam and the kettle. You found one, and the looking is what changed the day.";
     expect(leaksAppStoryInstruction(screenshot)).toBe(false);
     expect(appStoryProblems(screenshot, "")).toEqual([]);
     expect(leaksAppStoryInstruction(steam)).toBe(false);
     expect(appStoryProblems(steam, "")).toEqual([]);
     expect(
       leaksAppStoryInstruction(
-        "You spent today looking for the good — a prompt hello on the screen, a moment that could only belong to you. Kept, it opens the door to more.",
+        "Today, you kept a prompt hello on the screen. You found one, and the looking is what changed the day.",
       ),
     ).toBe(false);
   });

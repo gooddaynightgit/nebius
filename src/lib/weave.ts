@@ -143,14 +143,6 @@ async function weaveWithSuper(
   return null;
 }
 
-function joyColourLabel(joyTitle: string): string {
-  return joyTitle
-    .toLowerCase()
-    .replace(/,/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export function appExcavateUserText(input: {
   caption?: string;
   photoNotes: string;
@@ -176,17 +168,12 @@ export function appReflectUserText(input: {
   hasImage?: boolean;
 }): string {
   const caption = input.caption ? clipCaption(input.caption) : "";
+  const photo = input.hasImage ? "Photo: attached" : "Photo: description";
+  const description = input.excavation?.trim() || "No photo description.";
   return [
-    input.hasImage
-      ? "The photo is attached. Use it together with the photo description. Stay inside what the still actually shows; the description names the ingredients. No invented scene."
-      : "The photo pixels are not attached. Stay inside the photo description, chosen joy, and optional caption. Do not invent a scene beyond those words.",
-    "Photo description (sensory excavation of today's kept still):",
-    input.excavation,
-    `Chosen joy (lay this tint once, lightly, only if it fits the evidence — never print it as a label): ${joyColourLabel(input.joyTitle)}`,
-    caption
-      ? `Optional caption (their whisper): ${caption}`
-      : "No caption.",
-    "Write one short Nightly Reflection. Four beats in this order, packed into 1–2 sentences (max ~35 words): name the looking, 2–3 concrete details from the photo (and/or photo description and caption), ownership, door. Second person. Plain reflection text only. Or BLOCK.",
+    `Joy picked: ${input.joyTitle}`,
+    `${photo}\n${description}`,
+    caption ? `Their answer: ${caption}` : "Their answer:",
   ].join("\n\n");
 }
 
@@ -278,15 +265,15 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 
 function reflectRetryHint(problems: string[], lastBody: string): string {
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
-    return "The last draft was too short. Write 1–2 sentences, about 35 words, with all four beats: looking, 2–3 concrete details from the photo description and/or caption, ownership, door. Plain reflection text only. Or BLOCK.";
+    return 'The last draft was too short. Open with "Today, you". Weave the photo, the joy, and their answer, then close on the find: they found one, and the looking changed the day. Under 60 words. Plain confirmation text only.';
   }
   if (problems.includes("long")) {
-    return "The last draft was too long. Cut to 1–2 sentences, max ~35 words. Keep the four beats. No extra scene. Plain reflection text only. Or BLOCK.";
+    return 'The last draft was too long. Keep it under 60 words and at most three sentences. Open with "Today, you", weave the photo, the joy, and their answer, and close on the find. Plain confirmation text only.';
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return "Rewrite without questions, exclamation marks, or meta talk about prompts, excavates, captions, or instructions. Four beats. 1–2 sentences. ~35 words. Plain reflection text only. Or BLOCK.";
+    return 'Rewrite without questions, exclamation marks, or mention of the app, the AI, or the process. Open with "Today, you". Under 60 words. Plain confirmation text only.';
   }
-  return "Rewrite. Follow the brief. Fresh phrasing — do not copy the example. 1–2 sentences, ~35 words. Concrete details from this entry only. No title. No joy labels. Plain reflection text only. Or BLOCK.";
+  return 'Rewrite the confirmation. Open with "Today, you". Weave the photo, their joy, and their own words. Close on the find. Under 60 words. Plain confirmation text only.';
 }
 
 async function excavateAppPhoto(input: {
@@ -374,7 +361,7 @@ async function reflectWithModels(
             ];
       const result = await completeWithFallback(models, retryHint, {
         temperature: attempt === 0 ? 0.75 : 0.5,
-        maxTokens: 180,
+        maxTokens: 320,
       });
       fail.lastModel = result.model;
       const parsed = parseAppWeaveReply(result.text);

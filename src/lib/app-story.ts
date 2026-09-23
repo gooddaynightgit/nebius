@@ -1,11 +1,11 @@
 export const APP_STORY_MIN = 60;
 export const APP_STORY_TARGET_MIN = 120;
-export const APP_STORY_TARGET_MAX = 240;
-export const APP_STORY_MAX = 320;
+export const APP_STORY_TARGET_MAX = 420;
+export const APP_STORY_MAX = 560;
 export const APP_STORY_WORD_MIN = 12;
-export const APP_STORY_WORD_MAX = 35;
-export const APP_STORY_WORD_HARD_MAX = 45;
-export const APP_STORY_SENTENCE_MAX = 2;
+export const APP_STORY_WORD_MAX = 60;
+export const APP_STORY_WORD_HARD_MAX = 70;
+export const APP_STORY_SENTENCE_MAX = 3;
 
 export const WEAVE_BLOCKED =
   "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.";
@@ -14,9 +14,9 @@ export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
 const EMPTY_REFLECTION =
-  "You spent today looking for the good, and you kept what you found — a moment that could only belong to you. Kept, it opens the door to more.";
+  "Today, you kept a small good from the day. You found one, and the looking is what changed the day.";
 
-const DOOR_CLOSE = "Kept, it opens the door to more.";
+const HUNT_CLOSE = "You found one, and the looking is what changed the day.";
 
 export const APP_STORY_LEAK_RE =
   /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper/i;
@@ -102,21 +102,27 @@ export function trimAppStory(body: string, max = APP_STORY_MAX): string {
   return slice.trim();
 }
 
+function openAsTodayYou(text: string): string {
+  const trimmed = text.replace(/\s+/g, " ").trim();
+  if (!trimmed) return EMPTY_REFLECTION;
+  if (/^today,\s+you\b/i.test(trimmed)) return trimmed;
+  const rest = trimmed.replace(/^you\s+/i, "");
+  return `Today, you ${rest.charAt(0).toLowerCase()}${rest.slice(1)}`;
+}
+
 export function expandAppStory(body: string, min = APP_STORY_MIN): string {
   let next = body.replace(/!+/g, ".").replace(/\?+/g, ".").replace(/\s+/g, " ").trim();
   if (!next) next = EMPTY_REFLECTION;
+  next = openAsTodayYou(next);
+  if (!/[.!?]$/.test(next)) next = `${next}.`;
   const needsMore =
     next.length < min || countAppStoryWords(next) < APP_STORY_WORD_MIN;
   if (
     needsMore &&
     countAppStorySentences(next) < APP_STORY_SENTENCE_MAX &&
-    !/\bdoor\b/i.test(next)
+    !/\b(found one|the looking)\b/i.test(next)
   ) {
-    if (!/could only belong to you|could only be yours/i.test(next)) {
-      next = `${next.replace(/[.!?]?$/, "")} — a moment that could only belong to you. ${DOOR_CLOSE}`;
-    } else {
-      next = `${next.replace(/[.!?]?$/, ".")} ${DOOR_CLOSE}`;
-    }
+    next = `${next} ${HUNT_CLOSE}`;
   }
   return trimAppStory(next);
 }

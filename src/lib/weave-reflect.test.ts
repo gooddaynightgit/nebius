@@ -20,7 +20,7 @@ import {
 } from "./weave";
 
 const GOOD =
-  "You spent today looking for the good instead of scrolling past it — cold chocolate, quiet sheets, a moment that could only belong to you. Kept, it opens the door to more.";
+  "Today, you kept the cold chocolate and the quiet sheets, eaten standing up before it melted. You found one, and the looking is what changed the day.";
 
 const IMAGE = "data:image/jpeg;base64,abc";
 
@@ -46,17 +46,20 @@ describe("Nightly Reflection message shape", () => {
         }),
       ]),
     );
-    expect(appReflectUserText({ ...input, hasImage: true })).toMatch(/photo is attached/i);
+    expect(appReflectUserText({ ...input, hasImage: true })).toMatch(/Joy picked: Just this/);
+    expect(appReflectUserText({ ...input, hasImage: true })).toMatch(/Photo: attached/);
+    expect(appReflectUserText({ ...input, hasImage: true })).toMatch(/Their answer: eaten standing up/);
+    expect(appReflectUserText({ ...input, hasImage: true })).toMatch(/frozen banana/);
   });
 
   it("stays text-only when no image is present", () => {
     const content = appReflectUserContent({ ...input, imageDataUrl: undefined });
     expect(typeof content).toBe("string");
-    expect(content).toMatch(/photo pixels are not attached/i);
-    expect(String(content)).not.toMatch(/photo is attached/i);
+    expect(content).toMatch(/Photo: description/);
+    expect(String(content)).not.toMatch(/Photo: attached/);
   });
 
-  it("lets a valid ~35-word reflection through the closer validators", () => {
+  it("lets a valid under-60-word confirmation through the closer validators", () => {
     expect(appStoryProblems(GOOD, input.template)).toEqual([]);
   });
 });
