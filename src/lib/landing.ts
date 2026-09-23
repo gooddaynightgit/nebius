@@ -9,7 +9,9 @@ export type JoyType = {
 
 export const LANDING = {
   hero: {
-    h1: "Gooddaynight: an app that trains you to hunt one good moment a day, capture it in seconds, and lets the habit of looking rewire how you feel.",
+    h1: "You scrolled past a hundred good moments today. None of them were yours.",
+    subheadline:
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
     cta: "Hear your story — free",
   },
   moment: {

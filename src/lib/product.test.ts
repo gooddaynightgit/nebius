@@ -458,17 +458,20 @@ describe("landing", () => {
 
   it("keeps verbatim hero, joy types, and footer copy", () => {
     expect(copy).toContain(
-      "Gooddaynight: an app that trains you to hunt one good moment a day, capture it in seconds, and lets the habit of looking rewire how you feel.",
+      "You scrolled past a hundred good moments today. None of them were yours.",
     );
     expect(page).toContain(
-      "Gooddaynight: an app that trains you to hunt one good moment a day, capture it in seconds, and lets the habit of looking rewire how you feel.",
+      "You scrolled past a hundred good moments today. None of them were yours.",
     );
-    expect(page).toContain('className="btn btn--lime" href="/app/joy"');
+    expect(copy).toContain(
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
+    );
+    expect(page).toContain('<Link href="/app/joy" aria-label="Open the joy page">');
     expect(page).toContain('aria-label="Next step"');
     expect(page).toContain('href="/app/joy"');
     expect(page).toContain("→");
-    expect(page).not.toContain("You scrolled past");
-    expect(copy).not.toContain("You scrolled past");
+    expect(page).not.toContain("habit of looking");
+    expect(copy).not.toContain("habit of looking");
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
     expect(copy).toContain('joyLegend: "(pick one)"');

@@ -12,19 +12,21 @@ export default function HomePage() {
       <main id="main">
         <section className="card card--mint" aria-labelledby="hero-heading">
           <h1 id="hero-heading">
-            Gooddaynight: an app that trains you to hunt one good moment a day, capture it in seconds, and lets the habit of looking rewire how you feel.
+            You scrolled past a hundred good moments today. None of them were yours.
           </h1>
           <span className="card__mark" aria-hidden="true"></span>
           <span className="card__wash card__wash--sun" aria-hidden="true"></span>
         </section>
 
-        <section className="card card--dark card--compact" aria-labelledby="cta-heading">
-          <h2 id="cta-heading" className="visually-hidden">
-            Hear your story
-          </h2>
-          <Link className="btn btn--lime" href="/app/joy">
-            Hear your story — free
-          </Link>
+        <section className="card card--lavender">
+          <p className="card__body">
+            Your laugh. Your small win. Your quiet moment. Nobody turned them
+            into anything — not even you. Gooddaynight does{" "}
+            <Link href="/app/joy" aria-label="Open the joy page">
+              →
+            </Link>
+          </p>
+          <span className="card__wash card__wash--ten" aria-hidden="true"></span>
         </section>
 
         <nav className="step-nav" aria-label="Steps">
