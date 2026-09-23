@@ -20,7 +20,7 @@ import {
 } from "./weave";
 
 const GOOD =
-  "Today, you kept the cold chocolate and the quiet sheets, eaten standing up before it melted. You found one, and the looking is what changed the day.";
+  "Wow you kept the cold chocolate and the quiet sheets, eaten standing up before it melted! Lovely on the tongue, bright against the linen, wonderful that you stayed. Fantastic, you found one good moment today — the finding is what's changing you.";
 
 const IMAGE = "data:image/jpeg;base64,abc";
 

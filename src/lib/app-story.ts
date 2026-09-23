@@ -1,11 +1,11 @@
 export const APP_STORY_MIN = 60;
 export const APP_STORY_TARGET_MIN = 120;
-export const APP_STORY_TARGET_MAX = 420;
-export const APP_STORY_MAX = 560;
+export const APP_STORY_TARGET_MAX = 520;
+export const APP_STORY_MAX = 900;
 export const APP_STORY_WORD_MIN = 12;
-export const APP_STORY_WORD_MAX = 60;
-export const APP_STORY_WORD_HARD_MAX = 70;
-export const APP_STORY_SENTENCE_MAX = 3;
+export const APP_STORY_WORD_MAX = 70;
+export const APP_STORY_WORD_HARD_MAX = 85;
+export const APP_STORY_SENTENCE_MAX = 4;
 
 export const WEAVE_BLOCKED =
   "Tonight isn’t a YOURS story. This picture isn’t one we can tell. Keep the night gentle.";
@@ -14,9 +14,13 @@ export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
 const EMPTY_REFLECTION =
-  "Today, you kept a small good from the day. You found one, and the looking is what changed the day.";
+  "Look at you keeping a small good from the day, lovely, bright, and wonderful. Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.";
 
-const HUNT_CLOSE = "You found one, and the looking is what changed the day.";
+const HUNT_CLOSE =
+  "Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.";
+
+const EXCITED_OPEN_RE =
+  /^(oooh you|today\b|wow you|how awesome is this, you|brilliant\b|look at you)\b/i;
 
 export const APP_STORY_LEAK_RE =
   /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper/i;
@@ -102,26 +106,56 @@ export function trimAppStory(body: string, max = APP_STORY_MAX): string {
   return slice.trim();
 }
 
-function openAsTodayYou(text: string): string {
+function softenPunctuation(text: string): string {
+  const next = text.replace(/\?+/g, ".").replace(/\s+/g, " ").trim();
+  const firstBang = next.indexOf("!");
+  if (firstBang < 0) return next;
+  const firstStop = next.search(/[.!?]/);
+  const keep = firstStop === firstBang;
+  let seen = false;
+  return next.replace(/!+/g, () => {
+    if (keep && !seen) {
+      seen = true;
+      return "!";
+    }
+    return ".";
+  });
+}
+
+function ensureExcitedOpen(text: string): string {
   const trimmed = text.replace(/\s+/g, " ").trim();
   if (!trimmed) return EMPTY_REFLECTION;
-  if (/^today,\s+you\b/i.test(trimmed)) return trimmed;
-  const rest = trimmed.replace(/^you\s+/i, "");
-  return `Today, you ${rest.charAt(0).toLowerCase()}${rest.slice(1)}`;
+  if (EXCITED_OPEN_RE.test(trimmed)) return trimmed;
+  const rest = trimmed.replace(/^you\s+/i, "").replace(/[.!?]+$/, "");
+  const keeping = rest.replace(/^kept\b/i, "keeping");
+  return `Look at you ${keeping}, lovely, bright, and wonderful.`;
+}
+
+function hasBrandClose(text: string): boolean {
+  return (
+    /\b(fantastic|wonderful|perfect|beautiful|yes), you\b/i.test(text) &&
+    /hunted one good moment today|found one good moment today|becoming someone who looks/i.test(text)
+  );
+}
+
+/** One soft exclamation on the opening is welcome. Questions and extra bangs are not. */
+export function hasLecturePunctuation(body: string): boolean {
+  if (/\?/.test(body)) return true;
+  const bangs = body.match(/!/g);
+  if (!bangs) return false;
+  if (bangs.length > 1) return true;
+  const firstStop = body.search(/[.!?]/);
+  return firstStop < 0 || body[firstStop] !== "!";
 }
 
 export function expandAppStory(body: string, min = APP_STORY_MIN): string {
-  let next = body.replace(/!+/g, ".").replace(/\?+/g, ".").replace(/\s+/g, " ").trim();
+  let next = softenPunctuation(body);
   if (!next) next = EMPTY_REFLECTION;
-  next = openAsTodayYou(next);
+  next = ensureExcitedOpen(next);
   if (!/[.!?]$/.test(next)) next = `${next}.`;
   const needsMore =
     next.length < min || countAppStoryWords(next) < APP_STORY_WORD_MIN;
-  if (
-    needsMore &&
-    countAppStorySentences(next) < APP_STORY_SENTENCE_MAX &&
-    !/\b(found one|the looking)\b/i.test(next)
-  ) {
+  if (needsMore && countAppStorySentences(next) < APP_STORY_SENTENCE_MAX && !hasBrandClose(next)) {
     next = `${next} ${HUNT_CLOSE}`;
   }
   return trimAppStory(next);
@@ -183,7 +217,7 @@ export function appStoryProblems(body: string, template: string): string[] {
   if (APP_STORY_WELLNESS_RE.test(body)) problems.push("wellness");
   if (celebratesDespair(body)) problems.push("despair");
   if (leaksAppStoryInstruction(body)) problems.push("leak");
-  if (/[?!]/.test(body)) problems.push("lecture");
+  if (hasLecturePunctuation(body)) problems.push("lecture");
   if (/^title:/im.test(body)) problems.push("title");
   if (/#\w/.test(body) || /\p{Extended_Pictographic}/u.test(body)) problems.push("chrome");
   return problems;

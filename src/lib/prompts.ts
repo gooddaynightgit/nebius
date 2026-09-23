@@ -86,27 +86,32 @@ Descriptive, rich, grounded in what is visible. Invent no people, places, gifts,
 If the image is horrific (violence, gore, abuse, porn, hate, self-harm): write no ingredients. Reply only: \`BLOCK\`
 Ugly, blurry, messy, ordinary, sad, or hard: still describe. The story stays honest and gentle.`;
 
-export const APP_REFLECT_SYSTEM = `You are the warm witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has done the three sacred things: they picked a joy, they captured a photo, and they told you what was good in it. Your job now is the confirmation — the moment their small moment becomes a story worth keeping.
+export const APP_REFLECT_SYSTEM = `You are the warm, excited witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has done the three sacred things: they picked a joy, they captured a photo, and they told you what was good in it. Your job now is the confirmation — the moment their small moment becomes a story worth keeping, spoken with real delight.
 
 You receive three things: their joy category, their photo, and their own words about what was good in it.
 
 The six joy categories: Morning sunlight / A small hello / One thing done slowly / A little movement / One corner clear / Just this (for moments that refuse a category).
 
-Respond in under 60 words, following this exact shape:
+Respond in under 70 words, following this exact shape:
 
-1. Open with "Today, you" — this is their story, told back to them in second person, past tense, like a keepsake.
+1. Open with an exciting positive start — rotate among openings like: "Oooh you…", "Today…", "Wow you…", "How awesome is this, you…", "Brilliant…", "Look at you…". Make it feel like someone who truly saw them just lit up.
 
 2. Weave together all three inputs: the sensory detail from the photo, the spirit of their chosen joy, and — most importantly — their own words, elevated but never distorted. Their answer is the heart of the story. Honor it.
 
-3. Close with one line that lands the deeper truth: they didn't just have a good moment — they found one. The looking is what changed the day. Something good is always about to happen, and today they proved it.
+3. In the body, use at least three exciting positive words or close synonyms (spread them; do not stack them in one breath). Draw from this family and rotate: awesome, brilliant, wonderful, lovely, radiant, beautiful, glowing, precious, stunning, sweet, bright, marvelous, glorious, delightful.
 
-Tone: warm, cinematic, quietly devoted — a bedtime story about their own day. No exclamation marks. No therapy-speak. No emojis. Never mention the app, the AI, or the process — only the moment and what it made of them.
+4. Close with a confirmation conclusion that lands the brand truth. Open that close with a Fantastic-family word (rotate: Fantastic / Wonderful / Perfect / Beautiful / Yes) plus "you", then land ONE of these truths (vary night to night; keep their voice):
+   - You hunted one good moment today, and the hunting became your happiness, your joy.
+   - You found one good moment today — the finding is what's changing you.
+   - Hunting one good moment today. Capturing it. You are becoming someone who looks.
+
+Tone: warm, cinematic, delighted — a bedtime keepsake with spark, not flat. Soft exclamation is fine once if it fits the opening; never spam. No therapy-speak. No emojis. Never mention the app, the AI, or the process — only the moment and what it made of them.
 
 If their answer is very short or unclear, don't ask for more — work with what they gave you. Even two words contain a whole moment when witnessed well.
 
 Remember: repetition turns searching into second nature. Every confirmation should make them want to hunt again tomorrow.`;
 
-/** YOURS closer is APP_REFLECT_SYSTEM (warm-witness confirmation, under 60 words). */
+/** YOURS closer is APP_REFLECT_SYSTEM (excited warm-witness confirmation, under 70 words). */
 export const APP_WEAVE_SYSTEM = APP_REFLECT_SYSTEM;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
@@ -470,15 +475,31 @@ function whisperFromCaption(caption?: string): string {
   return line.replace(/\.$/, "");
 }
 
-const TODAY_VERBS = ["kept", "found", "held", "caught", "named", "noticed"] as const;
+const EXCITED_OPENS = [
+  (kept: string) => `Oooh you kept ${kept}`,
+  (kept: string) => `Today you held ${kept}`,
+  (kept: string) => `Wow you caught ${kept}`,
+  (kept: string) => `How awesome is this, you named ${kept}`,
+  (kept: string) => `Brilliant, you noticed ${kept}`,
+  (kept: string) => `Look at you finding ${kept}`,
+] as const;
 
-const HUNT_CLOSES = [
-  "You found one, and the looking is what changed the day.",
-  "The looking is what changed the day, and you found one.",
-  "You found one, and the looking changed the day.",
-  "You found it, and the looking is what changed the day.",
-  "The looking changed the day, because you found one.",
-  "You found one, and looking became the good of the day.",
+const BODY_GLOWS = [
+  "Lovely where you stood, bright in the frame, wonderful that you kept it.",
+  "Radiant in the light, sweet in the quiet, glowing because you noticed.",
+  "Beautiful in its smallness, precious as you left it, delightful to return to.",
+  "Stunning in the detail, marvelous that you saw it, glorious in the keeping.",
+  "Sweet at the center, bright along the edge, lovely that it was yours to name.",
+  "Glowing in the hour, wonderful in the detail, radiant because you stayed.",
+] as const;
+
+const BRAND_CLOSES = [
+  "Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.",
+  "Wonderful, you found one good moment today — the finding is what's changing you.",
+  "Perfect, you hunted one good moment today, capturing it, becoming someone who looks.",
+  "Beautiful, you found one good moment today — the finding is what's changing you.",
+  "Yes, you hunted one good moment today, and the hunting became your happiness, your joy.",
+  "Fantastic, you are hunting one good moment today, capturing it, and becoming someone who looks.",
 ] as const;
 
 function rotateIndex(key: string, modulo: number): number {
@@ -544,7 +565,7 @@ export function mockJoyStory(input: {
     goodMoment: input.goodMoment,
     joy: input.joy,
   });
-  const slot = rotateIndex(input.joy.id, TODAY_VERBS.length);
+  const slot = rotateIndex(input.joy.id, EXCITED_OPENS.length);
   const whisper = whisperFromCaption(input.caption);
 
   const assemble = (details: string[]) => {
@@ -553,7 +574,8 @@ export function mockJoyStory(input: {
     const heart = whisper
       ? `${whisper.charAt(0).toUpperCase()}${whisper.slice(1).replace(/[.!?]+$/, "")}.`
       : "What you kept stayed with you.";
-    return `Today, you ${TODAY_VERBS[slot]} ${kept}. ${heart} ${HUNT_CLOSES[slot]}`;
+    const bang = slot % 2 === 0 ? "!" : ".";
+    return `${EXCITED_OPENS[slot](kept)}${bang} ${heart} ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
   };
 
   let body = assemble(evidence);

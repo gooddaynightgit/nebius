@@ -265,15 +265,15 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 
 function reflectRetryHint(problems: string[], lastBody: string): string {
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
-    return 'The last draft was too short. Open with "Today, you". Weave the photo, the joy, and their answer, then close on the find: they found one, and the looking changed the day. Under 60 words. Plain confirmation text only.';
+    return 'The last draft was too short. Open with excitement — Oooh you, Today, Wow you, How awesome is this, you, Brilliant, or Look at you. Weave the photo, the joy, and their answer with at least three bright words. Close with Fantastic, Wonderful, Perfect, Beautiful, or Yes, plus you, and one hunt-find truth. Under 70 words. One soft exclamation on the opening is welcome.';
   }
   if (problems.includes("long")) {
-    return 'The last draft was too long. Keep it under 60 words and at most three sentences. Open with "Today, you", weave the photo, the joy, and their answer, and close on the find. Plain confirmation text only.';
+    return 'The last draft was too long. Keep it under 70 words and at most four sentences. Open with excitement, weave the photo, the joy, and their answer, and close with a Fantastic-family word plus you and one hunt-find truth. One soft exclamation on the opening is welcome.';
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return 'Rewrite without questions, exclamation marks, or mention of the app, the AI, or the process. Open with "Today, you". Under 60 words. Plain confirmation text only.';
+    return 'Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. One soft exclamation on the opening is welcome. Under 70 words. Exciting open, three bright words, brand close.';
   }
-  return 'Rewrite the confirmation. Open with "Today, you". Weave the photo, their joy, and their own words. Close on the find. Under 60 words. Plain confirmation text only.';
+  return 'Rewrite the confirmation. Rotate an exciting open (Oooh you, Today, Wow you, How awesome is this, you, Brilliant, Look at you). Weave photo, joy, and their words with at least three bright words. Close with Fantastic, Wonderful, Perfect, Beautiful, or Yes, plus you, and one hunt-find truth. Under 70 words.';
 }
 
 async function excavateAppPhoto(input: {
@@ -361,7 +361,7 @@ async function reflectWithModels(
             ];
       const result = await completeWithFallback(models, retryHint, {
         temperature: attempt === 0 ? 0.75 : 0.5,
-        maxTokens: 320,
+        maxTokens: 420,
       });
       fail.lastModel = result.model;
       const parsed = parseAppWeaveReply(result.text);
