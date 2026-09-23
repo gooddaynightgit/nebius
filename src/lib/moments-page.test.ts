@@ -18,6 +18,8 @@ describe("moments pack page", () => {
     expect(page).toContain("Share only if you want a card to keep. The habit of seeing stays.");
     expect(page).toContain("40 good moments —");
     expect(page).toContain("R450 ZAR · $28 USD");
+    expect(page).not.toContain("5.00");
+    expect(page).not.toMatch(/R5(?!0)/);
     expect(page).toContain("Each moment: one photo upload → one My good moment story.");
     expect(page).not.toMatch(/Upload uses a moment/);
     expect(page).not.toMatch(/Replay and Share/);
@@ -28,6 +30,11 @@ describe("moments pack page", () => {
     expect(page).not.toMatch(/27\.80/);
     expect(page).toContain("Something good is about to happen!");
     expect(page).toContain("Gooddaynight.com");
+    expect(page).toMatch(/action="\/api\/payfast\/checkout"/);
+    expect(page).toMatch(/method="post"/);
+    expect(page).toMatch(/name="email"/);
+    expect(page).toMatch(/<button className="moments-cta"/);
+    expect(page).not.toMatch(/<Link className="moments-cta"/);
     expect(page).toMatch(/href="\/app"/);
     expect(page).not.toMatch(/stripe/i);
     expect(page).not.toMatch(/one hunt at a time/i);
@@ -38,5 +45,14 @@ describe("moments pack page", () => {
     expect(capture).toMatch(/href="\/moments"/);
     expect(capture).toContain("Start hunting");
     expect(capture).not.toMatch(/40 good moments — \$29/);
+  });
+
+  it("opens Take and Upload only after the paid email has moments left", () => {
+    expect(capture).toMatch(/\/api\/payfast\/entitlement/);
+    expect(capture).toMatch(/setCaptureOpen\(true\)/);
+    expect(capture).not.toMatch(/const captureOpen = false/);
+    expect(capture).toContain("You’re in. Take or upload today’s moment.");
+    expect(capture).toContain("Noted. Capture stays closed until this purchase is confirmed.");
+    expect(capture).not.toMatch(/type="email"/);
   });
 });

@@ -11,7 +11,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 1. Landing: **You scrolled past a hundred good moments today. None of them were yours.** Lavender card: **Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →** — that arrow and the step next arrow open `/app/joy` (the quiet-joy accordion), not the photo page. Closer: **Something good is about to happen!** No email form. Landing photos/whispers still save through the same `/api/captures` vault as the app.
 2. `/app/joy` is the accordion — **What kind of quiet joy is it?** *(pick one for a new good moment)* — with six expandable joys (title, tagline, body, Capture it, My good moment playback). Newer joy ids stay in data for mismatch suggestions and are not listed. Choosing a joy stays on the accordion. A photo and arrow then open `/app`; the previous arrow returns to the landing. `/app` is **photo only**: heading **Today. One good moment. Go get it.** Helper copy: *A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...* The ten photo-save rules below are not shown on `/app`. They stay in this README and in `PHOTO_SAVE_RULES`, and they are still enforced on save. Once that still and the stored joy both exist, the photo page shows a spark that ends on a humble check, then **Yes** / **No**. Only after that answer does it ask **What is the good in this moment?** (required). Either answer tells My good moment not to center the keepsake on the photo. Horrific/essay lines are dropped and the photo still saves. **Save today's moment**, then **My good moment** appears — the only door to tonight's story (`/app/yours`). The photo page’s previous arrow returns to the joy; its next arrow continues to My good moment once that door is open. Photo weaves run two steps: vision sparks what is actually in the frame, then **Kimi** writes a quieter **Nightly Reflection** (under 70 words) from the **photo** (Kimi-K2.6 / K3 are image2text — the still is attached, JPEG-shrunk to ~1440px / ~1MB for Token Factory), the excavate read, chosen joy, and their answer. Their answer is the heart; joy is a light tint (never printed as a label). If Kimi cannot finish, Qwen instruct then Super write from the text brief — that text chain is never empty even if Vercel model envs are blank. Vision when a Token Factory key is present; an honest caption+joy stand-in when it is not, or if every live closer fails. Mock-fallback JSON may include a short non-secret `closerHint` (last model / problems / truncated error) for debug; the My good moment chip stays soft. If the model returns `BLOCK` (horrific image), My good moment shows a gentle refusal and does not lock the photo. After a real story opens, the caption is deleted. Saving again the same day replaces that one still (no archive) so My good moment can weave a fresh reflection. **Share** opens the system share sheet for the photo-and-story card, or downloads it. At midnight the night expires. Closing: **Something good is about to happen!** / **Gooddaynight.com**.
 3. Private vault only — not shared, posted, or used to train public models. Email remains available on the landing path; `/app` does not ask for it to open My good moment.
-4. `/moments` is the pack page (not inside the photo form). It says what this is and what it is not, then **40 good moments — R450 ZAR · $28 USD**. There is no checkout yet. **Start hunting — R450 ZAR / $28 USD** opens `/app`. The photo page header **Start hunting** returns to `/moments`.
+4. `/moments` is the pack page (not inside the photo form). It says what this is and what it is not, then **40 good moments — R450 ZAR · $28 USD**. **Start hunting — R450 ZAR / $28 USD** asks for an email and posts to Payfast. The page keeps that R450 / $28 display. The live test charge Payfast collects is **5.00 ZAR**, and a confirmed payment still credits **40** moment saves. The photo page header **Start hunting** returns to `/moments`. **Already bought?** on `/app` opens Take / Upload when that email still has moments left.
 
 ## Photo-save rules
 
@@ -142,9 +142,38 @@ nebius ai job create \
 | GET | `/api/media/:id` | Private media for this vault |
 | GET/POST | `/api/yours` | Open tonight's woven story, lock the photo; 404 after midnight or if nothing was saved |
 | POST | `/api/email` | Gate after ≥1 capture on the landing path; accepts client `captures` if the server vault is empty; migrate anon → email vault |
+| GET/POST | `/api/payfast/checkout` | Health, or an auto-submitting Payfast form. Charge is 5.00 ZAR; a confirmed payment credits 40 moments |
+| POST | `/api/payfast/itn` | Payfast ITN. Verifies signature, VALID, and amount, then credits 40 moments once |
+| POST | `/api/payfast/entitlement` | Already bought: remaining moments for an email; sets the gate cookie when any remain |
 | POST | `/api/weave` | Super weave (session or cron) |
 | GET | `/api/story` | Last story |
 | GET | `/api/story/audio` | Sonic audio when present |
+
+## Payfast (checkout + ITN)
+
+The pack is still **40** good moments. `/moments` still shows **R450 ZAR · $28 USD** and “40 good moments”. Payfast is charged the string **5.00** for this live test. `item_name` stays `GoodDayNight — 40 good moments`. The 5.00 figure is not shown on that price block.
+
+The buy button posts the email to `POST /api/payfast/checkout`. That route signs the fields and returns an HTML form that auto-submits to Payfast (a 302 is not enough). Payfast then POSTs the ITN to `POST /api/payfast/itn`.
+
+The signature rules match the Longevity Greenlight / whycantisleep checkout and ITN handlers:
+
+- Secrets come only from `PF_MERCHANT_ID`, `PF_MERCHANT_KEY`, and `PF_PASSPHRASE`. They are never hardcoded.
+- Checkout walks the documented `FIELD_ORDER`, skips blanks, trims values, percent-encodes like Python `quote_plus` with uppercase hex, appends the passphrase last, and MD5s to a lowercase hex digest.
+- ITN rebuilds that digest from the pairs in the order Payfast sent (the signature field is skipped), requires `payment_status` `COMPLETE` and `amount_gross` of at least `5.00`, POSTs the raw notify body to Payfast’s validate URL, and requires the response body to start with `VALID`.
+- Any failure before the entitlement write returns **500** so Payfast retries. **200** is returned only after the write. The same `pf_payment_id` does not credit a second pack.
+- `SANDBOX` defaults to false (`www.payfast.co.za`). Leave it unset or set `SANDBOX=false` with the **live** `PF_MERCHANT_ID`, `PF_MERCHANT_KEY`, and `PF_PASSPHRASE`. Vercel Preview for this R5 test must use those live keys and `SANDBOX=false`. Set `SANDBOX=true` only for `sandbox.payfast.co.za`, and only with sandbox keys. Do not mix them.
+
+`APP_URL` is the public origin for `return_url` (`/app?paid=1&ref=…`), `cancel_url` (`/moments?cancelled=1`), and `notify_url` (`{APP_URL}/api/payfast/itn`). If `APP_URL` is unset, `VERCEL_URL` is used. Payfast has to reach the notify URL from the internet.
+
+A confirmed ITN credits 40 moment saves on the buyer email vault id (`em_` plus the email hash) in the same Blob, S3, or `DATA_DIR` store as the vault. A moment save is one new day’s photo that can become My good moment. On `/app`, **Already bought?** checks that balance and opens Take / Upload while the pack is active. Replay, Share, joy picks, and saving again the same day do not spend a moment. An underpaid ITN (`amount_gross` below `5.00`) credits 0 and is not stored.
+
+### Live R5 test
+
+1. Use the production Payfast merchant id, key, and passphrase. On Vercel Preview set those live `PF_*` values and `SANDBOX=false` (or leave `SANDBOX` unset). Checkout and ITN then use `www.payfast.co.za`.
+2. Set `APP_URL` to the public https origin Payfast can call (the Preview URL is enough). Notify URL is `{APP_URL}/api/payfast/itn`.
+3. Open `/moments`. The price block still says **40 good moments — R450 ZAR · $28 USD**. Enter an email and pay. Payfast charges **5.00 ZAR**. `GET /api/payfast/checkout` should show `"sandbox": false`, `"amount": "5.00"`, `"moments": 40`, and no secrets.
+4. The browser returns to `/app?paid=1`. After the ITN, choose **Already bought?** and enter the same email. Take / Upload should enable, with 40 moment saves. Cancel returns to `/moments?cancelled=1`.
+5. Set `SANDBOX=true` only if you switch to sandbox keys. Do not point sandbox keys at the live host.
 
 ## License
 

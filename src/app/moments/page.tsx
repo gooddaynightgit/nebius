@@ -6,7 +6,19 @@ export const metadata: Metadata = {
   description: "One good moment a day. 40 good moments — R450 ZAR · $28 USD. Not an archive.",
 };
 
-export default function MomentsPage() {
+function queryValue(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
+
+export default async function MomentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ paid?: string; cancelled?: string; ref?: string }>;
+}) {
+  const query = await searchParams;
+  const paid = queryValue(query.paid) === "1";
+  const cancelled = queryValue(query.cancelled) === "1";
+
   return (
     <div className="page moments-page">
       <header className="site-header">
@@ -85,10 +97,35 @@ export default function MomentsPage() {
           <p className="moments-note">
             Each moment: one photo upload → one My good moment story.
           </p>
-          {/* TODO: swap this link for the moments-pack purchase when payment exists. */}
-          <Link className="moments-cta" href="/app">
-            Start hunting — R450 ZAR / $28 USD
-          </Link>
+          {paid ? (
+            <p className="moments-status" role="status">
+              Payfast sent you back. When the payment is confirmed, enter this email under Already
+              bought on the <Link href="/app">photo page</Link>.
+            </p>
+          ) : null}
+          {cancelled ? (
+            <p className="moments-status" role="status">
+              Checkout cancelled. Nothing was charged.
+            </p>
+          ) : null}
+          <form className="moments-buy" method="post" action="/api/payfast/checkout">
+            <label className="whisper-label" htmlFor="moments-email">
+              Email
+            </label>
+            <input
+              id="moments-email"
+              className="whisper"
+              name="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              maxLength={253}
+            />
+            <button className="moments-cta" type="submit">
+              Start hunting — R450 ZAR / $28 USD
+            </button>
+          </form>
           <p className="moments-aside">
             <em>40 moments. Yours to find — the finding changes you.</em>
           </p>

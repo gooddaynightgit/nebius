@@ -1736,6 +1736,28 @@ body:has(.moments-page) {
   background: #fff;
 }
 
+.moments-buy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.45rem;
+  max-width: 24rem;
+  margin-top: 1.15rem;
+}
+
+.moments-status {
+  position: relative;
+  z-index: 1;
+  max-width: 28rem;
+  margin: 0.95rem 0 0;
+  font-weight: 650;
+}
+
+.moments-status a {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
 .moments-cta {
   display: inline-flex;
   align-items: center;
@@ -1743,11 +1765,14 @@ body:has(.moments-page) {
   max-width: 100%;
   min-width: 14.5rem;
   min-height: 3.25rem;
-  margin-top: 1.2rem;
+  margin-top: 0.45rem;
   padding: 0.8rem 1.25rem;
+  border: 0;
   border-radius: 0.45rem;
   background: var(--navy);
   color: #fff;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 1.05rem;
   font-weight: 750;
   letter-spacing: -0.02em;
