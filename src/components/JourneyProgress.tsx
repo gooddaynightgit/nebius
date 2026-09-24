@@ -2,13 +2,14 @@
 
 import { Suspense, useContext } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { BuyerGateContext } from "@/components/journey-gate";
+import { AppProgressContext, BuyerGateContext } from "@/components/journey-gate";
 import {
   JOURNEY_STEP_COUNT,
   JOURNEY_STEPS,
   journeyFillPercent,
   journeyStep,
   normalizeJourneyPath,
+  type AppProgress,
   type BuyerGate,
 } from "@/lib/journey";
 
@@ -71,9 +72,17 @@ export function JourneyBar({ step }: { step: number }) {
   );
 }
 
-function JourneyProgressResolved({ pathname, gate }: { pathname: string; gate: BuyerGate }) {
+function JourneyProgressResolved({
+  pathname,
+  gate,
+  appProgress,
+}: {
+  pathname: string;
+  gate: BuyerGate;
+  appProgress: AppProgress;
+}) {
   const search = useSearchParams();
-  const step = journeyStep(pathname, search, gate);
+  const step = journeyStep(pathname, search, gate, appProgress);
   if (step == null) return null;
   return <JourneyBar step={step} />;
 }
@@ -81,13 +90,14 @@ function JourneyProgressResolved({ pathname, gate }: { pathname: string; gate: B
 export default function JourneyProgress() {
   const pathname = usePathname() ?? "/";
   const gate = useContext(BuyerGateContext);
-  const withoutSearch = journeyStep(pathname, { get: () => null }, gate);
+  const appProgress = useContext(AppProgressContext);
+  const withoutSearch = journeyStep(pathname, { get: () => null }, gate, appProgress);
   if (withoutSearch == null) return null;
 
   if (normalizeJourneyPath(pathname) === "/app") {
     return (
       <Suspense fallback={<JourneyBar step={withoutSearch} />}>
-        <JourneyProgressResolved pathname={pathname} gate={gate} />
+        <JourneyProgressResolved pathname={pathname} gate={gate} appProgress={appProgress} />
       </Suspense>
     );
   }

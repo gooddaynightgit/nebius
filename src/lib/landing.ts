@@ -35,7 +35,7 @@ export const LANDING = {
     heading: "Today. One good moment.",
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
-    yours: "Create your story",
+    yours: "My good moment",
     brand: "gooddaynight.com",
     captionLabel: "What is the good in this moment?",
     sparkWait: "Let me see your good moment capture",
