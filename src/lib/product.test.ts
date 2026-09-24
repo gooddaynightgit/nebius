@@ -799,8 +799,15 @@ describe("landing", () => {
     expect(playback).not.toMatch(/Story playback/);
     expect(copy).toContain('playbackTitle: "Create your story"');
     expect(playback).toMatch(/className="playback"/);
+    expect(playback).toMatch(/playback--weaved/);
     expect(styles).toMatch(/#f0f0ff/);
     expect(styles).toMatch(/--docs-lavender/);
+    expect(styles).toMatch(/\.playback\.playback--weaved[\s\S]*?#161616/);
+    expect(styles).toMatch(/#ede9fe/);
+    expect(styles).toMatch(/#f5c6e8/);
+    expect(styles).toMatch(/#c4b5fd/);
+    expect(styles).toMatch(/#bae6fd/);
+    expect(styles).toMatch(/#e8ecf1/);
   });
 });
 
@@ -851,7 +858,8 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/router\.push/);
     expect(joy).toMatch(/href="\/"/);
     expect(joy).toMatch(/STEP_LABEL\.start/);
-    expect(joy).toMatch(/LANDING\.app\.uploadPhoto/);
+    expect(joy).toMatch(/STEP_LABEL\.photo/);
+    expect(joy).not.toMatch(/LANDING\.app\.uploadPhoto/);
     expect(joy).toMatch(/uploadPhotoDestination/);
     expect(joy).toMatch(/if \(!selectedJoy\) return/);
     expect(joy).toMatch(/className="step-next"/);
@@ -908,6 +916,12 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).not.toMatch(/What joy is it\?/);
     expect(joy).toMatch(/legend=\{null\}/);
+    expect(joy).toMatch(/playbackTitle="Example: My good moment weaved"/);
+    expect(joy).toMatch(/playbackLead=\{LANDING\.app\.playbackLead\}/);
+    expect(joy).toMatch(/playbackVariant="weaved"/);
+    expect(joy).not.toMatch(/playbackEyebrow/);
+    expect(joy).not.toMatch(/playbackExample/);
+    expect(joy).not.toMatch(/Example of tonight/);
     expect(joy).toMatch(/step-heading step-heading--navy/);
     expect(joy).toMatch(/Pick your joy/);
     expect(joy).not.toMatch(/already-picked/);
@@ -1098,7 +1112,8 @@ describe("app capture client contract", () => {
     expect(readme).not.toMatch(/today-only still, size, not a meme/);
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="step-heading step-heading--navy"/);
-    expect(src).toMatch(/Upload your photo/);
+    expect(src).toMatch(/Capture it/);
+    expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(src).not.toMatch(/Your photo/);
     expect(src).toMatch(/Add a photo/);
     expect(joy).toMatch(/className="step-heading step-heading--navy"/);

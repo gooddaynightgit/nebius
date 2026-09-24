@@ -71,6 +71,9 @@ describe("landing copy", () => {
     expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open Create your story from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
+    expect(LANDING.app.playbackLead).toBe(
+      "Here's how a good moment reads once it's weaved.",
+    );
     expect(LANDING.moment.playbackTitle).toBe("Create your story");
     expect(LANDING.moment.playbackExample).toBe(
       "Example of tonight’s tone — not your story yet. Create your story from this photo.",

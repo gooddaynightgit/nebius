@@ -4,7 +4,7 @@ export const JOURNEY_STEPS = [
   { label: "Turn your moment" },
   { label: "Pick your joy" },
   { label: "Unlock" },
-  { label: "Upload your photo" },
+  { label: "Capture it" },
   { label: "What is the good in this moment?" },
   { label: "Turn my moment" },
 ] as const;

@@ -789,6 +789,58 @@ body:has(.journey) .skip-link:focus {
   white-space: pre-wrap;
 }
 
+/* Joy-page example only. Landing keeps the plain lavender .playback box. */
+.playback.playback--weaved {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0.35rem 0 0;
+  padding: 0.85rem 0.85rem 1.05rem;
+  border-radius: 1.15rem;
+  background: #161616;
+  color: #e8ecf1;
+}
+
+.playback.playback--weaved .playback__banner {
+  padding: 1.25rem 1.05rem 1.35rem;
+  border-radius: 0.95rem;
+  background-color: #ede9fe;
+  background-image:
+    radial-gradient(115% 90% at 100% 115%, #bae6fd 0%, rgba(186, 230, 253, 0) 52%),
+    radial-gradient(80% 75% at 92% 72%, #c4b5fd 0%, rgba(196, 181, 253, 0) 58%),
+    radial-gradient(70% 60% at 100% 28%, #f5c6e8 0%, rgba(245, 198, 232, 0) 50%),
+    linear-gradient(165deg, #f8f7ff 0%, #ede9fe 48%, #f3e9fb 100%);
+  color: var(--navy);
+}
+
+.playback.playback--weaved .playback__banner h3 {
+  margin: 0 0 0.4rem;
+  color: var(--navy);
+  font-size: clamp(1.28rem, 5.6vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.playback.playback--weaved .playback__lead {
+  margin: 0;
+  max-width: none;
+  color: var(--navy);
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.playback.playback--weaved .playback__story {
+  margin: 0;
+  padding: 0.95rem 0.35rem 0.2rem;
+  max-width: none;
+  color: #e8ecf1;
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
 .notice {
   margin: 0;
   color: #145c3a;

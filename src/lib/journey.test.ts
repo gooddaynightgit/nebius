@@ -37,7 +37,7 @@ describe("journey progress", () => {
       "Turn your moment",
       "Pick your joy",
       "Unlock",
-      "Upload your photo",
+      "Capture it",
       "What is the good in this moment?",
       "Turn my moment",
     ]);
