@@ -8,6 +8,7 @@ import {
 import { clipCaption } from "./app-capture";
 import { JOY_TYPES, type JoyType } from "./landing";
 import { EXCAVATE_OPENERS, HUMBLE_CLOSERS } from "./spark-closer";
+import { YOU_ADDRESSES, youAddressFor } from "./you-address";
 import {
   cleanSpokenLine,
   isSelfNegating,
@@ -88,7 +89,8 @@ Tone: delighted then humble. One soft exclamation max on the spark if it fits. N
 
 If the image is blocked (violence, gore, abuse, porn, hate, self-harm): reply only BLOCK.`;
 
-export const APP_REFLECT_SYSTEM = `You are the warm witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has already seen your photo read and answered what was good. Your job is the quieter confirmation — the keepsake — not another spark of surprise (that already happened at the photo).
+export function reflectSystemFor(address: string): string {
+  return `You are the warm witness inside Gooddaynight, an app that trains people to hunt one good moment a day — because the hunting becomes the happiness. The user has already seen your photo read and answered what was good. Your job is the quieter confirmation — the keepsake — not another spark of surprise (that already happened at the photo).
 
 You receive three things: their joy category, their photo (and/or the agreed excavate read of it), and their own words answering "What is the good in this moment?"
 
@@ -96,7 +98,7 @@ The six joy categories: Morning sunlight / A hello / One thing done slowly / A l
 
 Respond in under 70 words, following this exact shape:
 
-1. Open warm and second-person past tense — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, you…" / "You…" / "Yes, you…" / a soft "Fantastic, you…" only at the close family below.
+1. Open warm and second-person past tense — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, you…" / "You…" / "Yes, you…".
 
 2. Weave together: spirit of their joy, sensory detail that is factually grounded in the excavate read AND/OR clearly visible in the photo, and — most importantly — their own words, elevated but never distorted. Their answer is the heart. Honor it.
 
@@ -106,7 +108,7 @@ When the user message says "Photo emphasis: low": do not center the keepsake on 
 
 4. In the body, use at least three warm positive words or close synonyms (spread them). Draw from: wonderful, lovely, radiant, beautiful, glowing, precious, sweet, bright, tender, quiet, still, dear, warm, soft, brightening.
 
-5. Close with a confirmation that lands the brand truth. Open that close with a Fantastic-family word (rotate: Fantastic / Wonderful / Perfect / Beautiful / Yes) plus "you", then land ONE of these (vary night to night):
+5. Close with a confirmation that lands the brand truth. Open that close with exactly: ${address}. Then land ONE of these (vary night to night):
    - You hunted one good moment today, and the hunting became your happiness, your joy.
    - You found one good moment today — the finding is what's changing you.
    - Hunting one good moment today. Capturing it. You are becoming someone who looks.
@@ -116,8 +118,10 @@ Tone: warm, cinematic, quietly devoted — a bedtime keepsake. Soft spark alread
 If their answer is very short or unclear, don't ask for more — work with what they gave you.
 
 Remember: repetition turns searching into second nature. Every confirmation should make them want to hunt again tomorrow.`;
+}
 
-/** YOURS closer is APP_REFLECT_SYSTEM (quiet keepsake, under 70 words). */
+/** YOURS closer is the quiet keepsake, under 70 words, with one address for this story. */
+export const APP_REFLECT_SYSTEM = reflectSystemFor(YOU_ADDRESSES[0]);
 export const APP_WEAVE_SYSTEM = APP_REFLECT_SYSTEM;
 
 export const ULTRA_CONTINUITY_SYSTEM = `You are the private memory of Gooddaynight.
@@ -488,14 +492,17 @@ const BODY_GLOWS = [
   "Glowing in the hour, wonderful in the detail, radiant because you stayed.",
 ] as const;
 
-const BRAND_CLOSES = [
-  "Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.",
-  "Wonderful, you found one good moment today — the finding is what's changing you.",
-  "Perfect, you hunted one good moment today, capturing it, becoming someone who looks.",
-  "Beautiful, you found one good moment today — the finding is what's changing you.",
-  "Yes, you hunted one good moment today, and the hunting became your happiness, your joy.",
-  "Fantastic, you are hunting one good moment today, capturing it, and becoming someone who looks.",
-] as const;
+function brandClose(address: string, index: number): string {
+  const lines = [
+    `${address} hunted one good moment today, and the hunting became your happiness, your joy.`,
+    `${address} found one good moment today — the finding is what's changing you.`,
+    `${address} hunted one good moment today, capturing it, becoming someone who looks.`,
+    `${address} found one good moment today — the finding is what's changing you.`,
+    `${address} hunted one good moment today, and the hunting became your happiness, your joy.`,
+    `${address} hunted one good moment today, capturing it, and becoming someone who looks.`,
+  ];
+  return lines[index % lines.length];
+}
 
 function rotateIndex(key: string, modulo: number): number {
   return sparkSlot(key, modulo);
@@ -548,6 +555,7 @@ export function mockJoyStory(input: {
   excavation?: string;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  addressKey?: string;
 }): { title: string; body: string } {
   const excavation =
     input.excavation?.trim() ||
@@ -559,20 +567,22 @@ export function mockJoyStory(input: {
     joy: input.joy,
   });
   const slot = rotateIndex(input.joy.id, QUIET_OPENS.length);
+  const address = youAddressFor(input.addressKey || `${input.day}:${input.joy.id}`);
+  const close = brandClose(address, slot);
   const whisper = whisperFromCaption(input.caption);
 
   const lowPhoto = input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
   const assemble = (details: string[]) => {
     if (lowPhoto) {
       const named = whisper || "what you named";
-      return `${QUIET_OPENS[slot](named)}. ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
+      return `${QUIET_OPENS[slot](named)}. ${BODY_GLOWS[slot]} ${close}`;
     }
     const seen = details.filter((bit) => bit.toLowerCase() !== whisper.toLowerCase());
     const kept = seen.length ? seen.join(", ") : "what the hour held";
     const heart = whisper
       ? `${whisper.charAt(0).toUpperCase()}${whisper.slice(1).replace(/[.!?]+$/, "")}.`
       : "What you kept stayed with you.";
-    return `${QUIET_OPENS[slot](kept)}. ${heart} ${BODY_GLOWS[slot]} ${BRAND_CLOSES[slot]}`;
+    return `${QUIET_OPENS[slot](kept)}. ${heart} ${BODY_GLOWS[slot]} ${close}`;
   };
 
   let body = assemble(evidence);

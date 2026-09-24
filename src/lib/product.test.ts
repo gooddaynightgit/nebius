@@ -22,6 +22,7 @@ import {
 import { WeaveNeedsWordsError, weaveStory } from "./weave";
 import { stripReasoning, uniqueModels, visionModels, appStoryModels, appStoryTextModels, appStoryVisionModels, isImage2TextCloser } from "./nebius";
 import { MODELS } from "./config";
+import { YOU_ADDRESSES } from "./you-address";
 import { EXCAVATE_OPENERS, HUMBLE_CLOSERS, rotatingOpener, withHumbleCloser } from "./spark-closer";
 
 describe("funnel", () => {
@@ -177,7 +178,8 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/Photo emphasis: low/);
     expect(APP_REFLECT_SYSTEM).toMatch(/do not center the keepsake on the photo/);
     expect(APP_REFLECT_SYSTEM).toMatch(/at least three warm positive words/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Fantastic/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Remarkable you/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect/i);
     expect(APP_REFLECT_SYSTEM).toMatch(/the hunting became your happiness/);
     expect(APP_REFLECT_SYSTEM).toMatch(/the finding is what's changing you/);
     expect(APP_REFLECT_SYSTEM).toMatch(/becoming someone who looks/);
@@ -335,7 +337,8 @@ describe("ingest and weave fallbacks", () => {
       expect(story.body).not.toMatch(/Just this is|One corner clear/i);
       expect(story.body).toMatch(/^(Today, you|Yes, you|You\b)/);
       expect(story.body).not.toMatch(/^(Whoa|Oooh|Wow you|Gosh|Stunning|Look at that)/);
-      expect(story.body).toMatch(/\b(Fantastic|Wonderful|Perfect|Beautiful|Yes), you\b/);
+      expect(YOU_ADDRESSES.some((phrase) => story.body.includes(phrase))).toBe(true);
+      expect(story.body).not.toMatch(/\bperfect\b/i);
       expect(story.body).toMatch(
         /hunted one good moment today|found one good moment today|becoming someone who looks/,
       );
@@ -401,7 +404,8 @@ describe("ingest and weave fallbacks", () => {
     expect(story.body).toMatch(/blossom|petal|bark|tree|sky/i);
     expect(story.body).toMatch(/^(Today, you|Yes, you|You\b)/);
     expect(story.body).not.toMatch(/^(Whoa|Oooh|Wow you|Gosh|Stunning|Look at that)/);
-    expect(story.body).toMatch(/\b(Fantastic|Wonderful|Perfect|Beautiful|Yes), you\b/);
+    expect(YOU_ADDRESSES.some((phrase) => story.body.includes(phrase))).toBe(true);
+    expect(story.body).not.toMatch(/\bperfect\b/i);
     expect(story.body).toMatch(
       /hunted one good moment today|found one good moment today|becoming someone who looks/,
     );
@@ -924,7 +928,7 @@ describe("YOURS two-step brief", () => {
     const envExample = readFileSync(path.resolve(".env.example"), "utf8");
     const readme = readFileSync(path.resolve("README.md"), "utf8");
     expect(weave).toMatch(/APP_EXCAVATE_SYSTEM/);
-    expect(weave).toMatch(/APP_REFLECT_SYSTEM/);
+    expect(weave).toMatch(/reflectSystemFor/);
     expect(weave).not.toMatch(/4–6 short sentences/);
     expect(weave).toMatch(/visionModels/);
     expect(weave).toMatch(/appStoryVisionModels/);

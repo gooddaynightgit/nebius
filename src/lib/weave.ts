@@ -23,8 +23,8 @@ import {
 } from "./nebius";
 import {
   APP_EXCAVATE_SYSTEM,
-  APP_REFLECT_SYSTEM,
   SUPER_WEAVE_SYSTEM,
+  reflectSystemFor,
   ULTRA_CONTINUITY_SYSTEM,
   WEAVE_NEEDS_WORDS,
   mockExcavation,
@@ -34,6 +34,7 @@ import {
 } from "./prompts";
 import { isHorrificText } from "./safety-text";
 import { EXCAVATE_OPENERS, HUMBLE_CLOSERS } from "./spark-closer";
+import { withoutPerfectYou, youAddressFor } from "./you-address";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
@@ -281,17 +282,17 @@ function logAppReflectFallback(fail?: AppReflectFail) {
   );
 }
 
-function reflectRetryHint(problems: string[], lastBody: string): string {
+function reflectRetryHint(problems: string[], lastBody: string, address: string): string {
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
-    return 'The last draft was too short. Open quietly: "Today, you", "You", or "Yes, you" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. At least three warm words. Close with Fantastic, Wonderful, Perfect, Beautiful, or Yes, plus you, and one hunt-find truth. Under 70 words.';
+    return `The last draft was too short. Open quietly: "Today, you", "You", or "Yes, you" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. At least three warm words. Close with exactly: ${address}. Then one hunt-find truth. Under 70 words.`;
   }
   if (problems.includes("long")) {
-    return 'The last draft was too long. Keep it under 70 words and at most four sentences. Quiet open, only established details, warm words, then the brand close.';
+    return `The last draft was too long. Keep it under 70 words and at most four sentences. Quiet open, only established details, warm words, then close with exactly: ${address}.`;
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return 'Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet keepsake. Under 70 words. Do not invent weather or props the excavate and their answer did not establish.';
+    return `Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet keepsake. Under 70 words. Close with exactly: ${address}. Do not invent weather or props the excavate and their answer did not establish.`;
   }
-  return 'Rewrite the quieter keepsake. Open with "Today, you", "You", or "Yes, you". Weave the excavate read and their answer to "What is the good in this moment?" Close with a Fantastic-family word plus you and one hunt-find truth. Under 70 words. Invent nothing beyond that floor.';
+  return `Rewrite the quieter keepsake. Open with "Today, you", "You", or "Yes, you". Weave the excavate read and their answer to "What is the good in this moment?" Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Invent nothing beyond that floor.`;
 }
 
 async function excavateAppPhoto(input: {
@@ -369,6 +370,7 @@ async function reflectWithModels(
   models: string[],
   baseMessages: ChatMessage[],
   template: string,
+  addressKey: string,
 ): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail }> {
   const fail: AppReflectFail = {
     lastBody: "",
@@ -386,7 +388,7 @@ async function reflectWithModels(
               ...baseMessages,
               {
                 role: "user" as const,
-                content: reflectRetryHint(fail.lastProblems, fail.lastBody),
+                content: reflectRetryHint(fail.lastProblems, fail.lastBody, youAddressFor(addressKey)),
               },
             ];
       const result = await completeWithFallback(models, retryHint, {
@@ -399,7 +401,7 @@ async function reflectWithModels(
         if (!fail.lastBody) break;
         continue;
       }
-      const trimmed = trimAppStory(parsed);
+      const trimmed = withoutPerfectYou(trimAppStory(parsed), addressKey);
       fail.lastBody = trimmed;
       fail.lastProblems = appStoryProblems(trimmed, template);
       if (fail.lastProblems.length === 0) {
@@ -419,7 +421,10 @@ async function reflectWithModels(
     fail.lastBody &&
     !fail.lastProblems.some((item) => FATAL_REFLECT_PROBLEMS.has(item))
   ) {
-    return { body: finishAppStory(fail.lastBody), model: fail.lastModel || "mock-fallback" };
+    return {
+      body: withoutPerfectYou(finishAppStory(fail.lastBody), addressKey),
+      model: fail.lastModel || "mock-fallback",
+    };
   }
   return { fail };
 }
@@ -432,29 +437,32 @@ export async function weaveAppStoryFromExcavation(input: {
   imageDataUrl?: string;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  addressKey?: string;
 }): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail } | null> {
   const low =
     input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
+  const addressKey = input.addressKey?.trim() || input.joyTitle || "still";
+  const system = reflectSystemFor(youAddressFor(addressKey));
   const visionIds = input.imageDataUrl && !low ? appStoryVisionModels() : [];
   const textIds = appStoryTextModels();
   let lastFail: AppReflectFail | undefined;
 
   if (visionIds.length && input.imageDataUrl) {
     const visionMessages: ChatMessage[] = [
-      { role: "system", content: APP_REFLECT_SYSTEM },
+      { role: "system", content: system },
       { role: "user", content: appReflectUserContent(input) },
     ];
-    const live = await reflectWithModels(visionIds, visionMessages, input.template);
+    const live = await reflectWithModels(visionIds, visionMessages, input.template, addressKey);
     if ("body" in live || "blocked" in live) return live;
     lastFail = live.fail;
   }
 
   if (textIds.length) {
     const textMessages: ChatMessage[] = [
-      { role: "system", content: APP_REFLECT_SYSTEM },
+      { role: "system", content: system },
       { role: "user", content: appReflectUserText({ ...input, hasImage: false }) },
     ];
-    const live = await reflectWithModels(textIds, textMessages, input.template);
+    const live = await reflectWithModels(textIds, textMessages, input.template, addressKey);
     if ("body" in live || "blocked" in live) return live;
     lastFail = mergeReflectFail(lastFail, live.fail);
   }
@@ -470,6 +478,7 @@ async function weaveAppPhotoStory(input: {
   imageDataUrl?: string;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  addressKey?: string;
 }): Promise<
   | { kind: "blocked"; model: string; excavateModel?: string }
   | { kind: "story"; body: string; model: string; excavateModel?: string }
@@ -499,6 +508,7 @@ async function weaveAppPhotoStory(input: {
     imageDataUrl,
     photoEmphasis: input.photoEmphasis,
     sparkAnswer: input.sparkAnswer,
+    addressKey: input.addressKey,
   });
   if (live && "blocked" in live && live.blocked) {
     const fail = {
@@ -540,6 +550,8 @@ export async function weaveStory(options: {
   let continuityModel: string | undefined;
   let closerHint: string | undefined;
 
+  const addressKey = appCapture?.id || options.captures[0]?.id || options.day || "still";
+
   if (appJoy && appCapture) {
     const caption = clipCaption(appCapture.caption ?? "") || undefined;
     const photoNotes = (appCapture.goodMoment || "").trim();
@@ -555,6 +567,7 @@ export async function weaveStory(options: {
         imageDataUrl: options.imageDataUrl,
         photoEmphasis: appCapture.photoEmphasis,
         sparkAnswer: appCapture.sparkAnswer,
+        addressKey,
       });
       if (live.kind === "blocked") {
         throw new WeaveBlockedError();
@@ -575,6 +588,7 @@ export async function weaveStory(options: {
           excavation: live.excavation,
           photoEmphasis: appCapture.photoEmphasis,
           sparkAnswer: appCapture.sparkAnswer,
+          addressKey,
         });
         title = "";
         body = fallback.body;
@@ -591,6 +605,7 @@ export async function weaveStory(options: {
         day: options.day,
         photoEmphasis: appCapture.photoEmphasis,
         sparkAnswer: appCapture.sparkAnswer,
+        addressKey,
       });
       title = "";
       body = fallback.body;
@@ -624,6 +639,9 @@ export async function weaveStory(options: {
       body = fallback.body;
     }
   }
+
+  title = withoutPerfectYou(title, addressKey);
+  body = withoutPerfectYou(body, addressKey);
 
   const tts = await synthesizeStory(title ? `${title}. ${body}` : body);
   let audioKey: string | undefined;

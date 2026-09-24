@@ -14,10 +14,9 @@ describe("story opening status", () => {
       "Quiet joys worth keeping",
       "Finding my good moment is changing me",
       "Letting the habit of looking rewire how I feel",
-      "STORY Repetition, JOY becoming second nature",
+      "Your good moment story is being carefully weaved, thank you for your patience.",
     ]);
-    expect(STORY_OPENING_INTERVAL_MS).toBeGreaterThanOrEqual(2500);
-    expect(STORY_OPENING_INTERVAL_MS).toBeLessThanOrEqual(3500);
+    expect(STORY_OPENING_INTERVAL_MS).toBe(5500);
 
     let index = 0;
     const seen = [STORY_OPENING_LINES[index]];
@@ -30,11 +29,11 @@ describe("story opening status", () => {
       "Quiet joys worth keeping",
       "Finding my good moment is changing me",
       "Letting the habit of looking rewire how I feel",
-      "STORY Repetition, JOY becoming second nature",
-      "STORY Repetition, JOY becoming second nature",
-      "STORY Repetition, JOY becoming second nature",
-      "STORY Repetition, JOY becoming second nature",
-      "STORY Repetition, JOY becoming second nature",
+      "Your good moment story is being carefully weaved, thank you for your patience.",
+      "Your good moment story is being carefully weaved, thank you for your patience.",
+      "Your good moment story is being carefully weaved, thank you for your patience.",
+      "Your good moment story is being carefully weaved, thank you for your patience.",
+      "Your good moment story is being carefully weaved, thank you for your patience.",
     ]);
     expect(nextStoryOpeningIndex(STORY_OPENING_LINES.length - 1)).toBe(
       STORY_OPENING_LINES.length - 1,
@@ -52,7 +51,7 @@ describe("story opening status", () => {
       (match) => match[2],
     );
     expect(colors).toEqual(["#ebe7fb", "#e7f6ea", "#d7f3e4", "#ffe7b0", "#f8ead6"]);
-    expect(block).toMatch(/transition: background-color 0\.7s var\(--ease\)/);
+    expect(block).toMatch(/transition: background-color 1\.2s var\(--ease\)/);
     expect(block).toMatch(/color: var\(--navy\)/);
   });
 });
