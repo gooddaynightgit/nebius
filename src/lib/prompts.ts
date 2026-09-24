@@ -7,7 +7,7 @@ import {
 } from "./app-story";
 import { clipCaption } from "./app-capture";
 import { JOY_TYPES, type JoyType } from "./landing";
-import { EXCAVATE_OPENERS, HUMBLE_CLOSERS } from "./spark-closer";
+import { EXCAVATE_OPENERS, HUMBLE_CLOSERS, stripSparkFrame } from "./spark-closer";
 import { YOU_ADDRESSES, youAddressFor } from "./you-address";
 import {
   cleanSpokenLine,
@@ -95,11 +95,11 @@ Respond in under 70 words, following this exact shape:
 
 1. Open warm and second-person past tense — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, you…" / "You…" / "Yes, you…".
 
-2. Weave together: spirit of their joy, sensory detail that is factually grounded in the excavate read AND/OR clearly visible in the photo, and — most importantly — their own words, elevated but never distorted. Their answer is the heart. Honor it.
+2. Weave together the mood of their joy, sensory detail that is factually grounded in the photo read and/or clearly visible in the photo, and their own words, elevated but never distorted. When a picture or their words are present, both belong in the keepsake. Their answer is the heart. Honor it. The joy sets the mood and the theme only — it is not a substitute for the scene.
 
-3. Excavate (and their words) are the factual floor. Never invent weather, rain, wetness, puddles, headlights glowing, people, or props that excavate and the user did not establish. If excavate said a parked car in a garage and they did not mention rain, there is no rain.
+3. The photo read (and their words) are the factual floor. Never invent weather, rain, wetness, puddles, headlights glowing, people, or props that the photo read and the user did not establish. If the read said a parked car in a garage and they did not mention rain, there is no rain.
 
-When the user message says "Photo emphasis: low": do not center the keepsake on the photo or the excavate read. Lean on their joy and their own words. A visual detail is allowed only when their answer already named it. If they said the photo read was wrong, ignore the excavate description and do not describe the picture.
+Never write a story that only restates the joy and could belong to any photo. If the user message says the earlier photo read was declined, do not repeat that declined read. Ground the scene in the attached photo and in their words, and still name what the picture holds.
 
 4. In the body, use at least three warm positive words or close synonyms (spread them). Draw from: wonderful, lovely, radiant, beautiful, glowing, precious, sweet, bright, tender, quiet, still, dear, warm, soft, brightening.
 
@@ -505,6 +505,19 @@ function rotateIndex(key: string, modulo: number): number {
   return sparkSlot(key, modulo);
 }
 
+/** First concrete sentence of a photo read, short enough to sit inside the keepsake. */
+function sceneBit(text: string): string {
+  const scene = stripSparkFrame(text).replace(/\s+/g, " ").trim();
+  if (scene.length < 8) return "";
+  if (/you kept a still/i.test(scene) || /you stopped long enough/i.test(scene)) return "";
+  const sentence = (scene.split(/(?<=[.!])\s+/)[0] || scene).replace(/[.!?]+$/, "");
+  const held = sentence.replace(/\b(sits|sitting|stands|standing|lies|lying)\s+/i, "");
+  const words = held.split(" ").filter(Boolean).slice(0, 18);
+  if (words.length < 3) return "";
+  const bit = words.join(" ");
+  return bit.charAt(0).toLowerCase() + bit.slice(1);
+}
+
 function evidenceBits(input: {
   excavation: string;
   caption?: string;
@@ -525,6 +538,8 @@ function evidenceBits(input: {
     bits.push(next);
   };
 
+  const scene = sceneBit(input.excavation) || sceneBit(seen);
+  if (scene) add(scene);
   if (/blossom|bloom|petal/.test(t)) add("pale petals");
   if (/bark/.test(t)) add("bark");
   else if (/tree|branch/.test(t)) add("the tree");
@@ -533,7 +548,7 @@ function evidenceBits(input: {
   if (/table/.test(t)) add("the kitchen table");
   if (/gold/.test(t) && !/gold on the table/i.test(whisper || "")) add("gold along the wood");
   if (/sky|cloud/.test(t)) add("a little sky");
-  if (/sun|daylight|light/.test(t) && bits.length < 2) add("the light");
+  if (/sun|daylight|light/.test(t) && bits.length === 0) add("the light");
   const visual = bits.slice(0, whisper ? 2 : 3);
   if (whisper && !visual.some((kept) => kept.toLowerCase() === whisper.toLowerCase())) {
     visual.push(whisper);
@@ -554,13 +569,15 @@ export function mockJoyStory(input: {
   sparkAnswer?: "yes" | "no";
   addressKey?: string;
 }): { title: string; body: string } {
+  const declined = input.sparkAnswer === "no";
+  void input.photoEmphasis;
   const excavation =
     input.excavation?.trim() ||
-    mockExcavation({ caption: input.caption, photoNotes: input.goodMoment });
+    (declined ? "" : mockExcavation({ caption: input.caption, photoNotes: input.goodMoment }));
   const evidence = evidenceBits({
     excavation,
     caption: input.caption,
-    goodMoment: input.goodMoment,
+    goodMoment: declined ? undefined : input.goodMoment,
     joy: input.joy,
   });
   const slot = rotateIndex(input.joy.id, QUIET_OPENS.length);
@@ -568,12 +585,7 @@ export function mockJoyStory(input: {
   const close = brandClose(address, slot);
   const whisper = whisperFromCaption(input.caption);
 
-  const lowPhoto = input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
   const assemble = (details: string[]) => {
-    if (lowPhoto) {
-      const named = whisper || "what you named";
-      return `${QUIET_OPENS[slot](named)}. ${BODY_GLOWS[slot]} ${close}`;
-    }
     const seen = details.filter((bit) => bit.toLowerCase() !== whisper.toLowerCase());
     const kept = seen.length ? seen.join(", ") : "what the hour held";
     const heart = whisper

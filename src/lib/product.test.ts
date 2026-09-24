@@ -174,8 +174,10 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/NOT with Whoa\/Oooh\/Wow\/Gosh\/Stunning/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Today, you/);
     expect(APP_REFLECT_SYSTEM).toMatch(/factual floor/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Photo emphasis: low/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/do not center the keepsake on the photo/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/mood and the theme only/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/could belong to any photo/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Photo emphasis: low/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/do not center the keepsake on the photo/);
     expect(APP_REFLECT_SYSTEM).toMatch(/at least three warm positive words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Remarkable you/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect/i);
@@ -460,10 +462,13 @@ describe("ingest and weave fallbacks", () => {
       sparkAnswer: "yes",
       hasImage: true,
     });
-    expect(quiet).toMatch(/Photo emphasis: low/);
-    expect(quiet).toMatch(/Photo: withheld/);
-    expect(quiet).toMatch(/Do not center the keepsake on the photo/);
-    expect(quiet).not.toMatch(/Photo: attached/);
+    expect(quiet).toMatch(/Photo: attached/);
+    expect(quiet).toMatch(/pale petals|bark/i);
+    expect(quiet).toMatch(/Blossomimg tree/);
+    expect(quiet).toMatch(/mood and theme/);
+    expect(quiet).not.toMatch(/Photo: withheld/);
+    expect(quiet).not.toMatch(/Do not center the keepsake on the photo/);
+    expect(quiet).not.toMatch(/Photo emphasis: low/);
     const rejected = appReflectUserText({
       joyTitle: joy!.title,
       excavation,
@@ -473,6 +478,7 @@ describe("ingest and weave fallbacks", () => {
     });
     expect(rejected).toMatch(/photo read was wrong/i);
     expect(rejected).not.toMatch(/pale petals|bark/i);
+    expect(rejected).toMatch(/Blossomimg tree/);
     const lowStory = mockJoyStory({
       joy: joy!,
       caption: "the quiet hello",
@@ -482,7 +488,17 @@ describe("ingest and weave fallbacks", () => {
       sparkAnswer: "yes",
     });
     expect(lowStory.body).toMatch(/quiet hello/i);
-    expect(lowStory.body).not.toMatch(/kettle|steam/i);
+    expect(lowStory.body).toMatch(/kettle|steam/i);
+    const declinedStory = mockJoyStory({
+      joy: joy!,
+      caption: "the quiet hello",
+      goodMoment: "Steam over the kettle in the morning window.",
+      day: "2026-09-21",
+      photoEmphasis: "low",
+      sparkAnswer: "no",
+    });
+    expect(declinedStory.body).toMatch(/quiet hello/i);
+    expect(declinedStory.body).not.toMatch(/kettle|steam/i);
     expect(user).not.toMatch(/~35 words/);
     expect(user).not.toMatch(/four beats/i);
     expect(user).not.toMatch(/4–6 short sentences/);
@@ -547,6 +563,134 @@ describe("ingest and weave fallbacks", () => {
     expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
     expect(story.mock).toBe(true);
     expect(story.excavateModel).toBe("mock-excavation");
+  });
+
+  it("weaves each new moment from its own spark and caption, including a second story the same day", async () => {
+    const { pictureNotesForCapture, appReflectUserText, storyMissesPicture, pictureTokens } =
+      await import("./weave");
+    const day = "2026-09-24";
+    const pugSpark =
+      "Wowee! A pug sits wrapped in a plaid blanket, surrounded by greenery and fallen leaves on a forest path. The light is soft and natural. Can you verify I got that right?";
+    const pugCaption = "Test story: pug in a blanket";
+    const carsSpark = "Ahh! A row of parked cars along a sunny street. Did I get the right impression there?";
+    const carsCaption = "the cars in the sun";
+    const pug = {
+      id: "mom_pugblanket01",
+      vaultId: "v_test",
+      kind: "photo" as const,
+      createdAt: "2026-09-24T08:00:00.000Z",
+      day,
+      caption: pugCaption,
+      joyType: "morning-sunlight",
+      source: "app" as const,
+      goodMoment: pugCaption,
+      ingestStatus: "ok" as const,
+      photoEmphasis: "low" as const,
+      sparkAnswer: "yes" as const,
+      spark: pugSpark,
+    };
+    const cars = {
+      ...pug,
+      id: "mom_carsinthesun1",
+      createdAt: "2026-09-24T09:00:00.000Z",
+      caption: carsCaption,
+      goodMoment: carsCaption,
+      spark: carsSpark,
+    };
+
+    const pugNotes = pictureNotesForCapture(pug);
+    const carsNotes = pictureNotesForCapture(cars);
+    expect(pugNotes).toMatch(/pug/);
+    expect(pugNotes).toMatch(/plaid blanket/);
+    expect(pugNotes).toMatch(/forest path/);
+    expect(pugNotes).not.toMatch(/Wowee|verify I got that right/i);
+    expect(carsNotes).toMatch(/parked cars/);
+    expect(carsNotes).not.toMatch(/pug/);
+
+    const pugPrompt = appReflectUserText({
+      joyTitle: "Morning sunlight",
+      excavation: pugNotes,
+      caption: pug.caption,
+      hasImage: true,
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+    });
+    const carsPrompt = appReflectUserText({
+      joyTitle: "Morning sunlight",
+      excavation: carsNotes,
+      caption: cars.caption,
+      hasImage: true,
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+    });
+    expect(pugPrompt).toMatch(/pug/);
+    expect(pugPrompt).toMatch(/plaid blanket/);
+    expect(pugPrompt).toMatch(/forest path/);
+    expect(pugPrompt).toMatch(/Test story: pug in a blanket/);
+    expect(pugPrompt).toMatch(/Photo: attached/);
+    expect(pugPrompt).not.toMatch(/parked cars/);
+    expect(pugPrompt).not.toMatch(/Photo: withheld/);
+    expect(carsPrompt).toMatch(/parked cars/);
+    expect(carsPrompt).toMatch(/the cars in the sun/);
+    expect(carsPrompt).not.toMatch(/pug|blanket|forest/);
+
+    const joyOnly =
+      "Today, you welcomed the morning sunlight as a quiet companion, feeling its warmth like a gentle promise. The stillness turned soft, radiant, and lovely. Phenomenal you found one good moment today — the finding is what's changing you.";
+    expect(storyMissesPicture(joyOnly, pictureTokens(pugNotes, pugCaption))).toBe(true);
+
+    const pugStory = await weaveStory({
+      vaultId: "v_test",
+      day,
+      lastNight: null,
+      captures: [pug],
+    });
+    const carsStory = await weaveStory({
+      vaultId: "v_test",
+      day,
+      lastNight: null,
+      captures: [cars],
+    });
+    expect(pugStory.body).toMatch(/pug/i);
+    expect(pugStory.body).toMatch(/blanket/i);
+    expect(pugStory.body).toMatch(/forest/i);
+    expect(pugStory.body).toMatch(/Test story: pug in a blanket/);
+    expect(pugStory.body).not.toMatch(/parked cars/i);
+    expect(pugStory.body).not.toMatch(/welcomed the morning sunlight as a quiet companion/i);
+    expect(carsStory.body).toMatch(/cars/i);
+    expect(carsStory.body).not.toMatch(/\bpug\b/i);
+    expect(pugStory.captureIds).toEqual([pug.id]);
+    expect(carsStory.captureIds).toEqual([cars.id]);
+
+    const declined = {
+      ...pug,
+      id: "mom_declinedread1",
+      createdAt: "2026-09-24T10:00:00.000Z",
+      caption: "the blanket on the path",
+      goodMoment: "the blanket on the path",
+      sparkAnswer: "no" as const,
+    };
+    expect(pictureNotesForCapture(declined)).toBe("");
+    const declinedPrompt = appReflectUserText({
+      joyTitle: "Morning sunlight",
+      excavation: pugNotes,
+      caption: declined.caption,
+      hasImage: true,
+      photoEmphasis: "low",
+      sparkAnswer: "no",
+    });
+    expect(declinedPrompt).toMatch(/the blanket on the path/);
+    expect(declinedPrompt).toMatch(/photo read was wrong/i);
+    expect(declinedPrompt).not.toMatch(/greenery/);
+    expect(declinedPrompt).toMatch(/Photo: attached/);
+    const declinedStory = await weaveStory({
+      vaultId: "v_test",
+      day,
+      lastNight: null,
+      captures: [declined],
+    });
+    expect(declinedStory.body).toMatch(/blanket/i);
+    expect(declinedStory.body).not.toMatch(/greenery/i);
+    expect(declinedStory.captureIds).toEqual([declined.id]);
   });
 
   it("blocks a horrific app weave and does not produce a story", async () => {
