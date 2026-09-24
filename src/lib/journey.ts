@@ -1,7 +1,7 @@
 export const JOURNEY_STEP_COUNT = 5;
 
 export const JOURNEY_STEPS = [
-  { label: "Start" },
+  { label: "Turn your moment" },
   { label: "Pick your joy" },
   { label: "Unlock" },
   { label: "Your photo" },
