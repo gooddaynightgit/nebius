@@ -772,9 +772,15 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/code === "blocked"/);
     expect(yours).toMatch(/LANDING\.app\.blocked/);
     expect(yours).toMatch(/No story for My good moment tonight/);
-    expect(yours).toMatch(/Written without seeing the photo/);
-    expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
-    expect(yours).toMatch(/Couldn’t finish tonight’s close/);
+    expect(yours).toMatch(/My Good Moment Story/);
+    expect(yours).not.toMatch(/className="chip"/);
+    expect(yours).not.toMatch(/status-row/);
+    expect(yours).not.toMatch(/Browser voice \(Sonic coming\)/);
+    expect(yours).not.toMatch(/Sonic voice/);
+    expect(yours).not.toMatch(/weaveModel/);
+    expect(yours).not.toMatch(/Written without seeing the photo/);
+    expect(yours).not.toMatch(/add NEBIUS_API_KEY for Kimi/);
+    expect(yours).not.toMatch(/Couldn’t finish tonight’s close/);
     expect(yours).not.toMatch(/closerHint/);
     expect(yours).not.toMatch(/Kimi didn’t finish/);
     expect(yours).toMatch(/keepCardPhotoSrc|composeKeepCardJpeg/);

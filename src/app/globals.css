@@ -618,6 +618,10 @@ a {
   line-height: 1.35;
 }
 
+#yours-heading {
+  margin-bottom: 0.9rem;
+}
+
 .keep-card-view {
   display: block;
   width: 100%;
