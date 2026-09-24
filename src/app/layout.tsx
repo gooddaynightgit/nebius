@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import FeedbackRibbon from "@/components/FeedbackRibbon";
+import JourneyProgress from "@/components/JourneyProgress";
+import { JourneyProvider } from "@/components/journey-gate";
 import "./globals.css";
 
 const inter = Inter({
@@ -50,11 +52,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <a className="skip-link" href="#main">
-          Skip to content
-        </a>
-        {children}
-        <FeedbackRibbon />
+        <JourneyProvider>
+          <a className="skip-link" href="#main">
+            Skip to content
+          </a>
+          <JourneyProgress />
+          {children}
+          <FeedbackRibbon />
+        </JourneyProvider>
       </body>
     </html>
   );

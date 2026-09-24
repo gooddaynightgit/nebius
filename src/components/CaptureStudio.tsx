@@ -57,6 +57,7 @@ import {
   writePendingPhoto,
 } from "@/lib/capture-stash";
 import type { SessionState } from "@/lib/types";
+import { useReportBuyerGate } from "@/components/journey-gate";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
 
@@ -175,6 +176,7 @@ export default function CaptureStudio() {
     sparkGeneration,
     answeredGeneration,
   });
+  useReportBuyerGate(captureOpen, hydrated);
   useEffect(() => {
     if (buyerOpen) buyerInputRef.current?.focus();
   }, [buyerOpen]);
