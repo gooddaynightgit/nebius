@@ -18,6 +18,11 @@ import {
 } from "@/lib/keep-card";
 import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
+import {
+  STORY_OPENING_INTERVAL_MS,
+  STORY_OPENING_LINES,
+  nextStoryOpeningIndex,
+} from "@/lib/story-opening";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
 
 function PlayIcon() {
@@ -34,6 +39,28 @@ function PauseIcon() {
       <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
       <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
     </svg>
+  );
+}
+
+function StoryOpeningStatus() {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (index >= STORY_OPENING_LINES.length - 1) return;
+    const id = window.setTimeout(() => {
+      setIndex((current) => nextStoryOpeningIndex(current));
+    }, STORY_OPENING_INTERVAL_MS);
+    return () => window.clearTimeout(id);
+  }, [index]);
+  return (
+    <section
+      className="card card--lavender card--compact story-opening"
+      data-line={index}
+      aria-live="polite"
+    >
+      <p className="card__body" role="status">
+        {STORY_OPENING_LINES[index]}
+      </p>
+    </section>
   );
 }
 
@@ -319,16 +346,7 @@ export default function YoursStory() {
         </Link>
       </header>
       <main id="main">
-        {state.status === "loading" ? (
-          <section className="card card--lavender card--compact">
-            <p className="card__body">Opening tonight’s story…</p>
-          </section>
-        ) : null}
-        {state.status === "keeping" ? (
-          <section className="card card--lavender card--compact" aria-live="polite">
-            <p className="card__body">{LANDING.app.keepingMoment}</p>
-          </section>
-        ) : null}
+        {state.status === "loading" || state.status === "keeping" ? <StoryOpeningStatus /> : null}
         {failed ? (
           <section className="card card--cream card--compact" aria-labelledby="yours-gone">
             <h1 id="yours-gone">
@@ -355,11 +373,9 @@ export default function YoursStory() {
             <h1 id="yours-heading">My Good Moment Story</h1>
             {cardUrl ? (
               <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
-            ) : (
-              <p className="card__body">
-                {cardError ? LANDING.app.keepFailed : "Opening tonight’s story…"}
-              </p>
-            )}
+            ) : cardError ? (
+              <p className="card__body">{LANDING.app.keepFailed}</p>
+            ) : null}
             <div className="actions" style={{ marginTop: "1rem" }}>
               <button
                 className="btn btn--icon"

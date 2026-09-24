@@ -622,6 +622,40 @@ a {
   margin-bottom: 0.9rem;
 }
 
+/* Processing lines: lavender, green, then amber and the peach card. Navy stays readable. */
+.card.story-opening {
+  background-color: #ebe7fb;
+  background-image: none;
+  color: var(--navy);
+  transition: background-color 0.7s var(--ease);
+}
+
+.card.story-opening[data-line="0"] {
+  background-color: #ebe7fb;
+}
+
+.card.story-opening[data-line="1"] {
+  background-color: #e7f6ea;
+}
+
+.card.story-opening[data-line="2"] {
+  background-color: #d7f3e4;
+}
+
+.card.story-opening[data-line="3"] {
+  background-color: #ffe7b0;
+}
+
+.card.story-opening[data-line="4"] {
+  background-color: #f8ead6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card.story-opening {
+    transition: none;
+  }
+}
+
 .keep-card-view {
   display: block;
   width: 100%;
