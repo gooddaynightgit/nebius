@@ -56,6 +56,15 @@ export async function creditMoments(input: {
   return { remaining: result.game, duplicate: result.duplicate };
 }
 
+/** A Payfast id already stored on some `goodfans` row, including a hand credit. */
+export async function recordedPayment(
+  pfPaymentId: string,
+): Promise<{ remaining: number } | null> {
+  const row = await activeFansTable().findPayment(pfPaymentId);
+  if (!row?.paymentIds.includes(pfPaymentId)) return null;
+  return { remaining: row.game };
+}
+
 /**
  * Spend one moment save (a new day's photo → My good moment).
  * Replay, Share, joy picks, and same-day replaces do not call this.

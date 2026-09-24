@@ -1,5 +1,5 @@
 import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamoDocument } from "./dynamo";
 
 /**
@@ -40,6 +40,8 @@ export interface FansTable {
   get(order: string): Promise<FanRow | null>;
   /** Add `moments` once per Payfast payment id. A repeat id does not add again. */
   credit(input: FanCredit): Promise<{ game: number; duplicate: boolean }>;
+  /** Row that already lists this Payfast id, if one exists. */
+  findPayment(pfPaymentId: string): Promise<FanRow | null>;
   /** Subtract 1 only while `game` > 0. Returns the new balance, or null if blocked. */
   consume(order: string, now: string): Promise<number | null>;
   /** Put one moment back when a save fails after a successful consume. */
@@ -48,11 +50,13 @@ export interface FansTable {
 
 type FansCommandOutput = {
   Item?: Record<string, unknown>;
+  Items?: Record<string, unknown>[];
   Attributes?: Record<string, unknown>;
+  LastEvaluatedKey?: Record<string, unknown>;
 };
 
 type FansDoc = {
-  send: (command: GetCommand | UpdateCommand) => Promise<FansCommandOutput>;
+  send: (command: GetCommand | UpdateCommand | ScanCommand) => Promise<FansCommandOutput>;
 };
 
 export function fansTableName(): string {
@@ -95,6 +99,10 @@ export class DynamoFansTable implements FansTable {
   }
 
   async credit(input: FanCredit): Promise<{ game: number; duplicate: boolean }> {
+    const existing = await this.get(input.order);
+    if (existing?.paymentIds.includes(input.pfPaymentId)) {
+      return { game: existing.game, duplicate: true };
+    }
     try {
       const out = await this.doc.send(
         new UpdateCommand({
@@ -126,6 +134,25 @@ export class DynamoFansTable implements FansTable {
       }
       throw error;
     }
+  }
+
+  async findPayment(pfPaymentId: string): Promise<FanRow | null> {
+    let startKey: Record<string, unknown> | undefined;
+    do {
+      const out = await this.doc.send(
+        new ScanCommand({
+          TableName: this.tableName,
+          FilterExpression: "contains(paymentIds, :payment)",
+          ExpressionAttributeValues: { ":payment": pfPaymentId },
+          ExclusiveStartKey: startKey,
+          ConsistentRead: true,
+        }),
+      );
+      const hit = out.Items?.find((item) => paymentIdList(item.paymentIds).includes(pfPaymentId));
+      if (hit) return normalizeFan(hit);
+      startKey = out.LastEvaluatedKey;
+    } while (startKey);
+    return null;
   }
 
   async consume(order: string, now: string): Promise<number | null> {
@@ -205,6 +232,13 @@ export class MemoryFansTable implements FansTable {
     return { game: next.game, duplicate: false };
   }
 
+  async findPayment(pfPaymentId: string): Promise<FanRow | null> {
+    for (const row of this.rows.values()) {
+      if (row.paymentIds.includes(pfPaymentId)) return copyFan(row);
+    }
+    return null;
+  }
+
   async consume(order: string, now: string): Promise<number | null> {
     const row = this.rows.get(order);
     if (!row || row.game <= 0) return null;
@@ -241,9 +275,15 @@ function normalizeFan(item: Record<string, unknown>): FanRow {
 }
 
 function paymentIdList(value: unknown): string[] {
-  if (value instanceof Set) return [...value].map(String).sort();
-  if (Array.isArray(value)) return value.map(String).sort();
+  if (value instanceof Set) return idsFrom(value.values());
+  if (Array.isArray(value)) return idsFrom(value);
+  // A hand-edited row may store one Payfast id as a plain string.
+  if (typeof value === "string" && value.trim()) return [value.trim()];
   return [];
+}
+
+function idsFrom(values: Iterable<unknown>): string[] {
+  return [...values].map((id) => String(id).trim()).filter(Boolean).sort();
 }
 
 function numberAttr(value: unknown): number {
