@@ -71,6 +71,7 @@ import type { SessionState } from "@/lib/types";
 import { useReportAppProgress, useReportBuyerGate } from "@/components/journey-gate";
 import { StoryOpeningStatus } from "@/components/YoursStory";
 import { destinationForEntitlement, photoButtonsEnabled, releaseCaptureVisit } from "@/lib/photo-entry";
+import NoticingMoments from "@/components/NoticingMoments";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
 
@@ -822,6 +823,7 @@ export default function CaptureStudio() {
         <>
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
+          <NoticingMoments />
           {hydrated && buyerOpen && (!session?.otpVerified || resign) ? (
             <form className="buyer-email" onSubmit={noteBuyerEmail}>
               <label className="whisper-label" htmlFor={buyerId}>

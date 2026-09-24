@@ -30,7 +30,7 @@ export default function StoryPlayback({
         className="playback playback--weaved"
         aria-label={title || LANDING.moment.playbackTitle}
       >
-        <div className="playback__banner">
+        <div className="playback__banner pastel-banner">
           {title ? <h3>{title}</h3> : null}
           {lead ? <p className="playback__lead">{lead}</p> : null}
         </div>
