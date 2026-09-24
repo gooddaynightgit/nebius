@@ -75,7 +75,8 @@ describe("saved joy moments", () => {
     expect(joy).toMatch(/className="step-heading step-heading--navy"/);
     expect(joy).not.toMatch(/already-picked/);
     expect(capture).toMatch(/className="step-heading step-heading--navy"/);
-    expect(capture).toMatch(/Upload your photo/);
+    expect(capture).toMatch(/Capture it/);
+    expect(capture).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(styles).toMatch(
       /\.card h2\.step-heading\.step-heading--navy[\s\S]*?\{[^}]*background:\s*var\(--navy\);[^}]*color:\s*var\(--lime\);/,
     );

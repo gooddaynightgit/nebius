@@ -102,6 +102,8 @@ export default function JoyStudio() {
             joys={joys}
             legend={null}
             resetSignal={resetSignal}
+            playbackTitle="Example: My good moment weaved"
+            playbackEyebrow={null}
             trailingChoice={{
               id: SAVED_JOY_MOMENTS_ID,
               title: SAVED_JOY_MOMENTS_LABEL,
@@ -119,7 +121,7 @@ export default function JoyStudio() {
             aria-describedby={selectedJoy ? undefined : "joy-need"}
             onClick={() => void uploadPhoto()}
           >
-            {LANDING.app.uploadPhoto}
+            {STEP_LABEL.photo}
           </button>
         </nav>
         {selectedJoy ? null : (

@@ -39,6 +39,10 @@ type JoyPickerProps = {
   trailingChoice?: JoyTrailingChoice;
   /** Bump this when the page is shown again so a cached trailing radio closes. */
   resetSignal?: number;
+  /** Example-box heading. Defaults to the shared landing title. */
+  playbackTitle?: string;
+  /** Intro above the example heading. Null removes it. */
+  playbackEyebrow?: string | null;
 };
 
 export default function JoyPicker({
@@ -50,6 +54,8 @@ export default function JoyPicker({
   legend = LANDING.moment.joyLegend,
   trailingChoice,
   resetSignal = 0,
+  playbackTitle = LANDING.moment.playbackTitle,
+  playbackEyebrow = LANDING.moment.playbackExample,
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
   const [trailingOpen, setTrailingOpen] = useState(false);
@@ -124,7 +130,8 @@ export default function JoyPicker({
                   </p>
                   <StoryPlayback
                     id={`${idPrefix}-playback-${joy.id}`}
-                    eyebrow={LANDING.moment.playbackExample}
+                    title={playbackTitle}
+                    eyebrow={playbackEyebrow ?? undefined}
                   >
                     {joy.playbackTemplate}
                   </StoryPlayback>

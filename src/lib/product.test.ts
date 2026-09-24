@@ -851,7 +851,8 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/router\.push/);
     expect(joy).toMatch(/href="\/"/);
     expect(joy).toMatch(/STEP_LABEL\.start/);
-    expect(joy).toMatch(/LANDING\.app\.uploadPhoto/);
+    expect(joy).toMatch(/STEP_LABEL\.photo/);
+    expect(joy).not.toMatch(/LANDING\.app\.uploadPhoto/);
     expect(joy).toMatch(/uploadPhotoDestination/);
     expect(joy).toMatch(/if \(!selectedJoy\) return/);
     expect(joy).toMatch(/className="step-next"/);
@@ -908,6 +909,10 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).not.toMatch(/What joy is it\?/);
     expect(joy).toMatch(/legend=\{null\}/);
+    expect(joy).toMatch(/playbackTitle="Example: My good moment weaved"/);
+    expect(joy).toMatch(/playbackEyebrow=\{null\}/);
+    expect(joy).not.toMatch(/playbackExample/);
+    expect(joy).not.toMatch(/Example of tonight/);
     expect(joy).toMatch(/step-heading step-heading--navy/);
     expect(joy).toMatch(/Pick your joy/);
     expect(joy).not.toMatch(/already-picked/);
@@ -1098,7 +1103,8 @@ describe("app capture client contract", () => {
     expect(readme).not.toMatch(/today-only still, size, not a meme/);
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="step-heading step-heading--navy"/);
-    expect(src).toMatch(/Upload your photo/);
+    expect(src).toMatch(/Capture it/);
+    expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(src).not.toMatch(/Your photo/);
     expect(src).toMatch(/Add a photo/);
     expect(joy).toMatch(/className="step-heading step-heading--navy"/);
