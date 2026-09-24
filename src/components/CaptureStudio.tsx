@@ -58,6 +58,8 @@ import {
 } from "@/lib/capture-stash";
 import type { SessionState } from "@/lib/types";
 import { useReportBuyerGate } from "@/components/journey-gate";
+import StepControl from "@/components/StepControl";
+import { STEP_LABEL } from "@/lib/journey";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
 
@@ -1014,7 +1016,7 @@ export default function CaptureStudio() {
           <h2 id="today-heading">Today’s moment</h2>
           {!savedPhoto && !phoneStash ? (
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
-              Nothing saved yet. One photo and one joy, then My good moment.
+              Nothing saved yet. One photo and one joy, then Create your story.
             </p>
           ) : (
             <div className="moment-list">
@@ -1027,18 +1029,13 @@ export default function CaptureStudio() {
         </section>
 
         <nav className="step-nav" aria-label="Steps">
-          <Link className="step-arrow" href="/app/joy" aria-label="Previous step">
-            ←
-          </Link>
-          {yoursReady ? (
-            <Link className="step-arrow" href="/app/yours" aria-label="Next step">
-              →
-            </Link>
-          ) : (
-            <span className="step-arrow step-arrow--disabled" aria-disabled="true" aria-label="Next step">
-              →
-            </span>
-          )}
+          <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} />
+          <StepControl
+            direction="next"
+            href="/app/yours"
+            label={STEP_LABEL.photo}
+            disabled={!yoursReady}
+          />
         </nav>
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">

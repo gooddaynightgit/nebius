@@ -5,8 +5,17 @@ export const JOURNEY_STEPS = [
   { label: "Pick your joy" },
   { label: "Unlock" },
   { label: "Your photo" },
-  { label: "Your story" },
+  { label: "Create your story" },
 ] as const;
+
+/** Same words as the bar, for the step buttons. */
+export const STEP_LABEL = {
+  start: JOURNEY_STEPS[0].label,
+  joy: JOURNEY_STEPS[1].label,
+  unlock: JOURNEY_STEPS[2].label,
+  photo: JOURNEY_STEPS[3].label,
+  story: JOURNEY_STEPS[4].label,
+} as const;
 
 export type BuyerGate = "unknown" | "locked" | "open";
 

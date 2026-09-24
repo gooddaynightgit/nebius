@@ -10,7 +10,7 @@ export const APP_STORY_WORD_HARD_MAX = 85;
 export const APP_STORY_SENTENCE_MAX = 4;
 
 export const WEAVE_BLOCKED =
-  "Tonight isn’t a story for My good moment. This picture isn’t one we can tell. Keep the night gentle.";
+  "Tonight isn’t a story we can create. This picture isn’t one we can tell. Keep the night gentle.";
 
 export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;

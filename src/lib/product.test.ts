@@ -604,7 +604,8 @@ describe("landing", () => {
       "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
     );
     expect(page).toContain('<Link href="/app/joy" aria-label="Open the joy page">');
-    expect(page).toContain('aria-label="Next step"');
+    expect(page).toContain("StepControl");
+    expect(page).toContain("STEP_LABEL.start");
     expect(page).toContain('href="/app/joy"');
     expect(page).toContain("→");
     expect(page).not.toContain("habit of looking");
@@ -649,7 +650,7 @@ describe("landing", () => {
     expect(picker).toMatch(/<StoryPlayback/);
     expect(playback).toMatch(/LANDING\.moment\.playbackTitle/);
     expect(playback).not.toMatch(/Story playback/);
-    expect(copy).toContain('playbackTitle: "My good moment playback"');
+    expect(copy).toContain('playbackTitle: "Create your story"');
     expect(playback).toMatch(/className="playback"/);
     expect(styles).toMatch(/#f0f0ff/);
     expect(styles).toMatch(/--docs-lavender/);
@@ -673,9 +674,11 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.app\.yours/);
     expect(src).toMatch(/id="yours-door"/);
     expect(src).toMatch(/href="\/app\/yours"/);
-    expect(src).toMatch(/aria-label="Previous step"/);
+    expect(src).toMatch(/StepControl/);
     expect(src).toMatch(/href="\/app\/joy"/);
-    expect(src).toMatch(/aria-label="Next step"/);
+    expect(src).toMatch(/STEP_LABEL\.joy/);
+    expect(src).toMatch(/STEP_LABEL\.photo/);
+    expect(src).toMatch(/disabled=\{!yoursReady\}/);
     expect(src).toMatch(/yoursReady \?/);
     expect(src).toMatch(/writePendingPhoto/);
     expect(src).toMatch(/readChosenJoy/);
@@ -698,12 +701,10 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/writeChosenJoy/);
     expect(joy).not.toMatch(/router\.push/);
     expect(joy).toMatch(/href="\/"/);
-    expect(joy).toMatch(/aria-label="Previous step"/);
+    expect(joy).toMatch(/STEP_LABEL\.start/);
     expect(joy).toMatch(/href="\/app"/);
-    expect(joy).toMatch(/aria-label="Next step"/);
-    expect(joy).toMatch(/photo-cue/);
-    expect(joy).toMatch(/card__mark/);
-    expect(joy).toMatch(/step-arrow--disabled/);
+    expect(joy).toMatch(/STEP_LABEL\.joy/);
+    expect(joy).toMatch(/disabled=\{!selectedJoy\}/);
     expect(joy).toMatch(/LANDING\.app\.joyNeed/);
     expect(joy).toMatch(/selectedJoy \?/);
     expect(joy).not.toMatch(/\/api\/joy-match/);
@@ -781,8 +782,8 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/\/api\/yours/);
     expect(yours).toMatch(/code === "blocked"/);
     expect(yours).toMatch(/LANDING\.app\.blocked/);
-    expect(yours).toMatch(/No story for My good moment tonight/);
-    expect(yours).toMatch(/My Good Moment Story/);
+    expect(yours).toMatch(/Can’t create your story tonight/);
+    expect(yours).toMatch(/LANDING\.app\.yours/);
     expect(yours).not.toMatch(/className="chip"/);
     expect(yours).not.toMatch(/status-row/);
     expect(yours).not.toMatch(/Browser voice \(Sonic coming\)/);

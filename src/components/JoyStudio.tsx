@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
+import StepControl from "@/components/StepControl";
+import { STEP_LABEL } from "@/lib/journey";
 import { readResponsePayload } from "@/lib/client-fetch";
 import { readCaptureStash } from "@/lib/capture-stash";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
@@ -151,26 +153,9 @@ export default function JoyStudio() {
         </section>
 
         <nav className="step-nav" aria-label="Steps">
-          <Link className="step-arrow" href="/" aria-label="Previous step">
-            ←
-          </Link>
-          {selectedJoy ? (
-            <Link className="photo-next" href="/app" aria-label="Next step">
-              <span className="photo-cue" aria-hidden="true">
-                <span className="card__mark"></span>
-              </span>
-              <span className="photo-next__arrow" aria-hidden="true">
-                →
-              </span>
-            </Link>
-          ) : (
-            <>
-              <p className="step-nudge">{LANDING.app.joyNeed}</p>
-              <span className="step-arrow step-arrow--disabled" aria-disabled="true" aria-label="Next step">
-                →
-              </span>
-            </>
-          )}
+          <StepControl direction="back" href="/" label={STEP_LABEL.start} />
+          {selectedJoy ? null : <p className="step-nudge">{LANDING.app.joyNeed}</p>}
+          <StepControl direction="next" href="/app" label={STEP_LABEL.joy} disabled={!selectedJoy} />
         </nav>
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">

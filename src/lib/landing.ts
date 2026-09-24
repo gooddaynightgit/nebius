@@ -27,15 +27,15 @@ export const LANDING = {
     whisperLabel: "A whisper next to the photo. 80 characters.",
     whisperExamples: "the light on the kettle / he wrote back / I made it home",
     joyLegend: "(pick one)",
-    playbackTitle: "My good moment playback",
+    playbackTitle: "Create your story",
     playbackExample:
-      "Example of tonight’s tone — not your story yet. My good moment writes yours from this photo.",
+      "Example of tonight’s tone — not your story yet. Create your story from this photo.",
   },
   app: {
     heading: "Today. One good moment. Go get it.",
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
-    yours: "My good moment",
+    yours: "Create your story",
     brand: "gooddaynight.com",
     captionLabel: "What is the good in this moment?",
     sparkWait: "Let me see your good moment capture",
@@ -44,7 +44,7 @@ export const LANDING = {
     captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     captionExamples: "a name / a step count / he wrote back",
     captionDropped: "That line couldn’t be saved. The photo still is.",
-    blocked: "Tonight isn’t a story for My good moment. This picture isn’t one we can tell. Keep the night gentle.",
+    blocked: "Tonight isn’t a story we can create. This picture isn’t one we can tell. Keep the night gentle.",
     playMoment: "Play this good moment",
     pause: "Pause",
     keep: "Share",
@@ -75,7 +75,7 @@ export const LANDING = {
     heicAsk: "That photo format isn't supported here. Save it as JPEG or PNG and try again.",
     yoursMissing: "Save today's photo and pick a joy first.",
     keepingMoment: "Keeping your moment…",
-    savedOnPhone: "Saved on this phone — open My good moment from here",
+    savedOnPhone: "Saved on this phone — open Create your story from here",
     resaveFailed: "We couldn't send today's photo again. Go back and save it from this phone.",
   },
   footer: {

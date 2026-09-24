@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { journeyFillPercent, journeyStep } from "./journey";
+import { JOURNEY_STEPS, journeyFillPercent, journeyStep } from "./journey";
+import { LANDING } from "./landing";
 
 function search(query: string): { get(name: string): string | null } {
   return new URLSearchParams(query);
@@ -25,6 +26,17 @@ describe("journey progress", () => {
     expect(journeyStep("/app", search("paid=1&ref=pf-22"), "locked")).toBe(4);
     expect(journeyStep("/app", search("paid=1&ref=pf-22"), "open")).toBe(4);
     expect(journeyStep("/moments", search("cancelled=1"), "open")).toBe(3);
+  });
+
+  it("names the fifth step Create your story, matching the story CTA", () => {
+    expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
+      "Start",
+      "Pick your joy",
+      "Unlock",
+      "Your photo",
+      "Create your story",
+    ]);
+    expect(LANDING.app.yours).toBe(JOURNEY_STEPS[4].label);
   });
 
   it("fills the track only through completed steps", () => {
