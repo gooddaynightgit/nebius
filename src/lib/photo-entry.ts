@@ -29,6 +29,23 @@ export function uploadPhotoDestination(
   return destinationForGame(game);
 }
 
+/**
+ * Take and upload stay available on every return while credit remains.
+ * How many moments were already saved does not close them.
+ */
+export function photoButtonsEnabled(signedIn: boolean, game: number | null): boolean {
+  return signedIn && typeof game === "number" && game > 0;
+}
+
+/**
+ * A cached photo page can reappear still "turning" the previous story.
+ * Drop that flag. A visit that was busy had already finished the weave,
+ * so the next photo is a new moment.
+ */
+export function releaseCaptureVisit(wasBusy: boolean): { busy: false; startNewMoment: boolean } {
+  return { busy: false, startNewMoment: wasBusy };
+}
+
 /** After OTP on the photo page: open capture, leave for the buy page, or stay on an error. */
 export function destinationForEntitlement(
   result: EntitlementGate,

@@ -37,6 +37,8 @@ type JoyPickerProps = {
   legend?: ReactNode | null;
   /** Extra radio after the catalog joys. Choosing it does not call onSelect. */
   trailingChoice?: JoyTrailingChoice;
+  /** Bump this when the page is shown again so a cached trailing radio closes. */
+  resetSignal?: number;
 };
 
 export default function JoyPicker({
@@ -47,11 +49,16 @@ export default function JoyPicker({
   joys = accordionJoys(),
   legend = LANDING.moment.joyLegend,
   trailingChoice,
+  resetSignal = 0,
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
   const [trailingOpen, setTrailingOpen] = useState(false);
   const selected = selectedId === undefined ? internalId : selectedId;
   const panelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setTrailingOpen(false);
+  }, [resetSignal]);
 
   useEffect(() => {
     if (!selected || !panelRef.current) return;

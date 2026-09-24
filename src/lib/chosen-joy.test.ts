@@ -12,5 +12,7 @@ describe("chosen joy", () => {
     expect(readChosenJoy("2026-09-24")).toBeNull();
     writeChosenJoy("2026-09-23", "just-this");
     expect(readChosenJoy("2026-09-23")).toBe("just-this");
+    writeChosenJoy("2026-09-23", "saved-joy-moments");
+    expect(readChosenJoy("2026-09-23")).toBe("just-this");
   });
 });

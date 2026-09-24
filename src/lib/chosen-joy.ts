@@ -1,3 +1,5 @@
+import { getJoyById } from "@/lib/landing";
+
 const CHOSEN_JOY_KEY = "gooddaynight.chosenJoy";
 
 type ChosenJoy = {
@@ -29,8 +31,14 @@ function readStored(): ChosenJoy | null {
   return null;
 }
 
+function catalogJoyId(joyId: string | null | undefined): string | null {
+  return getJoyById(joyId)?.id ?? null;
+}
+
 export function writeChosenJoy(day: string, joyId: string): void {
-  memory = { day, joyId };
+  const id = catalogJoyId(joyId);
+  if (!id) return;
+  memory = { day, joyId: id };
   try {
     storage()?.setItem(CHOSEN_JOY_KEY, JSON.stringify(memory));
   } catch {
@@ -39,10 +47,17 @@ export function writeChosenJoy(day: string, joyId: string): void {
 }
 
 export function readChosenJoy(day: string): string | null {
-  const stored = memory?.day === day ? memory : readStored();
-  if (!stored || stored.day !== day || !stored.joyId) return null;
-  memory = stored;
-  return stored.joyId;
+  if (memory?.day === day) {
+    const remembered = catalogJoyId(memory.joyId);
+    if (remembered) return remembered;
+    memory = null;
+  }
+  const stored = readStored();
+  if (!stored || stored.day !== day) return null;
+  const id = catalogJoyId(stored.joyId);
+  if (!id) return null;
+  memory = { day, joyId: id };
+  return id;
 }
 
 export function resetChosenJoyForTests(): void {
