@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { readFileSync } from "node:fs";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { emailVaultId } from "./identity";
 import { getEntitlement } from "./entitlement";
 import { MemoryFansTable, useFansTable } from "./fans";
@@ -17,8 +17,10 @@ import {
   createCheckout,
   decideItn,
   handlePayfastItn,
+  itnSignaturePayload,
   md5Hex,
   momentsForAmount,
+  parseFormPairs,
   payfastProcessUrl,
   payfastSandbox,
   payfastValidateUrl,
@@ -26,6 +28,7 @@ import {
   signCheckout,
   signPairs,
   signaturePayload,
+  signaturesMatch,
 } from "./payfast";
 
 const ENV_KEYS = [
@@ -89,6 +92,24 @@ describe("payfast signature", () => {
     expect(signaturePayload(pairs, "salt")).not.toContain("not-this");
     expect(signPairs(pairs, "salt")).toBe(md5Hex(signaturePayload(pairs, "salt")));
   });
+
+  it("signs a Payfast ITN with every posted field, including blanks, and stops at signature", () => {
+    const pairs: Array<[string, string]> = [
+      ["amount_gross", "5.00"],
+      ["name_last", ""],
+      ["custom_str2", ""],
+      ["item_name", "GoodDayNight — 40 good moments"],
+      ["signature", "ignored"],
+      ["merchant_id", "10000100"],
+    ];
+    expect(itnSignaturePayload(pairs, "salt")).toBe(
+      "amount_gross=5.00&name_last=&custom_str2=&item_name=GoodDayNight+%E2%80%94+40+good+moments&passphrase=salt",
+    );
+    expect(signaturePayload(pairs, "salt")).toBe(
+      "amount_gross=5.00&item_name=GoodDayNight+%E2%80%94+40+good+moments&merchant_id=10000100&passphrase=salt",
+    );
+    expect(itnSignaturePayload(pairs, "salt")).not.toBe(signaturePayload(pairs, "salt"));
+  });
 });
 
 describe("amount to moments", () => {
@@ -148,6 +169,7 @@ describe("payfast checkout and ITN", () => {
     expect(result.html).toContain(`name="item_description" value="${ITEM_DESCRIPTION}"`);
     expect(result.html).toContain('name="email_address" value="amy@example.com"');
     expect(result.html).toContain(`name="custom_str1" value="${emailVaultId("amy@example.com")}"`);
+    expect(result.html).toContain('name="custom_str2" value="amy@example.com"');
     expect(result.html).toContain("https://gooddaynight.com/api/payfast/itn");
     expect(result.html).toContain("https://gooddaynight.com/app?paid=1&amp;ref=");
     expect(result.html).toContain("https://gooddaynight.com/moments?cancelled=1");
@@ -250,6 +272,123 @@ describe("payfast checkout and ITN", () => {
     expect(url).toBe("https://www.payfast.co.za/eng/query/validate");
   });
 
+  it("credits the checkout email from a Payfast ITN that signs blank fields", async () => {
+    const raw = documentedItn();
+    const pairs = parseFormPairs(raw);
+    const given = pairs.find(([key]) => key === "signature")?.[1] ?? "";
+    expect(itnSignaturePayload(pairs, "test-passphrase")).toContain("name_last=&");
+    expect(itnSignaturePayload(pairs, "test-passphrase")).toContain("custom_str5=&");
+    expect(signaturesMatch(given, signPairs(pairs, "test-passphrase"))).toBe(false);
+    expect(signaturesMatch(given, md5Hex(itnSignaturePayload(pairs, "test-passphrase")))).toBe(true);
+
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
+      expect(result).toEqual({ status: 200, body: "OK" });
+      expect((await getEntitlement("amy@example.com"))?.remaining).toBe(40);
+      expect(await getEntitlement("payer@payfast.example")).toBeNull();
+      expect(info).toHaveBeenCalledWith("[payfast-itn] credited", {
+        pf_payment_id: "1089250",
+        remaining: 40,
+        duplicate: false,
+      });
+      const logged = JSON.stringify(info.mock.calls);
+      expect(logged).not.toContain("amy@example.com");
+      expect(logged).not.toContain("payer@payfast.example");
+      expect(logged).not.toContain("test-passphrase");
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      info.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  it("credits email_address when an older ITN leaves custom_str2 blank", async () => {
+    const raw = documentedItn({
+      custom_str2: "",
+      email_address: "amy@example.com",
+      pf_payment_id: "1089251",
+    });
+    const pairs = parseFormPairs(raw);
+    const given = pairs.find(([key]) => key === "signature")?.[1] ?? "";
+    expect(signaturesMatch(given, signPairs(pairs, "test-passphrase"))).toBe(false);
+    const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
+    expect(result).toEqual({ status: 200, body: "OK" });
+    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(40);
+    expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089251"]);
+  });
+
+  it("refuses the credit when the carried email does not match custom_str1", async () => {
+    const raw = documentedItn({
+      custom_str2: "other@example.com",
+      email_address: "amy@example.com",
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      let called = false;
+      const result = await handlePayfastItn(raw, async () => {
+        called = true;
+        return new Response("VALID", { status: 200 });
+      });
+      expect(result.status).toBe(500);
+      expect(called).toBe(false);
+      expect(await getEntitlement("amy@example.com")).toBeNull();
+      expect(await getEntitlement("other@example.com")).toBeNull();
+      expect(warn).toHaveBeenCalledWith("[payfast-itn] rejected", "buyer");
+      expect(JSON.stringify(warn.mock.calls)).not.toContain("amy@example.com");
+      expect(JSON.stringify(warn.mock.calls)).not.toContain("test-passphrase");
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("logs a signature rejection without the passphrase or the raw email", async () => {
+    const raw = documentedItn().replace(/signature=[0-9a-f]+/, `signature=${"ab".repeat(16)}`);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
+      expect(result).toEqual({ status: 500, body: "NOT OK" });
+      expect(warn).toHaveBeenCalledWith("[payfast-itn] rejected", "signature");
+      const logged = JSON.stringify(warn.mock.calls);
+      expect(logged).not.toContain("test-passphrase");
+      expect(logged).not.toContain("amy@example.com");
+      expect(logged).not.toContain("payer@payfast.example");
+      expect(await getEntitlement("amy@example.com")).toBeNull();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("logs credit failures without the thrown message", async () => {
+    const raw = documentedItn({ pf_payment_id: "1089252" });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    useFansTable({
+      async get() {
+        return null;
+      },
+      async credit() {
+        throw new Error("boom amy@example.com test-passphrase");
+      },
+      async consume() {
+        return null;
+      },
+      async restore() {},
+    });
+    try {
+      const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
+      expect(result.status).toBe(500);
+      expect(warn).toHaveBeenCalledWith("[payfast-itn] rejected", "credit");
+      const logged = JSON.stringify(warn.mock.calls);
+      expect(logged).not.toContain("amy@example.com");
+      expect(logged).not.toContain("test-passphrase");
+      expect(logged).not.toContain("boom");
+    } finally {
+      warn.mockRestore();
+      useFansTable(new MemoryFansTable());
+    }
+  });
+
   it("keeps ITN responses free of CORS headers", () => {
     const route = readFileSync(path.resolve("src/app/api/payfast/itn/route.ts"), "utf8");
     expect(route).not.toMatch(/Access-Control-Allow-Origin/);
@@ -314,4 +453,63 @@ function signedItn(overrides: Record<string, string> = {}): string {
     withSignature.push(pair);
   });
   return withSignature.map(([key, value]) => `${pfEncode(key)}=${pfEncode(value)}`).join("&");
+}
+
+/** Payfast's documented notify order, signature last, blanks included in the digest. */
+function documentedItn(overrides: Record<string, string> = {}): string {
+  const orderEmail = "amy@example.com";
+  const fields: Record<string, string> = {
+    m_payment_id: "pay_live",
+    pf_payment_id: "1089250",
+    payment_status: "COMPLETE",
+    item_name: ITEM_NAME,
+    item_description: ITEM_DESCRIPTION,
+    amount_gross: PACK_AMOUNT,
+    amount_fee: "-1.15",
+    amount_net: "3.85",
+    custom_str1: emailVaultId(orderEmail),
+    custom_str2: orderEmail,
+    custom_str3: "",
+    custom_str4: "",
+    custom_str5: "",
+    custom_int1: "",
+    custom_int2: "",
+    custom_int3: "",
+    custom_int4: "",
+    custom_int5: "",
+    name_first: "",
+    name_last: "",
+    email_address: "payer@payfast.example",
+    merchant_id: "10000100",
+    ...overrides,
+  };
+  const order = [
+    "m_payment_id",
+    "pf_payment_id",
+    "payment_status",
+    "item_name",
+    "item_description",
+    "amount_gross",
+    "amount_fee",
+    "amount_net",
+    "custom_str1",
+    "custom_str2",
+    "custom_str3",
+    "custom_str4",
+    "custom_str5",
+    "custom_int1",
+    "custom_int2",
+    "custom_int3",
+    "custom_int4",
+    "custom_int5",
+    "name_first",
+    "name_last",
+    "email_address",
+    "merchant_id",
+  ];
+  const pairs = order.map((key) => [key, fields[key] ?? ""] as [string, string]);
+  const signature = md5Hex(itnSignaturePayload(pairs, process.env.PF_PASSPHRASE ?? ""));
+  return [...pairs, ["signature", signature] as [string, string]]
+    .map(([key, value]) => `${pfEncode(key)}=${pfEncode(value)}`)
+    .join("&");
 }

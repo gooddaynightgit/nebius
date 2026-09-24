@@ -3,15 +3,17 @@ import { emailVaultId, isValidEmail, newId, normalizeEmail } from "./identity";
 import { creditMoments } from "./entitlement";
 
 /**
- * Payfast checkout + ITN, ported from the Longevity Greenlight / whycantisleep
- * handlers (`lambda_api/checkout.py`, `lambda_api/itn.py`).
+ * Payfast checkout + ITN.
  *
  * Checkout signs non-blank fields in documented attribute order (not
- * alphabetical). ITN signs the pairs in the order Payfast sent them.
- * Both use trimmed values, PHP-style urlencode (quote_plus + uppercase hex),
- * the passphrase last, and a lowercase MD5.
- *
+ * alphabetical), trims values, then PHP-style urlencode and a lowercase MD5.
  * https://developers.payfast.co.za/docs#step_2_create_security_signature
+ *
+ * The ITN signature is a different string. Payfast's notify sample walks the
+ * posted fields in received order, urlencodes every value including blanks
+ * (`name_last=&custom_str2=`), and stops at `signature`. Skipping blanks
+ * makes a live notify fail closed before the `goodfans` credit.
+ * https://developers.payfast.co.za/docs#step_4_confirm_payment
  */
 export const FIELD_ORDER = [
   "merchant_id",
@@ -107,11 +109,11 @@ export function publicOrigin(): string {
 /**
  * PHP `urlencode` / Python `quote_plus(value, safe="")`, with uppercase hex.
  * Spaces become `+`. Letters, digits, and `_.-` stay literal.
+ * Does not trim: the ITN sample calls `urlencode($val)` on the posted value.
  */
-export function pfEncode(value: string): string {
-  const trimmed = value.trim();
+function pfEncodePhp(value: string): string {
   let out = "";
-  for (const char of trimmed) {
+  for (const char of value) {
     if (/[A-Za-z0-9._-]/.test(char)) {
       out += char;
       continue;
@@ -128,21 +130,44 @@ export function pfEncode(value: string): string {
   return out;
 }
 
+/** Checkout encoding. Trims, then PHP `urlencode`. */
+export function pfEncode(value: string): string {
+  return pfEncodePhp(value.trim());
+}
+
+function withPassphrase(payload: string, passphrase: string): string {
+  const phrase = passphrase.trim();
+  if (!phrase) return payload;
+  const suffix = `passphrase=${pfEncodePhp(phrase)}`;
+  return payload ? `${payload}&${suffix}` : suffix;
+}
+
+/**
+ * Checkout / blank-skipping signature string. Empty values are omitted.
+ * `signature` is ignored wherever it sits; later fields are still signed.
+ */
 export function signaturePayload(pairs: Array<[string, string]>, passphrase: string): string {
   const parts: string[] = [];
   for (const [key, raw] of pairs) {
     if (key === "signature") continue;
     const value = raw.trim();
     if (!value) continue;
-    parts.push(`${key}=${pfEncode(value)}`);
+    parts.push(`${key}=${pfEncodePhp(value)}`);
   }
-  const phrase = passphrase.trim();
-  let payload = parts.join("&");
-  if (phrase) {
-    const suffix = `passphrase=${pfEncode(phrase)}`;
-    payload = payload ? `${payload}&${suffix}` : suffix;
+  return withPassphrase(parts.join("&"), passphrase);
+}
+
+/**
+ * ITN signature string from Payfast's notify sample: every posted field in
+ * received order, including blanks, and nothing after `signature`.
+ */
+export function itnSignaturePayload(pairs: Array<[string, string]>, passphrase: string): string {
+  const parts: string[] = [];
+  for (const [key, raw] of pairs) {
+    if (key === "signature") break;
+    parts.push(`${key}=${pfEncodePhp(raw)}`);
   }
-  return payload;
+  return withPassphrase(parts.join("&"), passphrase);
 }
 
 export function md5Hex(payload: string): string {
@@ -263,6 +288,9 @@ export function buildCheckoutFields(email: string, mPaymentId: string): Checkout
     item_name: ITEM_NAME,
     item_description: ITEM_DESCRIPTION,
     custom_str1: emailVaultId(normalized),
+    // Payfast may replace email_address with the payer's account email.
+    // custom_str2 is the order email we signed; the ITN credits this address.
+    custom_str2: normalized,
   };
 }
 
@@ -338,9 +366,12 @@ export function decideItn(rawBody: string, passphrase: string, merchantId: strin
   const pairs = parseFormPairs(rawBody);
   const data = new Map<string, string>();
   for (const [key, value] of pairs) data.set(key, value);
-  const expected = signPairs(pairs, passphrase);
   const given = data.get("signature") ?? "";
-  if (!signaturesMatch(given, expected)) return { ok: false, reason: "signature" };
+  const documented = md5Hex(itnSignaturePayload(pairs, passphrase));
+  const blankSkipping = signPairs(pairs, passphrase);
+  if (!signaturesMatch(given, documented) && !signaturesMatch(given, blankSkipping)) {
+    return { ok: false, reason: "signature" };
+  }
   if ((data.get("merchant_id") ?? "").trim() !== merchantId.trim()) {
     return { ok: false, reason: "merchant" };
   }
@@ -350,13 +381,28 @@ export function decideItn(rawBody: string, passphrase: string, merchantId: strin
   const amountGross = (data.get("amount_gross") ?? "").trim();
   const moments = momentsForAmount(amountGross);
   if (moments <= 0) return { ok: false, reason: "amount" };
-  const email = normalizeEmail(data.get("email_address") ?? "");
-  if (!isValidEmail(email)) return { ok: false, reason: "email" };
-  const buyer = (data.get("custom_str1") ?? "").trim();
-  if (buyer !== emailVaultId(email)) return { ok: false, reason: "buyer" };
+  const email = orderEmail(data);
+  if (typeof email !== "string") return { ok: false, reason: email.reason };
   const pfPaymentId = (data.get("pf_payment_id") ?? "").trim();
   if (!/^[A-Za-z0-9_-]{1,80}$/.test(pfPaymentId)) return { ok: false, reason: "payment" };
   return { ok: true, email, pfPaymentId, amountGross, moments };
+}
+
+/**
+ * Credit the checkout email we stored in custom_str2 when Payfast echoes it
+ * and custom_str1 is still emailVaultId of that address. A blank custom_str2
+ * (checkout from before that field) falls back to email_address under the
+ * same vault check. Payfast's email_address is not trusted on its own: it
+ * can be the payer's Payfast account, not the address typed at checkout.
+ */
+function orderEmail(data: Map<string, string>): string | { reason: "email" | "buyer" } {
+  const vault = (data.get("custom_str1") ?? "").trim();
+  const carried = normalizeEmail(data.get("custom_str2") ?? "");
+  const posted = normalizeEmail(data.get("email_address") ?? "");
+  const email = carried || posted;
+  if (!isValidEmail(email)) return { reason: "email" };
+  if (vault !== emailVaultId(email)) return { reason: "buyer" };
+  return email;
 }
 
 export async function payfastConfirms(
@@ -377,31 +423,42 @@ export async function payfastConfirms(
   return response.ok && text.startsWith("VALID");
 }
 
+function rejectItn(reason: string): { status: 500; body: "NOT OK" } {
+  console.warn("[payfast-itn] rejected", reason);
+  return { status: 500, body: "NOT OK" };
+}
+
 /** 500 until the credit is stored, then 200. Payfast retries any non-200. */
 export async function handlePayfastItn(
   rawBody: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ status: number; body: string }> {
   const merchant = payfastMerchant();
-  if (!merchant) return { status: 500, body: "NOT OK" };
+  if (!merchant) return rejectItn("unconfigured");
   const decision = decideItn(rawBody, merchant.passphrase, merchant.merchantId);
-  if (!decision.ok) return { status: 500, body: "NOT OK" };
+  if (!decision.ok) return rejectItn(decision.reason);
   let confirmed = false;
   try {
     confirmed = await payfastConfirms(rawBody, fetchImpl);
   } catch {
-    return { status: 500, body: "NOT OK" };
+    return rejectItn("validate");
   }
-  if (!confirmed) return { status: 500, body: "NOT OK" };
+  if (!confirmed) return rejectItn("validate");
+  let credited: { remaining: number; duplicate: boolean };
   try {
-    await creditMoments({
+    credited = await creditMoments({
       email: decision.email,
       pfPaymentId: decision.pfPaymentId,
       amountGross: decision.amountGross,
       moments: decision.moments,
     });
   } catch {
-    return { status: 500, body: "NOT OK" };
+    return rejectItn("credit");
   }
+  console.info("[payfast-itn] credited", {
+    pf_payment_id: decision.pfPaymentId,
+    remaining: credited.remaining,
+    duplicate: credited.duplicate,
+  });
   return { status: 200, body: "OK" };
 }
