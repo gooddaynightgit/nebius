@@ -909,7 +909,10 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/buildAppCaptureForm/);
     expect(yours).toMatch(/readCaptureStash/);
     expect(yours).toMatch(/\/api\/captures/);
-    expect(yours).toMatch(/keepingMoment/);
+    expect(yours).toMatch(/StoryOpeningStatus/);
+    expect(yours).toMatch(/status === "loading" \|\| state\.status === "keeping"/);
+    expect(yours).not.toMatch(/Opening tonight/);
+    expect(yours).not.toMatch(/keepingMoment/);
     expect(yours).toMatch(/isYoursMissingPayload/);
   });
 });
