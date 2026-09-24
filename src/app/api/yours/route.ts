@@ -2,7 +2,7 @@ import { captureImageDataUrl, ingestAppPhoto } from "@/lib/ingest";
 import { isPlausibleClientDay } from "@/lib/day";
 import { badRequest, forbidden, json, notFound } from "@/lib/http";
 import { LANDING } from "@/lib/landing";
-import { loadSessionVault, presentSession } from "@/lib/session";
+import { loadSessionVault, presentSession, requirePersonalPhotoOtp } from "@/lib/session";
 import { WeaveBlockedError, WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
 import {
   addStory,
@@ -22,6 +22,8 @@ const EXPIRED = "Tonight's story lived for one night. Come back with today's pho
 const MISSING = LANDING.app.yoursMissing;
 
 export async function GET(request: Request) {
+  const denied = await requirePersonalPhotoOtp();
+  if (denied) return denied;
   const url = new URL(request.url);
   const day = url.searchParams.get("day") || "";
   if (!isPlausibleClientDay(day)) return notFound(EXPIRED);
@@ -46,6 +48,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await requirePersonalPhotoOtp();
+  if (denied) return denied;
   const body = ((await request.json().catch(() => ({}))) ?? {}) as { day?: string };
   const day = body.day || "";
   if (!isPlausibleClientDay(day)) return notFound(EXPIRED);

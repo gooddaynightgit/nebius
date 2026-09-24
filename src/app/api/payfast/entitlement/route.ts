@@ -1,7 +1,7 @@
 import { getEntitlement } from "@/lib/entitlement";
 import { isValidEmail, normalizeEmail } from "@/lib/identity";
 import { badRequest, json } from "@/lib/http";
-import { setGateEmail } from "@/lib/session";
+import { readOtpSession, setGateEmail } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -12,7 +12,8 @@ export async function POST(request: Request) {
   const entitlement = await getEntitlement(email);
   const remaining = entitlement?.remaining ?? 0;
   const exhausted = remaining < 1 && (entitlement?.paymentIds.length ?? 0) > 0;
-  if (remaining > 0) await setGateEmail(email);
+  const otp = await readOtpSession();
+  if (remaining > 0 && otp?.email === email) await setGateEmail(email);
   return json({
     purchased: remaining > 0,
     remaining,

@@ -72,4 +72,6 @@ export type SessionState = {
   todayPhoto: CaptureRecord | null;
   yoursOpened: boolean;
   canReplacePhoto: boolean;
+  /** True only after this browser session verified an email OTP. gdn_em alone is not enough. */
+  otpVerified: boolean;
 };

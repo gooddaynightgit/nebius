@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import MomentsCheckout from "@/components/MomentsCheckout";
 
 export const metadata: Metadata = {
   title: "40 good moments — Gooddaynight",
@@ -99,8 +100,8 @@ export default async function MomentsPage({
           </p>
           {paid ? (
             <p className="moments-status" role="status">
-              Payfast sent you back. When the payment is confirmed, enter this email under Already
-              bought on the <Link href="/app">photo page</Link>.
+              Payfast sent you back. When the payment is confirmed, verify this email with a code under
+              Already bought on the <Link href="/app">photo page</Link>.
             </p>
           ) : null}
           {cancelled ? (
@@ -108,24 +109,7 @@ export default async function MomentsPage({
               Checkout cancelled. Nothing was charged.
             </p>
           ) : null}
-          <form className="moments-buy" method="post" action="/api/payfast/checkout">
-            <label className="whisper-label" htmlFor="moments-email">
-              Email
-            </label>
-            <input
-              id="moments-email"
-              className="whisper"
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              required
-              maxLength={253}
-            />
-            <button className="moments-cta" type="submit">
-              Start hunting — R450 ZAR / $28 USD
-            </button>
-          </form>
+          <MomentsCheckout />
           <p className="moments-aside">
             <em>40 moments. Yours to find — the finding changes you.</em>
           </p>
