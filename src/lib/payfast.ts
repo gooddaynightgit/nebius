@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { emailVaultId, isValidEmail, newId, normalizeEmail } from "./identity";
+import { isValidEmail, newId, normalizeEmail } from "./identity";
 import { creditMoments, recordedPayment } from "./entitlement";
 
 /**
@@ -9,11 +9,10 @@ import { creditMoments, recordedPayment } from "./entitlement";
  * alphabetical), trims values, then PHP-style urlencode and a lowercase MD5.
  * https://developers.payfast.co.za/docs#step_2_create_security_signature
  *
- * The ITN signature is a different string. Payfast's notify sample walks the
- * posted fields in received order, urlencodes every value including blanks
- * (`name_last=&custom_str2=`), and stops at `signature`. Skipping blanks
- * makes a live notify fail closed before the `goodfans` credit.
- * https://developers.payfast.co.za/docs#step_4_confirm_payment
+ * The ITN signature matches the working whycantisleep handler
+ * (`itn_signature`): every posted pair in the order received, including
+ * blanks, `signature` skipped but later fields kept, each value stripped
+ * then Python `quote_plus`, passphrase last, lowercase MD5.
  */
 export const FIELD_ORDER = [
   "merchant_id",
@@ -158,16 +157,41 @@ export function signaturePayload(pairs: Array<[string, string]>, passphrase: str
 }
 
 /**
- * ITN signature string from Payfast's notify sample: every posted field in
- * received order, including blanks, and nothing after `signature`.
+ * ITN signature from the working whycantisleep handler. Every posted pair in
+ * received order, including blanks. The `signature` key is skipped; fields
+ * after it are still signed. Each value is stripped, then Python
+ * `quote_plus` (`_.-~` stay literal, space is `+`, hex is uppercase).
+ * Passphrase last.
  */
 export function itnSignaturePayload(pairs: Array<[string, string]>, passphrase: string): string {
   const parts: string[] = [];
   for (const [key, raw] of pairs) {
-    if (key === "signature") break;
-    parts.push(`${key}=${pfEncodePhp(raw)}`);
+    if (key === "signature") continue;
+    parts.push(`${key}=${quotePlus(String(raw).trim())}`);
   }
-  return withPassphrase(parts.join("&"), passphrase);
+  const phrase = passphrase.trim();
+  if (phrase) parts.push(`passphrase=${quotePlus(phrase)}`);
+  return parts.join("&");
+}
+
+/** Python `urllib.parse.quote_plus` with the default empty safe set. */
+function quotePlus(value: string): string {
+  let out = "";
+  for (const char of value) {
+    if (/[A-Za-z0-9._~-]/.test(char)) {
+      out += char;
+      continue;
+    }
+    if (char === " ") {
+      out += "+";
+      continue;
+    }
+    const bytes = Buffer.from(char, "utf8");
+    for (const byte of bytes) {
+      out += `%${byte.toString(16).toUpperCase().padStart(2, "0")}`;
+    }
+  }
+  return out;
 }
 
 export function md5Hex(payload: string): string {
@@ -287,10 +311,7 @@ export function buildCheckoutFields(email: string, mPaymentId: string): Checkout
     amount: PACK_AMOUNT,
     item_name: ITEM_NAME,
     item_description: ITEM_DESCRIPTION,
-    custom_str1: emailVaultId(normalized),
-    // Payfast may replace email_address with the payer's account email.
-    // custom_str2 is the order email we signed; the ITN credits this address.
-    custom_str2: normalized,
+    custom_str1: normalized,
   };
 }
 
@@ -389,19 +410,16 @@ export function decideItn(rawBody: string, passphrase: string, merchantId: strin
 }
 
 /**
- * Credit the checkout email we stored in custom_str2 when Payfast echoes it
- * and custom_str1 is still emailVaultId of that address. A blank custom_str2
- * (checkout from before that field) falls back to email_address under the
- * same vault check. Payfast's email_address is not trusted on its own: it
- * can be the payer's Payfast account, not the address typed at checkout.
+ * Buyer is custom_str1 when that echoed checkout field is an email, otherwise
+ * email_address. Payfast may replace email_address with the payer's account
+ * email; the two do not have to match. A non-email custom_str1 (the vault id
+ * sent by checkouts from before this field held the address) falls through.
  */
-function orderEmail(data: Map<string, string>): string | { reason: "email" | "buyer" } {
-  const vault = (data.get("custom_str1") ?? "").trim();
-  const carried = normalizeEmail(data.get("custom_str2") ?? "");
+function orderEmail(data: Map<string, string>): string | { reason: "email" } {
+  const carried = normalizeEmail(data.get("custom_str1") ?? "");
   const posted = normalizeEmail(data.get("email_address") ?? "");
-  const email = carried || posted;
+  const email = isValidEmail(carried) ? carried : posted;
   if (!isValidEmail(email)) return { reason: "email" };
-  if (vault !== emailVaultId(email)) return { reason: "buyer" };
   return email;
 }
 

@@ -93,20 +93,21 @@ describe("payfast signature", () => {
     expect(signPairs(pairs, "salt")).toBe(md5Hex(signaturePayload(pairs, "salt")));
   });
 
-  it("signs a Payfast ITN with every posted field, including blanks, and stops at signature", () => {
+  it("signs an ITN like whycantisleep: every field, blanks included, quote_plus of the stripped value", () => {
     const pairs: Array<[string, string]> = [
       ["amount_gross", "5.00"],
       ["name_last", ""],
-      ["custom_str2", ""],
+      ["custom_str2", "   "],
       ["item_name", "GoodDayNight — 40 good moments"],
       ["signature", "ignored"],
       ["merchant_id", "10000100"],
+      ["note", "a~b"],
     ];
-    expect(itnSignaturePayload(pairs, "salt")).toBe(
-      "amount_gross=5.00&name_last=&custom_str2=&item_name=GoodDayNight+%E2%80%94+40+good+moments&passphrase=salt",
+    expect(itnSignaturePayload(pairs, " salt ")).toBe(
+      "amount_gross=5.00&name_last=&custom_str2=&item_name=GoodDayNight+%E2%80%94+40+good+moments&merchant_id=10000100&note=a~b&passphrase=salt",
     );
-    expect(signaturePayload(pairs, "salt")).toBe(
-      "amount_gross=5.00&item_name=GoodDayNight+%E2%80%94+40+good+moments&merchant_id=10000100&passphrase=salt",
+    expect(signaturePayload(pairs, " salt ")).toBe(
+      "amount_gross=5.00&item_name=GoodDayNight+%E2%80%94+40+good+moments&merchant_id=10000100&note=a%7Eb&passphrase=salt",
     );
     expect(itnSignaturePayload(pairs, "salt")).not.toBe(signaturePayload(pairs, "salt"));
   });
@@ -168,8 +169,8 @@ describe("payfast checkout and ITN", () => {
     expect(result.html).toContain(`name="item_name" value="${ITEM_NAME}"`);
     expect(result.html).toContain(`name="item_description" value="${ITEM_DESCRIPTION}"`);
     expect(result.html).toContain('name="email_address" value="amy@example.com"');
-    expect(result.html).toContain(`name="custom_str1" value="${emailVaultId("amy@example.com")}"`);
-    expect(result.html).toContain('name="custom_str2" value="amy@example.com"');
+    expect(result.html).toContain('name="custom_str1" value="amy@example.com"');
+    expect(result.html).not.toContain('name="custom_str2"');
     expect(result.html).toContain("https://gooddaynight.com/api/payfast/itn");
     expect(result.html).toContain("https://gooddaynight.com/app?paid=1&amp;ref=");
     expect(result.html).toContain("https://gooddaynight.com/moments?cancelled=1");
@@ -304,9 +305,9 @@ describe("payfast checkout and ITN", () => {
     }
   });
 
-  it("credits email_address when an older ITN leaves custom_str2 blank", async () => {
+  it("credits email_address when custom_str1 is the older vault id", async () => {
     const raw = documentedItn({
-      custom_str2: "",
+      custom_str1: emailVaultId("amy@example.com"),
       email_address: "amy@example.com",
       pf_payment_id: "1089251",
     });
@@ -319,24 +320,17 @@ describe("payfast checkout and ITN", () => {
     expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089251"]);
   });
 
-  it("refuses the credit when the carried email does not match custom_str1", async () => {
+  it("rejects an ITN that has no email in custom_str1 or email_address", async () => {
     const raw = documentedItn({
-      custom_str2: "other@example.com",
-      email_address: "amy@example.com",
+      custom_str1: emailVaultId("amy@example.com"),
+      email_address: "not-an-email",
     });
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
-      let called = false;
-      const result = await handlePayfastItn(raw, async () => {
-        called = true;
-        return new Response("VALID", { status: 200 });
-      });
+      const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
       expect(result.status).toBe(500);
-      expect(called).toBe(true);
       expect(await getEntitlement("amy@example.com")).toBeNull();
-      expect(await getEntitlement("other@example.com")).toBeNull();
-      expect(warn).toHaveBeenCalledWith("[payfast-itn] rejected", "buyer");
-      expect(JSON.stringify(warn.mock.calls)).not.toContain("amy@example.com");
+      expect(warn).toHaveBeenCalledWith("[payfast-itn] rejected", "email");
       expect(JSON.stringify(warn.mock.calls)).not.toContain("test-passphrase");
     } finally {
       warn.mockRestore();
@@ -408,7 +402,7 @@ describe("payfast checkout and ITN", () => {
     });
     useFansTable(table);
     const raw = documentedItn({
-      custom_str2: "",
+      custom_str1: "amy@example.com",
       email_address: "amy@example.com",
       pf_payment_id: "329705515",
     });
@@ -444,7 +438,7 @@ describe("payfast checkout and ITN", () => {
     });
     useFansTable(table);
     const raw = documentedItn({
-      custom_str2: "other@example.com",
+      custom_str1: emailVaultId("amy@example.com"),
       email_address: "payer@payfast.example",
       pf_payment_id: "329705515",
     });
@@ -460,7 +454,6 @@ describe("payfast checkout and ITN", () => {
     expect(result).toEqual({ status: 200, body: "OK" });
     expect(table.rows.get("amy@example.com")?.game).toBe(40);
     expect(table.rows.size).toBe(1);
-    expect(await getEntitlement("other@example.com")).toBeNull();
     expect(await getEntitlement("payer@payfast.example")).toBeNull();
   });
 
@@ -542,8 +535,8 @@ function documentedItn(overrides: Record<string, string> = {}): string {
     amount_gross: PACK_AMOUNT,
     amount_fee: "-1.15",
     amount_net: "3.85",
-    custom_str1: emailVaultId(orderEmail),
-    custom_str2: orderEmail,
+    custom_str1: orderEmail,
+    custom_str2: "",
     custom_str3: "",
     custom_str4: "",
     custom_str5: "",
