@@ -69,8 +69,8 @@ import {
   writeActiveMoment,
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
-import { useReportBuyerGate } from "@/components/journey-gate";
 import GradientWord from "@/components/GradientWord";
+import { useReportBuyerGate } from "@/components/journey-gate";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
 
@@ -435,21 +435,6 @@ export default function CaptureStudio() {
     takeInputRef.current?.click();
   }
 
-  async function keepLiveStill() {
-    const video = liveVideoRef.current;
-    if (!video) return;
-    try {
-      const file = await stillFromLiveVideo(video);
-      stopLiveCamera();
-      await takePhoto(file, true);
-    } catch (error) {
-      stopLiveCamera();
-      setCaptureError(
-        error instanceof Error ? error.message : "Could not keep a still from the camera.",
-      );
-    }
-  }
-
   async function startNewStory() {
     const destination = startNewStoryDestination(gate);
     if (destination) {
@@ -479,6 +464,21 @@ export default function CaptureStudio() {
     setCaption("");
     setPhoneStash(false);
     setDrafting(true);
+  }
+
+  async function keepLiveStill() {
+    const video = liveVideoRef.current;
+    if (!video) return;
+    try {
+      const file = await stillFromLiveVideo(video);
+      stopLiveCamera();
+      await takePhoto(file, true);
+    } catch (error) {
+      stopLiveCamera();
+      setCaptureError(
+        error instanceof Error ? error.message : "Could not keep a still from the camera.",
+      );
+    }
   }
 
   async function takePhoto(file: File | null, fromCamera = false) {
@@ -769,7 +769,7 @@ export default function CaptureStudio() {
       }
       setPhoneNote(latest.todayPhoto ? null : LANDING.app.savedOnPhone);
       window.requestAnimationFrame(() => {
-        document.getElementById("yours-door")?.scrollIntoView({
+        document.getElementById("photo-steps")?.scrollIntoView({
           behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
           block: "start",
         });
@@ -808,6 +808,17 @@ export default function CaptureStudio() {
       </header>
 
       <main id="main">
+        <section className="card card--cream card--compact" aria-label="Story actions">
+          <div className="story-actions">
+            <button className="btn btn--lime" type="button" onClick={() => void startNewStory()}>
+              <GradientWord>Create</GradientWord> your new story
+            </button>
+            <Link className="btn btn--lime" href="/app/yours#earlier-stories">
+              See your <GradientWord>Created</GradientWord> story
+            </Link>
+          </div>
+        </section>
+
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
           {buyerOpen && (!session?.otpVerified || resign) ? (
@@ -859,19 +870,6 @@ export default function CaptureStudio() {
             </p>
           ) : null}
         </section>
-
-        {session?.hasSavedMoment ? (
-          <section className="card card--lime card--compact">
-            <button className="btn btn--lime" type="button" style={{ width: "100%" }} onClick={() => void startNewStory()}>
-              <GradientWord>Create</GradientWord> your new story
-            </button>
-            <p className="card__body" style={{ marginTop: "0.85rem" }}>
-              <Link href="/app/yours">
-                See your <GradientWord>Created</GradientWord> stories
-              </Link>
-            </p>
-          </section>
-        ) : null}
 
         <form onSubmit={saveMoment}>
         <section className="card card--dark" aria-labelledby="capture-heading">
@@ -1065,37 +1063,7 @@ export default function CaptureStudio() {
           ) : null}
         </form>
 
-        {yoursReady ? (
-          <section id="yours-door" className="card card--lime card--compact" aria-label={LANDING.app.yours}>
-            <Link className="yours" href={momentRef.current ? `/app/yours?moment=${momentRef.current}` : "/app/yours"}>
-              {LANDING.app.yours}
-            </Link>
-            {phoneNote ? (
-              <p className="notice" style={{ marginTop: "0.85rem" }}>
-                {phoneNote}
-              </p>
-            ) : null}
-          </section>
-        ) : null}
-
-        <section className="card card--cream card--compact" aria-labelledby="today-heading">
-          <span className="pill">Story</span>
-          <h2 id="today-heading">Today’s moment</h2>
-          {!session?.hasSavedMoment && !phoneStash ? (
-            <p className="card__body" style={{ marginTop: "0.8rem" }}>
-              Nothing saved yet. One photo and one joy, then Create your story.
-            </p>
-          ) : (
-            <div className="moment-list">
-              <article className="moment">
-                <span className="moment__kind">photo</span>
-                <p>{getJoyById(savedPhoto?.joyType ?? selectedJoyId)?.title ?? "A still from today."}</p>
-              </article>
-            </div>
-          )}
-        </section>
-
-        <nav className="step-nav" aria-label="Steps">
+        <nav id="photo-steps" className="step-nav" aria-label="Steps">
           <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} tone="soft" />
           <StepControl
             direction="next"

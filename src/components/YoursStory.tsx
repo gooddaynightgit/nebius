@@ -444,7 +444,7 @@ export default function YoursStory() {
               ) : null}
             </div>
             {state.earlier.length ? (
-              <nav className="earlier-stories" aria-label="Earlier stories">
+              <nav id="earlier-stories" className="earlier-stories" aria-label="Earlier stories">
                 <h2>Earlier stories</h2>
                 <ul>
                   {state.earlier.map((item) => (
