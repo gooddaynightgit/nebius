@@ -33,7 +33,8 @@ type JoyPickerProps = {
   selectedId?: string | null;
   onSelect?: (joy: JoyType) => void;
   joys?: readonly JoyType[];
-  legend?: ReactNode;
+  /** Visible question. Null hides it and keeps a screen-reader name. */
+  legend?: ReactNode | null;
   /** Extra radio after the catalog joys. Choosing it does not call onSelect. */
   trailingChoice?: JoyTrailingChoice;
 };
@@ -75,7 +76,7 @@ export default function JoyPicker({
 
   return (
     <fieldset className="joy-fieldset">
-      <legend className="joy-legend">{legend}</legend>
+      <legend className={legend ? "joy-legend" : "visually-hidden"}>{legend || "Pick your joy"}</legend>
       <div className="joy-list">
         {joys.map((joy) => {
           const open = !trailingOpen && selected === joy.id;

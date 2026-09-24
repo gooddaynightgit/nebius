@@ -853,10 +853,14 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/router\.push/);
     expect(joy).toMatch(/href="\/"/);
     expect(joy).toMatch(/STEP_LABEL\.start/);
-    expect(joy).toMatch(/href="\/app"/);
-    expect(joy).toMatch(/STEP_LABEL\.joy/);
-    expect(joy).toMatch(/disabled=\{!selectedJoy\}/);
+    expect(joy).toMatch(/LANDING\.app\.uploadPhoto/);
+    expect(joy).toMatch(/uploadPhotoDestination/);
+    expect(joy).toMatch(/if \(!selectedJoy\) return/);
+    expect(joy).toMatch(/className="step-next"/);
+    expect(joy).not.toMatch(/disabled=\{!selectedJoy\}/);
+    expect(joy).not.toMatch(/tone="soft"/);
     expect(joy).toMatch(/LANDING\.app\.joyNeed/);
+    expect(joy).toMatch(/step-nudge--block/);
     expect(joy).toMatch(/selectedJoy \?/);
     expect(joy).not.toMatch(/\/api\/joy-match/);
     expect(joy).not.toMatch(/captionDisposition/);
@@ -902,9 +906,10 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/htmlFor=\{takeInputId\}/);
     expect(joy).toMatch(/JoyPicker/);
     expect(joy).toMatch(/quiet-joy-app/);
-    expect(joy).toMatch(/LANDING\.app\.joyQuestion/);
-    expect(joy).toMatch(/LANDING\.app\.joyPickHint/);
-    expect(joy).toMatch(/<em>/);
+    expect(joy).not.toMatch(/LANDING\.app\.joyQuestion/);
+    expect(joy).not.toMatch(/LANDING\.app\.joyPickHint/);
+    expect(joy).not.toMatch(/What joy is it\?/);
+    expect(joy).toMatch(/legend=\{null\}/);
     expect(joy).toMatch(/step-heading step-heading--navy/);
     expect(joy).toMatch(/Pick your joy/);
     expect(joy).not.toMatch(/already-picked/);
@@ -915,7 +920,6 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/openSavedJoyMoments/);
     expect(joy).toMatch(/chooseStoryJoy/);
     expect(joy).toMatch(/trailingChoice/);
-    expect(joy).toMatch(/tone="soft"/);
     expect(picker).toMatch(/accordionJoys/);
     expect(src).not.toMatch(/What kind of quiet joy was it\?/);
     expect(src).not.toMatch(/href="#yours"/);
@@ -1013,7 +1017,7 @@ describe("app capture client contract", () => {
     expect(route).toMatch(/joy_type|joyType/);
     const pickerJsx = joy.match(/<JoyPicker[\s\S]*?\/>/)?.[0] ?? "";
     expect(pickerJsx).not.toMatch(/\bcompact\b/);
-    expect(pickerJsx).toMatch(/legend=\{JOY_PAGE_LEGEND\}/);
+    expect(pickerJsx).toMatch(/legend=\{null\}/);
     expect(src).not.toMatch(/joy_type/);
     expect(src).toMatch(/photoRef/);
     expect(src).toMatch(/captionScroll/);

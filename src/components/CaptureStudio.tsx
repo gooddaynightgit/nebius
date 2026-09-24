@@ -73,6 +73,7 @@ import { GradientPhrase } from "@/components/GradientWord";
 import { useReportBuyerGate } from "@/components/journey-gate";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
+import { destinationForEntitlement } from "@/lib/photo-entry";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
 
@@ -214,13 +215,9 @@ export default function CaptureStudio() {
         setCaptureOpen(true);
         return;
       }
-      if (result === "exhausted") {
-        setCaptureOpen(false);
-        setBuyerNote("Those 40 moments are used.");
-      } else if (result === "closed") {
-        setCaptureOpen(false);
-        setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
-      }
+      setCaptureOpen(false);
+      const next = destinationForEntitlement(result);
+      if (next === "/moments") window.location.assign(next);
     });
     return () => {
       cancel = true;
@@ -304,8 +301,9 @@ export default function CaptureStudio() {
       return;
     }
     setCaptureOpen(false);
-    if (result === "exhausted") {
-      setBuyerNote("Those 40 moments are used.");
+    const next = destinationForEntitlement(result);
+    if (next === "/moments") {
+      window.location.assign(next);
       return;
     }
     setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
