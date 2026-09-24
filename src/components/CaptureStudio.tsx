@@ -18,7 +18,12 @@ import { localDay } from "@/lib/day";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import { PRIVACY_NOTE } from "@/lib/privacy";
 import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
-import { rotatingOpener, withHumbleCloser } from "@/lib/spark-closer";
+import {
+  applySparkVoice,
+  chooseSparkVoice,
+  readSparkVoiceMemory,
+  writeSparkVoiceMemory,
+} from "@/lib/spark-closer";
 import {
   inspectPhotoDate,
   isImageMime,
@@ -524,8 +529,10 @@ export default function CaptureStudio() {
     setCaption("");
   }
 
-  function finishSpark(line: string, key: string) {
-    setSpark(withHumbleCloser(line, key));
+  function finishSpark(line: string) {
+    const voice = chooseSparkVoice(readSparkVoiceMemory());
+    writeSparkVoiceMemory(voice);
+    setSpark(applySparkVoice(line, voice));
     setSparkPending(false);
     setSparkAnswer(null);
     setAnsweredGeneration(null);
@@ -546,14 +553,24 @@ export default function CaptureStudio() {
     setSparkAnswer(null);
     setAnsweredGeneration(null);
     try {
+      const previous = readSparkVoiceMemory();
       const form = new FormData();
       form.set("file", file, file.name || "moment.jpg");
+      if (previous) {
+        form.set("openerIndex", String(previous.openerIndex));
+        form.set("closerIndex", String(previous.closerIndex));
+      }
       const res = await fetch("/api/photo-spark", {
         method: "POST",
         body: form,
         credentials: "same-origin",
       });
-      const data = await readJson<{ spark?: string; blocked?: boolean }>(res);
+      const data = await readJson<{
+        spark?: string;
+        blocked?: boolean;
+        openerIndex?: number;
+        closerIndex?: number;
+      }>(res);
       if (seq !== sparkSeq.current) return;
       if (data.blocked) {
         setSpark(data.spark?.trim() || LANDING.app.blocked);
@@ -562,11 +579,18 @@ export default function CaptureStudio() {
         setAnsweredGeneration(null);
         return;
       }
-      const sparkKey = file.name || "moment.jpg";
-      finishSpark(
-        data.spark?.trim() || `${rotatingOpener(sparkKey)}, this still from the day`,
-        sparkKey,
-      );
+      if (typeof data.openerIndex === "number" && typeof data.closerIndex === "number") {
+        writeSparkVoiceMemory({ openerIndex: data.openerIndex, closerIndex: data.closerIndex });
+      }
+      const spark = data.spark?.trim();
+      if (spark) {
+        setSpark(spark);
+        setSparkPending(false);
+        setSparkAnswer(null);
+        setAnsweredGeneration(null);
+        return;
+      }
+      finishSpark("this still from the day");
     } catch (err) {
       if (seq !== sparkSeq.current) return;
       const message = err instanceof Error ? err.message : "";
@@ -575,8 +599,7 @@ export default function CaptureStudio() {
         setCaptureError(message);
         return;
       }
-      const sparkKey = file.name || "moment.jpg";
-      finishSpark(`${rotatingOpener(sparkKey)}, this still from the day`, sparkKey);
+      finishSpark("this still from the day");
     }
   }
 

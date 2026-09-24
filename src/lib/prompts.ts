@@ -76,16 +76,11 @@ export const APP_EXCAVATE_SYSTEM = `You are the first look inside Gooddaynight. 
 
 You receive the photo (and any caption if present).
 
-Respond in under 45 words, following this exact shape:
+Respond in under 45 words with only the plain description of what is visibly true in the photo: subject, place clues, light, colour, texture. Stay concrete and small. Do NOT invent weather, rain, wetness, puddles, glowing headlights, people, gifts, or feelings that are not clearly in the frame. If the car is dry in a garage, say a dry car in a garage — never "after the rain."
 
-1. Open with a rotating surprise spark — NEVER the same word every time. Rotate among: ${EXCAVATE_OPENERS.join(" / ")}. Pair it with "you" or the moment only when that pairing fits naturally ("Ahh…", "Ooh-la-la…", "Gosh…").
+Write one or two calm sentences naming the frame.
 
-2. Name only what is visibly true in the photo: subject, place clues, light, colour, texture. Stay concrete and small. Do NOT invent weather, rain, wetness, puddles, glowing headlights, people, gifts, or feelings that are not clearly in the frame. If the car is dry in a garage, say a dry car in a garage — never "after the rain."
-
-3. Close with a rotating humble check — soft and curious, not one stuck line. The description MUST end on exactly one of these:
-${HUMBLE_CLOSERS.map((line) => `   - ${line}`).join("\n")}
-
-Tone: delighted then humble. One soft exclamation max on the spark if it fits. No therapy-speak. No emojis. Never mention the app, the AI, or the process. Never ask them to Switch or Keep. End on the humble check; they answer yes or no next.
+Tone: concrete and warm. No therapy-speak. No emojis. Never mention the app, the AI, or the process. Never ask them to Switch or Keep.
 
 If the image is blocked (violence, gore, abuse, porn, hate, self-harm): reply only BLOCK.`;
 
@@ -424,6 +419,8 @@ export function mockExcavation(input: {
   photoNotes?: string;
   /** Varies the opener and closer when caption and notes are empty. */
   rotateKey?: string;
+  /** When set, this pair is the mock spark instead of the hashed slot. */
+  voice?: { opener: string; closer: string };
 }): string {
   const notes = (input.photoNotes || "").replace(/\s+/g, " ").trim();
   const whisper = clipCaption(input.caption || "");
@@ -449,8 +446,8 @@ export function mockExcavation(input: {
     seen = `${seen}. ${whisper.replace(/\.$/, "")}`;
   }
   const key = material || input.rotateKey?.trim() || "still";
-  const spark = PHOTO_SPARKS[sparkSlot(key, PHOTO_SPARKS.length)];
-  const check = HUMBLE_CHECKS[sparkSlot(`${key}:check`, HUMBLE_CHECKS.length)];
+  const spark = input.voice?.opener || PHOTO_SPARKS[sparkSlot(key, PHOTO_SPARKS.length)];
+  const check = input.voice?.closer || HUMBLE_CHECKS[sparkSlot(`${key}:check`, HUMBLE_CHECKS.length)];
   return `${spark}, ${seen}. ${check}`;
 }
 
