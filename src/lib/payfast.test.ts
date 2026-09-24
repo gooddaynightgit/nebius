@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { emailVaultId } from "./identity";
 import { getEntitlement } from "./entitlement";
+import { MemoryFansTable, useFansTable } from "./fans";
 import {
   FIELD_ORDER,
   ITEM_DESCRIPTION,
@@ -116,6 +117,7 @@ describe("payfast checkout and ITN", () => {
     for (const key of ENV_KEYS) delete process.env[key];
     dir = mkdtempSync(path.join(os.tmpdir(), "gdn-pf-"));
     process.env.DATA_DIR = dir;
+    useFansTable(new MemoryFansTable());
     process.env.PF_MERCHANT_ID = "10000100";
     process.env.PF_MERCHANT_KEY = "46f0cd694581a";
     process.env.PF_PASSPHRASE = "test-passphrase";
@@ -128,6 +130,7 @@ describe("payfast checkout and ITN", () => {
       if (value == null) delete process.env[key];
       else process.env[key] = value;
     }
+    useFansTable(null);
     rmSync(dir, { recursive: true, force: true });
   });
 
@@ -257,7 +260,10 @@ describe("payfast checkout and ITN", () => {
     const keep = readFileSync(path.resolve("src/lib/keep-card.ts"), "utf8");
     const joy = readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8");
     expect(captures).toMatch(/getEntitlement/);
-    expect(captures).toMatch(/if \(!replacing\) await consumeMoment/);
+    expect(captures).toMatch(/if \(!replacing\)/);
+    expect(captures).toMatch(/await consumeMoment\(email\)/);
+    expect(captures).toMatch(/left == null/);
+    expect(captures).toMatch(/restoreMoment/);
     expect(yours).not.toMatch(/consumeMoment/);
     expect(story).not.toMatch(/consumeMoment/);
     expect(keep).not.toMatch(/consumeMoment/);

@@ -1,6 +1,6 @@
 import { appPhotoRejection, captionDisposition } from "@/lib/app-capture";
 import { chooseSpokenLine, proposeSpokenLine } from "@/lib/care";
-import { consumeMoment, getEntitlement } from "@/lib/entitlement";
+import { consumeMoment, getEntitlement, restoreMoment } from "@/lib/entitlement";
 import { ingestAppPhoto, ingestGood } from "@/lib/ingest";
 import { newId, todayStamp } from "@/lib/identity";
 import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
@@ -205,47 +205,66 @@ async function saveAppPhoto(
     if (!safety.safe) return forbidden(SAFETY_REFUSAL);
   }
 
-  const id = existing?.id ?? newId("cap");
-  let mediaKey = existing?.mediaKey;
-  if (bytes) {
-    const ext = extensionFor(mediaContentType, "photo");
-    mediaKey = `vaults/${vault.id}/media/${id}.${ext}`;
-    await putBytes(mediaKey, bytes, mediaContentType);
+  let spent = false;
+  if (!replacing) {
+    const left = await consumeMoment(email);
+    if (left == null) {
+      return forbidden("Capture stays closed until this purchase is confirmed.");
+    }
+    spent = true;
   }
 
-  const ingest = await ingestAppPhoto({
-    caption: caption || undefined,
-    imageDataUrl,
-    joyType: joy.id,
-  });
+  try {
+    const id = existing?.id ?? newId("cap");
+    let mediaKey = existing?.mediaKey;
+    if (bytes) {
+      const ext = extensionFor(mediaContentType, "photo");
+      mediaKey = `vaults/${vault.id}/media/${id}.${ext}`;
+      await putBytes(mediaKey, bytes, mediaContentType);
+    }
 
-  const sparkRaw = String(form.get("sparkAnswer") ?? "");
-  const sparkAnswer = sparkRaw === "yes" || sparkRaw === "no" ? sparkRaw : undefined;
-  const capture = await upsertAppPhoto(vault, {
-    id,
-    kind: "photo",
-    createdAt: existing?.createdAt ?? new Date().toISOString(),
-    day,
-    caption: caption || undefined,
-    joyType: joy.id,
-    source: "app",
-    ...(sparkAnswer ? { sparkAnswer, photoEmphasis: "low" as const } : {}),
-    dateVerified: Boolean(date.verified && date.takenDay === day),
-    photoTakenAt: date.verified && date.takenDay ? date.takenDay : day,
-    locked: false,
-    goodMoment: ingest.goodMoment,
-    reframed: ingest.reframed,
-    mediaKey,
-    mediaContentType,
-    ingestModel: ingest.model,
-    ingestStatus: ingest.status,
-  });
-  if (!replacing) await consumeMoment(email);
-  return json({
-    capture,
-    session: await presentSession(vault, sessionId, day),
-    captionNote: captionResult.dropped ? LANDING.app.captionDropped : undefined,
-  });
+    const ingest = await ingestAppPhoto({
+      caption: caption || undefined,
+      imageDataUrl,
+      joyType: joy.id,
+    });
+
+    const sparkRaw = String(form.get("sparkAnswer") ?? "");
+    const sparkAnswer = sparkRaw === "yes" || sparkRaw === "no" ? sparkRaw : undefined;
+    const capture = await upsertAppPhoto(vault, {
+      id,
+      kind: "photo",
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+      day,
+      caption: caption || undefined,
+      joyType: joy.id,
+      source: "app",
+      ...(sparkAnswer ? { sparkAnswer, photoEmphasis: "low" as const } : {}),
+      dateVerified: Boolean(date.verified && date.takenDay === day),
+      photoTakenAt: date.verified && date.takenDay ? date.takenDay : day,
+      locked: false,
+      goodMoment: ingest.goodMoment,
+      reframed: ingest.reframed,
+      mediaKey,
+      mediaContentType,
+      ingestModel: ingest.model,
+      ingestStatus: ingest.status,
+    });
+    return json({
+      capture,
+      session: await presentSession(vault, sessionId, day),
+      captionNote: captionResult.dropped ? LANDING.app.captionDropped : undefined,
+    });
+  } catch (error) {
+    if (spent) {
+      try {
+        await restoreMoment(email);
+      } catch (restoreError) {
+        console.error("[goodfans] could not restore a moment after a failed save", restoreError);
+      }
+    }
+    throw error;
+  }
 }
 
 function extensionFor(contentType: string, kind: CaptureKind): string {
