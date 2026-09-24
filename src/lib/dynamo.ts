@@ -15,7 +15,7 @@ export function dynamoDocument(): DynamoDBDocumentClient {
   return documentClient;
 }
 
-/** OTP table. Entitlements stay on the Blob/S3 JSON store. */
+/** OTP table (`gooddaynightauth`). Moment credits use `goodfans` via `fansTableName`. */
 export function authTableName(): string {
   return process.env.AUTH_TABLE?.trim() || "gooddaynightauth";
 }

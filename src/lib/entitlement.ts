@@ -1,5 +1,5 @@
 import { emailVaultId, normalizeEmail } from "./identity";
-import { getJSON, putJSON } from "./storage";
+import { activeFansTable } from "./fans";
 
 export type Entitlement = {
   emailVaultId: string;
@@ -8,30 +8,28 @@ export type Entitlement = {
   updatedAt: string;
 };
 
-export type PaymentRecord = {
-  pfPaymentId: string;
-  emailVaultId: string;
-  amountGross: string;
-  moments: number;
-  createdAt: string;
-};
-
-function entitlementKey(email: string): string {
-  return `entitlements/${emailVaultId(email)}.json`;
-}
-
-function paymentKey(pfPaymentId: string): string {
-  return `payments/${pfPaymentId}.json`;
-}
-
+/**
+ * Remaining moment saves are the `game` attribute on DynamoDB `goodfans`.
+ * The partition key `order` is the normalized buyer email. A confirmed pack
+ * adds 40 (the same credit as before). A repeat Payfast payment id does not
+ * add again. Blob/S3 entitlement JSON is not used.
+ */
 export async function getEntitlement(email: string): Promise<Entitlement | null> {
   const normalized = normalizeEmail(email);
-  return getJSON<Entitlement>(entitlementKey(normalized));
+  const row = await activeFansTable().get(normalized);
+  if (!row) return null;
+  return {
+    emailVaultId: row.emailVaultId || emailVaultId(normalized),
+    remaining: row.game,
+    paymentIds: row.paymentIds,
+    updatedAt: row.updatedAt,
+  };
 }
 
 /**
  * Credit a confirmed Payfast payment once. The payment id is the idempotency
- * key: a repeat ITN does not add another pack.
+ * key: a repeat ITN does not add another pack. A new payment id adds `moments`
+ * onto the same email row (a second pack stacks on whatever `game` is left).
  */
 export async function creditMoments(input: {
   email: string;
@@ -46,49 +44,32 @@ export async function creditMoments(input: {
     throw new Error("Invalid Payfast payment id.");
   }
   const email = normalizeEmail(input.email);
-  const prior = await getJSON<PaymentRecord>(paymentKey(input.pfPaymentId));
-  const current = (await getEntitlement(email)) ?? {
+  const result = await activeFansTable().credit({
+    order: email,
+    pfPaymentId: input.pfPaymentId,
+    amountGross: input.amountGross,
+    moments: input.moments,
     emailVaultId: emailVaultId(email),
-    remaining: 0,
-    paymentIds: [],
-    updatedAt: new Date().toISOString(),
-  };
-  const already = Boolean(prior) || current.paymentIds.includes(input.pfPaymentId);
-  if (already && current.paymentIds.includes(input.pfPaymentId)) {
-    return { remaining: current.remaining, duplicate: true };
-  }
-  const updatedAt = new Date().toISOString();
-  const next: Entitlement = already
-    ? current
-    : {
-        ...current,
-        remaining: current.remaining + input.moments,
-        paymentIds: [...current.paymentIds, input.pfPaymentId],
-        updatedAt,
-      };
-  if (!already) await putJSON(entitlementKey(email), next);
-  if (!prior) {
-    const record: PaymentRecord = {
-      pfPaymentId: input.pfPaymentId,
-      emailVaultId: next.emailVaultId,
-      amountGross: input.amountGross,
-      moments: input.moments,
-      createdAt: updatedAt,
-    };
-    await putJSON(paymentKey(input.pfPaymentId), record);
-  }
-  return { remaining: next.remaining, duplicate: already };
+    source: "payfast",
+    now: new Date().toISOString(),
+  });
+  return { remaining: result.game, duplicate: result.duplicate };
 }
 
-/** Spend one moment save (a new day's photo → My good moment). Replay, Share, joy picks, and same-day replaces do not call this. */
+/**
+ * Spend one moment save (a new day's photo → My good moment).
+ * Replay, Share, joy picks, and same-day replaces do not call this.
+ * Returns the new balance, or null when `game` is already 0 or the row is missing.
+ */
 export async function consumeMoment(email: string): Promise<number | null> {
-  const current = await getEntitlement(email);
-  if (!current || current.remaining < 1) return null;
-  const next: Entitlement = {
-    ...current,
-    remaining: current.remaining - 1,
-    updatedAt: new Date().toISOString(),
-  };
-  await putJSON(entitlementKey(email), next);
-  return next.remaining;
+  const normalized = normalizeEmail(email);
+  if (!normalized) return null;
+  return activeFansTable().consume(normalized, new Date().toISOString());
+}
+
+/** Give back one moment when the photo save fails after consumeMoment. */
+export async function restoreMoment(email: string): Promise<void> {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return;
+  await activeFansTable().restore(normalized, new Date().toISOString());
 }

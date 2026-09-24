@@ -36,7 +36,12 @@ describe("email otp gates", () => {
     expect(read("src/app/api/auth/request/route.ts")).not.toMatch(/code: issued/);
     expect(read("src/app/api/auth/verify/route.ts")).toMatch(/verifyOtp/);
     expect(read("src/app/api/auth/verify/route.ts")).toMatch(/setOtpSession/);
-    expect(read("src/lib/entitlement.ts")).toMatch(/putJSON/);
-    expect(read("src/lib/entitlement.ts")).not.toMatch(/DynamoDB|dynamoDocument/);
+    expect(read("src/lib/entitlement.ts")).toMatch(/goodfans/);
+    expect(read("src/lib/entitlement.ts")).not.toMatch(/putJSON|getJSON|sleepcoachfans/);
+    expect(read("src/lib/fans.ts")).toMatch(/FANS_TABLE/);
+    expect(read("src/lib/fans.ts")).toMatch(/game > :zero/);
+    expect(read("src/lib/fans.ts")).toMatch(/Refusing to store GoodDayNight moments in sleepcoachfans/);
+    expect(read("src/lib/dynamo.ts")).toMatch(/gooddaynightauth/);
+    expect(read("src/app/api/auth/request/route.ts")).toMatch(/dynamoOtpTable/);
   });
 });
