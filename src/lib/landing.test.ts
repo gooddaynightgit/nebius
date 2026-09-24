@@ -17,7 +17,34 @@ describe("landing copy", () => {
     expect(LANDING.app.photoHelp).toBe(
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
-    expect(LANDING.app.heading).toBe("Today. One good moment.");
+    expect(LANDING.app.heading).toBe("Today.");
+    expect(LANDING.app.noticingTitle).toBe("Moments worth noticing:");
+    expect(LANDING.app.noticing).toEqual([
+      "The first sip of coffee, still quiet",
+      "Sunlight through a window you walk past every day",
+      "A laugh that surprised you",
+      "Your dog losing its mind when you got home",
+      "A stranger holding the door",
+      "The song that found you at the right time",
+      "Rain on the roof while you’re warm inside",
+      "A text from someone you miss",
+      "Finishing something you kept putting off",
+      "The exact second the sky turned gold",
+      "Your kid saying something unintentionally wise",
+      "A meal you actually tasted",
+      "Someone laughing at your joke",
+      "The walk where your head finally went quiet",
+      "Clean sheets",
+      "A small win nobody clapped for",
+      "The drive home with the windows down",
+      "Being forgiven",
+      "Nothing happening — and it feeling like peace",
+    ]);
+    expect(LANDING.app.noticingClose).toBe(
+      "One of these happens to you almost every day. Most nights, it’s already gone.",
+    );
+    expect(LANDING.app.noticingClose).toMatch(/it’s/);
+    expect(LANDING.app.noticing.join(" ")).toMatch(/you’re/);
     expect(LANDING.app.yours).toBe("My good moment weaved");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");

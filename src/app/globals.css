@@ -800,15 +800,18 @@ body:has(.journey) .skip-link:focus {
   color: #e8ecf1;
 }
 
-.playback.playback--weaved .playback__banner {
-  padding: 1.25rem 1.05rem 1.35rem;
-  border-radius: 0.95rem;
+.pastel-banner {
   background-color: #ede9fe;
   background-image:
     radial-gradient(115% 90% at 100% 115%, #bae6fd 0%, rgba(186, 230, 253, 0) 52%),
     radial-gradient(80% 75% at 92% 72%, #c4b5fd 0%, rgba(196, 181, 253, 0) 58%),
     radial-gradient(70% 60% at 100% 28%, #f5c6e8 0%, rgba(245, 198, 232, 0) 50%),
     linear-gradient(165deg, #f8f7ff 0%, #ede9fe 48%, #f3e9fb 100%);
+}
+
+.playback.playback--weaved .playback__banner {
+  padding: 1.25rem 1.05rem 1.35rem;
+  border-radius: 0.95rem;
   color: var(--navy);
 }
 
@@ -839,6 +842,90 @@ body:has(.journey) .skip-link:focus {
   font-size: 1.02rem;
   font-weight: 500;
   line-height: 1.55;
+}
+
+.noticing {
+  position: relative;
+  z-index: 1;
+  margin: 1.05rem 0 0;
+}
+
+.noticing__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.95rem 1rem;
+  border: 0;
+  border-radius: 0.95rem;
+  color: var(--navy);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+.noticing.is-open .noticing__bar {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.noticing__bar:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 3px;
+}
+
+.noticing__label {
+  min-width: 0;
+}
+
+.noticing__chevron {
+  flex: 0 0 auto;
+  width: 0.58rem;
+  height: 0.58rem;
+  margin-right: 0.15rem;
+  border-right: 2.5px solid var(--navy);
+  border-bottom: 2.5px solid var(--navy);
+  transform: translateY(-0.12rem) rotate(45deg);
+  transition: transform 160ms var(--ease);
+}
+
+.noticing.is-open .noticing__chevron {
+  transform: translateY(0.12rem) rotate(225deg);
+}
+
+.noticing__panel {
+  padding: 0.9rem 0.95rem 1rem;
+  border-radius: 0 0 0.95rem 0.95rem;
+  background: #f8f7ff;
+  color: var(--navy);
+}
+
+.noticing__panel ul {
+  margin: 0;
+  padding: 0 0 0 1.15rem;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.noticing__panel li {
+  color: var(--navy);
+  font-size: 0.98rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.noticing__close {
+  margin: 0.95rem 0 0;
+  color: var(--navy);
+  font-size: 1.02rem;
+  font-weight: 650;
+  line-height: 1.45;
 }
 
 .notice {
@@ -1821,6 +1908,7 @@ body:has(.journey) .skip-link:focus {
   .btn,
   .record__btn,
   .accordion > summary::after,
+  .noticing__chevron,
   .dropzone,
   .feedback-ribbon__track {
     transition: none;
