@@ -1,6 +1,14 @@
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { isValidEmail, normalizeEmail, todayStamp } from "./identity";
+import { unauthorized } from "./http";
+import {
+  OTP_COOKIE,
+  openOtpCookie,
+  otpSessionSecret,
+  otpSessionTtlSeconds,
+  sealOtpCookie,
+} from "./otp-session";
 import {
   attachEmail,
   capturesForDay,
@@ -44,6 +52,40 @@ export async function readGateEmail(): Promise<string | null> {
   return normalizeEmail(raw);
 }
 
+/** Sets gdn_em and the signed gdn_otp cookie together. Returns false if the session cannot be signed. */
+export async function setOtpSession(email: string): Promise<boolean> {
+  const secret = otpSessionSecret();
+  if (!secret || !isValidEmail(email)) return false;
+  const normalized = normalizeEmail(email);
+  const ttl = otpSessionTtlSeconds();
+  const jar = await cookies();
+  jar.set(OTP_COOKIE, sealOtpCookie(normalized, Math.floor(Date.now() / 1000), secret, ttl), {
+    ...cookieBase,
+    maxAge: ttl,
+  });
+  await setGateEmail(normalized);
+  return true;
+}
+
+export async function readOtpSession(): Promise<{ email: string } | null> {
+  const secret = otpSessionSecret();
+  if (!secret) return null;
+  const jar = await cookies();
+  const raw = jar.get(OTP_COOKIE)?.value;
+  if (!raw) return null;
+  return openOtpCookie(raw, Math.floor(Date.now() / 1000), secret);
+}
+
+/** Personal-photo routes. Joy picks do not call this. A bare gdn_em cookie is not enough. */
+export async function requirePersonalPhotoOtp() {
+  const otp = await readOtpSession();
+  const gate = await readGateEmail();
+  if (!otp || !gate || otp.email !== gate) {
+    return unauthorized("Verify your email to open personal photos.");
+  }
+  return null;
+}
+
 export function toPublicSession(
   vault: VaultRecord,
   sessionId: string,
@@ -68,6 +110,7 @@ export function toPublicSession(
     todayPhoto: photo,
     yoursOpened: opened,
     canReplacePhoto: Boolean(todayPhoto),
+    otpVerified: false,
   };
 }
 
@@ -77,7 +120,10 @@ export async function presentSession(
   day: string,
 ): Promise<SessionState> {
   await scrubExpiredCaptions(vault, day);
-  return toPublicSession(vault, sessionId, day);
+  const state = toPublicSession(vault, sessionId, day);
+  const otp = await readOtpSession();
+  state.otpVerified = Boolean(otp && (!state.email || otp.email === state.email));
+  return state;
 }
 
 export async function loadSessionVault(): Promise<{

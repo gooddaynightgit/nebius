@@ -211,6 +211,35 @@ a {
   line-height: 1.35;
 }
 
+.privacy-note {
+  margin: 0.15rem 0 0;
+  max-width: 36rem;
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.moments-code {
+  justify-self: start;
+  width: auto;
+  min-height: 2.8rem;
+  border-color: var(--navy);
+  background: transparent;
+  color: var(--navy);
+}
+
+.moments-code:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.moments-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .card--dark .btn:disabled,
 .card--dark .btn[aria-disabled="true"] {
   opacity: 0.32;

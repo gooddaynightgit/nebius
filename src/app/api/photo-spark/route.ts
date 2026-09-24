@@ -1,5 +1,6 @@
 import { json } from "@/lib/http";
 import { LANDING } from "@/lib/landing";
+import { requirePersonalPhotoOtp } from "@/lib/session";
 import { imageDataUrlForModels } from "@/lib/model-image";
 import { mockExcavation } from "@/lib/prompts";
 import { withHumbleCloser } from "@/lib/spark-closer";
@@ -21,6 +22,8 @@ export async function POST(request: Request) {
   if (!(file instanceof File) || file.size <= 0) {
     return json({ spark: withHumbleCloser(mockExcavation({})) });
   }
+  const denied = await requirePersonalPhotoOtp();
+  if (denied) return denied;
   try {
     const bytes = Buffer.from(await file.arrayBuffer());
     const imageDataUrl = imageDataUrlForModels(file.type || "image/jpeg", bytes);

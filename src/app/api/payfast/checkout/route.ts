@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { normalizeEmail } from "@/lib/identity";
+import { isValidEmail, normalizeEmail } from "@/lib/identity";
+import { otpAllowsEmail } from "@/lib/otp-session";
 import { checkoutHealth, createCheckout, escapeHtml } from "@/lib/payfast";
+import { readOtpSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -14,8 +16,12 @@ export async function GET() {
 export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
   const asJson = contentType.includes("application/json");
-  const email = await readEmail(request, asJson);
-  const result = createCheckout(normalizeEmail(email));
+  const email = normalizeEmail(await readEmail(request, asJson));
+  if (!isValidEmail(email)) return errorResponse("Enter a valid email.", 400, asJson);
+  if (!otpAllowsEmail(await readOtpSession(), email)) {
+    return errorResponse("Verify the code we emailed you before checkout.", 403, asJson);
+  }
+  const result = createCheckout(email);
   if (!result.ok) return errorResponse(result.message, result.status, asJson);
   return new NextResponse(result.html, {
     status: 200,

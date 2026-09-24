@@ -1,5 +1,5 @@
 import { json } from "@/lib/http";
-import { loadSessionVault } from "@/lib/session";
+import { loadSessionVault, requirePersonalPhotoOtp } from "@/lib/session";
 import { getBytes } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +9,8 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ captureId: string }> },
 ) {
+  const denied = await requirePersonalPhotoOtp();
+  if (denied) return denied;
   const { captureId } = await context.params;
   const { vault } = await loadSessionVault();
   const capture = vault.captures.find((c) => c.id === captureId);

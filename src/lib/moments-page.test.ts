@@ -4,7 +4,9 @@ import { describe, expect, it } from "vitest";
 
 describe("moments pack page", () => {
   const page = readFileSync(path.resolve("src/app/moments/page.tsx"), "utf8");
+  const checkout = readFileSync(path.resolve("src/components/MomentsCheckout.tsx"), "utf8");
   const capture = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
+  const privacy = readFileSync(path.resolve("src/lib/privacy.ts"), "utf8");
 
   it("states the wound, the nots, the offer, and a path into the app", () => {
     expect(page).toContain("The good in your own day dies unnoticed — every single night.");
@@ -23,18 +25,30 @@ describe("moments pack page", () => {
     expect(page).toContain("Each moment: one photo upload → one My good moment story.");
     expect(page).not.toMatch(/Upload uses a moment/);
     expect(page).not.toMatch(/Replay and Share/);
-    expect(page).toContain("Start hunting — R450 ZAR / $28 USD");
+    expect(checkout).toContain("Start hunting — R450 ZAR / $28 USD");
     expect(page).not.toMatch(/R450(?! ZAR)/);
     expect(page).toContain("40 moments. Yours to find — the finding changes you.");
     expect(page).not.toMatch(/\$29/);
     expect(page).not.toMatch(/27\.80/);
     expect(page).toContain("Something good is about to happen!");
     expect(page).toContain("Gooddaynight.com");
-    expect(page).toMatch(/action="\/api\/payfast\/checkout"/);
-    expect(page).toMatch(/method="post"/);
-    expect(page).toMatch(/name="email"/);
-    expect(page).toMatch(/<button className="moments-cta"/);
+    expect(page).toMatch(/MomentsCheckout/);
+    expect(checkout).toMatch(/action="\/api\/payfast\/checkout"/);
+    expect(checkout).toMatch(/method="post"/);
+    expect(checkout).toMatch(/name="email"/);
+    expect(checkout).toMatch(/\/api\/auth\/request/);
+    expect(checkout).toMatch(/\/api\/auth\/verify/);
+    expect(checkout).toMatch(/mode: "checkout"/);
+    expect(checkout).toMatch(/PRIVACY_NOTE/);
+    expect(privacy).toContain(
+      "Your email is only for signing you in and keeping your moments yours. We do not use your photos or words to train AI. They stay personal — for your security and privacy, not for anyone else’s model.",
+    );
+    expect(privacy).toContain(
+      "Email keeps your moments yours. Your photos and words are never used to train AI.",
+    );
+    expect(checkout).toMatch(/<button className="moments-cta"/);
     expect(page).not.toMatch(/<Link className="moments-cta"/);
+    expect(checkout).not.toMatch(/<Link className="moments-cta"/);
     expect(page).toMatch(/href="\/app"/);
     expect(page).not.toMatch(/stripe/i);
     expect(page).not.toMatch(/one hunt at a time/i);
@@ -49,6 +63,10 @@ describe("moments pack page", () => {
 
   it("opens Take and Upload only after the paid email has moments left", () => {
     expect(capture).toMatch(/\/api\/payfast\/entitlement/);
+    expect(capture).toMatch(/\/api\/auth\/verify/);
+    expect(capture).toMatch(/mode: "buyer"/);
+    expect(capture).toMatch(/session\?\.otpVerified/);
+    expect(capture).toMatch(/PRIVACY_NOTE/);
     expect(capture).toMatch(/setCaptureOpen\(true\)/);
     expect(capture).not.toMatch(/const captureOpen = false/);
     expect(capture).toContain("You’re in. Take or upload today’s moment.");

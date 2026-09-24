@@ -8,7 +8,7 @@ import { badRequest, forbidden, json } from "@/lib/http";
 import { bufferToArrayBuffer, inspectPhotoDate, type PhotoDateCheck } from "@/lib/photo";
 import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
-import { loadSessionVault, presentSession, toPublicSession } from "@/lib/session";
+import { loadSessionVault, presentSession, requirePersonalPhotoOtp, toPublicSession } from "@/lib/session";
 import { imageDataUrlForModels } from "@/lib/model-image";
 import { putBytes } from "@/lib/storage";
 import { addCapture, appPhotoForDay, capturesForDay, upsertAppPhoto } from "@/lib/vault";
@@ -131,6 +131,8 @@ async function saveAppPhoto(
   vault: Awaited<ReturnType<typeof loadSessionVault>>["vault"],
   form: FormData,
 ) {
+  const denied = await requirePersonalPhotoOtp();
+  if (denied) return denied;
   const day = String(form.get("day") ?? "");
   const joyId = String(form.get("joyType") ?? "");
   const joy = getJoyById(joyId);
