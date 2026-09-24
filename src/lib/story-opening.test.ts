@@ -16,7 +16,7 @@ describe("story opening status", () => {
       "Letting the habit of looking rewire how I feel",
       "Your good moment story is being carefully weaved, thank you for your patience.",
     ]);
-    expect(STORY_OPENING_INTERVAL_MS).toBe(5500);
+    expect(STORY_OPENING_INTERVAL_MS).toBe(9000);
 
     let index = 0;
     const seen = [STORY_OPENING_LINES[index]];
@@ -51,7 +51,7 @@ describe("story opening status", () => {
       (match) => match[2],
     );
     expect(colors).toEqual(["#ebe7fb", "#e7f6ea", "#d7f3e4", "#ffe7b0", "#f8ead6"]);
-    expect(block).toMatch(/transition: background-color 1\.2s var\(--ease\)/);
+    expect(block).toMatch(/transition: background-color 1\.96s var\(--ease\)/);
     expect(block).toMatch(/color: var\(--navy\)/);
   });
 });

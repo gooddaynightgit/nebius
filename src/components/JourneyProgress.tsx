@@ -4,6 +4,7 @@ import { Suspense, useContext } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppProgressContext, BuyerGateContext } from "@/components/journey-gate";
 import {
+  JOURNEY_FINISHED_CAPTION,
   JOURNEY_STEP_COUNT,
   JOURNEY_STEPS,
   journeyFillPercent,
@@ -29,14 +30,18 @@ function CheckIcon() {
 }
 
 export function JourneyBar({ step }: { step: number }) {
+  const finished = step > JOURNEY_STEPS.length;
   const current = JOURNEY_STEPS[step - 1];
+  const caption = finished ? JOURNEY_FINISHED_CAPTION : current?.label;
   const fill = journeyFillPercent(step);
 
   return (
     <nav className="journey" aria-label="Progress" data-journey-step={step}>
       <div className="journey__inner">
         <p className="visually-hidden">
-          Step {step} of {JOURNEY_STEP_COUNT}
+          {finished
+            ? `${JOURNEY_FINISHED_CAPTION}. All ${JOURNEY_STEP_COUNT} steps completed.`
+            : `Step ${step} of ${JOURNEY_STEP_COUNT}`}
         </p>
         <div className="journey__row">
           <div className="journey__track" aria-hidden="true">
@@ -65,7 +70,7 @@ export function JourneyBar({ step }: { step: number }) {
           </ol>
         </div>
         <p className="journey__now" aria-hidden="true">
-          {current?.label}
+          {caption}
         </p>
       </div>
     </nav>
