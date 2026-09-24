@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   destinationForEntitlement,
   destinationForGame,
+  photoButtonsEnabled,
+  releaseCaptureVisit,
   uploadPhotoDestination,
 } from "./photo-entry";
 
@@ -27,6 +29,16 @@ describe("upload photo after a joy pick", () => {
     expect(uploadPhotoDestination(false, 40)).toBe("/app");
     expect(uploadPhotoDestination(true, null)).toBe("/app");
     expect(uploadPhotoDestination(true, 2)).toBe("/app");
+    expect(uploadPhotoDestination(true, 0)).toBe("/moments");
+  });
+
+  it("keeps photo buttons open after a story when credit remains, and buys at zero", () => {
+    expect(photoButtonsEnabled(true, 39)).toBe(true);
+    expect(photoButtonsEnabled(true, 1)).toBe(true);
+    expect(photoButtonsEnabled(true, 0)).toBe(false);
+    expect(photoButtonsEnabled(false, 39)).toBe(false);
+    expect(releaseCaptureVisit(true)).toEqual({ busy: false, startNewMoment: true });
+    expect(releaseCaptureVisit(false)).toEqual({ busy: false, startNewMoment: false });
     expect(uploadPhotoDestination(true, 0)).toBe("/moments");
   });
 

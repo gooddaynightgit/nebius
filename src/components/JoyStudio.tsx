@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import StepControl from "@/components/StepControl";
@@ -19,8 +20,10 @@ import {
 
 export default function JoyStudio() {
   const day = useMemo(() => localDay(), []);
+  const pathname = usePathname();
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
-  const selectedJoy = getJoyById(selectedJoyId);
+  const [resetSignal, setResetSignal] = useState(0);
+  const selectedJoy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
   const joys = useMemo(() => {
     const base = accordionJoys();
     if (selectedJoy && !base.some((joy) => joy.id === selectedJoy.id)) {
@@ -30,8 +33,17 @@ export default function JoyStudio() {
   }, [selectedJoy]);
 
   useEffect(() => {
-    setSelectedJoyId(readChosenJoy(day));
-  }, [day]);
+    if (pathname && pathname !== "/app/joy") return;
+    function restoreCatalogJoy() {
+      const stored = readChosenJoy(day);
+      setSelectedJoyId(stored && getJoyById(stored) ? stored : null);
+      setResetSignal((current) => current + 1);
+    }
+    restoreCatalogJoy();
+    const onPageShow = () => restoreCatalogJoy();
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [day, pathname]);
 
   function pickJoy(joy: JoyType) {
     chooseStoryJoy(joy.id, (joyId) => {
@@ -41,7 +53,10 @@ export default function JoyStudio() {
   }
 
   async function uploadPhoto() {
+    const selectedJoy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
     if (!selectedJoy) return;
+    setSelectedJoyId(selectedJoy.id);
+    setResetSignal((current) => current + 1);
     let signedIn = false;
     let game: number | null = null;
     try {
@@ -86,6 +101,7 @@ export default function JoyStudio() {
             onSelect={pickJoy}
             joys={joys}
             legend={null}
+            resetSignal={resetSignal}
             trailingChoice={{
               id: SAVED_JOY_MOMENTS_ID,
               title: SAVED_JOY_MOMENTS_LABEL,

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -61,6 +61,7 @@ import {
   writePendingPhoto,
 } from "@/lib/capture-stash";
 import {
+  clearActiveMoment,
   newMomentId,
   readActiveMoment,
   shouldRestorePending,
@@ -69,7 +70,7 @@ import {
 import type { SessionState } from "@/lib/types";
 import { useReportAppProgress, useReportBuyerGate } from "@/components/journey-gate";
 import { StoryOpeningStatus } from "@/components/YoursStory";
-import { destinationForEntitlement } from "@/lib/photo-entry";
+import { destinationForEntitlement, photoButtonsEnabled, releaseCaptureVisit } from "@/lib/photo-entry";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
 
@@ -132,6 +133,7 @@ async function stillFromVideo(file: File): Promise<File> {
 }
 
 export default function CaptureStudio() {
+  const pathname = usePathname();
   const takeInputId = useId();
   const uploadInputId = useId();
   const captionId = useId();
@@ -181,6 +183,12 @@ export default function CaptureStudio() {
   const buyerCodeId = useId();
 
   const day = useMemo(() => localDay(), []);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
   const selectedJoy = getJoyById(selectedJoyId);
   const savedPhoto = session?.todayPhoto ?? null;
   const questionOpen = isCaptureQuestionOpen({
@@ -199,24 +207,53 @@ export default function CaptureStudio() {
     if (session?.otpVerified && captureOpen) setBuyerOpen(false);
   }, [session?.otpVerified, captureOpen]);
 
+  function applyEntitlement(result: EntitlementLookup) {
+    const signedIn = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
+    if (photoButtonsEnabled(signedIn, result === "open" ? 1 : 0)) {
+      setCaptureOpen(true);
+      setBuyerOpen(false);
+      return;
+    }
+    setCaptureOpen(false);
+    const next = destinationForEntitlement(result);
+    if (next === "/moments") window.location.assign(next);
+  }
+
   useEffect(() => {
     const email = session?.email;
     if (!email || !session?.otpVerified) return;
     let cancel = false;
     void lookupEntitlement(email).then((result) => {
       if (cancel) return;
-      if (result === "open") {
-        setCaptureOpen(true);
-        return;
-      }
-      setCaptureOpen(false);
-      const next = destinationForEntitlement(result);
-      if (next === "/moments") window.location.assign(next);
+      applyEntitlement(result);
     });
     return () => {
       cancel = true;
     };
   }, [session?.email, session?.otpVerified]);
+
+  useEffect(() => {
+    if (pathname && pathname !== "/app") return;
+    function releaseStaleVisit() {
+      const released = releaseCaptureVisit(busyRef.current);
+      if (released.startNewMoment) {
+        momentRef.current = null;
+        clearActiveMoment();
+      }
+      setBusy(released.busy);
+      const current = sessionRef.current;
+      if (!current?.otpVerified || !current.email) return;
+      void lookupEntitlement(current.email).then((result) => {
+        if (pathnameRef.current && pathnameRef.current !== "/app") return;
+        if (result === "error") return;
+        applyEntitlement(result);
+      });
+    }
+    releaseStaleVisit();
+    const onPageShow = () => releaseStaleVisit();
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [pathname]);
 
   function buyerEmailOk(email: string): boolean {
     return email.length > 3 && email.length < 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -741,6 +778,8 @@ export default function CaptureStudio() {
         throw new Error("Couldn't turn that moment into a story. Try again.");
       }
       turned = true;
+      clearActiveMoment();
+      momentRef.current = null;
       router.push(`/app/yours?moment=${encodeURIComponent(momentId)}`);
     } catch (err) {
       const message = explainClientFetchError(err) || "Couldn't turn that moment into a story. Try again.";
