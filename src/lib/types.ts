@@ -23,6 +23,8 @@ export type CaptureRecord = {
   /** Set after Yes or No on the photo spark. YOURS must not center the keepsake on the picture. */
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  /** The first-look sentence for this photo. Never reused for a different picture. */
+  spark?: string;
 };
 
 export type StoryRecord = {
@@ -70,6 +72,8 @@ export type SessionState = {
   canHearStory: boolean;
   lastStory: StoryRecord | null;
   todayPhoto: CaptureRecord | null;
+  /** Any saved app photo or story, including earlier days. */
+  hasSavedMoment: boolean;
   yoursOpened: boolean;
   canReplacePhoto: boolean;
   /** True only after this browser session verified an email OTP. gdn_em alone is not enough. */

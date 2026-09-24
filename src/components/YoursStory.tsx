@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { explainClientFetchError, readJson, readResponsePayload } from "@/lib/client-fetch";
 import {
   buildAppCaptureForm,
   clearCaptureStash,
+  clearPendingPhoto,
   isYoursMissingPayload,
   readCaptureStash,
 } from "@/lib/capture-stash";
@@ -75,6 +77,8 @@ function ShareIcon() {
   );
 }
 
+type EarlierStory = { id: string; day: string; createdAt: string; captureId?: string | null };
+
 type YoursState =
   | { status: "loading" }
   | { status: "keeping" }
@@ -82,10 +86,10 @@ type YoursState =
   | { status: "missing"; message: string }
   | { status: "blocked"; message: string }
   | { status: "error"; message: string }
-  | { status: "ready"; story: StoryRecord; photoId?: string };
+  | { status: "ready"; story: StoryRecord; photoId?: string; earlier: EarlierStory[] };
 
 type WeaveResult =
-  | { status: "ready"; story: StoryRecord; photoId?: string }
+  | { status: "ready"; story: StoryRecord; photoId?: string; earlier?: EarlierStory[] }
   | { status: "missing"; message: string }
   | { status: "expired"; message: string }
   | { status: "blocked"; message: string };
@@ -100,6 +104,9 @@ export default function YoursStory() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cardBlobRef = useRef<Blob | null>(null);
   const day = localDay();
+  const searchParams = useSearchParams();
+  const requestedStory = searchParams.get("story") || "";
+  const requestedMoment = searchParams.get("moment") || "";
   const readyStoryId = state.status === "ready" ? state.story.id : "";
   const readyBody = state.status === "ready" ? state.story.body : "";
   const readyPhotoId =
@@ -109,12 +116,13 @@ export default function YoursStory() {
     const open = await fetch("/api/yours", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ day }),
+      body: JSON.stringify({ day, momentId: requestedMoment || undefined }),
       credentials: "same-origin",
     });
     const data = await readResponsePayload<{
       story?: StoryRecord;
       photo?: CaptureRecord | null;
+      earlier?: EarlierStory[];
       error?: string;
       code?: string;
     }>(open);
@@ -137,8 +145,9 @@ export default function YoursStory() {
       status: "ready",
       story: data.story,
       photoId: data.photo?.id ?? data.story.captureIds[0],
+      earlier: data.earlier ?? [],
     };
-  }, [day]);
+  }, [day, requestedMoment]);
 
   const restoreFromStashAndWeave = useCallback(async (): Promise<YoursState> => {
     try {
@@ -153,10 +162,20 @@ export default function YoursStory() {
         credentials: "same-origin",
       });
       await readJson(saveRes);
+      try {
+        await clearPendingPhoto();
+      } catch {
+        return { status: "error", message: "Could not clear the waiting photo." };
+      }
       const woven = await weaveYours();
       if (woven.status === "ready") {
         await clearCaptureStash();
-        return { status: "ready", story: woven.story, photoId: woven.photoId };
+        return {
+          status: "ready",
+          story: woven.story,
+          photoId: woven.photoId,
+          earlier: woven.earlier ?? [],
+        };
       }
       if (woven.status === "missing") {
         return { status: "error", message: LANDING.app.resaveFailed };
@@ -174,13 +193,17 @@ export default function YoursStory() {
     let cancelled = false;
     (async () => {
       const [res, stash] = await Promise.all([
-        fetch(`/api/yours?day=${day}`, { credentials: "same-origin" }),
+        fetch(
+          `/api/yours?day=${encodeURIComponent(day)}&story=${encodeURIComponent(requestedStory)}&moment=${encodeURIComponent(requestedMoment)}`,
+          { credentials: "same-origin" },
+        ),
         readCaptureStash(day),
       ]);
       const data = await readResponsePayload<{
         story?: StoryRecord | null;
         photo?: CaptureRecord | null;
         opened?: boolean;
+        earlier?: EarlierStory[];
         error?: string;
         code?: string;
       }>(res);
@@ -216,6 +239,7 @@ export default function YoursStory() {
           status: "ready",
           story: data.story,
           photoId: data.photo?.id ?? data.story.captureIds[0],
+          earlier: data.earlier ?? [],
         });
         return;
       }
@@ -225,7 +249,12 @@ export default function YoursStory() {
         if (cancelled) return;
         if (woven.status === "ready") {
           await clearCaptureStash();
-          apply({ status: "ready", story: woven.story, photoId: woven.photoId });
+          apply({
+            status: "ready",
+            story: woven.story,
+            photoId: woven.photoId,
+            earlier: woven.earlier ?? [],
+          });
           return;
         }
         if (woven.status === "missing" && stash) {
@@ -249,7 +278,7 @@ export default function YoursStory() {
       cancelled = true;
       window.speechSynthesis?.cancel();
     };
-  }, [day, restoreFromStashAndWeave, weaveYours]);
+  }, [day, requestedMoment, requestedStory, restoreFromStashAndWeave, weaveYours]);
 
   useEffect(() => {
     if (!readyPhotoId) {
@@ -414,6 +443,18 @@ export default function YoursStory() {
                 </p>
               ) : null}
             </div>
+            {state.earlier.length ? (
+              <nav className="earlier-stories" aria-label="Earlier stories">
+                <h2>Earlier stories</h2>
+                <ul>
+                  {state.earlier.map((item) => (
+                    <li key={item.id}>
+                      <Link href={`/app/yours?story=${item.id}`}>{item.day}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ) : null}
           </section>
         ) : null}
       </main>

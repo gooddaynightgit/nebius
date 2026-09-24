@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { captionDisposition } from "./app-capture";
 import {
+  beginMomentWrite,
   buildAppCaptureForm,
   clearCaptureStash,
   clearCaptureStashIfOpened,
   clearPendingPhoto,
+  failNextPendingDeleteForTests,
   isStashForDay,
   isYoursMissingPayload,
   readCaptureStash,
@@ -106,7 +108,8 @@ describe("capture stash helpers", () => {
     });
     const replaced = await updateCaptureStashPhoto("2026-09-21", jpegFile("second.jpg"));
     expect(replaced?.fileName).toBe("second.jpg");
-    expect(replaced?.caption).toBe(captionDisposition("he wrote back").caption);
+    expect(replaced?.caption).toBe("");
+    expect(replaced?.sparkAnswer).toBeUndefined();
     expect(replaced?.joyType).toBe("just-this");
 
     await clearCaptureStashIfOpened("2026-09-21", true);
@@ -132,5 +135,30 @@ describe("capture stash helpers", () => {
     expect(await readPendingPhoto("2026-09-22")).toBeNull();
     await clearPendingPhoto();
     expect(await readPendingPhoto("2026-09-21")).toBeNull();
+  });
+
+  it("ignores a late pending write from an earlier pick", async () => {
+    const older = beginMomentWrite("mom_older00000000001");
+    const newer = beginMomentWrite("mom_newer00000000001");
+    expect(older).toBe(1);
+    expect(newer).toBe(1);
+    const late = await writePendingPhoto("2026-09-21", jpegFile("checkers.jpg"), {
+      momentId: "mom_older00000000001",
+      generation: older,
+    });
+    expect(late).toBeNull();
+    const kept = await writePendingPhoto("2026-09-21", jpegFile("cars.jpg"), {
+      momentId: "mom_newer00000000001",
+      generation: newer,
+    });
+    expect(kept?.momentId).toBe("mom_newer00000000001");
+    expect((await readPendingPhoto("2026-09-21"))?.name).toBe("cars.jpg");
+  });
+
+  it("does not pretend a pending photo was cleared when the delete fails", async () => {
+    await writePendingPhoto("2026-09-21", jpegFile("checkers.jpg"));
+    failNextPendingDeleteForTests();
+    await expect(clearPendingPhoto()).rejects.toThrow(/waiting photo/);
+    expect((await readPendingPhoto("2026-09-21"))?.name).toBe("checkers.jpg");
   });
 });

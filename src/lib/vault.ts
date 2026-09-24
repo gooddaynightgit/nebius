@@ -146,6 +146,9 @@ export function hydrateCaptures(
     dateVerified: capture.dateVerified,
     photoTakenAt: capture.photoTakenAt,
     locked: capture.locked,
+    sparkAnswer: capture.sparkAnswer,
+    photoEmphasis: capture.photoEmphasis,
+    spark: capture.spark,
   }));
 }
 
@@ -221,22 +224,52 @@ export function lastStoryForDay(
   return vault.stories.find((s) => s.day === day) ?? null;
 }
 
+export function storyForCapture(vault: VaultRecord, captureId: string): StoryRecord | null {
+  return vault.stories.find((story) => story.captureIds.includes(captureId)) ?? null;
+}
+
 export function matchingStoryForPhoto(
   vault: VaultRecord,
   day: string,
   photo: CaptureRecord | null,
 ): StoryRecord | null {
+  if (photo) {
+    const linked = storyForCapture(vault, photo.id);
+    if (linked) return linked;
+  }
   const story = lastStoryForDay(vault, day);
   if (!story) return null;
   if (!photo) return story;
   return story.captureIds.includes(photo.id) ? story : null;
 }
 
-export function appPhotoForDay(vault: VaultRecord, day: string): CaptureRecord | null {
-  const photos = vault.captures.filter(
-    (capture) => capture.day === day && capture.kind === "photo" && capture.source === "app",
+export function listStories(vault: VaultRecord): StoryRecord[] {
+  return [...vault.stories].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function appPhotosForDay(vault: VaultRecord, day: string): CaptureRecord[] {
+  return vault.captures
+    .filter((capture) => capture.day === day && capture.kind === "photo" && capture.source === "app")
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export function appPhotoById(vault: VaultRecord, id: string): CaptureRecord | null {
+  return (
+    vault.captures.find(
+      (capture) => capture.id === id && capture.kind === "photo" && capture.source === "app",
+    ) ?? null
   );
-  return photos.at(-1) ?? null;
+}
+
+export function hasSavedMoment(vault: VaultRecord): boolean {
+  return (
+    vault.stories.length > 0 ||
+    vault.captures.some((capture) => capture.source === "app" && capture.kind === "photo")
+  );
+}
+
+export function appPhotoForDay(vault: VaultRecord, day: string): CaptureRecord | null {
+  return appPhotosForDay(vault, day).at(-1) ?? null;
 }
 
 export function isYoursOpened(vault: VaultRecord, day: string): boolean {
@@ -249,6 +282,17 @@ export function clearDayLock(vault: VaultRecord, day: string): void {
     delete next[day];
     vault.yoursOpened = next;
   }
+}
+
+/** Lock one capture after its story opens. Other moments that day stay put. */
+export async function markMomentOpened(vault: VaultRecord, captureId: string): Promise<void> {
+  const idx = vault.captures.findIndex((item) => item.id === captureId);
+  if (idx >= 0) {
+    const next = { ...vault.captures[idx], locked: true };
+    delete next.caption;
+    vault.captures[idx] = next;
+  }
+  await saveVault(vault);
 }
 
 export async function markYoursOpened(vault: VaultRecord, day: string): Promise<void> {
@@ -278,6 +322,40 @@ export async function scrubExpiredCaptions(vault: VaultRecord, today: string): P
     return next;
   });
   if (changed) await saveVault(vault);
+}
+
+/**
+ * Insert a new app photo, or update the same moment id.
+ * A different id on the same day is a new moment. Other stories stay.
+ */
+export async function saveAppMoment(
+  vault: VaultRecord,
+  capture: Omit<CaptureRecord, "vaultId">,
+): Promise<CaptureRecord> {
+  const idx = vault.captures.findIndex((item) => item.id === capture.id);
+  if (idx >= 0) {
+    const existing = vault.captures[idx];
+    const record: CaptureRecord = {
+      ...existing,
+      ...capture,
+      id: existing.id,
+      vaultId: vault.id,
+      createdAt: existing.createdAt,
+    };
+    if (capture.caption) record.caption = capture.caption;
+    else delete record.caption;
+    if (!capture.spark) delete record.spark;
+    else record.spark = capture.spark;
+    vault.captures[idx] = record;
+    if (capture.spark || capture.mediaKey) {
+      vault.stories = vault.stories.filter((story) => !story.captureIds.includes(existing.id));
+      record.locked = false;
+      vault.captures[idx] = record;
+    }
+    await saveVault(vault);
+    return record;
+  }
+  return addCapture(vault, capture);
 }
 
 export async function upsertAppPhoto(

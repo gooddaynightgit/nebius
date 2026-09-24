@@ -466,11 +466,11 @@ describe("payfast checkout and ITN", () => {
     const story = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
     const keep = readFileSync(path.resolve("src/lib/keep-card.ts"), "utf8");
     const joy = readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8");
-    expect(captures).toMatch(/getEntitlement/);
-    expect(captures).toMatch(/if \(!replacing\)/);
-    expect(captures).toMatch(/await consumeMoment\(email\)/);
-    expect(captures).toMatch(/left == null/);
-    expect(captures).toMatch(/restoreMoment/);
+    expect(captures).toMatch(/chargeNewMoment/);
+    expect(captures).toMatch(/replacing/);
+    expect(captures).toMatch(/await chargeNewMoment\(email, momentId, replacing\)/);
+    expect(captures).toMatch(/!charged\.ok/);
+    expect(captures).toMatch(/restoreNewMoment/);
     expect(yours).not.toMatch(/consumeMoment/);
     expect(story).not.toMatch(/consumeMoment/);
     expect(keep).not.toMatch(/consumeMoment/);

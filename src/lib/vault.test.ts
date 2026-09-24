@@ -72,97 +72,84 @@ describe("private vault", () => {
     expect(mergeCapturesIntoVault(vault, vault.captures, "2026-09-20")).toBe(false);
   });
 
-  it("replaces today's app photo even after YOURS opened, clearing that day's story", async () => {
+  it("keeps several app photos in one day and updates one moment without deleting the other", async () => {
     const {
       addStory,
       getOrCreateAnonVault,
-      upsertAppPhoto,
-      markYoursOpened,
-      appPhotoForDay,
-      isYoursOpened,
-      lastStoryForDay,
-      matchingStoryForPhoto,
+      saveAppMoment,
+      markMomentOpened,
+      appPhotosForDay,
+      storyForCapture,
+      listStories,
     } = await import("./vault");
     const vault = await getOrCreateAnonVault("session-app-photo");
-    const first = await upsertAppPhoto(vault, {
-      id: "cap_a",
-      kind: "photo",
+    const base = {
+      kind: "photo" as const,
+      day: "2026-09-21",
+      joyType: "just-this",
+      source: "app" as const,
+      ingestStatus: "mock" as const,
+    };
+    const first = await saveAppMoment(vault, {
+      ...base,
+      id: "mom_cars000000000001",
       createdAt: "2026-09-21T10:00:00.000Z",
-      day: "2026-09-21",
-      caption: "first still",
-      joyType: "morning-sunlight",
-      source: "app",
-      ingestStatus: "mock",
+      caption: "cars",
+      spark: "A row of cars.",
     });
-    const second = await upsertAppPhoto(vault, {
-      id: "cap_b",
-      kind: "photo",
+    const second = await saveAppMoment(vault, {
+      ...base,
+      id: "mom_screen00000000001",
       createdAt: "2026-09-21T11:00:00.000Z",
-      day: "2026-09-21",
-      caption: "second still",
-      joyType: "just-this",
-      source: "app",
-      ingestStatus: "mock",
+      caption: "inbox",
+      spark: "A mobile screen displaying an email.",
     });
-    expect(second.id).toBe(first.id);
-    expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBe("second still");
-    const cleared = await upsertAppPhoto(vault, {
-      id: "cap_clear",
-      kind: "photo",
-      createdAt: "2026-09-21T11:30:00.000Z",
-      day: "2026-09-21",
-      joyType: "just-this",
-      source: "app",
-      ingestStatus: "mock",
-    });
-    expect(cleared.caption).toBeUndefined();
-    const withLine = await upsertAppPhoto(vault, {
-      id: "cap_line",
-      kind: "photo",
-      createdAt: "2026-09-21T11:40:00.000Z",
-      day: "2026-09-21",
-      caption: "he wrote back",
-      joyType: "just-this",
-      source: "app",
-      ingestStatus: "mock",
-    });
-    expect(withLine.caption).toBe("he wrote back");
-    await markYoursOpened(vault, "2026-09-21");
-    expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBeUndefined();
-    expect(appPhotoForDay(vault, "2026-09-21")?.locked).toBe(true);
-    expect(isYoursOpened(vault, "2026-09-21")).toBe(true);
+    expect(second.id).not.toBe(first.id);
+    expect(appPhotosForDay(vault, "2026-09-21")).toHaveLength(2);
 
     await addStory(vault, {
-      id: "st_old",
+      id: "st_cars",
       day: "2026-09-21",
       title: "",
-      body: "old kettle story",
-      createdAt: "2026-09-21T20:00:00.000Z",
+      body: "the cars stayed",
+      createdAt: "2026-09-21T12:00:00.000Z",
       weaveModel: "mock",
       tts: { status: "stub", note: "browser" },
-      captureIds: [withLine.id],
+      captureIds: [first.id],
       mock: true,
     });
-    expect(matchingStoryForPhoto(vault, "2026-09-21", appPhotoForDay(vault, "2026-09-21"))?.body).toMatch(
-      /old kettle/,
-    );
-
-    const replaced = await upsertAppPhoto(vault, {
-      id: "cap_c",
-      kind: "photo",
-      createdAt: "2026-09-21T12:00:00.000Z",
+    await addStory(vault, {
+      id: "st_screen",
       day: "2026-09-21",
-      caption: "a kinder still",
-      joyType: "just-this",
-      source: "app",
-      ingestStatus: "mock",
+      title: "",
+      body: "the inbox stayed",
+      createdAt: "2026-09-21T12:05:00.000Z",
+      weaveModel: "mock",
+      tts: { status: "stub", note: "browser" },
+      captureIds: [second.id],
+      mock: true,
     });
-    expect(replaced.id).toBe(first.id);
-    expect(replaced.locked).toBe(false);
-    expect(replaced.caption).toBe("a kinder still");
-    expect(isYoursOpened(vault, "2026-09-21")).toBe(false);
-    expect(lastStoryForDay(vault, "2026-09-21")).toBeNull();
-    expect(matchingStoryForPhoto(vault, "2026-09-21", replaced)).toBeNull();
-    expect(appPhotoForDay(vault, "2026-09-21")?.caption).toBe("a kinder still");
+
+    const edited = await saveAppMoment(vault, {
+      ...base,
+      id: first.id,
+      createdAt: "2026-09-21T13:00:00.000Z",
+      caption: "cars again",
+      spark: "A row of cars in the sun.",
+      mediaKey: "vaults/x/media/cars.jpg",
+    });
+    expect(edited.id).toBe(first.id);
+    expect(edited.spark).toBe("A row of cars in the sun.");
+    expect(edited.caption).toBe("cars again");
+    expect(storyForCapture(vault, first.id)).toBeNull();
+    expect(storyForCapture(vault, second.id)?.body).toMatch(/inbox stayed/);
+    expect(listStories(vault)).toHaveLength(1);
+    await markMomentOpened(vault, second.id);
+    expect(appPhotosForDay(vault, "2026-09-21").find((photo) => photo.id === second.id)?.locked).toBe(
+      true,
+    );
+    expect(appPhotosForDay(vault, "2026-09-21").find((photo) => photo.id === first.id)?.caption).toBe(
+      "cars again",
+    );
   });
 });

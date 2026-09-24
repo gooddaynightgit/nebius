@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -47,15 +48,26 @@ import {
 } from "@/lib/live-camera";
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import {
+  beginMomentWrite,
+  clearCaptureStash,
   clearCaptureStashIfOpened,
   clearPendingPhoto,
+  currentMomentWrite,
   readCaptureStash,
+  readPendingMoment,
   readPendingPhoto,
   stashPhotoFile,
   updateCaptureStashPhoto,
   writeCaptureStash,
   writePendingPhoto,
 } from "@/lib/capture-stash";
+import {
+  newMomentId,
+  readActiveMoment,
+  shouldRestorePending,
+  startNewStoryDestination,
+  writeActiveMoment,
+} from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
 import { useReportBuyerGate } from "@/components/journey-gate";
 import StepControl from "@/components/StepControl";
@@ -134,6 +146,8 @@ export default function CaptureStudio() {
   const sparkGenRef = useRef(0);
   const savedPhotoIdRef = useRef<string | null>(null);
   const sparkSeq = useRef(0);
+  const momentRef = useRef<string | null>(null);
+  const router = useRouter();
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -163,13 +177,14 @@ export default function CaptureStudio() {
   const [buyerNote, setBuyerNote] = useState<string | null>(null);
   const [codeBusy, setCodeBusy] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [gate, setGate] = useState<"open" | "exhausted" | "closed" | "unknown" | "error">("unknown");
+  const [drafting, setDrafting] = useState(false);
   const buyerInputRef = useRef<HTMLInputElement | null>(null);
   const buyerId = useId();
   const buyerCodeId = useId();
 
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
-  const opened = Boolean(session?.yoursOpened);
   const savedPhoto = session?.todayPhoto ?? null;
   const yoursReady = Boolean(savedPhoto) || phoneStash;
   const questionOpen = isCaptureQuestionOpen({
@@ -193,6 +208,7 @@ export default function CaptureStudio() {
     let cancel = false;
     void lookupEntitlement(email).then((result) => {
       if (cancel) return;
+      setGate(result);
       if (result === "open") {
         setCaptureOpen(true);
         return;
@@ -278,6 +294,7 @@ export default function CaptureStudio() {
       // This page can still take a photo. The next save reads the email cookie.
     }
     const result = await lookupEntitlement(email);
+    setGate(result);
     if (result === "open") {
       setCaptureOpen(true);
       setBuyerOpen(false);
@@ -296,16 +313,17 @@ export default function CaptureStudio() {
   const previewSrc = capturePreviewSrc({
     localPreviewUrl: photoUrl,
     hasLocalPhoto: Boolean(photo),
-    savedMediaUrl: session?.otpVerified && savedPhoto?.id ? `/api/media/${savedPhoto.id}` : null,
+    savedMediaUrl: null,
   });
+  const canPickPhoto = captureOpen && (!session?.hasSavedMoment || drafting || Boolean(photo));
 
   const refresh = useCallback(async () => {
     const flowAtStart = flowRef.current;
     try {
-      const [sessionRes, stash, pending] = await Promise.all([
+      const [sessionRes, stash, pendingMoment] = await Promise.all([
         fetch(`/api/session?day=${day}`, { credentials: "same-origin" }),
         readCaptureStash(day),
-        readPendingPhoto(day),
+        readPendingMoment(day),
       ]);
       const sessionData = await readJson<SessionState>(sessionRes);
       if (flowRef.current !== flowAtStart) {
@@ -314,7 +332,7 @@ export default function CaptureStudio() {
       }
       setSession(sessionData);
       savedPhotoIdRef.current = sessionData.todayPhoto?.id ?? null;
-      setPendingReady(Boolean(pending));
+      setPendingReady(Boolean(pendingMoment));
       if (sessionData.yoursOpened) {
         await clearCaptureStashIfOpened(day, true);
         setPhoneStash(false);
@@ -333,13 +351,23 @@ export default function CaptureStudio() {
           setSelectedJoyId(chosen.id);
           if (!storedId) writeChosenJoy(day, chosen.id);
         }
-        const pendingFile = pending && pending.size > 0 ? pending : null;
-        if (pendingFile) photoRef.current = pendingFile;
-        else if (sessionData.todayPhoto?.dateVerified) {
+        const pendingFile = pendingMoment?.file && pendingMoment.file.size > 0 ? pendingMoment.file : null;
+        const activeMomentId = readActiveMoment(day);
+        const restorePending = shouldRestorePending({
+          hasSavedMoment: Boolean(sessionData.hasSavedMoment),
+          hasPending: Boolean(pendingFile),
+          pendingMomentId: pendingMoment?.momentId ?? null,
+          activeMomentId,
+        });
+        if (restorePending && pendingFile) {
+          const momentId = pendingMoment?.momentId || activeMomentId || newMomentId();
+          momentRef.current = momentId;
+          writeActiveMoment(day, momentId);
+          showLocalPhoto(pendingFile);
+          setDrafting(true);
+          if (chosen) void runPhotoSpark(pendingFile);
+        } else if (sessionData.todayPhoto?.dateVerified && !sessionData.hasSavedMoment) {
           setDateNote(PHOTO_DATE_MESSAGES.today);
-        }
-        if (chosen && pendingFile) {
-          void runPhotoSpark(pendingFile);
         }
       }
       setHydrated(true);
@@ -421,8 +449,47 @@ export default function CaptureStudio() {
     }
   }
 
+  async function startNewStory() {
+    const destination = startNewStoryDestination(gate);
+    if (destination) {
+      router.push(destination);
+      return;
+    }
+    const momentId = newMomentId();
+    momentRef.current = momentId;
+    beginMomentWrite(momentId);
+    writeActiveMoment(day, momentId);
+    setCaptureError(null);
+    try {
+      await clearPendingPhoto();
+      await clearCaptureStash();
+    } catch (error) {
+      setCaptureError(error instanceof Error ? error.message : "Could not clear the waiting photo.");
+      return;
+    }
+    photoRef.current = null;
+    photoUrlRef.current = null;
+    setPhoto(null);
+    setPhotoUrl(null);
+    setSpark(null);
+    setSparkPending(false);
+    setSparkAnswer(null);
+    setAnsweredGeneration(null);
+    setCaption("");
+    setPhoneStash(false);
+    setDrafting(true);
+  }
+
   async function takePhoto(file: File | null, fromCamera = false) {
-    if (!file) return;
+    if (!file || !canPickPhoto) return;
+    const momentId = momentRef.current ?? newMomentId();
+    momentRef.current = momentId;
+    writeActiveMoment(day, momentId);
+    const generation = beginMomentWrite(momentId);
+    const stillThisPick = () => {
+      const current = currentMomentWrite();
+      return current.momentId === momentId && current.generation === generation;
+    };
     setCaptureError(null);
     let next = file;
     let keptVideoStill = false;
@@ -487,6 +554,7 @@ export default function CaptureStudio() {
       setCaptureError(error instanceof Error ? error.message : LANDING.app.tooLarge);
       return;
     }
+    if (!stillThisPick()) return;
     if (next.size > PHOTO_MAX_BYTES) {
       setCaptureError(LANDING.app.tooLargeKeep);
       return;
@@ -496,15 +564,19 @@ export default function CaptureStudio() {
     } else if (!keptVideoStill) {
       setDateNote(null);
     }
+    if (!stillThisPick()) return;
     showLocalPhoto(next);
+    setDrafting(true);
     try {
-      await writePendingPhoto(day, next);
-      setPendingReady(true);
+      const written = await writePendingPhoto(day, next, { momentId, generation });
+      setPendingReady(Boolean(written) || pendingReady);
     } catch {
-      setPendingReady(true);
+      setCaptureError("Could not keep that photo on this phone.");
+      return;
     }
-    void updateCaptureStashPhoto(day, next).then((updated) => {
-      if (updated) setPhoneStash(true);
+    if (!stillThisPick()) return;
+    void updateCaptureStashPhoto(day, next, momentId).then((updated) => {
+      if (updated && stillThisPick()) setPhoneStash(true);
     });
     const joy = getJoyById(readChosenJoy(day) ?? selectedJoyId);
     if (joy) {
@@ -643,6 +715,12 @@ export default function CaptureStudio() {
       form.set("caption", kept.caption);
       form.set("sparkAnswer", sparkAnswer);
       form.set("photoEmphasis", "low");
+      if (!momentRef.current) {
+        momentRef.current = newMomentId();
+        writeActiveMoment(day, momentRef.current);
+      }
+      form.set("momentId", momentRef.current);
+      if (spark) form.set("spark", spark);
       if (uploadPhoto) form.set("file", uploadPhoto, uploadPhoto.name || "moment.jpg");
       const res = await fetch("/api/captures", {
         method: "POST",
@@ -664,6 +742,7 @@ export default function CaptureStudio() {
             fileName: uploadPhoto.name,
             sparkAnswer,
             photoEmphasis: "low",
+            momentId: momentRef.current || undefined,
           });
         } catch {
           // Save already succeeded; YOURS can still try the in-memory file this session.
@@ -806,6 +885,17 @@ export default function CaptureStudio() {
           ) : null}
         </section>
 
+        {session?.hasSavedMoment ? (
+          <section className="card card--lime card--compact">
+            <button className="btn btn--lime" type="button" style={{ width: "100%" }} onClick={() => void startNewStory()}>
+              Start a new story
+            </button>
+            <p className="card__body" style={{ marginTop: "0.85rem" }}>
+              <Link href="/app/yours">See your stories</Link>
+            </p>
+          </section>
+        ) : null}
+
         <form onSubmit={saveMoment}>
         <section className="card card--dark" aria-labelledby="capture-heading">
             <span className="pill">Photo</span>
@@ -820,9 +910,9 @@ export default function CaptureStudio() {
                 <button
                   className="btn btn--ghost"
                   type="button"
-                  disabled={!captureOpen}
+                  disabled={!canPickPhoto}
                   onClick={() => {
-                    if (!captureOpen) return;
+                    if (!canPickPhoto) return;
                     void openTakeCamera();
                   }}
                 >
@@ -835,7 +925,7 @@ export default function CaptureStudio() {
                   type="file"
                   accept="image/*"
                   capture="environment"
-                  disabled={!captureOpen}
+                  disabled={!canPickPhoto}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null, true);
                     event.target.value = "";
@@ -844,9 +934,9 @@ export default function CaptureStudio() {
                 <label
                   className="btn btn--ghost"
                   htmlFor={uploadInputId}
-                  aria-disabled={!captureOpen}
+                  aria-disabled={!canPickPhoto}
                   onClick={(event) => {
-                    if (!captureOpen) event.preventDefault();
+                    if (!canPickPhoto) event.preventDefault();
                   }}
                 >
                   {LANDING.app.uploadPhoto}
@@ -856,7 +946,7 @@ export default function CaptureStudio() {
                   className="visually-hidden"
                   type="file"
                   accept="image/*,video/*"
-                  disabled={!captureOpen}
+                  disabled={!canPickPhoto}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null);
                     event.target.value = "";
@@ -992,7 +1082,7 @@ export default function CaptureStudio() {
                 disabled={busy || !caption.trim()}
                 style={{ width: "100%" }}
               >
-                {busy ? "Saving…" : savedPhoto || phoneStash || opened ? LANDING.app.replace : LANDING.app.save}
+                {busy ? "Saving…" : LANDING.app.save}
               </button>
             </section>
           ) : null}
@@ -1000,7 +1090,7 @@ export default function CaptureStudio() {
 
         {yoursReady ? (
           <section id="yours-door" className="card card--lime card--compact" aria-label={LANDING.app.yours}>
-            <Link className="yours" href="/app/yours">
+            <Link className="yours" href={momentRef.current ? `/app/yours?moment=${momentRef.current}` : "/app/yours"}>
               {LANDING.app.yours}
             </Link>
             {phoneNote ? (
@@ -1014,7 +1104,7 @@ export default function CaptureStudio() {
         <section className="card card--cream card--compact" aria-labelledby="today-heading">
           <span className="pill">Story</span>
           <h2 id="today-heading">Today’s moment</h2>
-          {!savedPhoto && !phoneStash ? (
+          {!session?.hasSavedMoment && !phoneStash ? (
             <p className="card__body" style={{ marginTop: "0.8rem" }}>
               Nothing saved yet. One photo and one joy, then Create your story.
             </p>
@@ -1032,7 +1122,7 @@ export default function CaptureStudio() {
           <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} />
           <StepControl
             direction="next"
-            href="/app/yours"
+            href={momentRef.current ? `/app/yours?moment=${momentRef.current}` : "/app/yours"}
             label={STEP_LABEL.photo}
             disabled={!yoursReady}
           />

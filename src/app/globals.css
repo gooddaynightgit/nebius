@@ -1500,6 +1500,30 @@ body:has(.journey) .skip-link:focus {
   cursor: not-allowed;
 }
 
+.earlier-stories {
+  margin-top: 1.25rem;
+}
+
+.earlier-stories h2 {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+.earlier-stories ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.earlier-stories li + li {
+  margin-top: 0.4rem;
+}
+
+.earlier-stories a {
+  color: var(--navy);
+  font-weight: 650;
+}
+
 .step-nudge {
   flex: 1;
   margin: 0;

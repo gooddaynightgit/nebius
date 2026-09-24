@@ -41,7 +41,7 @@ function jpegWithExifDate(date = "2026:09:21 08:00:00"): ArrayBuffer {
 describe("photo save rules copy", () => {
   it("keeps Jasmine’s ten rules exact and drops the soft date note", () => {
     expect(PHOTO_SAVE_RULES).toEqual([
-      "Only one photo per calendar day (midnight–23:59, phone’s local time).",
+      "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own story.",
       "The photo is required. No photo, no save, no good moment.",
       "When from today — camera roll today, message: Wonderful, your photo was taken today.",
       "Screenshots count: a hello, a gift message, a tracker, a watch face.",

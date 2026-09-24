@@ -16,7 +16,7 @@ describe("moments pack page", () => {
     expect(page).toContain("another writing chore");
     expect(page).toContain("moods, streaks, or charts");
     expect(page).toContain("a performance for anyone else");
-    expect(page).toContain("one good moment a day — noticed, here until midnight, then gone.");
+    expect(page).toContain("several good moments — noticed, and kept so you can look back.");
     expect(page).toContain("Share only if you want a card to keep. The habit of seeing stays.");
     expect(page).toContain("40 good moments —");
     expect(page).toContain("R450 ZAR · $28 USD");

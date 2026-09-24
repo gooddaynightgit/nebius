@@ -15,6 +15,7 @@ import {
   getOrCreateAnonVault,
   lastStoryForDay,
   appPhotoForDay,
+  hasSavedMoment,
   isYoursOpened,
   scrubExpiredCaptions,
 } from "./vault";
@@ -108,6 +109,7 @@ export function toPublicSession(
     canHearStory: opened,
     lastStory: lastStoryForDay(vault, day),
     todayPhoto: photo,
+    hasSavedMoment: hasSavedMoment(vault),
     yoursOpened: opened,
     canReplacePhoto: Boolean(todayPhoto),
     otpVerified: false,

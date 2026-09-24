@@ -66,8 +66,8 @@ export async function recordedPayment(
 }
 
 /**
- * Spend one moment save (a new day's photo → My good moment).
- * Replay, Share, joy picks, and same-day replaces do not call this.
+ * Spend one moment save.
+ * Replay, Share, and joy picks do not call this.
  * Returns the new balance, or null when `game` is already 0 or the row is missing.
  */
 export async function consumeMoment(email: string): Promise<number | null> {
@@ -81,4 +81,36 @@ export async function restoreMoment(email: string): Promise<void> {
   const normalized = normalizeEmail(email);
   if (!normalized) return;
   await activeFansTable().restore(normalized, new Date().toISOString());
+}
+
+/**
+ * Charge a brand-new moment once. Re-saving an existing capture does not charge.
+ * A moment id that already spent a credit does not charge again.
+ * `{ ok: false }` means there is no credit left for a new moment.
+ */
+export async function chargeNewMoment(
+  email: string,
+  momentId: string,
+  captureExists: boolean,
+): Promise<{ ok: true; remaining: number; charged: boolean } | { ok: false }> {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return { ok: false };
+  if (captureExists) {
+    const current = await getEntitlement(normalized);
+    return { ok: true, remaining: current?.remaining ?? 0, charged: false };
+  }
+  const result = await activeFansTable().consumeForMoment(
+    normalized,
+    momentId,
+    new Date().toISOString(),
+  );
+  if (!result) return { ok: false };
+  return { ok: true, remaining: result.remaining, charged: !result.alreadySpent };
+}
+
+/** Give the credit back when a new moment’s save fails, so a later retry can spend it once. */
+export async function restoreNewMoment(email: string, momentId: string): Promise<void> {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return;
+  await activeFansTable().restoreForMoment(normalized, momentId, new Date().toISOString());
 }
