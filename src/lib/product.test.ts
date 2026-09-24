@@ -727,14 +727,27 @@ describe("landing", () => {
   const playback = readFileSync(path.resolve("src/components/StoryPlayback.tsx"), "utf8");
   const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
 
-  it("has a lime CTA into the joy page and no email form", () => {
-    expect(page).toMatch(/href="\/app\/joy"/);
+  it("opens Create your story from the landing, with sign-in before joy", () => {
+    const entry = readFileSync(path.resolve("src/components/CreateStoryButton.tsx"), "utf8");
+    const routing = readFileSync(path.resolve("src/lib/story-entry.ts"), "utf8");
+    expect(page).toMatch(/CreateStoryButton/);
+    expect(page).not.toMatch(/href="\/app\/joy"/);
+    expect(page).not.toMatch(/Gooddaynight does/);
+    expect(entry).toMatch(/Create your story/);
+    expect(entry).toMatch(/createStoryDestination/);
+    expect(entry).toMatch(/\/api\/auth\/request/);
+    expect(entry).toMatch(/\/api\/auth\/verify/);
+    expect(entry).toMatch(/mode: "buyer"/);
+    expect(entry).toMatch(/\/api\/payfast\/entitlement/);
+    expect(entry).not.toMatch(/type="email"/);
+    expect(routing).toMatch(/"\/app\/joy"/);
+    expect(routing).toMatch(/"\/moments"/);
+    expect(routing).toMatch(/"sign-in"/);
     expect(copy).toMatch(/Hear your story — free/);
-    expect(page).not.toMatch(/type="email"/);
-    expect(accordion).not.toMatch(/type="email"/);
-    expect(picker).not.toMatch(/type="email"/);
     expect(page).not.toMatch(/Signup/);
     expect(page).not.toMatch(/you@email.com/);
+    expect(accordion).not.toMatch(/type="email"/);
+    expect(picker).not.toMatch(/type="email"/);
   });
 
   it("keeps verbatim hero, joy types, and footer copy", () => {
@@ -745,22 +758,19 @@ describe("landing", () => {
       "You scrolled past a hundred good moments today. None of them were yours.",
     );
     expect(copy).toContain(
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you.",
     );
-    expect(page).toContain('<Link href="/app/joy" aria-label="Open the joy page">');
-    expect(page).toContain("StepControl");
-    expect(page).toContain("STEP_LABEL.start");
-    expect(page).toContain('href="/app/joy"');
-    expect(page).toContain("→");
+    expect(page).toContain("CreateStoryButton");
+    expect(page).not.toContain("Gooddaynight does");
+    expect(page).not.toContain("STEP_LABEL.start");
     expect(page).not.toContain("habit of looking");
     expect(copy).not.toContain("habit of looking");
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
     expect(copy).toContain('joyLegend: "(pick one)"');
-    expect(copy).toContain('joyQuestion: "What kind of quiet joy is it?"');
-    expect(copy).toContain('joyPickHint: "(pick one for a new good moment)"');
-    expect(copy).toContain('alreadyPickedLead: "Already picked one?"');
-    expect(copy).toContain('alreadyPickedLink: "see your saved good moment"');
+    expect(copy).toContain('joyQuestion: "What joy is it?"');
+    expect(copy).toContain('joyPickHint: "(pick one to Create your story)"');
+    expect(copy).toContain('alreadyPickedLink: "See your Created story"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
     expect(copy).toContain("One moment. One story.");
     expect(copy).toContain("Something good is about to happen!");
@@ -898,8 +908,8 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/LANDING\.app\.joyQuestion/);
     expect(joy).toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).toMatch(/<em>/);
-    expect(joy).toMatch(/LANDING\.app\.alreadyPickedLead/);
-    expect(joy).toMatch(/<em>\{LANDING\.app\.alreadyPickedLink\}<\/em>/);
+    expect(joy).toMatch(/LANDING\.app\.alreadyPickedLink/);
+    expect(joy).toMatch(/See your Created story|alreadyPickedLink/);
     expect(joy).toMatch(/already-picked/);
     expect(joy).toMatch(/href="\/app\/yours"/);
     expect(joy).toMatch(/LANDING\.app\.alreadyPickedEmpty/);
@@ -1053,8 +1063,12 @@ describe("app capture client contract", () => {
     expect(readme).not.toMatch(/Shown on `\/app`/);
     expect(readme).not.toMatch(/today-only still, size, not a meme/);
     expect(src).not.toMatch(/Failed to fetch/);
-    expect(src).toMatch(/className="pill">Photo/);
-    expect(joy).toMatch(/className="pill">Joy/);
+    expect(src).toMatch(/className="step-heading"/);
+    expect(src).toMatch(/Your photo/);
+    expect(src).toMatch(/Add a photo/);
+    expect(joy).toMatch(/className="step-heading"/);
+    expect(joy).toMatch(/Pick your joy/);
+    expect(joy).not.toMatch(/className="pill">Joy/);
     expect(src).toMatch(/<span className="pill">Story<\/span>\s*<h2 id="today-heading">/);
     expect(src).not.toMatch(/card--mint[\s\S]{0,180}<span className="pill">Story/);
     expect(joy).not.toMatch(/<span className="pill">Story/);

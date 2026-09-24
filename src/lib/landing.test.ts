@@ -7,7 +7,7 @@ describe("landing copy", () => {
       "You scrolled past a hundred good moments today. None of them were yours.",
     );
     expect(LANDING.hero.subheadline).toBe(
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you.",
     );
     expect(LANDING.hero.cta).toBe("Hear your story — free");
     expect(LANDING.moment.title).toBe("One good moment today");
@@ -17,7 +17,7 @@ describe("landing copy", () => {
     expect(LANDING.app.photoHelp).toBe(
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
-    expect(LANDING.app.heading).toBe("Today. One good moment. Go get it.");
+    expect(LANDING.app.heading).toBe("Today. One good moment.");
     expect(LANDING.app.yours).toBe("Create your story");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
@@ -54,10 +54,9 @@ describe("landing copy", () => {
     expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
-    expect(LANDING.app.joyQuestion).toBe("What kind of quiet joy is it?");
-    expect(LANDING.app.joyPickHint).toBe("(pick one for a new good moment)");
-    expect(LANDING.app.alreadyPickedLead).toBe("Already picked one?");
-    expect(LANDING.app.alreadyPickedLink).toBe("see your saved good moment");
+    expect(LANDING.app.joyQuestion).toBe("What joy is it?");
+    expect(LANDING.app.joyPickHint).toBe("(pick one to Create your story)");
+    expect(LANDING.app.alreadyPickedLink).toBe("See your Created story");
     expect(LANDING.app.alreadyPickedEmpty).toBe("Nothing saved yet. Pick a new one.");
     expect(LANDING.app.nextJoy).toBe("Pick the quiet joy");
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
