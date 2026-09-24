@@ -1438,6 +1438,16 @@ body:has(.journey) .skip-link:focus {
   min-height: 3.4rem;
 }
 
+.step-nav--joy {
+  flex-wrap: wrap;
+}
+
+.step-nav--joy .step-back,
+.step-nav--joy .step-next {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .step-back,
 .step-next {
   display: inline-flex;
@@ -1611,6 +1621,14 @@ body:has(.journey) .skip-link:focus {
   font-size: 0.95rem;
   font-weight: 550;
   line-height: 1.35;
+}
+
+.step-nudge.step-nudge--block {
+  display: block;
+  flex: none;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 0.9rem;
 }
 
 

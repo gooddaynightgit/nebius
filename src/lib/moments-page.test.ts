@@ -72,6 +72,8 @@ describe("moments pack page", () => {
     expect(capture).not.toMatch(/const captureOpen = false/);
     expect(capture).toContain("You’re in. Take or upload today’s moment.");
     expect(capture).toContain("Noted. Capture stays closed until this purchase is confirmed.");
+    expect(capture).toMatch(/destinationForEntitlement/);
+    expect(capture).toMatch(/window\.location\.assign\(next\)/);
     expect(capture).not.toMatch(/type="email"/);
   });
 });
