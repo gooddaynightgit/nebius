@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import GradientWord from "@/components/GradientWord";
+import { GradientPhrase } from "@/components/GradientWord";
 import JoyPicker from "@/components/JoyPicker";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
@@ -19,16 +19,9 @@ const JOY_PAGE_LEGEND = (
   </>
 );
 
-const ALREADY_PICKED = (() => {
-  const [before, after] = LANDING.app.alreadyPickedLink.split("Created");
-  return (
-    <>
-      {before}
-      <GradientWord>Created</GradientWord>
-      {after} →
-    </>
-  );
-})();
+const ALREADY_PICKED = (
+  <GradientPhrase text={LANDING.app.alreadyPickedLink} word="Created" suffix=" →" />
+);
 
 function AlreadyPicked({ day }: { day: string }) {
   const [saved, setSaved] = useState<boolean | null>(null);

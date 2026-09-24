@@ -1461,18 +1461,6 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.15;
 }
 
-.create-story {
-  margin: 0 0 0.9rem;
-}
-
-.create-story .step-nav {
-  margin-bottom: 0;
-}
-
-.create-story__gate {
-  margin-top: 0.85rem;
-}
-
 .step-nav {
   position: relative;
   z-index: 1;
@@ -1574,6 +1562,11 @@ body:has(.journey) .skip-link:focus {
 .step-next.step-soft:focus-visible {
   outline: 3px solid #16324a;
   outline-offset: 3px;
+}
+
+.inline-label {
+  display: inline;
+  white-space: normal;
 }
 
 .gradient-word {

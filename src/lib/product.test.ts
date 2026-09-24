@@ -727,22 +727,14 @@ describe("landing", () => {
   const playback = readFileSync(path.resolve("src/components/StoryPlayback.tsx"), "utf8");
   const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
 
-  it("opens Create your story from the landing, with sign-in before joy", () => {
-    const entry = readFileSync(path.resolve("src/components/CreateStoryButton.tsx"), "utf8");
-    const routing = readFileSync(path.resolve("src/lib/story-entry.ts"), "utf8");
-    expect(page).toMatch(/CreateStoryButton/);
-    expect(page).not.toMatch(/href="\/app\/joy"/);
+  it("opens Turn your moment from the landing straight to joy", () => {
+    expect(page).toMatch(/href="\/app\/joy"/);
+    expect(page).toMatch(/STEP_LABEL\.start/);
+    expect(page).toMatch(/className="step-next"/);
+    expect(page).not.toMatch(/CreateStoryButton/);
+    expect(page).not.toMatch(/\/api\/auth/);
+    expect(page).not.toMatch(/\/api\/payfast/);
     expect(page).not.toMatch(/Gooddaynight does/);
-    expect(entry).toMatch(/Create your story/);
-    expect(entry).toMatch(/createStoryDestination/);
-    expect(entry).toMatch(/\/api\/auth\/request/);
-    expect(entry).toMatch(/\/api\/auth\/verify/);
-    expect(entry).toMatch(/mode: "buyer"/);
-    expect(entry).toMatch(/\/api\/payfast\/entitlement/);
-    expect(entry).not.toMatch(/type="email"/);
-    expect(routing).toMatch(/"\/app\/joy"/);
-    expect(routing).toMatch(/"\/moments"/);
-    expect(routing).toMatch(/"sign-in"/);
     expect(copy).toMatch(/Hear your story — free/);
     expect(page).not.toMatch(/Signup/);
     expect(page).not.toMatch(/you@email.com/);
@@ -760,9 +752,10 @@ describe("landing", () => {
     expect(copy).toContain(
       "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you.",
     );
-    expect(page).toContain("CreateStoryButton");
+    expect(page).toContain("STEP_LABEL.start");
+    expect(page).toContain('href="/app/joy"');
+    expect(page).not.toContain("CreateStoryButton");
     expect(page).not.toContain("Gooddaynight does");
-    expect(page).not.toContain("STEP_LABEL.start");
     expect(page).not.toContain("habit of looking");
     expect(copy).not.toContain("habit of looking");
     expect(copy).toContain("One good moment today");
@@ -914,7 +907,8 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/<em>/);
     expect(joy).toMatch(/LANDING\.app\.alreadyPickedLink/);
     expect(joy).toMatch(/See your Created story|alreadyPickedLink/);
-    expect(joy).toMatch(/GradientWord>Created</);
+    expect(joy).toMatch(/GradientPhrase/);
+    expect(joy).toMatch(/word="Created"/);
     expect(joy).toMatch(/tone="soft"/);
     expect(joy).toMatch(/already-picked/);
     expect(joy).toMatch(/href="\/app\/yours"/);
@@ -935,10 +929,11 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/tone="soft"/);
     expect(src).toMatch(/startNewStoryDestination/);
     expect(src).toMatch(/card card--cream/);
-    expect(src).toMatch(/GradientWord>Create</);
+    expect(src).toMatch(/GradientPhrase text="Create your new story" word="Create"/);
     expect(src).toMatch(/your new story/);
     expect(src).toMatch(/href="\/app\/yours#earlier-stories"/);
-    expect(src).toMatch(/See your <GradientWord>Created<\/GradientWord> story/);
+    expect(src).toMatch(/GradientPhrase text="See your Created story" word="Created"/);
+    expect(src).not.toMatch(/<GradientWord>/);
     expect(src.match(/your new story/g)?.length).toBe(1);
     expect(src.match(/#earlier-stories/g)?.length).toBe(1);
     expect(yours).toMatch(/id="yours-heading"/);

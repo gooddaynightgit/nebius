@@ -30,7 +30,7 @@ describe("journey progress", () => {
 
   it("names the fifth step Create your story, matching the story CTA", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
-      "Start",
+      "Turn your moment",
       "Pick your joy",
       "Unlock",
       "Your photo",
