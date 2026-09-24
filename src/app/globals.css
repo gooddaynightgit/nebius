@@ -627,7 +627,7 @@ a {
   background-color: #ebe7fb;
   background-image: none;
   color: var(--navy);
-  transition: background-color 0.7s var(--ease);
+  transition: background-color 1.2s var(--ease);
 }
 
 .card.story-opening[data-line="0"] {

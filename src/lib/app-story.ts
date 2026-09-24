@@ -1,3 +1,5 @@
+import { YOU_ADDRESSES } from "./you-address";
+
 export const APP_STORY_MIN = 60;
 export const APP_STORY_TARGET_MIN = 120;
 export const APP_STORY_TARGET_MAX = 520;
@@ -130,8 +132,12 @@ function ensureQuietOpen(text: string): string {
 }
 
 function hasBrandClose(text: string): boolean {
+  const lower = text.toLowerCase();
+  const addressed =
+    YOU_ADDRESSES.some((phrase) => lower.includes(phrase.toLowerCase())) ||
+    /\b(fantastic|wonderful|beautiful|yes), you\b/i.test(text);
   return (
-    /\b(fantastic|wonderful|perfect|beautiful|yes), you\b/i.test(text) &&
+    addressed &&
     /hunted one good moment today|found one good moment today|becoming someone who looks/i.test(text)
   );
 }

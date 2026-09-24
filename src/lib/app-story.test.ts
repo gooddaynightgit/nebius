@@ -81,7 +81,7 @@ describe("app story length and BLOCK", () => {
     expect(expanded.length).toBeLessThanOrEqual(APP_STORY_MAX);
     expect(countAppStorySentences(expanded)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
     expect(expanded).toMatch(/^(Today, you|Yes, you|You\b)/);
-    expect(expanded).toMatch(/\b(Fantastic|Wonderful|Perfect|Beautiful|Yes), you\b/);
+    expect(expanded).toMatch(/\bFantastic, you\b/);
     expect(expanded).toMatch(/hunted one good moment today|found one good moment today|becoming someone who looks/);
     expect(parseAppWeaveReply("BLOCK")).toBe("BLOCK");
     expect(finishAppStory(short).length).toBeGreaterThanOrEqual(APP_STORY_MIN);
@@ -112,7 +112,7 @@ describe("app story length and BLOCK", () => {
     expect(appStoryProblems(steam, "")).toEqual([]);
     expect(
       leaksAppStoryInstruction(
-        "Yes, you kept a prompt hello on the screen, lovely and bright and sweet. Perfect, you hunted one good moment today, capturing it, becoming someone who looks.",
+        "Yes, you kept a prompt hello on the screen, lovely and bright and sweet. Remarkable you hunted one good moment today, capturing it, becoming someone who looks.",
       ),
     ).toBe(false);
   });
