@@ -1,32 +1,32 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import type { BuyerGate } from "@/lib/journey";
+import type { AppProgress, BuyerGate } from "@/lib/journey";
 
 export const BuyerGateContext = createContext<BuyerGate>("unknown");
-export const JourneyCaptionContext = createContext<string | null>(null);
+export const AppProgressContext = createContext<AppProgress>("upload");
 
 const ReportBuyerGateContext = createContext<((passed: boolean | null) => void) | null>(null);
-const ReportJourneyCaptionContext = createContext<((caption: string | null) => void) | null>(null);
+const ReportAppProgressContext = createContext<((progress: AppProgress) => void) | null>(null);
 
 export function JourneyProvider({ children }: { children: ReactNode }) {
   const [gate, setGate] = useState<BuyerGate>("unknown");
-  const [caption, setCaption] = useState<string | null>(null);
+  const [appProgress, setAppProgress] = useState<AppProgress>("upload");
   const report = useCallback((passed: boolean | null) => {
     const next: BuyerGate = passed === null ? "unknown" : passed ? "open" : "locked";
     setGate((current) => (current === next ? current : next));
   }, []);
-  const reportCaption = useCallback((next: string | null) => {
-    setCaption((current) => (current === next ? current : next));
+  const reportProgress = useCallback((next: AppProgress) => {
+    setAppProgress((current) => (current === next ? current : next));
   }, []);
 
   return (
     <ReportBuyerGateContext.Provider value={report}>
-      <ReportJourneyCaptionContext.Provider value={reportCaption}>
+      <ReportAppProgressContext.Provider value={reportProgress}>
         <BuyerGateContext.Provider value={gate}>
-          <JourneyCaptionContext.Provider value={caption}>{children}</JourneyCaptionContext.Provider>
+          <AppProgressContext.Provider value={appProgress}>{children}</AppProgressContext.Provider>
         </BuyerGateContext.Provider>
-      </ReportJourneyCaptionContext.Provider>
+      </ReportAppProgressContext.Provider>
     </ReportBuyerGateContext.Provider>
   );
 }
@@ -41,12 +41,12 @@ export function useReportBuyerGate(passed: boolean, ready: boolean) {
   }, [report, passed, ready]);
 }
 
-/** Replaces the active progress caption while a step is in progress. */
-export function useJourneyCaption(caption: string | null) {
-  const report = useContext(ReportJourneyCaptionContext);
+/** Moves the photo page from upload, to the good-in-this-moment question, to Turn my moment. */
+export function useReportAppProgress(progress: AppProgress) {
+  const report = useContext(ReportAppProgressContext);
   useEffect(() => {
     if (!report) return;
-    report(caption);
-    return () => report(null);
-  }, [report, caption]);
+    report(progress);
+    return () => report("upload");
+  }, [report, progress]);
 }

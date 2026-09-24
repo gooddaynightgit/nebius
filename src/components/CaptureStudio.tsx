@@ -67,7 +67,7 @@ import {
   writeActiveMoment,
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
-import { useJourneyCaption, useReportBuyerGate } from "@/components/journey-gate";
+import { useReportAppProgress, useReportBuyerGate } from "@/components/journey-gate";
 import { StoryOpeningStatus } from "@/components/YoursStory";
 import { destinationForEntitlement } from "@/lib/photo-entry";
 
@@ -190,7 +190,7 @@ export default function CaptureStudio() {
     answeredGeneration,
   });
   useReportBuyerGate(captureOpen, hydrated);
-  useJourneyCaption(busy ? "Turn my moment" : null);
+  useReportAppProgress(busy ? "turn" : questionOpen ? "good" : "upload");
   useEffect(() => {
     if (buyerOpen) buyerInputRef.current?.focus();
   }, [buyerOpen]);

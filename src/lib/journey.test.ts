@@ -12,7 +12,7 @@ describe("journey progress", () => {
     expect(journeyStep("/app/joy", search(""), "locked")).toBe(2);
     expect(journeyStep("/moments", search(""), "open")).toBe(3);
     expect(journeyStep("/moments/", search("cancelled=1"), "unknown")).toBe(3);
-    expect(journeyStep("/app/yours", search(""), "locked")).toBe(5);
+    expect(journeyStep("/app/yours", search(""), "locked")).toBe(7);
     expect(journeyStep("/api/session", search(""), "open")).toBeNull();
     expect(journeyStep("/health", search(""), "open")).toBeNull();
   });
@@ -22,28 +22,36 @@ describe("journey progress", () => {
     expect(journeyStep("/app", search(""), "locked")).toBe(3);
     expect(journeyStep("/app", search("cancelled=1"), "locked")).toBe(3);
     expect(journeyStep("/app", search(""), "open")).toBe(4);
+    expect(journeyStep("/app", search(""), "open", "good")).toBe(5);
+    expect(journeyStep("/app", search(""), "open", "turn")).toBe(6);
+    expect(journeyStep("/app", search(""), "locked", "good")).toBe(3);
     expect(journeyStep("/app/", search("paid=1&ref=pf-22"), "unknown")).toBe(4);
     expect(journeyStep("/app", search("paid=1&ref=pf-22"), "locked")).toBe(4);
     expect(journeyStep("/app", search("paid=1&ref=pf-22"), "open")).toBe(4);
+    expect(journeyStep("/app", search("paid=1&ref=pf-22"), "unknown", "turn")).toBe(6);
     expect(journeyStep("/moments", search("cancelled=1"), "open")).toBe(3);
   });
 
-  it("names the fifth step My good moment, matching the story page", () => {
+  it("names seven steps, with My good moment last and matching the story page", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
       "Turn your moment",
       "Pick your joy",
       "Unlock",
       "Upload your photo",
+      "What is the good in this moment?",
+      "Turn my moment",
       "My good moment",
     ]);
-    expect(LANDING.app.yours).toBe(JOURNEY_STEPS[4].label);
+    expect(LANDING.app.yours).toBe(JOURNEY_STEPS[6].label);
   });
 
   it("fills the track only through completed steps", () => {
     expect(journeyFillPercent(1)).toBe(0);
-    expect(journeyFillPercent(2)).toBe(25);
-    expect(journeyFillPercent(3)).toBe(50);
-    expect(journeyFillPercent(4)).toBe(75);
-    expect(journeyFillPercent(5)).toBe(100);
+    expect(journeyFillPercent(2)).toBe((1 / 6) * 100);
+    expect(journeyFillPercent(3)).toBe((2 / 6) * 100);
+    expect(journeyFillPercent(4)).toBe((3 / 6) * 100);
+    expect(journeyFillPercent(5)).toBe((4 / 6) * 100);
+    expect(journeyFillPercent(6)).toBe((5 / 6) * 100);
+    expect(journeyFillPercent(7)).toBe(100);
   });
 });
