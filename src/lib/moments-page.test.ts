@@ -22,7 +22,7 @@ describe("moments pack page", () => {
     expect(page).toContain("R450 ZAR · $28 USD");
     expect(page).not.toContain("5.00");
     expect(page).not.toMatch(/R5(?!0)/);
-    expect(page).toContain("Each moment: one photo upload → one My good moment story.");
+    expect(page).toContain("Each moment: one photo upload → Create your story.");
     expect(page).not.toMatch(/Upload uses a moment/);
     expect(page).not.toMatch(/Replay and Share/);
     expect(checkout).toContain("Start hunting — R450 ZAR / $28 USD");

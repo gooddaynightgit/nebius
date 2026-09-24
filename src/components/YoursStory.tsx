@@ -353,7 +353,7 @@ export default function YoursStory() {
               {state.status === "expired"
                 ? "That night has passed."
                 : state.status === "blocked"
-                  ? "No story for My good moment tonight."
+                  ? "Can’t create your story tonight."
                   : state.status === "error"
                     ? "Couldn’t keep this moment."
                     : "Not yet."}
@@ -370,7 +370,7 @@ export default function YoursStory() {
         ) : null}
         {state.status === "ready" ? (
           <section id="yours" className="card card--lavender card--compact" aria-labelledby="yours-heading">
-            <h1 id="yours-heading">My Good Moment Story</h1>
+            <h1 id="yours-heading">{LANDING.app.yours}</h1>
             {cardUrl ? (
               <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
             ) : cardError ? (

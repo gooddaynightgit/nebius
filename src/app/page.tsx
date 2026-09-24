@@ -1,4 +1,6 @@
 import Link from "next/link";
+import StepControl from "@/components/StepControl";
+import { STEP_LABEL } from "@/lib/journey";
 
 export default function HomePage() {
   return (
@@ -30,10 +32,7 @@ export default function HomePage() {
         </section>
 
         <nav className="step-nav" aria-label="Steps">
-          <span className="step-arrow step-arrow--spacer" aria-hidden="true"></span>
-          <Link className="step-arrow" href="/app/joy" aria-label="Next step">
-            →
-          </Link>
+          <StepControl direction="next" href="/app/joy" label={STEP_LABEL.start} />
         </nav>
 
         <section className="card card--lime" aria-labelledby="closing-heading">

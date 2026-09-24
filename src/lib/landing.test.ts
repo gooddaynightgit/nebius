@@ -18,7 +18,7 @@ describe("landing copy", () => {
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
     expect(LANDING.app.heading).toBe("Today. One good moment. Go get it.");
-    expect(LANDING.app.yours).toBe("My good moment");
+    expect(LANDING.app.yours).toBe("Create your story");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
     expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");
@@ -33,7 +33,7 @@ describe("landing copy", () => {
     expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(
-      "Tonight isn’t a story for My good moment. This picture isn’t one we can tell. Keep the night gentle.",
+      "Tonight isn’t a story we can create. This picture isn’t one we can tell. Keep the night gentle.",
     );
     expect(LANDING.app.playMoment).toBe("Play this good moment");
     expect(LANDING.app.pause).toBe("Pause");
@@ -69,12 +69,12 @@ describe("landing copy", () => {
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);
     expect(LANDING.app.yoursMissing).toBe("Save today's photo and pick a joy first.");
     expect(LANDING.app.keepingMoment).toBe("Keeping your moment…");
-    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open My good moment from here");
+    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open Create your story from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
-    expect(LANDING.moment.playbackTitle).toBe("My good moment playback");
+    expect(LANDING.moment.playbackTitle).toBe("Create your story");
     expect(LANDING.moment.playbackExample).toBe(
-      "Example of tonight’s tone — not your story yet. My good moment writes yours from this photo.",
+      "Example of tonight’s tone — not your story yet. Create your story from this photo.",
     );
     expect(LANDING.moment.playbackExample).not.toMatch(/YOURS/);
     expect(

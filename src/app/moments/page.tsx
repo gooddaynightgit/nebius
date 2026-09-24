@@ -96,7 +96,7 @@ export default async function MomentsPage({
             40 good moments — <span className="moments-price-pair">R450 ZAR · $28 USD</span>
           </h2>
           <p className="moments-note">
-            Each moment: one photo upload → one My good moment story.
+            Each moment: one photo upload → Create your story.
           </p>
           {paid ? (
             <p className="moments-status" role="status">
