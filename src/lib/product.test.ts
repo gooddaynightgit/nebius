@@ -1010,7 +1010,17 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
     expect(src).toMatch(/explainClientFetchError/);
     expect(joy).toMatch(/id="joy-pick"/);
-    expect(src).toMatch(/card card--peach card--compact/);
+    expect(src).toMatch(/id="caption-box" className="card card--lavender card--compact"/);
+    expect(src).toMatch(/card card--aqua card--compact/);
+    expect(src).toMatch(/btn btn--turn/);
+    expect(src).toMatch(/Turn my moment/);
+    expect(src).toMatch(/Turning your moment…/);
+    expect(src).toMatch(/disabled=\{busy \|\| !caption\.trim\(\)\}/);
+    expect(src).toMatch(/method: "POST"[\s\S]*\/api\/yours/);
+    expect(src).toMatch(/router\.push\(`\/app\/yours\?moment=/);
+    expect(src).not.toMatch(/LANDING\.app\.save\b/);
+    expect(src).not.toMatch(/Saving…/);
+    expect(src).not.toMatch(/consumeMoment/);
     expect(route).toMatch(/joy_type|joyType/);
     const pickerJsx = joy.match(/<JoyPicker[\s\S]*?\/>/)?.[0] ?? "";
     expect(pickerJsx).not.toMatch(/\bcompact\b/);

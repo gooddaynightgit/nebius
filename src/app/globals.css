@@ -300,6 +300,7 @@ body:has(.journey) .skip-link:focus {
 .card--cream::before,
 .card--peach::before,
 .card--cyan::before,
+.card--aqua::before,
 .card--lime::before {
   content: "";
   position: absolute;
@@ -331,6 +332,28 @@ body:has(.journey) .skip-link:focus {
 .card--cyan {
   color: var(--navy);
   background: linear-gradient(180deg, #eef7f8 0%, #d8f4ef 52%, #bfeee8 100%);
+}
+
+.card--aqua {
+  color: var(--navy);
+  background: linear-gradient(165deg, #e7f8f6 0%, #c8efe8 48%, #b5e3e6 100%);
+}
+
+#caption-box.card--lavender {
+  color: var(--navy);
+  background: linear-gradient(128deg, #f3e4f6 0%, #e6e2fb 40%, #e4f6c2 100%);
+}
+
+#caption-box .whisper {
+  background: #fff;
+  color: var(--navy);
+  border: 1.5px solid rgba(22, 50, 74, 0.28);
+}
+
+#caption-box .whisper-label,
+#caption-box .caption-help,
+#caption-box .whisper-count {
+  color: var(--navy);
 }
 
 .card--lime {
@@ -838,6 +861,32 @@ body:has(.journey) .skip-link:focus {
 .btn--lime:hover {
   background: #eaff6a;
   border-color: #eaff6a;
+  color: var(--navy);
+}
+
+.btn--turn {
+  background: #0e5964;
+  border-color: #0e5964;
+  color: #f4fffe;
+}
+
+.btn--turn:hover:not(:disabled) {
+  background: #0a4650;
+  border-color: #0a4650;
+  color: #fff;
+}
+
+.btn--turn:disabled,
+.btn--turn:disabled:hover {
+  background: #9ec3c8;
+  border-color: #9ec3c8;
+  color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.card--aqua .error {
+  margin-top: 0.85rem;
   color: var(--navy);
 }
 
