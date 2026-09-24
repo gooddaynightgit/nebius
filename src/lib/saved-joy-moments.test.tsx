@@ -67,14 +67,15 @@ describe("saved joy moments", () => {
     expect(chosen).toEqual([]);
   });
 
-  it("styles only the joy-page heading with navy and lime tokens", () => {
+  it("styles the joy and photo headings with navy and lime tokens", () => {
     const joy = readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8");
     const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
     const capture = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
 
     expect(joy).toMatch(/className="step-heading step-heading--navy"/);
     expect(joy).not.toMatch(/already-picked/);
-    expect(capture).not.toMatch(/step-heading--navy/);
+    expect(capture).toMatch(/className="step-heading step-heading--navy"/);
+    expect(capture).toMatch(/Upload your photo/);
     expect(styles).toMatch(
       /\.card h2\.step-heading\.step-heading--navy\s*\{[^}]*background:\s*var\(--navy\);[^}]*color:\s*var\(--lime\);/,
     );

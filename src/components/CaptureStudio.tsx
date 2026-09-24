@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -49,7 +48,6 @@ import {
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import {
   beginMomentWrite,
-  clearCaptureStash,
   clearCaptureStashIfOpened,
   clearPendingPhoto,
   currentMomentWrite,
@@ -65,14 +63,10 @@ import {
   newMomentId,
   readActiveMoment,
   shouldRestorePending,
-  startNewStoryDestination,
   writeActiveMoment,
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
-import { GradientPhrase } from "@/components/GradientWord";
 import { useReportBuyerGate } from "@/components/journey-gate";
-import StepControl from "@/components/StepControl";
-import { STEP_LABEL } from "@/lib/journey";
 import { destinationForEntitlement } from "@/lib/photo-entry";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
@@ -149,7 +143,6 @@ export default function CaptureStudio() {
   const savedPhotoIdRef = useRef<string | null>(null);
   const sparkSeq = useRef(0);
   const momentRef = useRef<string | null>(null);
-  const router = useRouter();
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -179,8 +172,6 @@ export default function CaptureStudio() {
   const [buyerNote, setBuyerNote] = useState<string | null>(null);
   const [codeBusy, setCodeBusy] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(false);
-  const [gate, setGate] = useState<"open" | "exhausted" | "closed" | "unknown" | "error">("unknown");
-  const [drafting, setDrafting] = useState(false);
   const buyerInputRef = useRef<HTMLInputElement | null>(null);
   const buyerId = useId();
   const buyerCodeId = useId();
@@ -188,7 +179,6 @@ export default function CaptureStudio() {
   const day = useMemo(() => localDay(), []);
   const selectedJoy = getJoyById(selectedJoyId);
   const savedPhoto = session?.todayPhoto ?? null;
-  const yoursReady = Boolean(savedPhoto) || phoneStash;
   const questionOpen = isCaptureQuestionOpen({
     sparkPending,
     hasSpark: Boolean(spark),
@@ -210,7 +200,6 @@ export default function CaptureStudio() {
     let cancel = false;
     void lookupEntitlement(email).then((result) => {
       if (cancel) return;
-      setGate(result);
       if (result === "open") {
         setCaptureOpen(true);
         return;
@@ -292,7 +281,6 @@ export default function CaptureStudio() {
       // This page can still take a photo. The next save reads the email cookie.
     }
     const result = await lookupEntitlement(email);
-    setGate(result);
     if (result === "open") {
       setCaptureOpen(true);
       setBuyerOpen(false);
@@ -314,7 +302,7 @@ export default function CaptureStudio() {
     hasLocalPhoto: Boolean(photo),
     savedMediaUrl: null,
   });
-  const canPickPhoto = captureOpen && (!session?.hasSavedMoment || drafting || Boolean(photo));
+  const canPickPhoto = captureOpen;
 
   const refresh = useCallback(async () => {
     const flowAtStart = flowRef.current;
@@ -363,7 +351,6 @@ export default function CaptureStudio() {
           momentRef.current = momentId;
           writeActiveMoment(day, momentId);
           showLocalPhoto(pendingFile);
-          setDrafting(true);
           if (chosen) void runPhotoSpark(pendingFile);
         } else if (sessionData.todayPhoto?.dateVerified && !sessionData.hasSavedMoment) {
           setDateNote(PHOTO_DATE_MESSAGES.today);
@@ -431,37 +418,6 @@ export default function CaptureStudio() {
       }
     }
     takeInputRef.current?.click();
-  }
-
-  async function startNewStory() {
-    const destination = startNewStoryDestination(gate);
-    if (destination) {
-      router.push(destination);
-      return;
-    }
-    const momentId = newMomentId();
-    momentRef.current = momentId;
-    beginMomentWrite(momentId);
-    writeActiveMoment(day, momentId);
-    setCaptureError(null);
-    try {
-      await clearPendingPhoto();
-      await clearCaptureStash();
-    } catch (error) {
-      setCaptureError(error instanceof Error ? error.message : "Could not clear the waiting photo.");
-      return;
-    }
-    photoRef.current = null;
-    photoUrlRef.current = null;
-    setPhoto(null);
-    setPhotoUrl(null);
-    setSpark(null);
-    setSparkPending(false);
-    setSparkAnswer(null);
-    setAnsweredGeneration(null);
-    setCaption("");
-    setPhoneStash(false);
-    setDrafting(true);
   }
 
   async function keepLiveStill() {
@@ -565,7 +521,6 @@ export default function CaptureStudio() {
     }
     if (!stillThisPick()) return;
     showLocalPhoto(next);
-    setDrafting(true);
     try {
       const written = await writePendingPhoto(day, next, { momentId, generation });
       setPendingReady(Boolean(written) || pendingReady);
@@ -766,12 +721,6 @@ export default function CaptureStudio() {
         latest = data.session;
       }
       setPhoneNote(latest.todayPhoto ? null : LANDING.app.savedOnPhone);
-      window.requestAnimationFrame(() => {
-        document.getElementById("photo-steps")?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start",
-        });
-      });
     } catch (err) {
       setCaptureError(explainClientFetchError(err));
     } finally {
@@ -806,20 +755,9 @@ export default function CaptureStudio() {
       </header>
 
       <main id="main">
-        <section className="card card--cream card--compact" aria-label="Story actions">
-          <div className="story-actions">
-            <button className="btn btn--lime" type="button" onClick={() => void startNewStory()}>
-              <GradientPhrase text="Create your new story" word="Create" />
-            </button>
-            <Link className="btn btn--lime" href="/app/yours#earlier-stories">
-              <GradientPhrase text="See your Created story" word="Created" />
-            </Link>
-          </div>
-        </section>
-
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
-          {buyerOpen && (!session?.otpVerified || resign) ? (
+          {hydrated && buyerOpen && (!session?.otpVerified || resign) ? (
             <form className="buyer-email" onSubmit={noteBuyerEmail}>
               <label className="whisper-label" htmlFor={buyerId}>
                 Email
@@ -871,21 +809,20 @@ export default function CaptureStudio() {
 
         <form onSubmit={saveMoment}>
         <section className="card card--dark" aria-labelledby="capture-heading">
-            <h2 id="capture-heading" className="step-heading">
-              Your photo
+            <h2 id="capture-heading" className="step-heading step-heading--navy">
+              Upload your photo
             </h2>
             <p className="visually-hidden">Add a photo</p>
             <p className="cta-copy" style={{ marginTop: 0 }}>
               {LANDING.app.photoHelp}
             </p>
             <div className="studio">
+              {captureOpen ? (
               <div className="studio-photo-actions">
                 <button
                   className="btn btn--ghost"
                   type="button"
-                  disabled={!canPickPhoto}
                   onClick={() => {
-                    if (!canPickPhoto) return;
                     void openTakeCamera();
                   }}
                 >
@@ -898,20 +835,12 @@ export default function CaptureStudio() {
                   type="file"
                   accept="image/*"
                   capture="environment"
-                  disabled={!canPickPhoto}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null, true);
                     event.target.value = "";
                   }}
                 />
-                <label
-                  className="btn btn--ghost"
-                  htmlFor={uploadInputId}
-                  aria-disabled={!canPickPhoto}
-                  onClick={(event) => {
-                    if (!canPickPhoto) event.preventDefault();
-                  }}
-                >
+                <label className="btn btn--ghost" htmlFor={uploadInputId}>
                   {LANDING.app.uploadPhoto}
                 </label>
                 <input
@@ -919,13 +848,13 @@ export default function CaptureStudio() {
                   className="visually-hidden"
                   type="file"
                   accept="image/*,video/*"
-                  disabled={!canPickPhoto}
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null);
                     event.target.value = "";
                   }}
                 />
               </div>
+              ) : null}
               {liveStream ? (
                 <div className="live-camera">
                   <video
@@ -1060,17 +989,6 @@ export default function CaptureStudio() {
             </section>
           ) : null}
         </form>
-
-        <nav id="photo-steps" className="step-nav" aria-label="Steps">
-          <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} tone="soft" />
-          <StepControl
-            direction="next"
-            href={momentRef.current ? `/app/yours?moment=${momentRef.current}` : "/app/yours"}
-            label={STEP_LABEL.photo}
-            disabled={!yoursReady}
-            tone="soft"
-          />
-        </nav>
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>

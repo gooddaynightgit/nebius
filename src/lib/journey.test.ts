@@ -33,7 +33,7 @@ describe("journey progress", () => {
       "Turn your moment",
       "Pick your joy",
       "Unlock",
-      "Your photo",
+      "Upload your photo",
       "Create your story",
     ]);
     expect(LANDING.app.yours).toBe(JOURNEY_STEPS[4].label);
