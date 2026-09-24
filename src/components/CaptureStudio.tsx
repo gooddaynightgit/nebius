@@ -765,7 +765,7 @@ export default function CaptureStudio() {
                 }}
               />
               <button className="btn btn--lime" type="submit">
-                Send
+                Open my moments
               </button>
               <p className="privacy-note">{PRIVACY_NOTE}</p>
             </form>

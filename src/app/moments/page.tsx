@@ -100,8 +100,8 @@ export default async function MomentsPage({
           </p>
           {paid ? (
             <p className="moments-status" role="status">
-              Payfast sent you back. When the payment is confirmed, enter this email under Already
-              bought on the <Link href="/app">photo page</Link>.
+              Payfast sent you back. When the payment is confirmed, verify this email with a code under
+              Already bought on the <Link href="/app">photo page</Link>.
             </p>
           ) : null}
           {cancelled ? (
