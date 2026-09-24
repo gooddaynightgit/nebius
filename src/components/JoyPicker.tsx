@@ -43,6 +43,10 @@ type JoyPickerProps = {
   playbackTitle?: string;
   /** Intro above the example heading. Null removes it. */
   playbackEyebrow?: string | null;
+  /** Line under the heading on the joy-page example card. */
+  playbackLead?: string;
+  /** Joy page uses the dark Nebius-style card. Landing stays plain. */
+  playbackVariant?: "plain" | "weaved";
 };
 
 export default function JoyPicker({
@@ -56,6 +60,8 @@ export default function JoyPicker({
   resetSignal = 0,
   playbackTitle = LANDING.moment.playbackTitle,
   playbackEyebrow = LANDING.moment.playbackExample,
+  playbackLead,
+  playbackVariant = "plain",
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
   const [trailingOpen, setTrailingOpen] = useState(false);
@@ -132,6 +138,8 @@ export default function JoyPicker({
                     id={`${idPrefix}-playback-${joy.id}`}
                     title={playbackTitle}
                     eyebrow={playbackEyebrow ?? undefined}
+                    lead={playbackLead}
+                    variant={playbackVariant}
                   >
                     {joy.playbackTemplate}
                   </StoryPlayback>

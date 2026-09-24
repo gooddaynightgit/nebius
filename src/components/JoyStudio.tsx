@@ -103,7 +103,8 @@ export default function JoyStudio() {
             legend={null}
             resetSignal={resetSignal}
             playbackTitle="Example: My good moment weaved"
-            playbackEyebrow={null}
+            playbackLead={LANDING.app.playbackLead}
+            playbackVariant="weaved"
             trailingChoice={{
               id: SAVED_JOY_MOMENTS_ID,
               title: SAVED_JOY_MOMENTS_LABEL,

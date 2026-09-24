@@ -799,8 +799,15 @@ describe("landing", () => {
     expect(playback).not.toMatch(/Story playback/);
     expect(copy).toContain('playbackTitle: "Create your story"');
     expect(playback).toMatch(/className="playback"/);
+    expect(playback).toMatch(/playback--weaved/);
     expect(styles).toMatch(/#f0f0ff/);
     expect(styles).toMatch(/--docs-lavender/);
+    expect(styles).toMatch(/\.playback\.playback--weaved[\s\S]*?#161616/);
+    expect(styles).toMatch(/#ede9fe/);
+    expect(styles).toMatch(/#f5c6e8/);
+    expect(styles).toMatch(/#c4b5fd/);
+    expect(styles).toMatch(/#bae6fd/);
+    expect(styles).toMatch(/#e8ecf1/);
   });
 });
 
@@ -910,7 +917,9 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/What joy is it\?/);
     expect(joy).toMatch(/legend=\{null\}/);
     expect(joy).toMatch(/playbackTitle="Example: My good moment weaved"/);
-    expect(joy).toMatch(/playbackEyebrow=\{null\}/);
+    expect(joy).toMatch(/playbackLead=\{LANDING\.app\.playbackLead\}/);
+    expect(joy).toMatch(/playbackVariant="weaved"/);
+    expect(joy).not.toMatch(/playbackEyebrow/);
     expect(joy).not.toMatch(/playbackExample/);
     expect(joy).not.toMatch(/Example of tonight/);
     expect(joy).toMatch(/step-heading step-heading--navy/);
