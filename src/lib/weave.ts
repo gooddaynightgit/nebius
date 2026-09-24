@@ -33,6 +33,7 @@ import {
   weavableMoments,
 } from "./prompts";
 import { isHorrificText } from "./safety-text";
+import { stripSparkFrame } from "./spark-closer";
 import { withoutPerfectYou, youAddressFor } from "./you-address";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
@@ -162,6 +163,58 @@ export function appExcavateUserText(input: {
   ].join("\n\n");
 }
 
+/**
+ * Photo read that belongs to this moment.
+ * Yes (or no answer yet) keeps the stored spark, then the saved good-moment line.
+ * No drops that read so a wrong spark cannot caption the story.
+ */
+export function pictureNotesForCapture(capture: {
+  spark?: string;
+  sparkAnswer?: "yes" | "no";
+  goodMoment?: string;
+}): string {
+  if (capture.sparkAnswer === "no") return "";
+  const spark = stripSparkFrame(capture.spark || "").trim();
+  if (spark) return spark;
+  return (capture.goodMoment || "").replace(/\s+/g, " ").trim();
+}
+
+const PICTURE_SKIP = new Set([
+  "the", "and", "you", "for", "was", "are", "but", "not", "its", "his", "her",
+  "she", "him", "our", "out", "day", "sun", "one", "all", "had", "has", "who",
+  "how", "why", "can", "did", "got", "see", "saw", "too", "any", "own", "off",
+  "old", "new", "yes", "this", "that", "with", "from", "your", "their", "they",
+  "them", "into", "about", "story", "test", "photo", "picture", "moment",
+  "light", "soft", "natural", "still", "quiet", "sits", "sitting", "wrapped",
+  "surrounded", "fallen", "there", "where", "what", "have", "been", "were",
+  "just", "only", "very", "really", "something", "good", "morning", "hello",
+  "little", "corner", "clear", "sound", "stopped", "someone", "else", "name",
+  "wonderful", "lovely", "radiant", "beautiful", "glowing", "precious", "sweet",
+  "bright", "tender", "dear", "warm", "brightening", "kept", "noticed", "held",
+  "caught", "today", "when", "then", "than", "also", "over", "under", "along",
+  "across", "around", "through", "between", "before", "after", "while", "which",
+  "would", "could", "should", "being", "right", "verify", "confirm", "checking",
+]);
+
+/** Concrete words from a photo read or caption. Joy and warm-word filler are left out. */
+export function pictureTokens(...parts: Array<string | undefined>): string[] {
+  const tokens = new Set<string>();
+  for (const part of parts) {
+    const scene = stripSparkFrame(part || "");
+    for (const raw of scene.toLowerCase().match(/[a-z0-9]+/g) || []) {
+      if (raw.length < 3 || PICTURE_SKIP.has(raw)) continue;
+      tokens.add(raw);
+    }
+  }
+  return [...tokens];
+}
+
+/** True when the keepsake names none of the picture's concrete words. */
+export function storyMissesPicture(body: string, tokens: string[]): boolean {
+  if (!tokens.length) return false;
+  return !tokens.some((token) => new RegExp(`\\b${token}\\b`, "i").test(body));
+}
+
 export function appReflectUserText(input: {
   joyTitle: string;
   excavation: string;
@@ -169,22 +222,27 @@ export function appReflectUserText(input: {
   hasImage?: boolean;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  /** Fresh look at the photo when the stored spark was declined. */
+  picture?: string;
 }): string {
   const caption = input.caption ? clipCaption(input.caption) : "";
-  const low =
-    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
-  const rejected = input.sparkAnswer === "no";
-  const photo = !low && input.hasImage ? "Photo: attached" : low ? "Photo: withheld" : "Photo: description";
-  const description = rejected
-    ? "Photo read withheld. They said it was wrong."
-    : input.excavation?.trim() || "No photo description.";
-  const lines = [`Joy picked: ${input.joyTitle}`, `${photo}\n${description}`];
-  if (low) {
-    lines.push("Photo emphasis: low");
+  const declined = input.sparkAnswer === "no";
+  void input.photoEmphasis;
+  const read = (declined ? input.picture : input.excavation)?.replace(/\s+/g, " ").trim() || "";
+  const photo = input.hasImage ? "Photo: attached" : "Photo: description";
+  const description = declined
+    ? read
+      ? `Earlier photo read declined. Use this look at the photo instead:\n${read}`
+      : "Earlier photo read declined. They said it was wrong. Use the attached photo and their words."
+    : read || "No photo description.";
+  const lines = [
+    `Joy picked: ${input.joyTitle}`,
+    "The joy sets the mood and theme. The picture and their words are the scene.",
+    `${photo}\n${description}`,
+  ];
+  if (declined) {
     lines.push(
-      rejected
-        ? "They said the photo read was wrong. Ignore the excavate description. Do not describe the picture. Lean on their joy and their answer."
-        : "Do not center the keepsake on the photo or the excavate read. Lean on their joy and their own words. A visual detail is allowed only when their answer already named it.",
+      "They said the earlier photo read was wrong. Do not repeat that declined read. Name what the photo and their words establish.",
     );
   }
   lines.push(caption ? `Their answer: ${caption}` : "Their answer:");
@@ -198,14 +256,13 @@ export function appReflectUserContent(input: {
   imageDataUrl?: string;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  picture?: string;
 }): ChatMessage["content"] {
-  const low =
-    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
   const userText = appReflectUserText({
     ...input,
-    hasImage: Boolean(input.imageDataUrl) && !low,
+    hasImage: Boolean(input.imageDataUrl),
   });
-  if (input.imageDataUrl && !low) {
+  if (input.imageDataUrl) {
     return [
       { type: "text", text: userText },
       { type: "image_url", image_url: { url: input.imageDataUrl } },
@@ -291,7 +348,10 @@ function reflectRetryHint(problems: string[], lastBody: string, address: string)
   if (problems.includes("leak") || problems.includes("lecture")) {
     return `Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet keepsake. Under 70 words. Close with exactly: ${address}. Do not invent weather or props the excavate and their answer did not establish.`;
   }
-  return `Rewrite the quieter keepsake. Open with "Today, you", "You", or "Yes, you". Weave the excavate read and their answer to "What is the good in this moment?" Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Invent nothing beyond that floor.`;
+  if (problems.includes("picture")) {
+    return `The last draft left the picture out and restated only the joy. Name what the photo read and their answer established. The joy is the mood, not the scene. Open with "Today, you", "You", or "Yes, you". Under 70 words. Close with exactly: ${address}. Then one hunt-find truth.`;
+  }
+  return `Rewrite the quieter keepsake. Open with "Today, you", "You", or "Yes, you". Weave the photo read and their answer to "What is the good in this moment?" Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Invent nothing beyond that floor.`;
 }
 
 async function excavateAppPhoto(input: {
@@ -364,13 +424,14 @@ export async function sparkForPhoto(
   return { spark: mockExcavation(voice ? { voice } : {}) };
 }
 
-const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak"]);
+const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak", "picture"]);
 
 async function reflectWithModels(
   models: string[],
   baseMessages: ChatMessage[],
   template: string,
   addressKey: string,
+  picture: string[] = [],
 ): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail }> {
   const fail: AppReflectFail = {
     lastBody: "",
@@ -404,6 +465,7 @@ async function reflectWithModels(
       const trimmed = withoutPerfectYou(trimAppStory(parsed), addressKey);
       fail.lastBody = trimmed;
       fail.lastProblems = appStoryProblems(trimmed, template);
+      if (storyMissesPicture(trimmed, picture)) fail.lastProblems.push("picture");
       if (fail.lastProblems.length === 0) {
         return { body: trimmed, model: result.model };
       }
@@ -437,13 +499,14 @@ export async function weaveAppStoryFromExcavation(input: {
   imageDataUrl?: string;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  picture?: string;
   addressKey?: string;
 }): Promise<{ blocked: true; model: string } | { body: string; model: string } | { fail: AppReflectFail } | null> {
-  const low =
-    input.photoEmphasis === "low" || input.sparkAnswer === "yes" || input.sparkAnswer === "no";
   const addressKey = input.addressKey?.trim() || input.joyTitle || "still";
   const system = reflectSystemFor(youAddressFor(addressKey));
-  const visionIds = input.imageDataUrl && !low ? appStoryVisionModels() : [];
+  const shown = input.sparkAnswer === "no" ? input.picture : input.excavation;
+  const picture = pictureTokens(shown, input.caption);
+  const visionIds = input.imageDataUrl ? appStoryVisionModels() : [];
   const textIds = appStoryTextModels();
   let lastFail: AppReflectFail | undefined;
 
@@ -452,7 +515,7 @@ export async function weaveAppStoryFromExcavation(input: {
       { role: "system", content: system },
       { role: "user", content: appReflectUserContent(input) },
     ];
-    const live = await reflectWithModels(visionIds, visionMessages, input.template, addressKey);
+    const live = await reflectWithModels(visionIds, visionMessages, input.template, addressKey, picture);
     if ("body" in live || "blocked" in live) return live;
     lastFail = live.fail;
   }
@@ -462,7 +525,7 @@ export async function weaveAppStoryFromExcavation(input: {
       { role: "system", content: system },
       { role: "user", content: appReflectUserText({ ...input, hasImage: false }) },
     ];
-    const live = await reflectWithModels(textIds, textMessages, input.template, addressKey);
+    const live = await reflectWithModels(textIds, textMessages, input.template, addressKey, picture);
     if ("body" in live || "blocked" in live) return live;
     lastFail = mergeReflectFail(lastFail, live.fail);
   }
@@ -487,23 +550,35 @@ async function weaveAppPhotoStory(input: {
   const imageDataUrl = input.imageDataUrl
     ? shrinkDataUrlForModels(input.imageDataUrl)
     : undefined;
-  const excavated = await excavateAppPhoto({
-    caption: input.caption,
-    photoNotes: input.photoNotes,
-    imageDataUrl,
-  });
-  if (excavated && "blocked" in excavated && excavated.blocked) {
-    return { kind: "blocked", model: excavated.model, excavateModel: excavated.model };
+  const declined = input.sparkAnswer === "no";
+  const agreed = input.sparkAnswer === "yes" ? stripSparkFrame(input.photoNotes).trim() : "";
+  let excavation = "";
+  let excavateModel = "stored-spark";
+  if (agreed.length >= 24) {
+    excavation = agreed;
+  } else {
+    const excavated = await excavateAppPhoto({
+      caption: input.caption,
+      photoNotes: declined ? "" : input.photoNotes,
+      imageDataUrl,
+    });
+    if (excavated && "blocked" in excavated && excavated.blocked) {
+      return { kind: "blocked", model: excavated.model, excavateModel: excavated.model };
+    }
+    excavation =
+      excavated && "text" in excavated
+        ? excavated.text
+        : mockExcavation({
+            caption: input.caption,
+            photoNotes: declined ? "" : input.photoNotes,
+          });
+    excavateModel = excavated && "text" in excavated ? excavated.model : "mock-excavation";
   }
-  const excavation =
-    excavated && "text" in excavated
-      ? excavated.text
-      : mockExcavation({ caption: input.caption, photoNotes: input.photoNotes });
-  const excavateModel = excavated && "text" in excavated ? excavated.model : "mock-excavation";
   const live = await weaveAppStoryFromExcavation({
     joyTitle: input.joyTitle,
     template: input.template,
-    excavation,
+    excavation: declined ? "" : excavation,
+    picture: declined ? excavation : undefined,
     caption: input.caption,
     imageDataUrl,
     photoEmphasis: input.photoEmphasis,
@@ -554,8 +629,8 @@ export async function weaveStory(options: {
 
   if (appJoy && appCapture) {
     const caption = clipCaption(appCapture.caption ?? "") || undefined;
-    const photoNotes = (appCapture.goodMoment || "").trim();
-    if (isHorrificText(caption) || isHorrificText(photoNotes)) {
+    const photoNotes = pictureNotesForCapture(appCapture);
+    if (isHorrificText(caption) || isHorrificText(photoNotes) || isHorrificText(appCapture.spark)) {
       throw new WeaveBlockedError();
     }
     if (hasTokenFactoryKey()) {
@@ -603,6 +678,7 @@ export async function weaveStory(options: {
         goodMoment: photoNotes,
         reframed: Boolean(appCapture.reframed),
         day: options.day,
+        excavation: photoNotes || undefined,
         photoEmphasis: appCapture.photoEmphasis,
         sparkAnswer: appCapture.sparkAnswer,
         addressKey,

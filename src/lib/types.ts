@@ -20,7 +20,7 @@ export type CaptureRecord = {
   mediaContentType?: string;
   ingestModel?: string;
   ingestStatus: "pending" | "ok" | "skipped" | "mock";
-  /** Set after Yes or No on the photo spark. YOURS must not center the keepsake on the picture. */
+  /** Set after Yes or No on the photo spark. Yes keeps that read with this photo. No declines it. */
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
   /** The first-look sentence for this photo. Never reused for a different picture. */

@@ -182,4 +182,64 @@ describe("Nightly Reflection live fallback", () => {
     expect(models[0]).toBe(MODELS.storyText);
     expect(typeof messages[1].content).toBe("string");
   });
+
+  it("still sends the photo and the confirmed spark after Yes", async () => {
+    const body =
+      "Today, you kept a pug in a plaid blanket on the forest path, and you called it your test story. Lovely, bright, and wonderful in the quiet. Phenomenal you hunted one good moment today, and the hunting became your happiness, your joy.";
+    completeWithFallback.mockResolvedValueOnce({
+      text: body,
+      model: "moonshotai/Kimi-K2.6",
+    });
+    const live = await weaveAppStoryFromExcavation({
+      ...input,
+      joyTitle: "Morning sunlight",
+      excavation:
+        "A pug sits wrapped in a plaid blanket, surrounded by greenery and fallen leaves on a forest path.",
+      caption: "Test story: pug in a blanket",
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+      imageDataUrl: IMAGE,
+    });
+    expect(live).toMatchObject({ body, model: "moonshotai/Kimi-K2.6" });
+    const messages = completeWithFallback.mock.calls[0][1] as Array<{ content: unknown }>;
+    const content = messages[1].content as Array<{ type: string; text?: string }>;
+    expect(content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "image_url", image_url: { url: IMAGE } }),
+      ]),
+    );
+    const text = content.find((part) => part.type === "text")?.text || "";
+    expect(text).toMatch(/pug/);
+    expect(text).toMatch(/plaid blanket/);
+    expect(text).toMatch(/forest path/);
+    expect(text).toMatch(/Test story: pug in a blanket/);
+    expect(text).not.toMatch(/Photo: withheld/);
+  });
+
+  it("rejects a joy-only draft when the spark names the picture", async () => {
+    const joyOnly =
+      "Today, you welcomed the morning sunlight as a quiet companion, feeling its warmth like a gentle promise. The stillness turned soft, radiant, and lovely. Phenomenal you found one good moment today — the finding is what's changing you.";
+    completeWithFallback.mockResolvedValue({
+      text: joyOnly,
+      model: "moonshotai/Kimi-K2.6",
+    });
+    const live = await weaveAppStoryFromExcavation({
+      ...input,
+      joyTitle: "Morning sunlight",
+      excavation:
+        "A pug sits wrapped in a plaid blanket, surrounded by greenery and fallen leaves on a forest path.",
+      caption: "Test story: pug in a blanket",
+      photoEmphasis: "low",
+      sparkAnswer: "yes",
+      imageDataUrl: undefined,
+    });
+    expect(live && "body" in live).toBe(false);
+    expect(live).toMatchObject({
+      fail: expect.objectContaining({ lastProblems: expect.arrayContaining(["picture"]) }),
+    });
+    const hint = String(
+      (completeWithFallback.mock.calls.at(-1)?.[1] as Array<{ content: string }>).at(-1)?.content,
+    );
+    expect(hint).toMatch(/left the picture out/i);
+  });
 });
