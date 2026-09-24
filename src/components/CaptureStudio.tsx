@@ -18,7 +18,7 @@ import { localDay } from "@/lib/day";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import { PRIVACY_NOTE } from "@/lib/privacy";
 import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
-import { withHumbleCloser } from "@/lib/spark-closer";
+import { rotatingOpener, withHumbleCloser } from "@/lib/spark-closer";
 import {
   inspectPhotoDate,
   isImageMime,
@@ -562,9 +562,10 @@ export default function CaptureStudio() {
         setAnsweredGeneration(null);
         return;
       }
+      const sparkKey = file.name || "moment.jpg";
       finishSpark(
-        data.spark?.trim() || "Beautiful, this still from the day.",
-        file.name || "moment.jpg",
+        data.spark?.trim() || `${rotatingOpener(sparkKey)}, this still from the day`,
+        sparkKey,
       );
     } catch (err) {
       if (seq !== sparkSeq.current) return;
@@ -574,7 +575,8 @@ export default function CaptureStudio() {
         setCaptureError(message);
         return;
       }
-      finishSpark("Beautiful, this still from the day.", file.name || "moment.jpg");
+      const sparkKey = file.name || "moment.jpg";
+      finishSpark(`${rotatingOpener(sparkKey)}, this still from the day`, sparkKey);
     }
   }
 
