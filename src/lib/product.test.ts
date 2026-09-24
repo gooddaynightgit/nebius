@@ -827,7 +827,8 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.app\.photoHelp/);
     expect(src).toMatch(/LANDING\.app\.yours/);
     expect(src).toMatch(/id="yours-door"/);
-    expect(src).toMatch(/href="\/app\/yours"/);
+    expect(src).toMatch(/\/app\/yours\?moment=/);
+    expect(src).toMatch(/"\/app\/yours"/);
     expect(src).toMatch(/StepControl/);
     expect(src).toMatch(/href="\/app\/joy"/);
     expect(src).toMatch(/STEP_LABEL\.joy/);
