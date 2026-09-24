@@ -51,7 +51,7 @@ describe("story opening status", () => {
     const colors = [...block!.matchAll(/data-line="(\d)"\] \{\s*background-color: (#[0-9a-f]+);/g)].map(
       (match) => match[2],
     );
-    expect(colors).toEqual(["#ebe7fb", "#e7f6ea", "#d7f3e4", "#d4ff6a", "#f8ead6"]);
+    expect(colors).toEqual(["#ebe7fb", "#e7f6ea", "#d7f3e4", "#ffe7b0", "#f8ead6"]);
     expect(block).toMatch(/transition: background-color 0\.7s var\(--ease\)/);
     expect(block).toMatch(/color: var\(--navy\)/);
   });

@@ -622,7 +622,7 @@ a {
   margin-bottom: 0.9rem;
 }
 
-/* Processing lines: soft lavender, then green, then a warm peach. Navy stays readable. */
+/* Processing lines: lavender, green, then amber and the peach card. Navy stays readable. */
 .card.story-opening {
   background-color: #ebe7fb;
   background-image: none;
@@ -643,7 +643,7 @@ a {
 }
 
 .card.story-opening[data-line="3"] {
-  background-color: #d4ff6a;
+  background-color: #ffe7b0;
 }
 
 .card.story-opening[data-line="4"] {
