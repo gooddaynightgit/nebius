@@ -21,6 +21,12 @@ function Emphasized({ text }: { text: string }) {
   );
 }
 
+export type JoyTrailingChoice = {
+  id: string;
+  title: string;
+  onChoose: () => void;
+};
+
 type JoyPickerProps = {
   name?: string;
   idPrefix?: string;
@@ -28,6 +34,8 @@ type JoyPickerProps = {
   onSelect?: (joy: JoyType) => void;
   joys?: readonly JoyType[];
   legend?: ReactNode;
+  /** Extra radio after the catalog joys. Choosing it does not call onSelect. */
+  trailingChoice?: JoyTrailingChoice;
 };
 
 export default function JoyPicker({
@@ -37,8 +45,10 @@ export default function JoyPicker({
   onSelect,
   joys = accordionJoys(),
   legend = LANDING.moment.joyLegend,
+  trailingChoice,
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
+  const [trailingOpen, setTrailingOpen] = useState(false);
   const selected = selectedId === undefined ? internalId : selectedId;
   const panelRef = useRef<HTMLDivElement | null>(null);
 
@@ -52,8 +62,15 @@ export default function JoyPicker({
   }, [selected]);
 
   function pick(joy: JoyType) {
+    setTrailingOpen(false);
     if (selectedId === undefined) setInternalId(joy.id);
     onSelect?.(joy);
+  }
+
+  function chooseTrailing() {
+    if (!trailingChoice) return;
+    setTrailingOpen(true);
+    trailingChoice.onChoose();
   }
 
   return (
@@ -61,7 +78,7 @@ export default function JoyPicker({
       <legend className="joy-legend">{legend}</legend>
       <div className="joy-list">
         {joys.map((joy) => {
-          const open = selected === joy.id;
+          const open = !trailingOpen && selected === joy.id;
           const panelId = `${idPrefix}-panel-${joy.id}`;
           return (
             <div key={joy.id} className={open ? "joy is-open" : "joy"}>
@@ -108,6 +125,22 @@ export default function JoyPicker({
             </div>
           );
         })}
+        {trailingChoice ? (
+          <div className={trailingOpen ? "joy is-open" : "joy"}>
+            <label className="joy__pick">
+              <input
+                type="radio"
+                name={name}
+                value={trailingChoice.id}
+                checked={trailingOpen}
+                onChange={chooseTrailing}
+              />
+              <span className="joy__copy">
+                <span className="joy__title">{trailingChoice.title}</span>
+              </span>
+            </label>
+          </div>
+        ) : null}
       </div>
     </fieldset>
   );

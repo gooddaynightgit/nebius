@@ -583,46 +583,6 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.3;
 }
 
-.already-picked {
-  position: relative;
-  z-index: 1;
-  margin: 0.45rem 0 0.9rem;
-}
-
-.already-picked__link {
-  display: inline-flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  min-height: 2.75rem;
-  padding: 0.1rem 0;
-  border: 0;
-  background: none;
-  color: var(--navy);
-  font: inherit;
-  font-size: 1.02rem;
-  font-weight: 750;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
-  text-align: left;
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-  cursor: pointer;
-}
-
-.already-picked__link em {
-  font-style: italic;
-  font-weight: 650;
-}
-
-.already-picked__note {
-  display: block;
-  margin-top: 0.15rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-  font-weight: 550;
-  line-height: 1.35;
-}
-
 #yours-heading {
   margin-bottom: 0.9rem;
 }
@@ -1459,6 +1419,12 @@ body:has(.journey) .skip-link:focus {
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.15;
+}
+
+.card h2.step-heading.step-heading--navy {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--lime);
 }
 
 .step-nav {
