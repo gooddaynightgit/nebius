@@ -1576,6 +1576,11 @@ body:has(.journey) .skip-link:focus {
   outline-offset: 3px;
 }
 
+.inline-label {
+  display: inline;
+  white-space: normal;
+}
+
 .gradient-word {
   font-weight: 800;
   color: #0f7a62;

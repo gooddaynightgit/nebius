@@ -69,7 +69,7 @@ import {
   writeActiveMoment,
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
-import GradientWord from "@/components/GradientWord";
+import { GradientPhrase } from "@/components/GradientWord";
 import { useReportBuyerGate } from "@/components/journey-gate";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
@@ -811,10 +811,10 @@ export default function CaptureStudio() {
         <section className="card card--cream card--compact" aria-label="Story actions">
           <div className="story-actions">
             <button className="btn btn--lime" type="button" onClick={() => void startNewStory()}>
-              <GradientWord>Create</GradientWord> your new story
+              <GradientPhrase text="Create your new story" word="Create" />
             </button>
             <Link className="btn btn--lime" href="/app/yours#earlier-stories">
-              See your <GradientWord>Created</GradientWord> story
+              <GradientPhrase text="See your Created story" word="Created" />
             </Link>
           </div>
         </section>

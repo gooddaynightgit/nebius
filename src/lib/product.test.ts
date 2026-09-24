@@ -914,7 +914,8 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/<em>/);
     expect(joy).toMatch(/LANDING\.app\.alreadyPickedLink/);
     expect(joy).toMatch(/See your Created story|alreadyPickedLink/);
-    expect(joy).toMatch(/GradientWord>Created</);
+    expect(joy).toMatch(/GradientPhrase/);
+    expect(joy).toMatch(/word="Created"/);
     expect(joy).toMatch(/tone="soft"/);
     expect(joy).toMatch(/already-picked/);
     expect(joy).toMatch(/href="\/app\/yours"/);
@@ -935,10 +936,11 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/tone="soft"/);
     expect(src).toMatch(/startNewStoryDestination/);
     expect(src).toMatch(/card card--cream/);
-    expect(src).toMatch(/GradientWord>Create</);
+    expect(src).toMatch(/GradientPhrase text="Create your new story" word="Create"/);
     expect(src).toMatch(/your new story/);
     expect(src).toMatch(/href="\/app\/yours#earlier-stories"/);
-    expect(src).toMatch(/See your <GradientWord>Created<\/GradientWord> story/);
+    expect(src).toMatch(/GradientPhrase text="See your Created story" word="Created"/);
+    expect(src).not.toMatch(/<GradientWord>/);
     expect(src.match(/your new story/g)?.length).toBe(1);
     expect(src.match(/#earlier-stories/g)?.length).toBe(1);
     expect(yours).toMatch(/id="yours-heading"/);
