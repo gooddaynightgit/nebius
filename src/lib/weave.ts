@@ -33,6 +33,7 @@ import {
   weavableMoments,
 } from "./prompts";
 import { isHorrificText } from "./safety-text";
+import { EXCAVATE_OPENERS, HUMBLE_CLOSERS } from "./spark-closer";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
@@ -157,7 +158,7 @@ export function appExcavateUserText(input: {
       ? `Photo notes (use only if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
     caption ? `Caption already given: ${caption}` : "No caption yet. They will answer next in their own words.",
-    "Under 45 words: a rotating surprise spark, the concrete still, then end on exactly one humble closer: Just making sure I saw that right? / Anything wrong? / Did I get this right? / Does that look right to you? / Am I seeing this right? If horrific: BLOCK.",
+    `Under 45 words: a rotating surprise spark (${EXCAVATE_OPENERS.join(" / ")}), the concrete still, then end on exactly one humble closer: ${HUMBLE_CLOSERS.join(" / ")}. If horrific: BLOCK.`,
   ].join("\n\n");
 }
 

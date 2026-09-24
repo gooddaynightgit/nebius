@@ -7,7 +7,7 @@ import {
 } from "./app-story";
 import { clipCaption } from "./app-capture";
 import { JOY_TYPES, type JoyType } from "./landing";
-import { HUMBLE_CLOSERS } from "./spark-closer";
+import { EXCAVATE_OPENERS, HUMBLE_CLOSERS } from "./spark-closer";
 import {
   cleanSpokenLine,
   isSelfNegating,
@@ -77,16 +77,12 @@ You receive the photo (and any caption if present).
 
 Respond in under 45 words, following this exact shape:
 
-1. Open with a rotating surprise spark — NEVER the same word every time. Rotate among: Whoa / Gosh / Stunning / Brilliant / Look at that / Wow / My word / Beautiful. Pair it with "you" or the moment when it fits naturally ("Whoa you…", "Gosh…", "Stunning…").
+1. Open with a rotating surprise spark — NEVER the same word every time. Rotate among: ${EXCAVATE_OPENERS.join(" / ")}. Pair it with "you" or the moment only when that pairing fits naturally ("Ahh…", "Ooh-la-la…", "Gosh…").
 
 2. Name only what is visibly true in the photo: subject, place clues, light, colour, texture. Stay concrete and small. Do NOT invent weather, rain, wetness, puddles, glowing headlights, people, gifts, or feelings that are not clearly in the frame. If the car is dry in a garage, say a dry car in a garage — never "after the rain."
 
 3. Close with a rotating humble check — soft and curious, not one stuck line. The description MUST end on exactly one of these:
-   - Just making sure I saw that right?
-   - Anything wrong?
-   - Did I get this right?
-   - Does that look right to you?
-   - Am I seeing this right?
+${HUMBLE_CLOSERS.map((line) => `   - ${line}`).join("\n")}
 
 Tone: delighted then humble. One soft exclamation max on the spark if it fits. No therapy-speak. No emojis. Never mention the app, the AI, or the process. Never ask them to Switch or Keep. End on the humble check; they answer yes or no next.
 
@@ -406,16 +402,8 @@ function titleFromMoments(moments: string[]): string {
   return "The good that found you";
 }
 
-const PHOTO_SPARKS = [
-  "Whoa you",
-  "Gosh",
-  "Stunning",
-  "Brilliant",
-  "Look at that",
-  "Wow",
-  "My word",
-  "Beautiful",
-] as const;
+/** Mock first looks: opener, then the seen detail, then one confirm closer. */
+const PHOTO_SPARKS = EXCAVATE_OPENERS;
 
 const HUMBLE_CHECKS = HUMBLE_CLOSERS;
 
@@ -430,6 +418,8 @@ function sparkSlot(key: string, modulo: number): number {
 export function mockExcavation(input: {
   caption?: string;
   photoNotes?: string;
+  /** Varies the opener and closer when caption and notes are empty. */
+  rotateKey?: string;
 }): string {
   const notes = (input.photoNotes || "").replace(/\s+/g, " ").trim();
   const whisper = clipCaption(input.caption || "");
@@ -454,7 +444,7 @@ export function mockExcavation(input: {
   if (whisper && !seen.toLowerCase().includes(whisper.toLowerCase())) {
     seen = `${seen}. ${whisper.replace(/\.$/, "")}`;
   }
-  const key = material || "still";
+  const key = material || input.rotateKey?.trim() || "still";
   const spark = PHOTO_SPARKS[sparkSlot(key, PHOTO_SPARKS.length)];
   const check = HUMBLE_CHECKS[sparkSlot(`${key}:check`, HUMBLE_CHECKS.length)];
   return `${spark}, ${seen}. ${check}`;

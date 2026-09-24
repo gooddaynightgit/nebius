@@ -22,6 +22,7 @@ import {
 import { WeaveNeedsWordsError, weaveStory } from "./weave";
 import { stripReasoning, uniqueModels, visionModels, appStoryModels, appStoryTextModels, appStoryVisionModels, isImage2TextCloser } from "./nebius";
 import { MODELS } from "./config";
+import { EXCAVATE_OPENERS, HUMBLE_CLOSERS, rotatingOpener, withHumbleCloser } from "./spark-closer";
 
 describe("funnel", () => {
   it("does not prompt for email before the first capture", () => {
@@ -120,12 +121,45 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/hunted good moment/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/first look inside Gooddaynight/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/under 45 words/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Whoa \/ Gosh \/ Stunning/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Just making sure I saw that right\?/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Anything wrong\?/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Did I get this right\?/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Does that look right to you\?/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Am I seeing this right\?/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(
+      /Ahh \/ Ooh-la-la \/ Mmm \/ Oho \/ Aha \/ Wowee \/ Ooo \/ Huh \/ Oh my \/ Gosh/,
+    );
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Ahh…/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Ooh-la-la…/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/Gosh…/);
+    for (const closer of HUMBLE_CLOSERS) {
+      expect(APP_EXCAVATE_SYSTEM).toContain(closer);
+    }
+    expect([...EXCAVATE_OPENERS]).toEqual([
+      "Ahh",
+      "Ooh-la-la",
+      "Mmm",
+      "Oho",
+      "Aha",
+      "Wowee",
+      "Ooo",
+      "Huh",
+      "Oh my",
+      "Gosh",
+    ]);
+    expect([...HUMBLE_CLOSERS]).toEqual([
+      "Wanted to confirm I read that correctly?",
+      "Checking that I understood it properly?",
+      "Did I interpret that accurately?",
+      "Am I seeing this correctly?",
+      "Can you verify I got that right?",
+      "Making certain I didn't misread it?",
+      "Was my take on that correct?",
+      "Confirming I caught that the way it was meant?",
+      "Did I get the right impression there?",
+      "Hoping to double-check what I saw?",
+    ]);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Whoa you/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Just making sure I saw that right\?/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Anything wrong\?/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Did I get this right\?/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Does that look right to you\?/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Am I seeing this right\?/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/Did I see that right\?/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/Never ask them to Switch or Keep/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/reply only BLOCK/);
@@ -326,12 +360,32 @@ describe("ingest and weave fallbacks", () => {
       caption: "Blossomimg tree",
       photoNotes: "A blossoming tree against the sky.",
     });
-    expect(excavation).toMatch(
-      /^(Whoa you|Gosh|Stunning|Brilliant|Look at that|Wow|My word|Beautiful)/,
-    );
+    expect(EXCAVATE_OPENERS.some((opener) => excavation.startsWith(`${opener},`))).toBe(true);
     expect(excavation).toMatch(/petal|bark|blossom/i);
-    expect(excavation).toMatch(
-      /Just making sure I saw that right\?|Anything wrong\?|Did I get this right\?|Does that look right to you\?|Am I seeing this right\?/,
+    expect(HUMBLE_CLOSERS.some((closer) => excavation.endsWith(closer))).toBe(true);
+    const varied = [
+      "steam kettle",
+      "open sky",
+      "gold table",
+      "quiet book",
+      "red cup",
+      "blue door",
+      "soft lamp",
+      "green leaf",
+      "white bowl",
+      "small stone",
+      "warm bread",
+      "glass jar",
+    ].map((photoNotes) => mockExcavation({ photoNotes }));
+    expect(
+      new Set(varied.map((line) => EXCAVATE_OPENERS.find((opener) => line.startsWith(`${opener},`)))).size,
+    ).toBeGreaterThan(1);
+    expect(
+      new Set(varied.map((line) => HUMBLE_CLOSERS.find((closer) => line.endsWith(closer)))).size,
+    ).toBeGreaterThan(1);
+    const offline = mockExcavation({ rotateKey: "moment.jpg" });
+    expect(withHumbleCloser(`${rotatingOpener("moment.jpg")}, this still from the day`, "moment.jpg")).toBe(
+      offline,
     );
     expect(excavation).toMatch(/Blossomimg tree/);
     expect(excavation).not.toMatch(/SUBJECTS & VIBE|CAPTION WHISPER/);
@@ -374,6 +428,9 @@ describe("ingest and weave fallbacks", () => {
     expect(excavateUser).toMatch(/Witness only what is visibly in the frame/);
     expect(excavateUser).toMatch(/humble closer/);
     expect(excavateUser).toMatch(/Under 45 words/);
+    expect(excavateUser).toMatch(/Ahh \/ Ooh-la-la \/ Mmm/);
+    expect(excavateUser).toContain(HUMBLE_CLOSERS[0]);
+    expect(excavateUser).not.toMatch(/Just making sure I saw that right\?/);
     expect(excavateUser).not.toMatch(/No story/);
     expect(excavateUser).not.toMatch(/ingredients only/);
     expect(excavateUser).not.toMatch(/Write 4–6 short sentences/);
@@ -616,6 +673,10 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/writePendingPhoto/);
     expect(src).toMatch(/readChosenJoy/);
     expect(src).toMatch(/\/api\/photo-spark/);
+    expect(src).toMatch(/rotatingOpener/);
+    expect(src).not.toMatch(/Beautiful, this still from the day/);
+    expect(src).not.toMatch(/Whoa you/);
+    expect(src).not.toMatch(/Just making sure I saw that right/);
     expect(src).toMatch(/runPhotoSpark/);
     expect(src).not.toMatch(/\/api\/joy-match/);
     expect(src).not.toMatch(/JoyPicker/);
@@ -711,9 +772,15 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/code === "blocked"/);
     expect(yours).toMatch(/LANDING\.app\.blocked/);
     expect(yours).toMatch(/No story for My good moment tonight/);
-    expect(yours).toMatch(/Written without seeing the photo/);
-    expect(yours).toMatch(/add NEBIUS_API_KEY for Kimi/);
-    expect(yours).toMatch(/Couldn’t finish tonight’s close/);
+    expect(yours).toMatch(/My Good Moment Story/);
+    expect(yours).not.toMatch(/className="chip"/);
+    expect(yours).not.toMatch(/status-row/);
+    expect(yours).not.toMatch(/Browser voice \(Sonic coming\)/);
+    expect(yours).not.toMatch(/Sonic voice/);
+    expect(yours).not.toMatch(/weaveModel/);
+    expect(yours).not.toMatch(/Written without seeing the photo/);
+    expect(yours).not.toMatch(/add NEBIUS_API_KEY for Kimi/);
+    expect(yours).not.toMatch(/Couldn’t finish tonight’s close/);
     expect(yours).not.toMatch(/closerHint/);
     expect(yours).not.toMatch(/Kimi didn’t finish/);
     expect(yours).toMatch(/keepCardPhotoSrc|composeKeepCardJpeg/);

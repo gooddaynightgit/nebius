@@ -352,9 +352,7 @@ export default function YoursStory() {
         ) : null}
         {state.status === "ready" ? (
           <section id="yours" className="card card--lavender card--compact" aria-labelledby="yours-heading">
-            <h1 id="yours-heading" className="visually-hidden">
-              {LANDING.app.yours}
-            </h1>
+            <h1 id="yours-heading">My Good Moment Story</h1>
             {cardUrl ? (
               <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
             ) : (
@@ -399,18 +397,6 @@ export default function YoursStory() {
                   {keepNote}
                 </p>
               ) : null}
-            </div>
-            <div className="status-row">
-              <span className="chip">
-                {state.story.mock
-                  ? state.story.weaveModel === "mock-fallback"
-                    ? "Couldn’t finish tonight’s close; a quiet stand-in from the photo and joy."
-                    : "Written without seeing the photo (add NEBIUS_API_KEY for Kimi)"
-                  : state.story.weaveModel}
-              </span>
-              <span className="chip">
-                {state.story.tts.status === "sonic" ? "Sonic voice" : "Browser voice (Sonic coming)"}
-              </span>
             </div>
           </section>
         ) : null}
