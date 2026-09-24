@@ -8,7 +8,7 @@ export const STORY_OPENING_LINES = [
 ] as const;
 
 /** Readable pause between lines. Last line holds; the sequence does not loop. */
-export const STORY_OPENING_INTERVAL_MS = 5500;
+export const STORY_OPENING_INTERVAL_MS = 9000;
 
 export function nextStoryOpeningIndex(index: number): number {
   const last = STORY_OPENING_LINES.length - 1;

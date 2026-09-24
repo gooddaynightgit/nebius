@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JOURNEY_STEPS, journeyFillPercent, journeyStep } from "./journey";
+import { JOURNEY_FINISHED_CAPTION, JOURNEY_STEPS, journeyFillPercent, journeyStep } from "./journey";
 import { LANDING } from "./landing";
 
 function search(query: string): { get(name: string): string | null } {
@@ -32,7 +32,7 @@ describe("journey progress", () => {
     expect(journeyStep("/moments", search("cancelled=1"), "open")).toBe(3);
   });
 
-  it("names seven steps, with My good moment last and matching the story page", () => {
+  it("names six steps and captions a finished story without a seventh dot", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
       "Turn your moment",
       "Pick your joy",
@@ -40,18 +40,19 @@ describe("journey progress", () => {
       "Upload your photo",
       "What is the good in this moment?",
       "Turn my moment",
-      "My good moment",
     ]);
-    expect(LANDING.app.yours).toBe(JOURNEY_STEPS[6].label);
+    expect(JOURNEY_FINISHED_CAPTION).toBe("My good moment weaved");
+    expect(LANDING.app.yours).toBe(JOURNEY_FINISHED_CAPTION);
+    expect(journeyStep("/app/yours", search(""), "open")).toBe(7);
+    expect(journeyFillPercent(7)).toBe(100);
   });
 
   it("fills the track only through completed steps", () => {
     expect(journeyFillPercent(1)).toBe(0);
-    expect(journeyFillPercent(2)).toBe((1 / 6) * 100);
-    expect(journeyFillPercent(3)).toBe((2 / 6) * 100);
-    expect(journeyFillPercent(4)).toBe((3 / 6) * 100);
-    expect(journeyFillPercent(5)).toBe((4 / 6) * 100);
-    expect(journeyFillPercent(6)).toBe((5 / 6) * 100);
-    expect(journeyFillPercent(7)).toBe(100);
+    expect(journeyFillPercent(2)).toBe((1 / 5) * 100);
+    expect(journeyFillPercent(3)).toBe((2 / 5) * 100);
+    expect(journeyFillPercent(4)).toBe((3 / 5) * 100);
+    expect(journeyFillPercent(5)).toBe((4 / 5) * 100);
+    expect(journeyFillPercent(6)).toBe(100);
   });
 });

@@ -1,4 +1,4 @@
-export const JOURNEY_STEP_COUNT = 7;
+export const JOURNEY_STEP_COUNT = 6;
 
 export const JOURNEY_STEPS = [
   { label: "Turn your moment" },
@@ -7,8 +7,10 @@ export const JOURNEY_STEPS = [
   { label: "Upload your photo" },
   { label: "What is the good in this moment?" },
   { label: "Turn my moment" },
-  { label: "My good moment" },
 ] as const;
+
+/** Caption under a finished story. Not a seventh dot. */
+export const JOURNEY_FINISHED_CAPTION = "My good moment weaved";
 
 /** Same words as the bar, for the step buttons. */
 export const STEP_LABEL = {
@@ -18,7 +20,6 @@ export const STEP_LABEL = {
   photo: JOURNEY_STEPS[3].label,
   good: JOURNEY_STEPS[4].label,
   turn: JOURNEY_STEPS[5].label,
-  story: JOURNEY_STEPS[6].label,
 } as const;
 
 /** Where the photo page is within its three steps, after Unlock. */
@@ -51,7 +52,7 @@ export function journeyStep(
   if (path === "/") return 1;
   if (path === "/app/joy") return 2;
   if (path === "/moments") return 3;
-  if (path === "/app/yours") return 7;
+  if (path === "/app/yours") return JOURNEY_STEP_COUNT + 1;
   if (path === "/app") {
     const onPhoto = search.get("paid") === "1" || gate === "open";
     if (!onPhoto) return 3;
