@@ -6,9 +6,10 @@ import { lastStory } from "@/lib/vault";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: Request) {
   const { vault } = await loadSessionVault();
-  const story = lastStory(vault);
+  const storyId = new URL(request.url).searchParams.get("t");
+  const story = (storyId ? vault.stories.find((item) => item.id === storyId) : null) ?? lastStory(vault);
   if (!story?.tts.audioKey) return json({ error: "No story audio yet" }, 404);
   const file = await getBytes(story.tts.audioKey);
   if (!file) return json({ error: "No story audio yet" }, 404);

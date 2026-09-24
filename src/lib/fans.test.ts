@@ -1,7 +1,14 @@
 import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import { GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { afterEach, describe, expect, it } from "vitest";
-import { creditMoments, consumeMoment, getEntitlement, restoreMoment } from "./entitlement";
+import {
+  chargeNewMoment,
+  creditMoments,
+  consumeMoment,
+  getEntitlement,
+  restoreMoment,
+  restoreNewMoment,
+} from "./entitlement";
 import { emailVaultId } from "./identity";
 import {
   DynamoFansTable,
@@ -84,6 +91,30 @@ describe("goodfans moment balance", () => {
     await restoreMoment("amy@example.com");
     expect(table.rows.get("amy@example.com")?.game).toBe(1);
     expect(await consumeMoment("nobody@example.com")).toBeNull();
+  });
+
+  it("charges each new moment once and does not charge a retry or a re-save", async () => {
+    const table = new MemoryFansTable();
+    useFansTable(table);
+    await creditMoments({
+      email: "amy@example.com",
+      pfPaymentId: "pack",
+      amountGross: "5.00",
+      moments: 2,
+    });
+    const first = await chargeNewMoment("amy@example.com", "mom_cars000000000001", false);
+    const second = await chargeNewMoment("amy@example.com", "mom_screen0000000001", false);
+    expect(first).toEqual({ ok: true, remaining: 1, charged: true });
+    expect(second).toEqual({ ok: true, remaining: 0, charged: true });
+    const retry = await chargeNewMoment("amy@example.com", "mom_cars000000000001", false);
+    expect(retry).toEqual({ ok: true, remaining: 0, charged: false });
+    const resave = await chargeNewMoment("amy@example.com", "mom_cars000000000001", true);
+    expect(resave).toEqual({ ok: true, remaining: 0, charged: false });
+    expect(await chargeNewMoment("amy@example.com", "mom_third00000000001", false)).toEqual({ ok: false });
+    await restoreNewMoment("amy@example.com", "mom_screen0000000001");
+    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(1);
+    const again = await chargeNewMoment("amy@example.com", "mom_screen0000000001", false);
+    expect(again).toEqual({ ok: true, remaining: 0, charged: true });
   });
 });
 

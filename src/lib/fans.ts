@@ -34,6 +34,8 @@ export type FanRow = {
   issued: string;
   created: string;
   updatedAt: string;
+  /** Moment ids that already spent a credit. A repeat id does not spend again. */
+  spentMomentIds?: string[];
 };
 
 export interface FansTable {
@@ -44,8 +46,19 @@ export interface FansTable {
   findPayment(pfPaymentId: string): Promise<FanRow | null>;
   /** Subtract 1 only while `game` > 0. Returns the new balance, or null if blocked. */
   consume(order: string, now: string): Promise<number | null>;
+  /**
+   * Subtract 1 once per moment id. A repeat id returns the current balance
+   * and does not subtract again. Null means no credits and this id was not spent.
+   */
+  consumeForMoment(
+    order: string,
+    momentId: string,
+    now: string,
+  ): Promise<{ remaining: number; alreadySpent: boolean } | null>;
   /** Put one moment back when a save fails after a successful consume. */
   restore(order: string, now: string): Promise<void>;
+  /** Give the credit back and forget the moment id, once. */
+  restoreForMoment(order: string, momentId: string, now: string): Promise<void>;
 }
 
 type FansCommandOutput = {
@@ -178,6 +191,40 @@ export class DynamoFansTable implements FansTable {
     }
   }
 
+  async consumeForMoment(
+    order: string,
+    momentId: string,
+    now: string,
+  ): Promise<{ remaining: number; alreadySpent: boolean } | null> {
+    try {
+      const out = await this.doc.send(
+        new UpdateCommand({
+          TableName: this.tableName,
+          Key: { order },
+          UpdateExpression: "ADD game :neg, spentMomentIds :mid SET updatedAt = :now",
+          ConditionExpression:
+            "game > :zero AND (attribute_not_exists(spentMomentIds) OR NOT contains(spentMomentIds, :moment))",
+          ExpressionAttributeValues: {
+            ":neg": -1,
+            ":zero": 0,
+            ":mid": new Set([momentId]),
+            ":moment": momentId,
+            ":now": now,
+          },
+          ReturnValues: "ALL_NEW",
+        }),
+      );
+      return { remaining: numberAttr(out.Attributes?.game), alreadySpent: false };
+    } catch (error) {
+      if (!isConditional(error)) throw error;
+      const current = await this.get(order);
+      if (current && paymentIdList(current.spentMomentIds).includes(momentId)) {
+        return { remaining: current.game, alreadySpent: true };
+      }
+      return null;
+    }
+  }
+
   async restore(order: string, now: string): Promise<void> {
     try {
       await this.doc.send(
@@ -198,9 +245,31 @@ export class DynamoFansTable implements FansTable {
       throw error;
     }
   }
+
+  async restoreForMoment(order: string, momentId: string, now: string): Promise<void> {
+    try {
+      await this.doc.send(
+        new UpdateCommand({
+          TableName: this.tableName,
+          Key: { order },
+          UpdateExpression: "ADD game :one DELETE spentMomentIds :mid SET updatedAt = :now",
+          ConditionExpression: "contains(spentMomentIds, :moment)",
+          ExpressionAttributeValues: {
+            ":one": 1,
+            ":mid": new Set([momentId]),
+            ":moment": momentId,
+            ":now": now,
+          },
+        }),
+      );
+    } catch (error) {
+      if (isConditional(error)) return;
+      throw error;
+    }
+  }
 }
 
-type MemoryFan = FanRow & { paymentIds: string[] };
+type MemoryFan = FanRow & { paymentIds: string[]; spentMomentIds: string[] };
 
 export class MemoryFansTable implements FansTable {
   readonly rows = new Map<string, MemoryFan>();
@@ -227,6 +296,7 @@ export class MemoryFansTable implements FansTable {
       issued: current?.issued || input.now,
       created: current?.created || input.now,
       updatedAt: input.now,
+      spentMomentIds: current?.spentMomentIds ? [...current.spentMomentIds] : [],
     };
     this.rows.set(input.order, next);
     return { game: next.game, duplicate: false };
@@ -247,16 +317,45 @@ export class MemoryFansTable implements FansTable {
     return row.game;
   }
 
+  async consumeForMoment(
+    order: string,
+    momentId: string,
+    now: string,
+  ): Promise<{ remaining: number; alreadySpent: boolean } | null> {
+    const row = this.rows.get(order);
+    if (!row) return null;
+    if (row.spentMomentIds.includes(momentId)) {
+      return { remaining: row.game, alreadySpent: true };
+    }
+    if (row.game <= 0) return null;
+    row.game -= 1;
+    row.spentMomentIds.push(momentId);
+    row.updatedAt = now;
+    return { remaining: row.game, alreadySpent: false };
+  }
+
   async restore(order: string, now: string): Promise<void> {
     const row = this.rows.get(order);
     if (!row) return;
     row.game += 1;
     row.updatedAt = now;
   }
+
+  async restoreForMoment(order: string, momentId: string, now: string): Promise<void> {
+    const row = this.rows.get(order);
+    if (!row || !row.spentMomentIds.includes(momentId)) return;
+    row.spentMomentIds = row.spentMomentIds.filter((id) => id !== momentId);
+    row.game += 1;
+    row.updatedAt = now;
+  }
 }
 
 function copyFan(row: MemoryFan): FanRow {
-  return { ...row, paymentIds: [...row.paymentIds] };
+  return {
+    ...row,
+    paymentIds: [...row.paymentIds],
+    spentMomentIds: [...(row.spentMomentIds ?? [])],
+  };
 }
 
 function normalizeFan(item: Record<string, unknown>): FanRow {
@@ -271,6 +370,7 @@ function normalizeFan(item: Record<string, unknown>): FanRow {
     issued: String(item.issued ?? ""),
     created: String(item.created ?? ""),
     updatedAt: String(item.updatedAt ?? ""),
+    spentMomentIds: paymentIdList(item.spentMomentIds),
   };
 }
 

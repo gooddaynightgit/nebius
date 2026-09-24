@@ -4,7 +4,7 @@ import MomentsCheckout from "@/components/MomentsCheckout";
 
 export const metadata: Metadata = {
   title: "40 good moments — Gooddaynight",
-  description: "One good moment a day. 40 good moments — R450 ZAR · $28 USD. Not an archive.",
+  description: "Several good moments. 40 good moments — R450 ZAR · $28 USD. Not an archive.",
 };
 
 function queryValue(value: string | string[] | undefined): string {
@@ -81,7 +81,7 @@ export default async function MomentsPage({
           </span>
           <span className="moments-mark" aria-hidden="true"></span>
           <p className="moments-kicker">It is</p>
-          <h2 id="moments-is">one good moment a day — noticed, here until midnight, then gone.</h2>
+          <h2 id="moments-is">several good moments — noticed, and kept so you can look back.</h2>
           <p className="moments-note">
             Share only if you want a card to keep. The habit of seeing stays.
           </p>

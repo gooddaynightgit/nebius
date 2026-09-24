@@ -1,5 +1,6 @@
 import { captionDisposition } from "./app-capture";
 import { LANDING } from "./landing";
+import { acceptPendingWrite } from "./moment";
 
 export const CAPTURE_STASH_DB = "gooddaynight";
 export const CAPTURE_STASH_STORE = "captures";
@@ -15,6 +16,8 @@ export type CaptureStash = {
   savedAt: number;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  /** Which story this phone copy belongs to. Missing on records saved before moment ids. */
+  momentId?: string;
 };
 
 export type CaptureStashInput = {
@@ -25,6 +28,7 @@ export type CaptureStashInput = {
   fileName?: string;
   photoEmphasis?: "low";
   sparkAnswer?: "yes" | "no";
+  momentId?: string;
 };
 
 type YoursMissingBody = {
@@ -42,7 +46,32 @@ export type PendingPhoto = {
   fileName: string;
   mimeType: string;
   photo: Blob;
+  momentId?: string;
+  generation?: number;
 };
+
+let activeMomentId: string | null = null;
+let activeGeneration = 0;
+let failPendingDeletes = 0;
+
+/** The next clear of the waiting photo fails once. Tests use this to prove a failed clear is not silent. */
+export function failNextPendingDeleteForTests(): void {
+  failPendingDeletes += 1;
+}
+
+export function beginMomentWrite(momentId: string): number {
+  if (activeMomentId !== momentId) {
+    activeMomentId = momentId;
+    activeGeneration = 1;
+  } else {
+    activeGeneration += 1;
+  }
+  return activeGeneration;
+}
+
+export function currentMomentWrite(): { momentId: string | null; generation: number } {
+  return { momentId: activeMomentId, generation: activeGeneration };
+}
 
 export function stashDayKey(day: string): string {
   return `capture:${day}`;
@@ -138,6 +167,7 @@ export async function writeCaptureStash(input: CaptureStashInput): Promise<Captu
     mimeType,
     photo: new Blob([bytes], { type: mimeType }),
     savedAt: Date.now(),
+    ...(input.momentId ? { momentId: input.momentId } : {}),
     ...(input.sparkAnswer
       ? { sparkAnswer: input.sparkAnswer, photoEmphasis: "low" as const }
       : {}),
@@ -147,17 +177,21 @@ export async function writeCaptureStash(input: CaptureStashInput): Promise<Captu
   return record;
 }
 
-export async function updateCaptureStashPhoto(day: string, photo: File): Promise<CaptureStash | null> {
+export async function updateCaptureStashPhoto(
+  day: string,
+  photo: File,
+  momentId?: string,
+): Promise<CaptureStash | null> {
   const existing = await readCaptureStash(day);
   if (!existing) return null;
+  if (momentId && existing.momentId && existing.momentId !== momentId) return null;
   return writeCaptureStash({
     day,
     joyType: existing.joyType,
-    caption: existing.caption,
+    caption: "",
     photo,
     fileName: photo.name || existing.fileName,
-    photoEmphasis: existing.photoEmphasis,
-    sparkAnswer: existing.sparkAnswer,
+    momentId: momentId || existing.momentId,
   });
 }
 
@@ -176,41 +210,89 @@ export async function clearCaptureStashIfOpened(day: string, yoursOpened: boolea
   await clearCaptureStash();
 }
 
-export async function writePendingPhoto(day: string, photo: File): Promise<PendingPhoto> {
+export async function writePendingPhoto(
+  day: string,
+  photo: File,
+  meta?: { momentId: string; generation: number },
+): Promise<PendingPhoto | null> {
+  if (meta && !acceptPendingWrite({
+    writeGeneration: meta.generation,
+    currentGeneration: activeGeneration,
+    writeMomentId: meta.momentId,
+    activeMomentId,
+  })) {
+    return null;
+  }
   const mimeType = photo.type || "image/jpeg";
   const fileName = photo.name || "moment.jpg";
   const bytes = await photo.arrayBuffer();
+  if (meta && !acceptPendingWrite({
+    writeGeneration: meta.generation,
+    currentGeneration: activeGeneration,
+    writeMomentId: meta.momentId,
+    activeMomentId,
+  })) {
+    return null;
+  }
   const record: PendingPhoto = {
     day,
     fileName,
     mimeType,
     photo: new Blob([bytes], { type: mimeType }),
+    ...(meta ? { momentId: meta.momentId, generation: meta.generation } : {}),
   };
   memoryPending = record;
   await writePersistedRecord(CAPTURE_PENDING_RECORD_KEY, record);
+  if (meta && !acceptPendingWrite({
+    writeGeneration: meta.generation,
+    currentGeneration: activeGeneration,
+    writeMomentId: meta.momentId,
+    activeMomentId,
+  })) {
+    if (memoryPending?.generation === meta.generation && memoryPending.momentId === meta.momentId) {
+      memoryPending = null;
+      await deletePersistedRecord(CAPTURE_PENDING_RECORD_KEY);
+    }
+    return null;
+  }
   return record;
 }
 
-export async function readPendingPhoto(day: string): Promise<File | null> {
+export async function readPendingMoment(
+  day: string,
+): Promise<{ file: File; momentId?: string } | null> {
   const cached = memoryPending?.day === day ? memoryPending : null;
   const record = cached ?? (await readPersistedPending());
   if (!record || record.day !== day || !(record.photo instanceof Blob) || record.photo.size === 0) {
     return null;
   }
   memoryPending = record;
-  return new File([record.photo], record.fileName || "moment.jpg", {
-    type: record.mimeType || record.photo.type || "image/jpeg",
-  });
+  return {
+    file: new File([record.photo], record.fileName || "moment.jpg", {
+      type: record.mimeType || record.photo.type || "image/jpeg",
+    }),
+    momentId: record.momentId,
+  };
+}
+
+export async function readPendingPhoto(day: string): Promise<File | null> {
+  const pending = await readPendingMoment(day);
+  return pending?.file ?? null;
 }
 
 export async function clearPendingPhoto(): Promise<void> {
+  await deletePersistedRecordStrict(CAPTURE_PENDING_RECORD_KEY);
+  const left = await readPersistedPending();
+  if (left) throw new Error("Could not clear the waiting photo.");
   memoryPending = null;
-  await deletePersistedRecord(CAPTURE_PENDING_RECORD_KEY);
 }
 
 export function resetCaptureStashForTests(): void {
   memoryStash = null;
   memoryPending = null;
+  activeMomentId = null;
+  activeGeneration = 0;
+  failPendingDeletes = 0;
 }
 
 function idbAvailable(): boolean {
@@ -321,18 +403,26 @@ async function writePersistedRecord(key: string, record: unknown): Promise<void>
 }
 
 async function deletePersistedRecord(key: string): Promise<void> {
-  if (!idbAvailable()) return;
   try {
-    const db = await openStashDb();
-    try {
-      await idbReq(
-        db.transaction(CAPTURE_STASH_STORE, "readwrite").objectStore(CAPTURE_STASH_STORE).delete(key),
-      );
-    } finally {
-      db.close();
-    }
+    await deletePersistedRecordStrict(key);
   } catch {
-    // Ignore persistence failures; memory is already cleared.
+    // Stash clears can fail soft. Pending clears use the strict path.
+  }
+}
+
+async function deletePersistedRecordStrict(key: string): Promise<void> {
+  if (key === CAPTURE_PENDING_RECORD_KEY && failPendingDeletes > 0) {
+    failPendingDeletes -= 1;
+    throw new Error("Could not clear the waiting photo.");
+  }
+  if (!idbAvailable()) return;
+  const db = await openStashDb();
+  try {
+    await idbReq(
+      db.transaction(CAPTURE_STASH_STORE, "readwrite").objectStore(CAPTURE_STASH_STORE).delete(key),
+    );
+  } finally {
+    db.close();
   }
 }
 

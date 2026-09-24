@@ -768,7 +768,9 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/Save this voice note/);
     expect(src).not.toMatch(/See the story/);
     expect(src).not.toMatch(/StoryPlayback/);
-    expect(src).toMatch(/LANDING\.app\.replace/);
+    expect(src).toMatch(/Start a new story/);
+    expect(src).toMatch(/startNewStoryDestination/);
+    expect(src).toMatch(/shouldRestorePending/);
     expect(src).not.toMatch(/LANDING\.app\.locked/);
     expect(src).not.toMatch(/disabled=\{locked\}/);
     expect(src).not.toMatch(/if \(locked\)/);
@@ -898,7 +900,9 @@ describe("app capture client contract", () => {
     expect(photo).toContain('today: "Wonderful, your photo was taken today."');
     expect(photo).not.toMatch(/couldn't confirm/i);
     const readme = readFileSync(path.resolve("README.md"), "utf8");
-    expect(readme).toContain("Only one photo per calendar day (midnight–23:59, phone’s local time).");
+    expect(readme).toContain(
+      "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own story.",
+    );
     expect(readme).toContain("Not allowed: memes, someone else’s moment passed off as yours.");
     expect(readme).toMatch(/not shown on `\/app`/);
     expect(readme).not.toMatch(/shown on this page/);

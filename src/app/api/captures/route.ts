@@ -1,6 +1,6 @@
 import { appPhotoRejection, captionDisposition } from "@/lib/app-capture";
 import { chooseSpokenLine, proposeSpokenLine } from "@/lib/care";
-import { consumeMoment, getEntitlement, restoreMoment } from "@/lib/entitlement";
+import { chargeNewMoment, restoreNewMoment } from "@/lib/entitlement";
 import { ingestAppPhoto, ingestGood } from "@/lib/ingest";
 import { newId, todayStamp } from "@/lib/identity";
 import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
@@ -11,7 +11,8 @@ import { proposeSpellfix } from "@/lib/spellfix";
 import { loadSessionVault, presentSession, requirePersonalPhotoOtp, toPublicSession } from "@/lib/session";
 import { imageDataUrlForModels } from "@/lib/model-image";
 import { putBytes } from "@/lib/storage";
-import { addCapture, appPhotoForDay, capturesForDay, upsertAppPhoto } from "@/lib/vault";
+import { isMomentId } from "@/lib/moment";
+import { addCapture, appPhotoById, capturesForDay, saveAppMoment } from "@/lib/vault";
 import type { CaptureKind } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -140,16 +141,14 @@ async function saveAppPhoto(
   const caption = captionResult.caption;
   const tzOffset = Number(form.get("tzOffset"));
   const file = form.get("file");
-  const existing = appPhotoForDay(vault, day);
+  const requestedId = String(form.get("momentId") ?? "");
+  const momentId = isMomentId(requestedId) ? requestedId : newId("mom");
+  const existing = appPhotoById(vault, momentId);
   const email = vault.email;
   if (!email) {
     return forbidden("Capture stays closed until this purchase is confirmed.");
   }
-  const entitlement = await getEntitlement(email);
   const replacing = Boolean(existing);
-  if (!replacing && (entitlement?.remaining ?? 0) < 1) {
-    return forbidden("Capture stays closed until this purchase is confirmed.");
-  }
 
   const hasNewFile = file instanceof File && file.size > 0;
   if (!hasNewFile && !existing) {
@@ -205,17 +204,14 @@ async function saveAppPhoto(
     if (!safety.safe) return forbidden(SAFETY_REFUSAL);
   }
 
-  let spent = false;
-  if (!replacing) {
-    const left = await consumeMoment(email);
-    if (left == null) {
-      return forbidden("Capture stays closed until this purchase is confirmed.");
-    }
-    spent = true;
+  const charged = await chargeNewMoment(email, momentId, replacing);
+  if (!charged.ok) {
+    return forbidden("Capture stays closed until this purchase is confirmed.");
   }
+  const spent = charged.charged;
 
   try {
-    const id = existing?.id ?? newId("cap");
+    const id = existing?.id ?? momentId;
     let mediaKey = existing?.mediaKey;
     if (bytes) {
       const ext = extensionFor(mediaContentType, "photo");
@@ -231,7 +227,8 @@ async function saveAppPhoto(
 
     const sparkRaw = String(form.get("sparkAnswer") ?? "");
     const sparkAnswer = sparkRaw === "yes" || sparkRaw === "no" ? sparkRaw : undefined;
-    const capture = await upsertAppPhoto(vault, {
+    const sparkText = String(form.get("spark") ?? "").replace(/\s+/g, " ").trim();
+    const capture = await saveAppMoment(vault, {
       id,
       kind: "photo",
       createdAt: existing?.createdAt ?? new Date().toISOString(),
@@ -240,6 +237,7 @@ async function saveAppPhoto(
       joyType: joy.id,
       source: "app",
       ...(sparkAnswer ? { sparkAnswer, photoEmphasis: "low" as const } : {}),
+      ...(sparkText ? { spark: sparkText } : {}),
       dateVerified: Boolean(date.verified && date.takenDay === day),
       photoTakenAt: date.verified && date.takenDay ? date.takenDay : day,
       locked: false,
@@ -258,7 +256,7 @@ async function saveAppPhoto(
   } catch (error) {
     if (spent) {
       try {
-        await restoreMoment(email);
+        await restoreNewMoment(email, momentId);
       } catch (restoreError) {
         console.error("[goodfans] could not restore a moment after a failed save", restoreError);
       }

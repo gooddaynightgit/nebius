@@ -149,7 +149,7 @@ export const PHOTO_DATE_MESSAGES = {
 
 /** Developer source of truth. Not rendered on /app. Exact wording — do not paraphrase. */
 export const PHOTO_SAVE_RULES = [
-  "Only one photo per calendar day (midnight–23:59, phone’s local time).",
+  "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own story.",
   "The photo is required. No photo, no save, no good moment.",
   `When from today — camera roll today, message: ${PHOTO_DATE_MESSAGES.today}`,
   "Screenshots count: a hello, a gift message, a tracker, a watch face.",
