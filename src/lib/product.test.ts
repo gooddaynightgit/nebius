@@ -825,8 +825,8 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/LANDING\.app\.yoursHint/);
     expect(src).not.toMatch(/app-tagline|app-yours-hint/);
     expect(src).toMatch(/LANDING\.app\.photoHelp/);
-    expect(src).toMatch(/LANDING\.app\.yours/);
-    expect(src).toMatch(/id="yours-door"/);
+    expect(src).not.toMatch(/id="yours-door"/);
+    expect(src).not.toMatch(/getElementById\("yours-door"\)/);
     expect(src).toMatch(/\/app\/yours\?moment=/);
     expect(src).toMatch(/"\/app\/yours"/);
     expect(src).toMatch(/StepControl/);
@@ -834,7 +834,10 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/STEP_LABEL\.joy/);
     expect(src).toMatch(/STEP_LABEL\.photo/);
     expect(src).toMatch(/disabled=\{!yoursReady\}/);
-    expect(src).toMatch(/yoursReady \?/);
+    expect(src).toMatch(/id="photo-steps"/);
+    expect(src).toMatch(
+      /StepControl\s+direction="next"[\s\S]*href=\{momentRef\.current \? `\/app\/yours\?moment=\$\{momentRef\.current\}` : "\/app\/yours"\}/,
+    );
     expect(src).toMatch(/writePendingPhoto/);
     expect(src).toMatch(/readChosenJoy/);
     expect(src).toMatch(/\/api\/photo-spark/);
@@ -927,18 +930,21 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/StoryPlayback/);
     expect(src).not.toMatch(/Start a new story/);
     expect(src).not.toMatch(/>See your stories</);
-    expect(src).not.toMatch(/your new story/);
     expect(src).not.toMatch(/today-heading/);
     expect(src).not.toMatch(/Today’s moment/);
     expect(src).toMatch(/tone="soft"/);
-    expect(yours).toMatch(/startNewStoryDestination/);
-    expect(yours).toMatch(/GradientWord>Create</);
-    expect(yours).toMatch(/your new story/);
-    expect(yours).toMatch(/GradientWord>Created</);
-    expect(yours).toMatch(/See your <GradientWord>Created<\/GradientWord> story/);
-    expect(yours).toMatch(/href="#earlier-stories"/);
-    expect(yours).toMatch(/card card--cream/);
-    expect(yours).not.toMatch(/id="yours-heading"/);
+    expect(src).toMatch(/startNewStoryDestination/);
+    expect(src).toMatch(/card card--cream/);
+    expect(src).toMatch(/GradientWord>Create</);
+    expect(src).toMatch(/your new story/);
+    expect(src).toMatch(/href="\/app\/yours#earlier-stories"/);
+    expect(src).toMatch(/See your <GradientWord>Created<\/GradientWord> story/);
+    expect(src.match(/your new story/g)?.length).toBe(1);
+    expect(src.match(/#earlier-stories/g)?.length).toBe(1);
+    expect(yours).toMatch(/id="yours-heading"/);
+    expect(yours).toMatch(/id="earlier-stories"/);
+    expect(yours).not.toMatch(/your new story/);
+    expect(yours).not.toMatch(/story-actions/);
     expect(src).toMatch(/shouldRestorePending/);
     expect(src).not.toMatch(/LANDING\.app\.locked/);
     expect(src).not.toMatch(/disabled=\{locked\}/);

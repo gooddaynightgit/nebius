@@ -1616,7 +1616,8 @@ body:has(.journey) .skip-link:focus {
   }
 }
 
-#earlier-stories {
+#earlier-stories,
+#photo-steps {
   scroll-margin-top: 5.5rem;
 }
 

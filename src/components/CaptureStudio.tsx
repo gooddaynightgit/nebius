@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -48,6 +49,7 @@ import {
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import {
   beginMomentWrite,
+  clearCaptureStash,
   clearCaptureStashIfOpened,
   clearPendingPhoto,
   currentMomentWrite,
@@ -60,14 +62,14 @@ import {
   writePendingPhoto,
 } from "@/lib/capture-stash";
 import {
-  clearNewStoryDraft,
   newMomentId,
   readActiveMoment,
-  readNewStoryDraft,
   shouldRestorePending,
+  startNewStoryDestination,
   writeActiveMoment,
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
+import GradientWord from "@/components/GradientWord";
 import { useReportBuyerGate } from "@/components/journey-gate";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
@@ -146,6 +148,7 @@ export default function CaptureStudio() {
   const savedPhotoIdRef = useRef<string | null>(null);
   const sparkSeq = useRef(0);
   const momentRef = useRef<string | null>(null);
+  const router = useRouter();
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -351,31 +354,12 @@ export default function CaptureStudio() {
         }
         const pendingFile = pendingMoment?.file && pendingMoment.file.size > 0 ? pendingMoment.file : null;
         const activeMomentId = readActiveMoment(day);
-        const draftId = readNewStoryDraft(day);
-        if (draftId) {
-          clearNewStoryDraft();
-          momentRef.current = draftId;
-          beginMomentWrite(draftId);
-          photoRef.current = null;
-          photoUrlRef.current = null;
-          setPhoto(null);
-          setPhotoUrl(null);
-          setSpark(null);
-          setSparkPending(false);
-          setSparkAnswer(null);
-          setAnsweredGeneration(null);
-          setCaption("");
-          setPhoneStash(false);
-          setDrafting(true);
-        }
-        const restorePending =
-          !draftId &&
-          shouldRestorePending({
-            hasSavedMoment: Boolean(sessionData.hasSavedMoment),
-            hasPending: Boolean(pendingFile),
-            pendingMomentId: pendingMoment?.momentId ?? null,
-            activeMomentId,
-          });
+        const restorePending = shouldRestorePending({
+          hasSavedMoment: Boolean(sessionData.hasSavedMoment),
+          hasPending: Boolean(pendingFile),
+          pendingMomentId: pendingMoment?.momentId ?? null,
+          activeMomentId,
+        });
         if (restorePending && pendingFile) {
           const momentId = pendingMoment?.momentId || activeMomentId || newMomentId();
           momentRef.current = momentId;
@@ -449,6 +433,37 @@ export default function CaptureStudio() {
       }
     }
     takeInputRef.current?.click();
+  }
+
+  async function startNewStory() {
+    const destination = startNewStoryDestination(gate);
+    if (destination) {
+      router.push(destination);
+      return;
+    }
+    const momentId = newMomentId();
+    momentRef.current = momentId;
+    beginMomentWrite(momentId);
+    writeActiveMoment(day, momentId);
+    setCaptureError(null);
+    try {
+      await clearPendingPhoto();
+      await clearCaptureStash();
+    } catch (error) {
+      setCaptureError(error instanceof Error ? error.message : "Could not clear the waiting photo.");
+      return;
+    }
+    photoRef.current = null;
+    photoUrlRef.current = null;
+    setPhoto(null);
+    setPhotoUrl(null);
+    setSpark(null);
+    setSparkPending(false);
+    setSparkAnswer(null);
+    setAnsweredGeneration(null);
+    setCaption("");
+    setPhoneStash(false);
+    setDrafting(true);
   }
 
   async function keepLiveStill() {
@@ -754,7 +769,7 @@ export default function CaptureStudio() {
       }
       setPhoneNote(latest.todayPhoto ? null : LANDING.app.savedOnPhone);
       window.requestAnimationFrame(() => {
-        document.getElementById("yours-door")?.scrollIntoView({
+        document.getElementById("photo-steps")?.scrollIntoView({
           behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
           block: "start",
         });
@@ -793,6 +808,17 @@ export default function CaptureStudio() {
       </header>
 
       <main id="main">
+        <section className="card card--cream card--compact" aria-label="Story actions">
+          <div className="story-actions">
+            <button className="btn btn--lime" type="button" onClick={() => void startNewStory()}>
+              <GradientWord>Create</GradientWord> your new story
+            </button>
+            <Link className="btn btn--lime" href="/app/yours#earlier-stories">
+              See your <GradientWord>Created</GradientWord> story
+            </Link>
+          </div>
+        </section>
+
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
           {buyerOpen && (!session?.otpVerified || resign) ? (
@@ -1037,20 +1063,7 @@ export default function CaptureStudio() {
           ) : null}
         </form>
 
-        {yoursReady ? (
-          <section id="yours-door" className="card card--lime card--compact" aria-label={LANDING.app.yours}>
-            <Link className="yours" href={momentRef.current ? `/app/yours?moment=${momentRef.current}` : "/app/yours"}>
-              {LANDING.app.yours}
-            </Link>
-            {phoneNote ? (
-              <p className="notice" style={{ marginTop: "0.85rem" }}>
-                {phoneNote}
-              </p>
-            ) : null}
-          </section>
-        ) : null}
-
-        <nav className="step-nav" aria-label="Steps">
+        <nav id="photo-steps" className="step-nav" aria-label="Steps">
           <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} tone="soft" />
           <StepControl
             direction="next"

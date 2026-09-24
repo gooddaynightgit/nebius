@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import GradientWord from "@/components/GradientWord";
 import { explainClientFetchError, readJson, readResponsePayload } from "@/lib/client-fetch";
 import {
-  beginMomentWrite,
   buildAppCaptureForm,
   clearCaptureStash,
   clearPendingPhoto,
@@ -22,13 +20,6 @@ import {
 } from "@/lib/keep-card";
 import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
-import {
-  clearNewStoryDraft,
-  markNewStoryDraft,
-  newMomentId,
-  startNewStoryDestination,
-} from "@/lib/moment";
-import type { SessionState } from "@/lib/types";
 import {
   STORY_OPENING_INTERVAL_MS,
   STORY_OPENING_LINES,
@@ -88,25 +79,6 @@ function ShareIcon() {
 
 type EarlierStory = { id: string; day: string; createdAt: string; captureId?: string | null };
 
-type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
-
-async function lookupEntitlement(email: string): Promise<EntitlementLookup> {
-  try {
-    const res = await fetch("/api/payfast/entitlement", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({ email }),
-    });
-    const data = await readJson<{ remaining?: number; exhausted?: boolean }>(res);
-    if ((data.remaining ?? 0) > 0) return "open";
-    if (data.exhausted) return "exhausted";
-    return "closed";
-  } catch {
-    return "error";
-  }
-}
-
 type YoursState =
   | { status: "loading" }
   | { status: "keeping" }
@@ -127,8 +99,6 @@ export default function YoursStory() {
   const [playing, setPlaying] = useState(false);
   const [keepBusy, setKeepBusy] = useState(false);
   const [keepNote, setKeepNote] = useState<string | null>(null);
-  const [actionNote, setActionNote] = useState<string | null>(null);
-  const router = useRouter();
   const [cardUrl, setCardUrl] = useState<string | null>(null);
   const [cardError, setCardError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -392,37 +362,7 @@ export default function YoursStory() {
     }
   }
 
-  async function createNewStory() {
-    setActionNote(null);
-    try {
-      const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
-      const session = await readJson<SessionState>(sessionRes);
-      const status =
-        session.otpVerified && session.email ? await lookupEntitlement(session.email) : "closed";
-      const destination = startNewStoryDestination(status);
-      if (destination) {
-        router.push(destination);
-        return;
-      }
-      const momentId = newMomentId();
-      beginMomentWrite(momentId);
-      markNewStoryDraft(day, momentId);
-      try {
-        await clearPendingPhoto();
-        await clearCaptureStash();
-      } catch (error) {
-        clearNewStoryDraft();
-        setActionNote(error instanceof Error ? error.message : "Could not clear the waiting photo.");
-        return;
-      }
-      router.push("/app");
-    } catch (error) {
-      setActionNote(error instanceof Error ? error.message : "Could not start a new story.");
-    }
-  }
-
   const failed = state.status === "expired" || state.status === "missing" || state.status === "blocked" || state.status === "error";
-  const earlier = state.status === "ready" ? state.earlier : [];
 
   return (
     <div className="page">
@@ -435,21 +375,6 @@ export default function YoursStory() {
         </Link>
       </header>
       <main id="main">
-        <section className="card card--cream card--compact" aria-label="Story actions">
-          <div className="story-actions">
-            <button className="btn btn--lime" type="button" onClick={() => void createNewStory()}>
-              <GradientWord>Create</GradientWord> your new story
-            </button>
-            <Link className="btn btn--lime" href="#earlier-stories">
-              See your <GradientWord>Created</GradientWord> story
-            </Link>
-          </div>
-          {actionNote ? (
-            <p className="notice" role="status">
-              {actionNote}
-            </p>
-          ) : null}
-        </section>
         {state.status === "loading" || state.status === "keeping" ? <StoryOpeningStatus /> : null}
         {failed ? (
           <section className="card card--cream card--compact" aria-labelledby="yours-gone">
@@ -473,8 +398,8 @@ export default function YoursStory() {
           </section>
         ) : null}
         {state.status === "ready" ? (
-          <section id="yours" className="card card--lavender card--compact" aria-label="Your story">
-            <h1 className="visually-hidden">Your story</h1>
+          <section id="yours" className="card card--lavender card--compact" aria-labelledby="yours-heading">
+            <h1 id="yours-heading">{LANDING.app.yours}</h1>
             {cardUrl ? (
               <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
             ) : cardError ? (
@@ -518,20 +443,18 @@ export default function YoursStory() {
                 </p>
               ) : null}
             </div>
-            <nav id="earlier-stories" className="earlier-stories" aria-label="Earlier stories">
-              <h2>Earlier stories</h2>
-              {earlier.length ? (
+            {state.earlier.length ? (
+              <nav id="earlier-stories" className="earlier-stories" aria-label="Earlier stories">
+                <h2>Earlier stories</h2>
                 <ul>
-                  {earlier.map((item) => (
+                  {state.earlier.map((item) => (
                     <li key={item.id}>
                       <Link href={`/app/yours?story=${item.id}`}>{item.day}</Link>
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p>No earlier stories yet.</p>
-              )}
-            </nav>
+              </nav>
+            ) : null}
           </section>
         ) : null}
       </main>
