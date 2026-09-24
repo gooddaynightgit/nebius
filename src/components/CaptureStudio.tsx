@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -49,7 +48,6 @@ import {
 import { isHorrificFilename, SAFETY_REFUSAL } from "@/lib/safety-text";
 import {
   beginMomentWrite,
-  clearCaptureStash,
   clearCaptureStashIfOpened,
   clearPendingPhoto,
   currentMomentWrite,
@@ -62,15 +60,15 @@ import {
   writePendingPhoto,
 } from "@/lib/capture-stash";
 import {
+  clearNewStoryDraft,
   newMomentId,
   readActiveMoment,
+  readNewStoryDraft,
   shouldRestorePending,
-  startNewStoryDestination,
   writeActiveMoment,
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
 import { useReportBuyerGate } from "@/components/journey-gate";
-import GradientWord from "@/components/GradientWord";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
 
@@ -148,7 +146,6 @@ export default function CaptureStudio() {
   const savedPhotoIdRef = useRef<string | null>(null);
   const sparkSeq = useRef(0);
   const momentRef = useRef<string | null>(null);
-  const router = useRouter();
   const [session, setSession] = useState<SessionState | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -354,12 +351,31 @@ export default function CaptureStudio() {
         }
         const pendingFile = pendingMoment?.file && pendingMoment.file.size > 0 ? pendingMoment.file : null;
         const activeMomentId = readActiveMoment(day);
-        const restorePending = shouldRestorePending({
-          hasSavedMoment: Boolean(sessionData.hasSavedMoment),
-          hasPending: Boolean(pendingFile),
-          pendingMomentId: pendingMoment?.momentId ?? null,
-          activeMomentId,
-        });
+        const draftId = readNewStoryDraft(day);
+        if (draftId) {
+          clearNewStoryDraft();
+          momentRef.current = draftId;
+          beginMomentWrite(draftId);
+          photoRef.current = null;
+          photoUrlRef.current = null;
+          setPhoto(null);
+          setPhotoUrl(null);
+          setSpark(null);
+          setSparkPending(false);
+          setSparkAnswer(null);
+          setAnsweredGeneration(null);
+          setCaption("");
+          setPhoneStash(false);
+          setDrafting(true);
+        }
+        const restorePending =
+          !draftId &&
+          shouldRestorePending({
+            hasSavedMoment: Boolean(sessionData.hasSavedMoment),
+            hasPending: Boolean(pendingFile),
+            pendingMomentId: pendingMoment?.momentId ?? null,
+            activeMomentId,
+          });
         if (restorePending && pendingFile) {
           const momentId = pendingMoment?.momentId || activeMomentId || newMomentId();
           momentRef.current = momentId;
@@ -448,37 +464,6 @@ export default function CaptureStudio() {
         error instanceof Error ? error.message : "Could not keep a still from the camera.",
       );
     }
-  }
-
-  async function startNewStory() {
-    const destination = startNewStoryDestination(gate);
-    if (destination) {
-      router.push(destination);
-      return;
-    }
-    const momentId = newMomentId();
-    momentRef.current = momentId;
-    beginMomentWrite(momentId);
-    writeActiveMoment(day, momentId);
-    setCaptureError(null);
-    try {
-      await clearPendingPhoto();
-      await clearCaptureStash();
-    } catch (error) {
-      setCaptureError(error instanceof Error ? error.message : "Could not clear the waiting photo.");
-      return;
-    }
-    photoRef.current = null;
-    photoUrlRef.current = null;
-    setPhoto(null);
-    setPhotoUrl(null);
-    setSpark(null);
-    setSparkPending(false);
-    setSparkAnswer(null);
-    setAnsweredGeneration(null);
-    setCaption("");
-    setPhoneStash(false);
-    setDrafting(true);
   }
 
   async function takePhoto(file: File | null, fromCamera = false) {
@@ -860,19 +845,6 @@ export default function CaptureStudio() {
           ) : null}
         </section>
 
-        {session?.hasSavedMoment ? (
-          <section className="card card--lime card--compact">
-            <button className="btn btn--lime" type="button" style={{ width: "100%" }} onClick={() => void startNewStory()}>
-              <GradientWord>Create</GradientWord> your new story
-            </button>
-            <p className="card__body" style={{ marginTop: "0.85rem" }}>
-              <Link href="/app/yours">
-                See your <GradientWord>Created</GradientWord> stories
-              </Link>
-            </p>
-          </section>
-        ) : null}
-
         <form onSubmit={saveMoment}>
         <section className="card card--dark" aria-labelledby="capture-heading">
             <h2 id="capture-heading" className="step-heading">
@@ -1077,23 +1049,6 @@ export default function CaptureStudio() {
             ) : null}
           </section>
         ) : null}
-
-        <section className="card card--cream card--compact" aria-labelledby="today-heading">
-          <span className="pill">Story</span>
-          <h2 id="today-heading">Today’s moment</h2>
-          {!session?.hasSavedMoment && !phoneStash ? (
-            <p className="card__body" style={{ marginTop: "0.8rem" }}>
-              Nothing saved yet. One photo and one joy, then Create your story.
-            </p>
-          ) : (
-            <div className="moment-list">
-              <article className="moment">
-                <span className="moment__kind">photo</span>
-                <p>{getJoyById(savedPhoto?.joyType ?? selectedJoyId)?.title ?? "A still from today."}</p>
-              </article>
-            </div>
-          )}
-        </section>
 
         <nav className="step-nav" aria-label="Steps">
           <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} tone="soft" />

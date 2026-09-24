@@ -101,3 +101,35 @@ export function clearActiveMoment(): void {
     // Ignore storage failures.
   }
 }
+
+const NEW_STORY_DRAFT_KEY = "gooddaynight.newStoryDraft";
+
+/** Remember a fresh moment so the photo page opens in a new draft after leaving the story. */
+export function markNewStoryDraft(day: string, momentId: string): void {
+  writeActiveMoment(day, momentId);
+  try {
+    momentStorage()?.setItem(NEW_STORY_DRAFT_KEY, JSON.stringify({ day, momentId }));
+  } catch {
+    // The photo page still reads the active moment.
+  }
+}
+
+export function readNewStoryDraft(day: string): string | null {
+  try {
+    const raw = momentStorage()?.getItem(NEW_STORY_DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ActiveMoment;
+    if (parsed.day !== day || !isMomentId(parsed.momentId)) return null;
+    return parsed.momentId;
+  } catch {
+    return null;
+  }
+}
+
+export function clearNewStoryDraft(): void {
+  try {
+    momentStorage()?.removeItem(NEW_STORY_DRAFT_KEY);
+  } catch {
+    // Ignore storage failures.
+  }
+}

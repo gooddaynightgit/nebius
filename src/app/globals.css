@@ -1590,6 +1590,36 @@ body:has(.journey) .skip-link:focus {
   }
 }
 
+.story-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.story-actions .btn {
+  flex: 1 1 12rem;
+  width: auto;
+}
+
+.story-actions .btn:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .story-actions {
+    flex-direction: column;
+  }
+
+  .story-actions .btn {
+    width: 100%;
+  }
+}
+
+#earlier-stories {
+  scroll-margin-top: 5.5rem;
+}
+
 .earlier-stories {
   margin-top: 1.25rem;
 }
