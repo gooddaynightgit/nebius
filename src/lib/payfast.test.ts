@@ -332,7 +332,7 @@ describe("payfast checkout and ITN", () => {
         return new Response("VALID", { status: 200 });
       });
       expect(result.status).toBe(500);
-      expect(called).toBe(false);
+      expect(called).toBe(true);
       expect(await getEntitlement("amy@example.com")).toBeNull();
       expect(await getEntitlement("other@example.com")).toBeNull();
       expect(warn).toHaveBeenCalledWith("[payfast-itn] rejected", "buyer");
@@ -370,6 +370,9 @@ describe("payfast checkout and ITN", () => {
       async credit() {
         throw new Error("boom amy@example.com test-passphrase");
       },
+      async findPayment() {
+        return null;
+      },
       async consume() {
         return null;
       },
@@ -387,6 +390,78 @@ describe("payfast checkout and ITN", () => {
       warn.mockRestore();
       useFansTable(new MemoryFansTable());
     }
+  });
+
+  it("returns 200 and does not add moments when the payment id is already on the row", async () => {
+    const table = new MemoryFansTable();
+    table.rows.set("amy@example.com", {
+      order: "amy@example.com",
+      game: 40,
+      paymentIds: ["329705515"],
+      emailVaultId: emailVaultId("amy@example.com"),
+      source: "manual",
+      amountGross: "5.00",
+      pfPaymentId: "329705515",
+      issued: "2026-09-24T04:32:00.000Z",
+      created: "2026-09-24T04:32:00.000Z",
+      updatedAt: "2026-09-24T04:32:00.000Z",
+    });
+    useFansTable(table);
+    const raw = documentedItn({
+      custom_str2: "",
+      email_address: "amy@example.com",
+      pf_payment_id: "329705515",
+    });
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    try {
+      const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
+      expect(result).toEqual({ status: 200, body: "OK" });
+      expect(table.rows.get("amy@example.com")?.game).toBe(40);
+      expect(table.rows.get("amy@example.com")?.paymentIds).toEqual(["329705515"]);
+      expect(info).toHaveBeenCalledWith("[payfast-itn] credited", {
+        pf_payment_id: "329705515",
+        remaining: 40,
+        duplicate: true,
+      });
+    } finally {
+      info.mockRestore();
+    }
+  });
+
+  it("returns 200 without adding moments when 329705515 is already stored and the payer email differs", async () => {
+    const table = new MemoryFansTable();
+    table.rows.set("amy@example.com", {
+      order: "amy@example.com",
+      game: 40,
+      paymentIds: ["329705515"],
+      emailVaultId: emailVaultId("amy@example.com"),
+      source: "manual",
+      amountGross: "5.00",
+      pfPaymentId: "329705515",
+      issued: "2026-09-24T04:32:00.000Z",
+      created: "2026-09-24T04:32:00.000Z",
+      updatedAt: "2026-09-24T04:32:00.000Z",
+    });
+    useFansTable(table);
+    const raw = documentedItn({
+      custom_str2: "other@example.com",
+      email_address: "payer@payfast.example",
+      pf_payment_id: "329705515",
+    });
+    let validated = false;
+    const rejected = await handlePayfastItn(raw, async () => new Response("INVALID", { status: 200 }));
+    expect(rejected.status).toBe(500);
+    expect(table.rows.get("amy@example.com")?.game).toBe(40);
+    const result = await handlePayfastItn(raw, async () => {
+      validated = true;
+      return new Response("VALID", { status: 200 });
+    });
+    expect(validated).toBe(true);
+    expect(result).toEqual({ status: 200, body: "OK" });
+    expect(table.rows.get("amy@example.com")?.game).toBe(40);
+    expect(table.rows.size).toBe(1);
+    expect(await getEntitlement("other@example.com")).toBeNull();
+    expect(await getEntitlement("payer@payfast.example")).toBeNull();
   });
 
   it("keeps ITN responses free of CORS headers", () => {

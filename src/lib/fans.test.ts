@@ -1,5 +1,5 @@
 import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { afterEach, describe, expect, it } from "vitest";
 import { creditMoments, consumeMoment, getEntitlement, restoreMoment } from "./entitlement";
 import { emailVaultId } from "./identity";
@@ -100,6 +100,7 @@ describe("DynamoDB goodfans updates", () => {
 
   it("credits with one conditional add of game and the payment id", async () => {
     const doc = new ScriptedDoc();
+    doc.steps.push({});
     doc.steps.push({
       Attributes: {
         order: credit.order,
@@ -110,8 +111,9 @@ describe("DynamoDB goodfans updates", () => {
     const table = new DynamoFansTable(doc, "goodfans");
     const result = await table.credit(credit);
     expect(result).toEqual({ game: 40, duplicate: false });
-    expect(doc.commands).toHaveLength(1);
-    const update = updateInput(doc.commands[0]);
+    expect(doc.commands).toHaveLength(2);
+    expect(doc.commands[0]).toBeInstanceOf(GetCommand);
+    const update = updateInput(doc.commands[1]);
     expect(update.TableName).toBe("goodfans");
     expect(update.Key).toEqual({ order: "amy@example.com" });
     expect(update.UpdateExpression).toContain("ADD game :moments, paymentIds :pid");
@@ -125,6 +127,7 @@ describe("DynamoDB goodfans updates", () => {
 
   it("treats a conditional failure that already has the payment id as a duplicate", async () => {
     const doc = new ScriptedDoc();
+    doc.steps.push({});
     doc.steps.push("conditional");
     doc.steps.push({
       Item: {
@@ -138,12 +141,32 @@ describe("DynamoDB goodfans updates", () => {
     });
     const table = new DynamoFansTable(doc, "goodfans");
     await expect(table.credit(credit)).resolves.toEqual({ game: 40, duplicate: true });
-    expect(doc.commands[1]).toBeInstanceOf(GetCommand);
-    expect(doc.commands[1].input).toMatchObject({
+    expect(doc.commands[2]).toBeInstanceOf(GetCommand);
+    expect(doc.commands[2].input).toMatchObject({
       TableName: "goodfans",
       Key: { order: "amy@example.com" },
       ConsistentRead: true,
     });
+  });
+
+  it("returns a duplicate and skips the add when the id was stored as a string", async () => {
+    const doc = new ScriptedDoc();
+    doc.steps.push({
+      Item: {
+        order: credit.order,
+        game: 40,
+        paymentIds: "329705515",
+        emailVaultId: "em_test",
+        source: "manual",
+        updatedAt: credit.now,
+      },
+    });
+    const table = new DynamoFansTable(doc, "goodfans");
+    await expect(
+      table.credit({ ...credit, pfPaymentId: "329705515" }),
+    ).resolves.toEqual({ game: 40, duplicate: true });
+    expect(doc.commands).toHaveLength(1);
+    expect(doc.commands[0]).toBeInstanceOf(GetCommand);
   });
 
   it("decrements with game > 0 and returns null when the condition fails", async () => {
@@ -175,17 +198,17 @@ describe("DynamoDB goodfans updates", () => {
   });
 });
 
-function updateInput(command: GetCommand | UpdateCommand | undefined) {
+function updateInput(command: GetCommand | UpdateCommand | ScanCommand | undefined) {
   expect(command).toBeInstanceOf(UpdateCommand);
   return (command as UpdateCommand).input;
 }
 
 class ScriptedDoc {
-  readonly commands: Array<GetCommand | UpdateCommand> = [];
+  readonly commands: Array<GetCommand | UpdateCommand | ScanCommand> = [];
   steps: Array<"conditional" | { Item?: Record<string, unknown>; Attributes?: Record<string, unknown> }> =
     [];
 
-  async send(command: GetCommand | UpdateCommand) {
+  async send(command: GetCommand | UpdateCommand | ScanCommand) {
     this.commands.push(command);
     const step = this.steps.shift();
     if (step == null || step === "conditional") {

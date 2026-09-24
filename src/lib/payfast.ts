@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { emailVaultId, isValidEmail, newId, normalizeEmail } from "./identity";
-import { creditMoments } from "./entitlement";
+import { creditMoments, recordedPayment } from "./entitlement";
 
 /**
  * Payfast checkout + ITN.
@@ -436,7 +436,8 @@ export async function handlePayfastItn(
   const merchant = payfastMerchant();
   if (!merchant) return rejectItn("unconfigured");
   const decision = decideItn(rawBody, merchant.passphrase, merchant.merchantId);
-  if (!decision.ok) return rejectItn(decision.reason);
+  const buyerBlocked = !decision.ok && (decision.reason === "buyer" || decision.reason === "email");
+  if (!decision.ok && !buyerBlocked) return rejectItn(decision.reason);
   let confirmed = false;
   try {
     confirmed = await payfastConfirms(rawBody, fetchImpl);
@@ -444,6 +445,23 @@ export async function handlePayfastItn(
     return rejectItn("validate");
   }
   if (!confirmed) return rejectItn("validate");
+  const pfPaymentId = decision.ok ? decision.pfPaymentId : postedPaymentId(rawBody);
+  if (!pfPaymentId) return rejectItn(decision.ok ? "payment" : decision.reason);
+  let recorded: { remaining: number } | null = null;
+  try {
+    recorded = await recordedPayment(pfPaymentId);
+  } catch {
+    return rejectItn("credit");
+  }
+  if (recorded) {
+    console.info("[payfast-itn] credited", {
+      pf_payment_id: pfPaymentId,
+      remaining: recorded.remaining,
+      duplicate: true,
+    });
+    return { status: 200, body: "OK" };
+  }
+  if (!decision.ok) return rejectItn(decision.reason);
   let credited: { remaining: number; duplicate: boolean };
   try {
     credited = await creditMoments({
@@ -461,4 +479,9 @@ export async function handlePayfastItn(
     duplicate: credited.duplicate,
   });
   return { status: 200, body: "OK" };
+}
+
+function postedPaymentId(rawBody: string): string {
+  const id = parseFormPairs(rawBody).find(([key]) => key === "pf_payment_id")?.[1]?.trim() ?? "";
+  return /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : "";
 }
