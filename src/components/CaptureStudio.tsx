@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -133,6 +134,7 @@ export default function CaptureStudio() {
   const takeInputId = useId();
   const uploadInputId = useId();
   const captionId = useId();
+  const router = useRouter();
   const takeInputRef = useRef<HTMLInputElement | null>(null);
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
   const photoUrlRef = useRef<string | null>(null);
@@ -152,6 +154,7 @@ export default function CaptureStudio() {
   const [joyError, setJoyError] = useState<string | null>(null);
   const [dateNote, setDateNote] = useState<string | null>(null);
   const [captionNote, setCaptionNote] = useState<string | null>(null);
+  const [turnError, setTurnError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
@@ -657,8 +660,10 @@ export default function CaptureStudio() {
     setBusy(true);
     setCaptureError(null);
     setJoyError(null);
+    setTurnError(null);
     setCaptionNote(kept.dropped ? LANDING.app.captionDropped : null);
     if (kept.dropped) setCaption("");
+    let turned = false;
     try {
       const form = new FormData();
       form.set("source", "app");
@@ -721,10 +726,26 @@ export default function CaptureStudio() {
         latest = data.session;
       }
       setPhoneNote(latest.todayPhoto ? null : LANDING.app.savedOnPhone);
+      const momentId = momentRef.current;
+      if (!momentId) throw new Error("Couldn't turn that moment into a story. Try again.");
+      const open = await fetch("/api/yours", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ day, momentId }),
+      });
+      const woven = await readJson<{ story?: { id?: string } }>(open);
+      if (!woven.story?.id) {
+        throw new Error("Couldn't turn that moment into a story. Try again.");
+      }
+      turned = true;
+      router.push(`/app/yours?moment=${encodeURIComponent(momentId)}`);
     } catch (err) {
-      setCaptureError(explainClientFetchError(err));
+      const message = explainClientFetchError(err) || "Couldn't turn that moment into a story. Try again.";
+      setCaptureError(message);
+      setTurnError(message);
     } finally {
-      setBusy(false);
+      if (!turned) setBusy(false);
     }
   }
 
@@ -937,7 +958,7 @@ export default function CaptureStudio() {
           </section>
 
           {questionOpen ? (
-            <section id="caption-box" className="card card--peach card--compact" aria-labelledby="caption-heading">
+            <section id="caption-box" className="card card--lavender card--compact" aria-labelledby="caption-heading">
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
               </label>
@@ -977,15 +998,20 @@ export default function CaptureStudio() {
           ) : null}
 
           {questionOpen ? (
-            <section className="card card--lime card--compact">
+            <section className="card card--aqua card--compact" aria-label="Turn my moment">
               <button
-                className="btn btn--lime"
+                className="btn btn--turn"
                 type="submit"
                 disabled={busy || !caption.trim()}
-                style={{ width: "100%" }}
+                aria-busy={busy}
               >
-                {busy ? "Saving…" : LANDING.app.save}
+                {busy ? "Turning your moment…" : "Turn my moment"}
               </button>
+              {turnError ? (
+                <p className="error" role="alert">
+                  {turnError}
+                </p>
+              ) : null}
             </section>
           ) : null}
         </form>
