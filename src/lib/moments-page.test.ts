@@ -55,9 +55,10 @@ describe("moments pack page", () => {
     expect(page).not.toMatch(/Morning sunlight/);
   });
 
-  it("is linked from the photo page without living inside the capture form", () => {
-    expect(capture).toMatch(/href="\/moments"/);
-    expect(capture).toContain("Start hunting");
+  it("is not a Start hunting link inside the photo page", () => {
+    expect(capture).not.toContain("Start hunting");
+    expect(capture).not.toContain("Go get it.");
+    expect(capture).not.toContain("Already bought?");
     expect(capture).not.toMatch(/40 good moments — \$29/);
   });
 

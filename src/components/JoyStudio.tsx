@@ -18,11 +18,7 @@ const JOY_PAGE_LEGEND = (
   </>
 );
 
-const ALREADY_PICKED = (
-  <>
-    {LANDING.app.alreadyPickedLead} <em>{LANDING.app.alreadyPickedLink}</em> →
-  </>
-);
+const ALREADY_PICKED = <>{LANDING.app.alreadyPickedLink} →</>;
 
 function AlreadyPicked({ day }: { day: string }) {
   const [saved, setSaved] = useState<boolean | null>(null);
@@ -136,9 +132,8 @@ export default function JoyStudio() {
 
       <main id="main">
         <section id="joy-pick" className="card card--cream card--moment" aria-labelledby="joy-heading">
-          <span className="pill">Joy</span>
-          <h2 id="joy-heading" className="visually-hidden">
-            {LANDING.app.joyQuestion}
+          <h2 id="joy-heading" className="step-heading">
+            Pick your joy
           </h2>
           <AlreadyPicked day={day} />
           <JoyPicker

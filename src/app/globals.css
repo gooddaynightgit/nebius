@@ -681,7 +681,22 @@ body:has(.journey) .skip-link:focus {
 
 .joy.is-open {
   background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 0 0 1.5px rgba(22, 50, 74, 0.08);
+  box-shadow: 0 0 0 2px #16324a;
+}
+
+.joy.is-open .joy__pick {
+  background: #d4ff00;
+  color: #16324a;
+  border-radius: 1.05rem 1.05rem 0 0;
+}
+
+.joy.is-open .joy__tagline {
+  color: #16324a;
+}
+
+.joy__pick:focus-within {
+  outline: 3px solid #16324a;
+  outline-offset: 2px;
 }
 
 .joy__pick {
@@ -1424,6 +1439,35 @@ body:has(.journey) .skip-link:focus {
   object-fit: cover;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.06);
+}
+
+.step-heading {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 1rem;
+  padding: 0.55rem 1.05rem;
+  border: 2px solid #16324a;
+  border-radius: 999px;
+  background: #16324a;
+  color: #d4ff00;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.create-story {
+  margin: 0 0 0.9rem;
+}
+
+.create-story .step-nav {
+  margin-bottom: 0;
+}
+
+.create-story__gate {
+  margin-top: 0.85rem;
 }
 
 .step-nav {

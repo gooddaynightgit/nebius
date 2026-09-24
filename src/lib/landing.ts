@@ -11,7 +11,7 @@ export const LANDING = {
   hero: {
     h1: "You scrolled past a hundred good moments today. None of them were yours.",
     subheadline:
-      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you. Gooddaynight does →",
+      "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you.",
     cta: "Hear your story — free",
   },
   moment: {
@@ -32,7 +32,7 @@ export const LANDING = {
       "Example of tonight’s tone — not your story yet. Create your story from this photo.",
   },
   app: {
-    heading: "Today. One good moment. Go get it.",
+    heading: "Today. One good moment.",
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     yours: "Create your story",
@@ -62,10 +62,9 @@ export const LANDING = {
     unexpected: "Couldn't read Gooddaynight's reply. Refresh and try again.",
     tryAgain: "Try again",
     joyNeed: "Pick the kind of quiet joy first.",
-    joyQuestion: "What kind of quiet joy is it?",
-    joyPickHint: "(pick one for a new good moment)",
-    alreadyPickedLead: "Already picked one?",
-    alreadyPickedLink: "see your saved good moment",
+    joyQuestion: "What joy is it?",
+    joyPickHint: "(pick one to Create your story)",
+    alreadyPickedLink: "See your Created story",
     alreadyPickedEmpty: "Nothing saved yet. Pick a new one.",
     nextJoy: "Pick the quiet joy",
     photoNeed: "Add one photo from today.",

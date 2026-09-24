@@ -804,37 +804,11 @@ export default function CaptureStudio() {
         <Link className="badge" href="/">
           {LANDING.app.brand}
         </Link>
-        <Link className="moments-entry" href="/moments">
-          Start hunting
-        </Link>
       </header>
 
       <main id="main">
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
-          <h1 id="app-moment-heading">
-            {LANDING.app.heading.replace("Go get it.", "")}
-            <Link className="go-get-it" href="/moments">
-              Go get it.
-              <span className="go-get-it__arrow" aria-hidden="true">
-                {" →"}
-              </span>
-            </Link>
-          </h1>
-          <p className="already-bought">
-            <button
-              className="already-bought__open"
-              type="button"
-              aria-expanded={buyerOpen}
-              aria-controls={buyerId}
-              onClick={() => {
-                setBuyerOpen(true);
-                setResign(true);
-              }}
-            >
-              Already bought? Enter your email
-              <span aria-hidden="true"> →</span>
-            </button>
-          </p>
+          <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
           {buyerOpen && (!session?.otpVerified || resign) ? (
             <form className="buyer-email" onSubmit={noteBuyerEmail}>
               <label className="whisper-label" htmlFor={buyerId}>
@@ -898,10 +872,10 @@ export default function CaptureStudio() {
 
         <form onSubmit={saveMoment}>
         <section className="card card--dark" aria-labelledby="capture-heading">
-            <span className="pill">Photo</span>
-            <h2 id="capture-heading" className="visually-hidden">
-              Add a photo
+            <h2 id="capture-heading" className="step-heading">
+              Your photo
             </h2>
+            <p className="visually-hidden">Add a photo</p>
             <p className="cta-copy" style={{ marginTop: 0 }}>
               {LANDING.app.photoHelp}
             </p>

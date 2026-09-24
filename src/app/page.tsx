@@ -1,6 +1,5 @@
 import Link from "next/link";
-import StepControl from "@/components/StepControl";
-import { STEP_LABEL } from "@/lib/journey";
+import CreateStoryButton from "@/components/CreateStoryButton";
 
 export default function HomePage() {
   return (
@@ -23,17 +22,12 @@ export default function HomePage() {
         <section className="card card--lavender">
           <p className="card__body">
             Your laugh. Your small win. Your quiet moment. Nobody turned them
-            into anything — not even you. Gooddaynight does{" "}
-            <Link href="/app/joy" aria-label="Open the joy page">
-              →
-            </Link>
+            into anything — not even you.
           </p>
           <span className="card__wash card__wash--ten" aria-hidden="true"></span>
         </section>
 
-        <nav className="step-nav" aria-label="Steps">
-          <StepControl direction="next" href="/app/joy" label={STEP_LABEL.start} />
-        </nav>
+        <CreateStoryButton />
 
         <section className="card card--lime" aria-labelledby="closing-heading">
           <h2 id="closing-heading">Something good is about to happen!</h2>
