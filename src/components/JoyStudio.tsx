@@ -2,107 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { GradientPhrase } from "@/components/GradientWord";
 import JoyPicker from "@/components/JoyPicker";
 import StepControl from "@/components/StepControl";
-import { STEP_LABEL } from "@/lib/journey";
-import { readResponsePayload } from "@/lib/client-fetch";
-import { readCaptureStash } from "@/lib/capture-stash";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
+import { STEP_LABEL } from "@/lib/journey";
 import { LANDING, accordionJoys, getJoyById, type JoyType } from "@/lib/landing";
-import { hasSavedGoodMoment } from "@/lib/saved-moment";
+import {
+  SAVED_JOY_MOMENTS_ID,
+  SAVED_JOY_MOMENTS_LABEL,
+  chooseStoryJoy,
+  openSavedJoyMoments,
+} from "@/lib/saved-joy-moments";
 
 const JOY_PAGE_LEGEND = (
   <>
     {LANDING.app.joyQuestion} <em>{LANDING.app.joyPickHint}</em>
   </>
 );
-
-const ALREADY_PICKED = (
-  <GradientPhrase text={LANDING.app.alreadyPickedLink} word="Created" suffix=" →" />
-);
-
-function AlreadyPicked({ day }: { day: string }) {
-  const [saved, setSaved] = useState<boolean | null>(null);
-  const [emptyNote, setEmptyNote] = useState(false);
-  const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [res, stash] = await Promise.all([
-          fetch(`/api/session?day=${encodeURIComponent(day)}`, { credentials: "same-origin" }).catch(
-            () => null,
-          ),
-          readCaptureStash(day).catch(() => null),
-        ]);
-        const data = res
-          ? await readResponsePayload<{
-              todayPhoto?: unknown;
-              yoursOpened?: boolean;
-              lastStory?: unknown;
-            }>(res)
-          : {};
-        if (cancelled) return;
-        setSaved(
-          hasSavedGoodMoment({
-            todayPhoto: data.todayPhoto,
-            yoursOpened: data.yoursOpened,
-            lastStory: data.lastStory,
-            stash,
-          }),
-        );
-      } catch {
-        if (!cancelled) setSaved(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [day]);
-
-  useEffect(() => {
-    if (!pending || saved === null) return;
-    if (saved) {
-      window.location.assign("/app/yours");
-      return;
-    }
-    setEmptyNote(true);
-    setPending(false);
-  }, [pending, saved]);
-
-  return (
-    <p className="already-picked">
-      {saved ? (
-        <Link className="already-picked__link" href="/app/yours">
-          {ALREADY_PICKED}
-        </Link>
-      ) : (
-        <button
-          type="button"
-          className="already-picked__link"
-          aria-busy={saved === null}
-          onClick={() => {
-            if (saved === false) {
-              setEmptyNote(true);
-              return;
-            }
-            setPending(true);
-          }}
-        >
-          {ALREADY_PICKED}
-        </button>
-      )}
-      {emptyNote ? (
-        <span className="already-picked__note" role="status">
-          {LANDING.app.alreadyPickedEmpty}
-        </span>
-      ) : null}
-    </p>
-  );
-}
 
 export default function JoyStudio() {
   const day = useMemo(() => localDay(), []);
@@ -121,8 +38,10 @@ export default function JoyStudio() {
   }, [day]);
 
   function pickJoy(joy: JoyType) {
-    writeChosenJoy(day, joy.id);
-    setSelectedJoyId(joy.id);
+    chooseStoryJoy(joy.id, (joyId) => {
+      writeChosenJoy(day, joyId);
+      setSelectedJoyId(joyId);
+    });
   }
 
   return (
@@ -135,10 +54,9 @@ export default function JoyStudio() {
 
       <main id="main">
         <section id="joy-pick" className="card card--cream card--moment" aria-labelledby="joy-heading">
-          <h2 id="joy-heading" className="step-heading">
+          <h2 id="joy-heading" className="step-heading step-heading--navy">
             Pick your joy
           </h2>
-          <AlreadyPicked day={day} />
           <JoyPicker
             name="quiet-joy-app"
             idPrefix="app-joy"
@@ -146,6 +64,11 @@ export default function JoyStudio() {
             onSelect={pickJoy}
             joys={joys}
             legend={JOY_PAGE_LEGEND}
+            trailingChoice={{
+              id: SAVED_JOY_MOMENTS_ID,
+              title: SAVED_JOY_MOMENTS_LABEL,
+              onChoose: () => openSavedJoyMoments((href) => window.location.assign(href)),
+            }}
           />
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>
