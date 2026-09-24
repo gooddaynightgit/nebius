@@ -67,7 +67,8 @@ import {
   writeActiveMoment,
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
-import { useReportBuyerGate } from "@/components/journey-gate";
+import { useJourneyCaption, useReportBuyerGate } from "@/components/journey-gate";
+import { StoryOpeningStatus } from "@/components/YoursStory";
 import { destinationForEntitlement } from "@/lib/photo-entry";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
@@ -189,6 +190,7 @@ export default function CaptureStudio() {
     answeredGeneration,
   });
   useReportBuyerGate(captureOpen, hydrated);
+  useJourneyCaption(busy ? "Turn my moment" : null);
   useEffect(() => {
     if (buyerOpen) buyerInputRef.current?.focus();
   }, [buyerOpen]);
@@ -776,6 +778,9 @@ export default function CaptureStudio() {
       </header>
 
       <main id="main">
+        {busy ? <StoryOpeningStatus /> : null}
+        {busy ? null : (
+        <>
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
           {hydrated && buyerOpen && (!session?.otpVerified || resign) ? (
@@ -1019,6 +1024,8 @@ export default function CaptureStudio() {
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>
         </section>
+        </>
+        )}
       </main>
 
       <footer className="site-footer">

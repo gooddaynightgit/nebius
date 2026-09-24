@@ -28,13 +28,13 @@ describe("journey progress", () => {
     expect(journeyStep("/moments", search("cancelled=1"), "open")).toBe(3);
   });
 
-  it("names the fifth step Create your story, matching the story CTA", () => {
+  it("names the fifth step My good moment, matching the story page", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
       "Turn your moment",
       "Pick your joy",
       "Unlock",
       "Upload your photo",
-      "Create your story",
+      "My good moment",
     ]);
     expect(LANDING.app.yours).toBe(JOURNEY_STEPS[4].label);
   });

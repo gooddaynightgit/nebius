@@ -5,7 +5,7 @@ export const JOURNEY_STEPS = [
   { label: "Pick your joy" },
   { label: "Unlock" },
   { label: "Upload your photo" },
-  { label: "Create your story" },
+  { label: "My good moment" },
 ] as const;
 
 /** Same words as the bar, for the step buttons. */

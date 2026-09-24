@@ -865,22 +865,22 @@ body:has(.journey) .skip-link:focus {
 }
 
 .btn--turn {
-  background: #0e5964;
-  border-color: #0e5964;
-  color: #f4fffe;
+  background: #9ed4d4;
+  border-color: #8ec8c8;
+  color: var(--navy);
 }
 
 .btn--turn:hover:not(:disabled) {
-  background: #0a4650;
-  border-color: #0a4650;
-  color: #fff;
+  background: #8bc8c8;
+  border-color: #7ababa;
+  color: var(--navy);
 }
 
 .btn--turn:disabled,
 .btn--turn:disabled:hover {
-  background: #9ec3c8;
-  border-color: #9ec3c8;
-  color: rgba(255, 255, 255, 0.95);
+  background: #e4f3f3;
+  border-color: #d5e8e8;
+  color: rgba(22, 50, 74, 0.38);
   opacity: 1;
   cursor: not-allowed;
 }
@@ -1470,10 +1470,14 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.15;
 }
 
+.card h1.step-heading.step-heading--navy,
 .card h2.step-heading.step-heading--navy {
   border-color: var(--navy);
   background: var(--navy);
   color: var(--lime);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.15;
 }
 
 .step-nav {

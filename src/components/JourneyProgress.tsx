@@ -2,7 +2,7 @@
 
 import { Suspense, useContext } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { BuyerGateContext } from "@/components/journey-gate";
+import { BuyerGateContext, JourneyCaptionContext } from "@/components/journey-gate";
 import {
   JOURNEY_STEP_COUNT,
   JOURNEY_STEPS,
@@ -28,7 +28,9 @@ function CheckIcon() {
 }
 
 export function JourneyBar({ step }: { step: number }) {
+  const caption = useContext(JourneyCaptionContext);
   const current = JOURNEY_STEPS[step - 1];
+  const currentLabel = caption || current?.label;
   const fill = journeyFillPercent(step);
 
   return (
@@ -55,7 +57,7 @@ export function JourneyBar({ step }: { step: number }) {
                 >
                   <span className="journey__dot">{done ? <CheckIcon /> : null}</span>
                   <span className="journey__label">
-                    {item.label}
+                    {active && caption ? caption : item.label}
                     {done ? <span className="visually-hidden">, completed</span> : null}
                   </span>
                 </li>
@@ -64,7 +66,7 @@ export function JourneyBar({ step }: { step: number }) {
           </ol>
         </div>
         <p className="journey__now" aria-hidden="true">
-          {current?.label}
+          {currentLabel}
         </p>
       </div>
     </nav>

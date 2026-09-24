@@ -44,7 +44,7 @@ function PauseIcon() {
   );
 }
 
-function StoryOpeningStatus() {
+export function StoryOpeningStatus() {
   const [index, setIndex] = useState(0);
   useEffect(() => {
     if (index >= STORY_OPENING_LINES.length - 1) return;
@@ -399,7 +399,9 @@ export default function YoursStory() {
         ) : null}
         {state.status === "ready" ? (
           <section id="yours" className="card card--lavender card--compact" aria-labelledby="yours-heading">
-            <h1 id="yours-heading">{LANDING.app.yours}</h1>
+            <h1 id="yours-heading" className="step-heading step-heading--navy">
+              {LANDING.app.yours}
+            </h1>
             {cardUrl ? (
               <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
             ) : cardError ? (

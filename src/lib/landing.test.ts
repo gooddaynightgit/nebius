@@ -18,7 +18,7 @@ describe("landing copy", () => {
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     );
     expect(LANDING.app.heading).toBe("Today. One good moment.");
-    expect(LANDING.app.yours).toBe("Create your story");
+    expect(LANDING.app.yours).toBe("My good moment");
     expect(LANDING.app.brand).toBe("gooddaynight.com");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
     expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");

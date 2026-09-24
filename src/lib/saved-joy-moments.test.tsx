@@ -77,7 +77,7 @@ describe("saved joy moments", () => {
     expect(capture).toMatch(/className="step-heading step-heading--navy"/);
     expect(capture).toMatch(/Upload your photo/);
     expect(styles).toMatch(
-      /\.card h2\.step-heading\.step-heading--navy\s*\{[^}]*background:\s*var\(--navy\);[^}]*color:\s*var\(--lime\);/,
+      /\.card h2\.step-heading\.step-heading--navy[\s\S]*?\{[^}]*background:\s*var\(--navy\);[^}]*color:\s*var\(--lime\);/,
     );
     expect(styles).not.toMatch(/\.already-picked/);
   });

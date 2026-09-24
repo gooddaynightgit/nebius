@@ -939,7 +939,8 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/GradientPhrase/);
     expect(src).not.toMatch(/<GradientWord>/);
     expect(src).not.toMatch(/#earlier-stories/);
-    expect(yours).toMatch(/id="yours-heading"/);
+    expect(yours).toMatch(/id="yours-heading" className="step-heading step-heading--navy"/);
+    expect(yours).toMatch(/export function StoryOpeningStatus/);
     expect(yours).toMatch(/id="earlier-stories"/);
     expect(yours).not.toMatch(/your new story/);
     expect(yours).not.toMatch(/story-actions/);
@@ -1018,6 +1019,9 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/disabled=\{busy \|\| !caption\.trim\(\)\}/);
     expect(src).toMatch(/method: "POST"[\s\S]*\/api\/yours/);
     expect(src).toMatch(/router\.push\(`\/app\/yours\?moment=/);
+    expect(src).toMatch(/StoryOpeningStatus/);
+    expect(src).toMatch(/useJourneyCaption\(busy \? "Turn my moment" : null\)/);
+    expect(src).toMatch(/\{busy \? <StoryOpeningStatus \/> : null\}/);
     expect(src).not.toMatch(/LANDING\.app\.save\b/);
     expect(src).not.toMatch(/Saving…/);
     expect(src).not.toMatch(/consumeMoment/);
