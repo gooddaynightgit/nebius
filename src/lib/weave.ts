@@ -33,7 +33,6 @@ import {
   weavableMoments,
 } from "./prompts";
 import { isHorrificText } from "./safety-text";
-import { EXCAVATE_OPENERS, HUMBLE_CLOSERS } from "./spark-closer";
 import { withoutPerfectYou, youAddressFor } from "./you-address";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
@@ -159,7 +158,7 @@ export function appExcavateUserText(input: {
       ? `Photo notes (use only if they name what is in the frame):\n${input.photoNotes}`
       : "No extra photo notes.",
     caption ? `Caption already given: ${caption}` : "No caption yet. They will answer next in their own words.",
-    `Under 45 words: a rotating surprise spark (${EXCAVATE_OPENERS.join(" / ")}), the concrete still, then end on exactly one humble closer: ${HUMBLE_CLOSERS.join(" / ")}. If horrific: BLOCK.`,
+    "Under 45 words: the plain description of the concrete still. If horrific: BLOCK.",
   ].join("\n\n");
 }
 
@@ -353,15 +352,16 @@ async function excavateAppPhoto(input: {
 }
 
 /** First look when a photo lands: live excavate spark, or a frame-grounded stand-in. */
-export async function sparkForPhoto(imageDataUrl?: string): Promise<
-  { blocked: true } | { spark: string }
-> {
+export async function sparkForPhoto(
+  imageDataUrl?: string,
+  voice?: { opener: string; closer: string },
+): Promise<{ blocked: true } | { spark: string }> {
   if (imageDataUrl && hasTokenFactoryKey()) {
     const live = await excavateAppPhoto({ photoNotes: "", imageDataUrl });
     if (live && "blocked" in live && live.blocked) return { blocked: true };
     if (live && "text" in live && live.text.trim()) return { spark: live.text.trim() };
   }
-  return { spark: mockExcavation({}) };
+  return { spark: mockExcavation(voice ? { voice } : {}) };
 }
 
 const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak"]);

@@ -23,7 +23,7 @@ import { WeaveNeedsWordsError, weaveStory } from "./weave";
 import { stripReasoning, uniqueModels, visionModels, appStoryModels, appStoryTextModels, appStoryVisionModels, isImage2TextCloser } from "./nebius";
 import { MODELS } from "./config";
 import { YOU_ADDRESSES } from "./you-address";
-import { EXCAVATE_OPENERS, HUMBLE_CLOSERS, rotatingOpener, withHumbleCloser } from "./spark-closer";
+import { EXCAVATE_OPENERS, HUMBLE_CLOSERS } from "./spark-closer";
 
 describe("funnel", () => {
   it("does not prompt for email before the first capture", () => {
@@ -122,14 +122,13 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/hunted good moment/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/first look inside Gooddaynight/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/under 45 words/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(
-      /Ahh \/ Ooh-la-la \/ Mmm \/ Oho \/ Aha \/ Wowee \/ Ooo \/ Huh \/ Oh my \/ Gosh/,
-    );
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Ahh…/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Ooh-la-la…/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/Gosh…/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/plain description/);
+    expect(APP_EXCAVATE_SYSTEM).not.toMatch(/don't|do not say|avoid the word/i);
+    for (const opener of EXCAVATE_OPENERS) {
+      expect(APP_EXCAVATE_SYSTEM).not.toContain(opener);
+    }
     for (const closer of HUMBLE_CLOSERS) {
-      expect(APP_EXCAVATE_SYSTEM).toContain(closer);
+      expect(APP_EXCAVATE_SYSTEM).not.toContain(closer);
     }
     expect([...EXCAVATE_OPENERS]).toEqual([
       "Ahh",
@@ -386,10 +385,14 @@ describe("ingest and weave fallbacks", () => {
     expect(
       new Set(varied.map((line) => HUMBLE_CLOSERS.find((closer) => line.endsWith(closer)))).size,
     ).toBeGreaterThan(1);
-    const offline = mockExcavation({ rotateKey: "moment.jpg" });
-    expect(withHumbleCloser(`${rotatingOpener("moment.jpg")}, this still from the day`, "moment.jpg")).toBe(
-      offline,
-    );
+    const voiced = [
+      { opener: EXCAVATE_OPENERS[0], closer: HUMBLE_CLOSERS[1] },
+      { opener: EXCAVATE_OPENERS[4], closer: HUMBLE_CLOSERS[0] },
+      { opener: EXCAVATE_OPENERS[9], closer: HUMBLE_CLOSERS[6] },
+    ].map((voice) => mockExcavation({ voice }));
+    expect(new Set(voiced.map((line) => line.split(",")[0])).size).toBe(3);
+    expect(voiced[1]).toMatch(/^Aha,/);
+    expect(voiced[1]).toMatch(/Wanted to confirm I read that correctly\?$/);
     expect(excavation).toMatch(/Blossomimg tree/);
     expect(excavation).not.toMatch(/SUBJECTS & VIBE|CAPTION WHISPER/);
     expect(excavation).not.toMatch(/rain|wet|puddle/i);
@@ -430,10 +433,10 @@ describe("ingest and weave fallbacks", () => {
       hasImage: true,
     });
     expect(excavateUser).toMatch(/Witness only what is visibly in the frame/);
-    expect(excavateUser).toMatch(/humble closer/);
+    expect(excavateUser).toMatch(/plain description/);
     expect(excavateUser).toMatch(/Under 45 words/);
-    expect(excavateUser).toMatch(/Ahh \/ Ooh-la-la \/ Mmm/);
-    expect(excavateUser).toContain(HUMBLE_CLOSERS[0]);
+    expect(excavateUser).not.toMatch(/Ahh \/ Ooh-la-la \/ Mmm/);
+    expect(excavateUser).not.toContain(HUMBLE_CLOSERS[0]);
     expect(excavateUser).not.toMatch(/Just making sure I saw that right\?/);
     expect(excavateUser).not.toMatch(/No story/);
     expect(excavateUser).not.toMatch(/ingredients only/);
@@ -677,7 +680,10 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/writePendingPhoto/);
     expect(src).toMatch(/readChosenJoy/);
     expect(src).toMatch(/\/api\/photo-spark/);
-    expect(src).toMatch(/rotatingOpener/);
+    expect(src).toMatch(/chooseSparkVoice/);
+    expect(src).toMatch(/readSparkVoiceMemory/);
+    expect(src).toMatch(/openerIndex/);
+    expect(src).not.toMatch(/withHumbleCloser/);
     expect(src).not.toMatch(/Beautiful, this still from the day/);
     expect(src).not.toMatch(/Whoa you/);
     expect(src).not.toMatch(/Just making sure I saw that right/);
