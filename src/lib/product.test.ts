@@ -910,6 +910,8 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/<em>/);
     expect(joy).toMatch(/LANDING\.app\.alreadyPickedLink/);
     expect(joy).toMatch(/See your Created story|alreadyPickedLink/);
+    expect(joy).toMatch(/GradientWord>Created</);
+    expect(joy).toMatch(/tone="soft"/);
     expect(joy).toMatch(/already-picked/);
     expect(joy).toMatch(/href="\/app\/yours"/);
     expect(joy).toMatch(/LANDING\.app\.alreadyPickedEmpty/);
@@ -922,7 +924,13 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/Save this voice note/);
     expect(src).not.toMatch(/See the story/);
     expect(src).not.toMatch(/StoryPlayback/);
-    expect(src).toMatch(/Start a new story/);
+    expect(src).toMatch(/GradientWord>Create</);
+    expect(src).toMatch(/your new story/);
+    expect(src).toMatch(/GradientWord>Created</);
+    expect(src).toMatch(/stories/);
+    expect(src).not.toMatch(/Start a new story/);
+    expect(src).not.toMatch(/>See your stories</);
+    expect(src).toMatch(/tone="soft"/);
     expect(src).toMatch(/startNewStoryDestination/);
     expect(src).toMatch(/shouldRestorePending/);
     expect(src).not.toMatch(/LANDING\.app\.locked/);

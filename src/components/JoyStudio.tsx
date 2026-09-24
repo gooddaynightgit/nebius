@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import GradientWord from "@/components/GradientWord";
 import JoyPicker from "@/components/JoyPicker";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
@@ -18,7 +19,16 @@ const JOY_PAGE_LEGEND = (
   </>
 );
 
-const ALREADY_PICKED = <>{LANDING.app.alreadyPickedLink} →</>;
+const ALREADY_PICKED = (() => {
+  const [before, after] = LANDING.app.alreadyPickedLink.split("Created");
+  return (
+    <>
+      {before}
+      <GradientWord>Created</GradientWord>
+      {after} →
+    </>
+  );
+})();
 
 function AlreadyPicked({ day }: { day: string }) {
   const [saved, setSaved] = useState<boolean | null>(null);
@@ -150,7 +160,13 @@ export default function JoyStudio() {
         <nav className="step-nav" aria-label="Steps">
           <StepControl direction="back" href="/" label={STEP_LABEL.start} />
           {selectedJoy ? null : <p className="step-nudge">{LANDING.app.joyNeed}</p>}
-          <StepControl direction="next" href="/app" label={STEP_LABEL.joy} disabled={!selectedJoy} />
+          <StepControl
+            direction="next"
+            href="/app"
+            label={STEP_LABEL.joy}
+            disabled={!selectedJoy}
+            tone="soft"
+          />
         </nav>
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">

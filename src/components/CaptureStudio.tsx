@@ -70,6 +70,7 @@ import {
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
 import { useReportBuyerGate } from "@/components/journey-gate";
+import GradientWord from "@/components/GradientWord";
 import StepControl from "@/components/StepControl";
 import { STEP_LABEL } from "@/lib/journey";
 
@@ -862,10 +863,12 @@ export default function CaptureStudio() {
         {session?.hasSavedMoment ? (
           <section className="card card--lime card--compact">
             <button className="btn btn--lime" type="button" style={{ width: "100%" }} onClick={() => void startNewStory()}>
-              Start a new story
+              <GradientWord>Create</GradientWord> your new story
             </button>
             <p className="card__body" style={{ marginTop: "0.85rem" }}>
-              <Link href="/app/yours">See your stories</Link>
+              <Link href="/app/yours">
+                See your <GradientWord>Created</GradientWord> stories
+              </Link>
             </p>
           </section>
         ) : null}
@@ -1093,12 +1096,13 @@ export default function CaptureStudio() {
         </section>
 
         <nav className="step-nav" aria-label="Steps">
-          <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} />
+          <StepControl direction="back" href="/app/joy" label={STEP_LABEL.joy} tone="soft" />
           <StepControl
             direction="next"
             href={momentRef.current ? `/app/yours?moment=${momentRef.current}` : "/app/yours"}
             label={STEP_LABEL.photo}
             disabled={!yoursReady}
+            tone="soft"
           />
         </nav>
 

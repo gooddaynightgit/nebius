@@ -9,13 +9,18 @@ export default function StepControl({
   label,
   href,
   disabled = false,
+  tone = "brand",
 }: {
   direction: "back" | "next";
   label: string;
   href?: string;
   disabled?: boolean;
+  /** Soft off-white card. Back and next share one size and weight. */
+  tone?: "brand" | "soft";
 }) {
-  const className = direction === "next" ? "step-next" : "step-back";
+  const className = [direction === "next" ? "step-next" : "step-back", tone === "soft" ? "step-soft" : ""]
+    .filter(Boolean)
+    .join(" ");
   const name = direction === "next" ? `Next: ${label}` : `Back: ${label}`;
 
   if (disabled || !href) {
