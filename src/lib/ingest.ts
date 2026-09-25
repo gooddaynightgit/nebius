@@ -7,17 +7,18 @@ import { imageDataUrlForModels } from "./model-image";
 import { getBytes } from "./storage";
 import type { CaptureKind, CaptureRecord } from "./types";
 
-function parseGood(text: string): { good: string | null; reframed: boolean } {
+function parseGood(text: string): { good: string | null; reframed: boolean; clear: boolean | null } {
   const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return { good: null, reframed: false };
+  if (!match) return { good: null, reframed: false, clear: null };
   try {
-    const parsed = JSON.parse(match[0]) as { good?: string; reframed?: boolean };
+    const parsed = JSON.parse(match[0]) as { good?: string; reframed?: boolean; clear?: boolean };
     return {
       good: parsed.good?.trim() || null,
       reframed: Boolean(parsed.reframed),
+      clear: parsed.clear === false ? false : parsed.clear === true ? true : null,
     };
   } catch {
-    return { good: null, reframed: false };
+    return { good: null, reframed: false, clear: null };
   }
 }
 
@@ -140,6 +141,8 @@ export async function ingestAppPhoto(input: {
   model: string;
   status: CaptureRecord["ingestStatus"];
   reframed: boolean;
+  /** False only when the vision reply says the photo has no identifiable subject. */
+  clear?: boolean;
 }> {
   const joy = getJoyById(input.joyType);
   const caption = (input.caption || "").replace(/\s+/g, " ").trim();
@@ -172,7 +175,8 @@ export async function ingestAppPhoto(input: {
     joy?.tagline ? `joy spirit: ${joy.tagline}` : "",
     caption ? `optional caption: ${caption}` : "no caption",
     visionHint,
-    "Return JSON {\"good\":\"one warm sentence naming what THIS photo actually holds\",\"reframed\":false}.",
+    "Return JSON {\"good\":\"one warm sentence naming what THIS photo actually holds\",\"reframed\":false,\"clear\":true}.",
+    "Set clear to false only when the photo has no identifiable subject or scene: a blank surface, a plain wall, a ceiling, only sky, a finger over the lens, blur past recognition, or pitch dark. Set clear to true for an ordinary subject, even a simple cup, a handwritten note, text on a screen, or a dim but visible scene.",
     "If the caption is sad or self-negating, set reframed true and return a silver lining — never celebrate despair.",
     "Do not quote or copy any story-playback template.",
   ]
@@ -190,12 +194,26 @@ export async function ingestAppPhoto(input: {
     const result = await completeWithFallback(
       nanoModels(Boolean(input.imageDataUrl)),
       [
-        { role: "system", content: NANO_INGEST_SYSTEM },
+        {
+          role: "system",
+          content: input.imageDataUrl
+            ? `${NANO_INGEST_SYSTEM}\nWhen a photo is attached, include "clear" in the JSON. clear is false only for a blank surface, plain wall, ceiling, sky with nothing in it, a finger over the lens, blur past recognition, or pitch dark. clear is true when a subject or scene is visible.`
+            : NANO_INGEST_SYSTEM,
+        },
         { role: "user", content: userContent },
       ],
       { temperature: 0.35, maxTokens: 220 },
     );
     const parsed = parseGood(result.text);
+    if (input.imageDataUrl && parsed.clear === false) {
+      return {
+        goodMoment: "",
+        reframed: false,
+        model: result.model,
+        status: "ok",
+        clear: false,
+      };
+    }
     const nanoGood = parsed.good ?? result.text.slice(0, 220);
     if (caption && isSelfNegating(caption)) {
       if (nanoGood && !isSelfNegating(nanoGood) && nanoGood.length >= 8) {

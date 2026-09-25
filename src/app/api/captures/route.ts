@@ -6,6 +6,7 @@ import { newId, todayStamp } from "@/lib/identity";
 import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
 import { badRequest, forbidden, json } from "@/lib/http";
 import { bufferToArrayBuffer, inspectPhotoDate, type PhotoDateCheck } from "@/lib/photo";
+import { PHOTO_NOT_CLEAR } from "@/lib/photo-picture";
 import { uploadedPictureRejection } from "@/lib/photo-picture-server";
 import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
@@ -211,6 +212,13 @@ async function saveAppPhoto(
     if (!safety.safe) return forbidden(SAFETY_REFUSAL);
   }
 
+  const ingest = await ingestAppPhoto({
+    caption: caption || undefined,
+    imageDataUrl,
+    joyType: joy.id,
+  });
+  if (imageDataUrl && ingest.clear === false) return badRequest(PHOTO_NOT_CLEAR);
+
   const charged = await chargeNewMoment(email, momentId, replacing);
   if (!charged.ok) {
     return forbidden("Capture stays closed until this purchase is confirmed.");
@@ -225,12 +233,6 @@ async function saveAppPhoto(
       mediaKey = `vaults/${vault.id}/media/${id}.${ext}`;
       await putBytes(mediaKey, bytes, mediaContentType);
     }
-
-    const ingest = await ingestAppPhoto({
-      caption: caption || undefined,
-      imageDataUrl,
-      joyType: joy.id,
-    });
 
     const sparkRaw = String(form.get("sparkAnswer") ?? "");
     const sparkAnswer = sparkRaw === "yes" || sparkRaw === "no" ? sparkRaw : undefined;

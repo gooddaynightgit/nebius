@@ -470,7 +470,7 @@ body:has(.journey) .skip-link:focus {
 .capture-reject {
   flex: 1 1 100%;
   margin: 0.2rem 0 0;
-  color: var(--lime);
+  color: #ff8a80;
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.4;
