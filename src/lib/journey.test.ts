@@ -38,7 +38,7 @@ describe("journey progress", () => {
 
   it("names seven steps and ticks every dot only once the story is weaved", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
-      "Turn your moment",
+      "Weave your good moment",
       "Pick your joy",
       "Unlock",
       "Capture it",

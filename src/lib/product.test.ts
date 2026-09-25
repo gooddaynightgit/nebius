@@ -729,7 +729,7 @@ describe("landing", () => {
   const playback = readFileSync(path.resolve("src/components/StoryPlayback.tsx"), "utf8");
   const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
 
-  it("opens Turn your moment from the landing straight to joy", () => {
+  it("opens Weave your good moment from the landing straight to joy", () => {
     expect(page).toMatch(/href="\/app\/joy"/);
     expect(page).toMatch(/STEP_LABEL\.start/);
     expect(page).toMatch(/className="step-next"/);

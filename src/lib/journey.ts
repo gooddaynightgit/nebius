@@ -2,7 +2,7 @@
 export const JOURNEY_FINISHED_CAPTION = "My good moment weaved";
 
 export const JOURNEY_STEPS = [
-  { label: "Turn your moment" },
+  { label: "Weave your good moment" },
   { label: "Pick your joy" },
   { label: "Unlock" },
   { label: "Capture it" },
