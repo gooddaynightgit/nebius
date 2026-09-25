@@ -28,8 +28,10 @@ export default function JoyStudio() {
   const [resetSignal, setResetSignal] = useState(0);
   const [savedMoments, setSavedMoments] = useState<SavedMoment[]>([]);
   const [needsJoyPick, setNeedsJoyPick] = useState(true);
+  const [joyMissed, setJoyMissed] = useState(false);
   const reportJoyEmpty = useCallback((empty: boolean) => {
     setNeedsJoyPick(empty);
+    if (!empty) setJoyMissed(false);
   }, []);
   const selectedJoy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
   const joys = useMemo(() => {
@@ -79,6 +81,7 @@ export default function JoyStudio() {
   }, [day]);
 
   function pickJoy(joy: JoyType) {
+    setJoyMissed(false);
     chooseStoryJoy(joy.id, (joyId) => {
       writeChosenJoy(day, joyId);
       setSelectedJoyId(joyId);
@@ -87,7 +90,10 @@ export default function JoyStudio() {
 
   async function uploadPhoto() {
     const selectedJoy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
-    if (!selectedJoy) return;
+    if (!selectedJoy) {
+      setJoyMissed(true);
+      return;
+    }
     setSelectedJoyId(selectedJoy.id);
     setResetSignal((current) => current + 1);
     let signedIn = false;
@@ -139,6 +145,7 @@ export default function JoyStudio() {
             playbackLead={LANDING.app.playbackLead}
             playbackVariant="weaved"
             promptWhenEmpty
+            emptyAlert={joyMissed}
             onEmptyChange={reportJoyEmpty}
             trailingChoice={{
               id: SAVED_JOY_MOMENTS_ID,
@@ -170,25 +177,17 @@ export default function JoyStudio() {
           <button
             className="step-next"
             type="button"
-            aria-describedby={selectedJoy ? undefined : "joy-need"}
+            aria-describedby={joyMissed && needsJoyPick && !selectedJoy ? "joy-need" : undefined}
             onClick={() => void uploadPhoto()}
           >
             Unlock/Capture
           </button>
         </nav>
-        {selectedJoy ? null : (
-          <p
-            className={
-              needsJoyPick
-                ? "step-nudge step-nudge--block step-nudge--alert"
-                : "step-nudge step-nudge--block"
-            }
-            id="joy-need"
-            role="status"
-          >
+        {joyMissed && needsJoyPick && !selectedJoy ? (
+          <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
             {LANDING.app.joyNeed}
           </p>
-        )}
+        ) : null}
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>

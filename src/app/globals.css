@@ -1112,12 +1112,20 @@ body:has(.story-opening) .header-meta {
   flex: 0 0 auto;
 }
 
-/* Joy page only, while nothing in the group is chosen. Same circle, red ring. */
+/* Joy page only, while nothing is chosen. Lime until Unlock/Capture is tapped. */
+.joy-fieldset--lime .joy__pick input,
 .joy-fieldset--unset .joy__pick input {
   appearance: none;
-  border: 2px solid #d92d20;
   border-radius: 50%;
   background: #fff;
+}
+
+.joy-fieldset--lime .joy__pick input {
+  border: 2px solid var(--lime);
+}
+
+.joy-fieldset--unset .joy__pick input {
+  border: 3px solid #d92d20;
 }
 
 .joy__copy {
@@ -2232,6 +2240,7 @@ body:has(.story-opening) .header-meta {
 
 .step-nudge.step-nudge--alert {
   color: #d92d20;
+  font-weight: 700;
 }
 
 

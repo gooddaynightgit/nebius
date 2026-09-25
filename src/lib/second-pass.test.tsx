@@ -69,15 +69,25 @@ describe("second pass after a finished story", () => {
     const saved = container.querySelector(
       `input[value="${SAVED_JOY_MOMENTS_ID}"]`,
     ) as HTMLInputElement;
+    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
+    expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
+    expect(container.querySelector("#joy-need")).toBeNull();
+    const uploadEarly = container.querySelector("button.step-next") as HTMLButtonElement;
+    await act(async () => {
+      uploadEarly.click();
+    });
+    expect(assigned).toEqual([]);
     expect(container.querySelector(".joy-fieldset--unset")).toBeTruthy();
+    expect(container.querySelector("#joy-need")?.textContent).toContain("Pick the kind of quiet joy first.");
     expect(container.querySelector("#joy-need")?.className).toContain("step-nudge--alert");
     await act(async () => {
       saved.click();
     });
     expect(saved.checked).toBe(true);
     expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
-    expect(container.querySelector("#joy-need")?.className).not.toContain("step-nudge--alert");
-    expect(container.textContent).toContain("Pick the kind of quiet joy first.");
+    expect(container.querySelector(".joy-fieldset--lime")).toBeNull();
+    expect(container.querySelector("#joy-need")).toBeNull();
+    expect(container.textContent).not.toContain("Pick the kind of quiet joy first.");
     expect(assigned).toEqual(["/app/yours"]);
 
     writeChosenJoy(day, "just-this");
