@@ -6,6 +6,7 @@ import { newId, todayStamp } from "@/lib/identity";
 import { LANDING, getJoyById, PHOTO_MAX_BYTES } from "@/lib/landing";
 import { badRequest, forbidden, json } from "@/lib/http";
 import { bufferToArrayBuffer, inspectPhotoDate, type PhotoDateCheck } from "@/lib/photo";
+import { uploadedPictureRejection } from "@/lib/photo-picture-server";
 import { inspectImageSafety, SAFETY_REFUSAL } from "@/lib/safety";
 import { proposeSpellfix } from "@/lib/spellfix";
 import { loadSessionVault, presentSession, requirePersonalPhotoOtp, toPublicSession } from "@/lib/session";
@@ -174,6 +175,12 @@ async function saveAppPhoto(
       localDay: day,
       tzOffsetMinutes: tzOffset,
     });
+    const picture = await uploadedPictureRejection({
+      bytes,
+      mime: mediaContentType,
+      filename,
+    });
+    if (picture) return badRequest(picture);
   }
 
   const rejected = appPhotoRejection({

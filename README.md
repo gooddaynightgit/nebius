@@ -21,7 +21,7 @@ Internal product rules — not shown on `/app`. Source of truth: `PHOTO_SAVE_RUL
 2. The photo is required. No photo, no save, no good moment.
 3. When from today — camera roll today, message: Wonderful, your photo was taken today.
 4. Screenshots count: a hello, a gift message, a tracker, a watch face.
-5. A video is not saved. One still frame from it may be saved instead.
+5. A video is not saved. Ask for a picture of the moment instead.
 6. One joy pick is required (sunlight, hello, slow task, movement, clear corner, or just this).
 7. Ugly, blurry, messy, and ordinary photos are allowed.
 8. Sad or hard photos are allowed. The story stays honest and gentle.

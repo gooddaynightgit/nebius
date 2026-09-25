@@ -8,6 +8,7 @@ import {
   looksLikeMemeName,
   PHOTO_DATE_MESSAGES,
 } from "./photo";
+import { PHOTO_NOT_A_PICTURE } from "./photo-picture";
 import { isHorrificFilename, isHorrificText, SAFETY_REFUSAL } from "./safety-text";
 
 export function oneLineCaption(value: string): string {
@@ -59,10 +60,8 @@ export function appPhotoRejection(input: {
   if (!getJoyById(input.joyId)) return "Pick the kind of quiet joy first.";
   if (!input.size) return "Add one photo from today.";
   if (input.size > PHOTO_MAX_BYTES) return "Keep photos under 4.5 MB.";
-  if (isVideoMime(input.mime)) {
-    return "Videos aren't saved. Extract one still frame and try again.";
-  }
-  if (!isImageMime(input.mime)) return "Choose a photo — a still from the day.";
+  if (isVideoMime(input.mime)) return PHOTO_NOT_A_PICTURE;
+  if (!isImageMime(input.mime)) return PHOTO_NOT_A_PICTURE;
   if (looksLikeMemeName(input.filename)) {
     return "Tonight is for your own moment, not a meme.";
   }

@@ -26,20 +26,18 @@ import {
 } from "@/lib/spark-closer";
 import {
   inspectPhotoDate,
-  isImageMime,
-  isVideoMime,
   looksLikeBorrowedName,
   looksLikeMemeName,
   PHOTO_DATE_MESSAGES,
 } from "@/lib/photo";
 import {
   HEIC_ASK,
-  copyAsJpegFile,
   isHeicLike,
   jpegFileForCameraStill,
   normalizePhotoFile,
   preparePhotoForUpload,
 } from "@/lib/prepare-photo";
+import { PHOTO_NOT_A_PICTURE, blobLooksBlank, isStillImageFile } from "@/lib/photo-picture";
 import {
   openRearCamera,
   prefersLiveCamera,
@@ -88,47 +86,6 @@ async function lookupEntitlement(email: string): Promise<EntitlementLookup> {
     return "closed";
   } catch {
     return "error";
-  }
-}
-
-async function stillFromVideo(file: File): Promise<File> {
-  const url = URL.createObjectURL(file);
-  try {
-    const video = document.createElement("video");
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = "metadata";
-    video.src = url;
-    await new Promise<void>((resolve, reject) => {
-      const fail = () => reject(new Error("Could not read that video."));
-      video.onloadeddata = () => resolve();
-      video.onerror = fail;
-      window.setTimeout(fail, 8000);
-    });
-    if (video.readyState < 2) {
-      await new Promise<void>((resolve) => {
-        video.onseeked = () => resolve();
-        video.currentTime = Math.min(0.2, (video.duration || 1) / 4);
-        window.setTimeout(() => resolve(), 1200);
-      });
-    }
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 720;
-    canvas.height = video.videoHeight || 720;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Could not keep a still from that video.");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        (next) => (next ? resolve(next) : reject(new Error("Could not keep a still from that video."))),
-        "image/jpeg",
-        0.92,
-      );
-    });
-    const stem = file.name.replace(/\.[^.]+$/, "") || "still";
-    return copyAsJpegFile(blob, `${stem}.jpg`, file.lastModified || Date.now());
-  } finally {
-    URL.revokeObjectURL(url);
   }
 }
 
@@ -396,8 +353,42 @@ export default function CaptureStudio() {
     }
   }
 
+  function rejectUnpicture() {
+    setDateNote(null);
+    setCaptureError(PHOTO_NOT_A_PICTURE);
+  }
+
   async function takePhoto(file: File | null, fromCamera = false) {
     if (!file || !canPickPhoto) return;
+    setCaptureError(null);
+    if (!isStillImageFile(file)) {
+      rejectUnpicture();
+      return;
+    }
+    let next = file;
+    try {
+      next = fromCamera ? await jpegFileForCameraStill(next) : await normalizePhotoFile(next);
+    } catch (error) {
+      setCaptureError(error instanceof Error ? error.message : "Choose a photo — a still from the day.");
+      return;
+    }
+    if (isHeicLike(next)) {
+      setCaptureError(HEIC_ASK);
+      return;
+    }
+    if (!isStillImageFile(next)) {
+      rejectUnpicture();
+      return;
+    }
+    try {
+      if (await blobLooksBlank(next)) {
+        rejectUnpicture();
+        return;
+      }
+    } catch {
+      rejectUnpicture();
+      return;
+    }
     const momentId = momentRef.current ?? newMomentId();
     momentRef.current = momentId;
     writeActiveMoment(day, momentId);
@@ -406,36 +397,6 @@ export default function CaptureStudio() {
       const current = currentMomentWrite();
       return current.momentId === momentId && current.generation === generation;
     };
-    setCaptureError(null);
-    let next = file;
-    let keptVideoStill = false;
-    if (isVideoMime(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name)) {
-      try {
-        next = await stillFromVideo(file);
-        keptVideoStill = true;
-        setDateNote("Videos aren't saved. We kept one still frame.");
-      } catch (error) {
-        setCaptureError(
-          error instanceof Error ? error.message : "Videos aren't saved. Extract one still frame and try again.",
-        );
-        return;
-      }
-    } else {
-      try {
-        next = fromCamera ? await jpegFileForCameraStill(next) : await normalizePhotoFile(next);
-      } catch (error) {
-        setCaptureError(error instanceof Error ? error.message : "Choose a photo — a still from the day.");
-        return;
-      }
-      if (isHeicLike(next)) {
-        setCaptureError(HEIC_ASK);
-        return;
-      }
-      if (!isImageMime(next.type) && !next.type.startsWith("image/")) {
-        setCaptureError("Choose a photo — a still from the day.");
-        return;
-      }
-    }
     if (looksLikeMemeName(next.name)) {
       setCaptureError("Tonight is for your own moment, not a meme.");
       return;
@@ -477,7 +438,7 @@ export default function CaptureStudio() {
     }
     if (date.verified && date.takenDay === day) {
       setDateNote(PHOTO_DATE_MESSAGES.today);
-    } else if (!keptVideoStill) {
+    } else {
       setDateNote(null);
     }
     if (!stillThisPick()) return;
@@ -784,12 +745,17 @@ export default function CaptureStudio() {
                   id={uploadInputId}
                   className="visually-hidden"
                   type="file"
-                  accept="image/*,video/*"
+                  accept="image/*"
                   onChange={(event) => {
                     void takePhoto(event.target.files?.[0] ?? null);
                     event.target.value = "";
                   }}
                 />
+                {captureError === PHOTO_NOT_A_PICTURE ? (
+                  <p className="capture-reject" role="alert">
+                    {PHOTO_NOT_A_PICTURE}
+                  </p>
+                ) : null}
               </div>
               ) : null}
               {liveStream ? (
@@ -847,7 +813,7 @@ export default function CaptureStudio() {
                 {dateNote}
               </p>
             ) : null}
-            {captureError ? (
+            {captureError && captureError !== PHOTO_NOT_A_PICTURE ? (
               <p className="error" role="alert">
                 {captureError}
                 {isReachabilityError(captureError) ? (

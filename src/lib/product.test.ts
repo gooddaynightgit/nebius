@@ -876,12 +876,15 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/joyType/);
     expect(src).toMatch(/tzOffset/);
     expect(src).toMatch(/WHISPER_MAX/);
-    expect(src).toMatch(/stillFromVideo/);
+    expect(src).not.toMatch(/stillFromVideo/);
+    expect(src).not.toMatch(/video\/\*/);
+    expect(src).toMatch(/PHOTO_NOT_A_PICTURE/);
+    expect(src).toMatch(/isStillImageFile/);
+    expect(src).toMatch(/blobLooksBlank/);
     expect(src).toMatch(/LANDING\.app\.takePhoto/);
     expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(src.match(/capture="environment"/g)?.length).toBe(1);
-    expect(src).toMatch(/accept="image\/\*"/);
-    expect(src).toMatch(/accept="image\/\*,video\/\*"/);
+    expect(src.match(/accept="image\/\*"/g)?.length).toBe(2);
     expect(src).toMatch(/takeInputRef/);
     expect(src).toMatch(/uploadInputId/);
     expect(src).toMatch(/getUserMedia|openRearCamera|prefersLiveCamera/);
@@ -896,7 +899,7 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/HEIC_ASK/);
     expect(src).toMatch(/takePhoto\(file, true\)/);
     expect(src).toMatch(/takePhoto\(event\.target\.files\?\.\[0\] \?\? null, true\)/);
-    expect(src).toMatch(/copyAsJpegFile/);
+    expect(src).toMatch(/capture-reject/);
     const prepare = readFileSync(path.resolve("src/lib/prepare-photo.ts"), "utf8");
     expect(prepare).toMatch(/sniffPhotoBytes/);
     expect(prepare).toMatch(/imageOrientation: "from-image"/);

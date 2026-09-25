@@ -1,4 +1,5 @@
-import { json } from "@/lib/http";
+import { badRequest, json } from "@/lib/http";
+import { uploadedPictureRejection } from "@/lib/photo-picture-server";
 import { LANDING } from "@/lib/landing";
 import { requirePersonalPhotoOtp } from "@/lib/session";
 import { imageDataUrlForModels } from "@/lib/model-image";
@@ -48,6 +49,12 @@ export async function POST(request: Request) {
   if (denied) return denied;
   try {
     const bytes = Buffer.from(await file.arrayBuffer());
+    const picture = await uploadedPictureRejection({
+      bytes,
+      mime: file.type || "",
+      filename: file.name || "",
+    });
+    if (picture) return badRequest(picture);
     const imageDataUrl = imageDataUrlForModels(file.type || "image/jpeg", bytes);
     const result = await sparkForPhoto(imageDataUrl, voice);
     if ("blocked" in result) return json({ blocked: true, spark: LANDING.app.blocked });
