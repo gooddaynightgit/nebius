@@ -40,10 +40,7 @@ describe("landing copy", () => {
       "Being forgiven",
       "Nothing happening — and it feeling like peace",
     ]);
-    expect(LANDING.app.noticingClose).toBe(
-      "One of these happens to you almost every day. Most nights, it’s already gone.",
-    );
-    expect(LANDING.app.noticingClose).toMatch(/it’s/);
+    expect(JSON.stringify(LANDING.app)).not.toMatch(/already gone/);
     expect(LANDING.app.noticing.join(" ")).toMatch(/you’re/);
     expect(LANDING.app.yours).toBe("My good moment weaved");
     expect(LANDING.app.brand).toBe("GoodDayNight");

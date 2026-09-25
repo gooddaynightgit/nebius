@@ -1327,14 +1327,6 @@ body:has(.story-opening) .header-meta {
   line-height: 1.4;
 }
 
-.noticing__close {
-  margin: 0.95rem 0 0;
-  color: var(--navy);
-  font-size: 1.02rem;
-  font-weight: 650;
-  line-height: 1.45;
-}
-
 .notice {
   margin: 0;
   color: #145c3a;
@@ -2037,6 +2029,15 @@ body:has(.story-opening) .header-meta {
   font-size: 1.05rem;
   font-weight: 800;
   line-height: 1.15;
+}
+
+.card--dark h2#capture-heading.step-heading {
+  display: inline-block;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  text-wrap: balance;
+  line-height: 1.25;
 }
 
 .step-nav {

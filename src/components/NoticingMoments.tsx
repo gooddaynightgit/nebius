@@ -25,7 +25,6 @@ export default function NoticingMoments() {
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="noticing__close">{LANDING.app.noticingClose}</p>
       </div>
     </div>
   );

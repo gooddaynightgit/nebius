@@ -167,7 +167,7 @@ export default function JoyStudio() {
             aria-describedby={selectedJoy ? undefined : "joy-need"}
             onClick={() => void uploadPhoto()}
           >
-            {STEP_LABEL.photo}
+            Unlock/Capture
           </button>
         </nav>
         {selectedJoy ? null : (

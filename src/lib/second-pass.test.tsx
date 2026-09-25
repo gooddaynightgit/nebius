@@ -79,7 +79,7 @@ describe("second pass after a finished story", () => {
     writeChosenJoy(day, "just-this");
     assigned.length = 0;
     const upload = container.querySelector("button.step-next") as HTMLButtonElement;
-    expect(upload.textContent).toContain("Capture it");
+    expect(upload.textContent).toContain("Unlock/Capture");
     await act(async () => {
       upload.click();
     });
