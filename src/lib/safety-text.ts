@@ -1,5 +1,5 @@
 export const SAFETY_REFUSAL =
-  "This one isn't for Gooddaynight. Tonight is for a real, gentle moment of yours — nothing violent, hateful, or sexual.";
+  "This one isn't for GoodDayNight. Tonight is for a real, gentle moment of yours — nothing violent, hateful, or sexual.";
 
 const HORRIFIC_RE =
   /\b(gore|gory|behead|decapitat|dismember|murder|homicide|massacre|rape|raping|porn|porno|pornography|nsfw|xxx|nude|nudes|naked pics|child\s*porn|csam|bestiality|zoophilia|lynch|genocide|nazi|swastika|slur|self-harm|self harm|kill myself|killing myself|suicide|suicidal|hanging myself|cut myself|gunshot wound|bloodbath|mutilat|torture|abuse porn|kill you|i(?:'ll| will) (?:kill|stab|hurt|rape)|rape you|bomb (?:the|your)|i hope you die|kys)\b/i;

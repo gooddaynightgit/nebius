@@ -12,9 +12,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Gooddaynight — Hear your story",
+  title: "GoodDayNight — Hear your story",
   description:
-    "Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+    "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
   metadataBase: new URL("https://gooddaynight.com"),
   icons: {
     icon: [
@@ -27,17 +27,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://gooddaynight.com/",
-    title: "Gooddaynight — Hear your story",
+    title: "GoodDayNight — Hear your story",
     description:
-      "Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+      "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
     locale: "en_US",
-    siteName: "Gooddaynight",
+    siteName: "GoodDayNight",
   },
   twitter: {
     card: "summary",
-    title: "Gooddaynight — Hear your story",
+    title: "GoodDayNight — Hear your story",
     description:
-      "Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+      "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
   },
 };
 

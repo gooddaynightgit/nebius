@@ -3,7 +3,7 @@ import Link from "next/link";
 import MomentsCheckout from "@/components/MomentsCheckout";
 
 export const metadata: Metadata = {
-  title: "40 good moments — Gooddaynight",
+  title: "40 good moments — GoodDayNight",
   description: "Several good moments. 40 good moments — R450 ZAR · $28 USD. Not an archive.",
 };
 
@@ -24,7 +24,7 @@ export default async function MomentsPage({
     <div className="page moments-page">
       <header className="site-header">
         <Link className="badge" href="/">
-          gooddaynight.com
+          GoodDayNight
         </Link>
       </header>
 
@@ -122,7 +122,7 @@ export default async function MomentsPage({
 
       <footer className="site-footer">
         <p>
-          <Link href="/">Gooddaynight.com</Link>
+          <Link href="/">gooddaynight.com</Link>
         </p>
       </footer>
     </div>

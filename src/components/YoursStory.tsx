@@ -366,7 +366,7 @@ export default function YoursStory() {
     <div className="page">
       <header className="site-header">
         <Link className="badge" href="/">
-          Gooddaynight
+          GoodDayNight
         </Link>
         <Link className="header-meta" href="/app">
           Back to today

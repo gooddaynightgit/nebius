@@ -120,7 +120,7 @@ describe("ingest and weave fallbacks", () => {
     expect(SUPER_WEAVE_SYSTEM).toMatch(/smile in the chest/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/Prefer presence over emptiness/);
     expect(SUPER_WEAVE_SYSTEM).toMatch(/hunted good moment/);
-    expect(APP_EXCAVATE_SYSTEM).toMatch(/first look inside Gooddaynight/);
+    expect(APP_EXCAVATE_SYSTEM).toMatch(/first look inside GoodDayNight/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/under 45 words/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/plain description/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/don't|do not say|avoid the word/i);
@@ -767,7 +767,7 @@ describe("landing", () => {
     expect(copy).toContain("You can change the picture if the day gets kinder.");
     expect(copy).toContain("One moment. One story.");
     expect(copy).toContain("Something good is about to happen!");
-    expect(copy).toContain("Gooddaynight.com");
+    expect(copy).toContain("gooddaynight.com");
     for (const title of [
       "Morning sunlight",
       "A hello",

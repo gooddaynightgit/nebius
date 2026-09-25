@@ -1,7 +1,7 @@
 {
-  "name": "Gooddaynight",
-  "short_name": "Gooddaynight",
-  "description": "Gooddaynight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+  "name": "GoodDayNight",
+  "short_name": "GoodDayNight",
+  "description": "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

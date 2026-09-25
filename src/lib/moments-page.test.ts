@@ -31,7 +31,7 @@ describe("moments pack page", () => {
     expect(page).not.toMatch(/\$29/);
     expect(page).not.toMatch(/27\.80/);
     expect(page).toContain("Something good is about to happen!");
-    expect(page).toContain("Gooddaynight.com");
+    expect(page).toContain("gooddaynight.com");
     expect(page).toMatch(/MomentsCheckout/);
     expect(checkout).toMatch(/action="\/api\/payfast\/checkout"/);
     expect(checkout).toMatch(/method="post"/);
