@@ -81,12 +81,16 @@ void addBlob(
 ) {
   float travel = fract(phase + t / dur);
   float fade = smoothstep(0.0, 0.14, travel) * (1.0 - smoothstep(0.84, 1.0, travel));
-  float x = clamp(xBias + 0.16 * sin(t / sway + phase * 6.28318), 0.08, 0.92);
+  float x = clamp(xBias + 0.14 * sin(t / sway + phase * 6.28318), 0.06, 0.94);
   float y = travel;
-  float rx = (0.24 + 0.05 * sin(t / swell + phase * 4.2)) * scale;
-  float ry = (0.22 + 0.05 * sin(t / (swell * 1.37) + phase * 2.6)) * scale;
-  vec2 d = (uv - vec2(x, y)) / vec2(max(rx, 0.08), max(ry, 0.08));
-  float q = dot(d, d);
+  float ang = 0.68 + 0.16 * sin(t / (swell * 1.7) + phase * 3.0);
+  float ca = cos(ang);
+  float sa = sin(ang);
+  vec2 delta = uv - vec2(x, y);
+  vec2 fold = mat2(ca, -sa, sa, ca) * delta;
+  float across = fold.x / max((0.16 + 0.03 * sin(t / swell + phase)) * scale, 0.07);
+  float along = fold.y / max((0.92 + 0.16 * sin(t / (swell * 1.2))) * scale, 0.32);
+  float q = across * across + along * along;
   float reach = clamp(1.0 - sqrt(q), 0.0, 1.0);
   float core = fade * reach * reach * (3.0 - 2.0 * reach);
   float haloReach = clamp(1.0 - sqrt(q) * 0.72, 0.0, 1.0);
@@ -120,9 +124,10 @@ void main() {
   vec2 p = vec2(uv.x * aspect, uv.y);
   float t = uTime;
 
-  vec2 flow = warp(p * 1.35 + vec2(t * 0.012, t * 0.007));
-  vec2 sp = uv + (flow - 0.48) * 0.14;
-  float silk = fbm(p * 1.8 + 1.2 * flow + vec2(t * 0.018, t * 0.01));
+  vec2 flow = warp(vec2(p.x * 0.9, p.y * 1.7) + vec2(t * 0.011, t * 0.006));
+  vec2 bend = flow - 0.48;
+  vec2 sp = uv + vec2(bend.x * 0.05 + bend.y * 0.04, bend.y * 0.16);
+  float silk = fbm(vec2(p.x * 1.1, p.y * 2.1) + 1.05 * flow + vec2(t * 0.016, t * 0.008));
 
   float field, weight, bloomW;
   vec3 tint, bloom;
@@ -131,8 +136,8 @@ void main() {
   vec3 halo = bloom;
   float haloW = bloomW;
 
-  float dome = clamp(field, 0.0, 1.35) / 1.35;
-  float h = clamp(pow(dome, 1.2) * 0.72 + silk * 0.34, 0.0, 1.0);
+  float dome = clamp(field, 0.0, 1.2) / 1.2;
+  float h = clamp(pow(dome, 1.05) * 0.8 + silk * 0.16, 0.0, 1.0);
   float dx = dFdx(h) * uRes.x;
   float dy = dFdy(h) * uRes.y;
   float slope = length(vec2(dx, dy));
@@ -147,19 +152,24 @@ void main() {
   float fres = pow(1.0 - clamp(n.z, 0.0, 1.0), 1.65);
   float ridge = smoothstep(0.45, 1.6, slope) * (1.0 - smoothstep(2.4, 4.0, slope));
 
-  vec3 base = weight > 0.02 ? tint / weight : mix(sky(), aqua(), 0.5);
-  float lit = mix(0.78, 1.05, smoothstep(0.05, 0.9, ndl));
+  vec3 base = weight > 0.02 ? tint / weight : mix(sky(), aqua(), 0.55);
+  float lit = mix(0.8, 1.04, smoothstep(0.02, 0.8, ndl));
   vec3 col = min(base * lit, vec3(1.0));
-  col = mix(col, crease(), smoothstep(0.14, 0.0, dome) * 0.48);
-  col = mix(col, mix(base, pearlWhite(), 0.22), satin * 0.18);
+  col = mix(col, mix(base, pearlWhite(), 0.16), satin * 0.12);
 
   vec3 glow = halo / max(haloW, 0.001);
   float breathe = 0.78 + 0.22 * sin(t * 0.72);
-  float haloAmt = clamp(bloomW * 0.95, 0.0, 1.0);
-  col = mix(col, min(glow * (0.92 + 0.2 * breathe), vec3(1.0)), haloAmt * 0.42);
-  float crest = smoothstep(0.62, 0.98, gloss);
-  col += pearlWhite() * (crest * 0.82 + ridge * 0.08);
-  col += yellow() * crest * smoothstep(0.08, 0.35, base.r - base.b) * 0.4;
+  float haloAmt = clamp(bloomW * 0.85, 0.0, 1.0);
+  col = mix(col, min(glow * (0.92 + 0.14 * breathe), vec3(1.0)), haloAmt * smoothstep(0.12, 0.55, dome) * 0.3);
+  float crest = max(ridge, smoothstep(0.7, 2.4, slope) * gloss);
+  float filmU = clamp(fres * 1.35 + n.x * 0.28 - n.y * 0.08, 0.0, 1.0);
+  vec3 rim = mix(pink(), yellow(), smoothstep(0.0, 0.4, filmU));
+  rim = mix(rim, aqua(), smoothstep(0.28, 0.72, filmU));
+  rim = mix(rim, pearlWhite(), smoothstep(0.58, 1.0, filmU) * 0.4);
+  col = mix(col, rim, crest * 0.62);
+  col += mix(pearlWhite(), yellow(), 0.46) * crest * 0.55;
+  float valley = smoothstep(0.28, 0.02, dome) + smoothstep(0.34, 0.0, ndl);
+  col = mix(col, crease(), clamp(valley, 0.0, 1.0) * 0.8);
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
