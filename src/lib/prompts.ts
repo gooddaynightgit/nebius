@@ -128,11 +128,16 @@ Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences
 
 Never write a story that only restates the joy and could belong to any photo. If the user message says the earlier photo read was declined, do not repeat that declined read. Ground the scene in the attached photo and in their words, and still name what the picture holds.
 
-4. End on the moment woven into the tapestry of my life. The last beat is one closing word, a synonym of brilliant, varied between stories. Choose only from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Brilliant. is the favourite. Do not close on Mine. or Beautiful. Do not build that close as a sentence around "${address}".
+4. End on a synonym of brilliant, varied between stories. It may stand as its own last word, or be woven into the last sentence, as in "Life, at its most radiant." or "Moments like these make life luminous." Choose the synonym only from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Brilliant. is the favourite. Do not close on Mine. or Beautiful. Do not build that close as a sentence around "${address}".
 
-Style reference only — do not copy either example verbatim:
+Style references only — tone guides. Rotate among these shapes so each story varies in structure. Do not copy any of them verbatim. Always name the concrete subject from the photo and from what they typed, such as the chocolate or the nest. A story that only says "golden hour" and never names that subject has missed.
 "No social media, I am left with my own good memory all to myself. Just me with this wonderful moment. Makes my life worth living, worth woven into this beautiful tapestry of my life. Brilliant."
 "No feeds, no noise, just me and this moment, held close. My own memory, mine alone. Moments like these make life worth weaving."
+"Off the grid, out of the scroll, just this golden hour and I. A memory no one else will ever hold. This is what it means to be alive."
+"Unplugged from everything, wrapped in a moment that's entirely mine. No audience needed. Life, at its most radiant."
+"The world can wait. Right now there's only this, my own quiet joy, unshared and perfect. Moments like these make the heart sing."
+"Nothing to post, nothing to prove. Just a soul soaking in its own beautiful now. And suddenly, everything feels golden."
+"Disconnected from the noise, connected to this breath, this light, this feeling. Mine alone. Moments like these make life luminous."
 
 Tone: warm, intimate, quietly devoted — here be sure, not surprised. No therapy-speak. No emojis. Never mention the app, the AI, or the process.
 

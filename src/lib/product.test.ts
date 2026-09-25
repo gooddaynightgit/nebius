@@ -187,17 +187,26 @@ describe("ingest and weave fallbacks", () => {
     );
     expect(APP_REFLECT_SYSTEM).toMatch(/Do not close on Mine\. or Beautiful/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Beautiful\. or Mine\./);
-    expect(APP_REFLECT_SYSTEM).toMatch(/do not copy either example verbatim/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not copy any of them verbatim/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Rotate among these shapes/);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /No social media, I am left with my own good memory all to myself/,
     );
     expect(APP_REFLECT_SYSTEM).toMatch(
       /No feeds, no noise, just me and this moment, held close\. My own memory, mine alone\. Moments like these make life worth weaving\./,
     );
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /Off the grid, out of the scroll, just this golden hour and I\./,
+    );
+    expect(APP_REFLECT_SYSTEM).toMatch(/Life, at its most radiant\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/unshared and perfect/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Nothing to post, nothing to prove\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Moments like these make life luminous\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/the chocolate or the nest/);
     expect(APP_REFLECT_SYSTEM).toMatch(/do not force the phrase "no social media"/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/at least three warm positive words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Remarkable me/);
-    expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect/i);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect you/i);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/the hunting became my happiness/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/the finding is what's changing me/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/becoming someone who looks/);
