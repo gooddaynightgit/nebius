@@ -25,6 +25,7 @@ import {
 import {
   APP_EXCAVATE_SYSTEM,
   SUPER_WEAVE_SYSTEM,
+  KEEPSAKE_CLOSING_WORDS,
   reflectSystemFor,
   ULTRA_CONTINUITY_SYSTEM,
   WEAVE_NEEDS_WORDS,
@@ -376,7 +377,7 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 }
 
 function keepsakeShape(address: string): string {
-  return `3 to 4 short sentences, about 40 to 60 words, under 70 words. First person, intimate, mine alone. Name the concrete thing. End with the moment woven into the tapestry of my life, then one word. Brilliant. is the favourite; Beautiful. or Mine. may stand in. Do not open that close with ${address}. Do not copy a style sample verbatim.`;
+  return `3 to 4 short sentences, about 40 to 60 words, under 70 words. First person, intimate, mine alone. Name the concrete thing. End with the moment woven into the tapestry of my life, then one closing word chosen only from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Brilliant. is the favourite. Do not close on Mine. or Beautiful. Do not open that close with ${address}. Do not copy a style sample verbatim.`;
 }
 
 function reflectRetryHint(problems: string[], lastBody: string, address: string): string {

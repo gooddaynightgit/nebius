@@ -26,6 +26,20 @@ export {
 
 export const PRECIOUS_MOMENT_CRAFT = `The moment is precious and worth keeping. Write it warm and uplifting. Never diminish or downplay the moment. First person only (I, my, me). Never address the reader as you. Never use unremarkable, ordinary, mundane, nothing special, insignificant, plain, boring, or just a. Never use simple to dismiss the moment, or small or little to belittle it.`;
 
+/** Last beat of the short keepsake. Varied per story. Brilliant. is the favourite. */
+export const KEEPSAKE_CLOSING_WORDS = [
+  "Brilliant.",
+  "Radiant.",
+  "Luminous.",
+  "Glorious.",
+  "Splendid.",
+  "Dazzling.",
+  "Magnificent.",
+  "Marvellous.",
+  "Wonderful.",
+  "Resplendent.",
+] as const;
+
 export const NANO_INGEST_SYSTEM = `You help GoodDayNight keep one hunted good moment from a private daily capture.
 The user is training a habit: hunt one good moment a day, capture it in seconds. Your job is to surface that find so it can become theirs tonight.
 
@@ -114,7 +128,7 @@ Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences
 
 Never write a story that only restates the joy and could belong to any photo. If the user message says the earlier photo read was declined, do not repeat that declined read. Ground the scene in the attached photo and in their words, and still name what the picture holds.
 
-4. End on the moment woven into the tapestry of my life. The last beat may be a single uplifting word on its own line of thought. Brilliant. is the favourite. Beautiful. or Mine. may stand in its place. Vary the word. Do not build that close as a sentence around "${address}".
+4. End on the moment woven into the tapestry of my life. The last beat is one closing word, a synonym of brilliant, varied between stories. Choose only from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Brilliant. is the favourite. Do not close on Mine. or Beautiful. Do not build that close as a sentence around "${address}".
 
 Style reference only — do not copy it verbatim:
 "No social media, I am left with my own good memory all to myself. Just me with this wonderful moment. Makes my life worth living, worth woven into this beautiful tapestry of my life. Brilliant."

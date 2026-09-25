@@ -181,7 +181,11 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/3 to 4 short sentences/);
     expect(APP_REFLECT_SYSTEM).toMatch(/40 to 60 words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/tapestry of my life/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Brilliant\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /Brilliant\. Radiant\. Luminous\. Glorious\. Splendid\. Dazzling\. Magnificent\. Marvellous\. Wonderful\. Resplendent\./,
+    );
+    expect(APP_REFLECT_SYSTEM).toMatch(/Do not close on Mine\. or Beautiful/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Beautiful\. or Mine\./);
     expect(APP_REFLECT_SYSTEM).toMatch(/do not copy it verbatim/i);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /No social media, I am left with my own good memory all to myself/,
