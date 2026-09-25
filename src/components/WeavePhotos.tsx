@@ -1,6 +1,9 @@
 const SILK_LAYERS = [1, 2, 3, 4] as const;
 
-/** Full-viewport silk photos. Motion is CSS only, so mobile GPUs never facet the image. */
+/**
+ * Silk photographs kept for later page backgrounds.
+ * Not mounted on the weaving screen.
+ */
 export function WeavePhotos() {
   return (
     <div className="weave-photos" aria-hidden="true">

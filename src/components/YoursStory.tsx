@@ -27,7 +27,7 @@ import {
 } from "@/lib/story-opening";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
 import { useReportAppProgress } from "@/components/journey-gate";
-import { WeavePhotos } from "@/components/WeavePhotos";
+import { WeaveBubbles } from "@/components/WeaveBubbles";
 
 function PlayIcon() {
   return (
@@ -61,10 +61,12 @@ export function StoryOpeningStatus() {
       data-line={index}
       aria-live="polite"
     >
-      <WeavePhotos />
-      <p className="card__body story-opening__line" role="status">
-        {STORY_OPENING_LINES[index]}
-      </p>
+      <div className="story-opening__stack">
+        <WeaveBubbles />
+        <p className="card__body story-opening__line" role="status">
+          {STORY_OPENING_LINES[index]}
+        </p>
+      </div>
     </section>
   );
 }
