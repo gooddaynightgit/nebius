@@ -1,45 +1,147 @@
-/** Flowing silk behind the weaving messages. The still image lives on the card itself. */
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { SILK_FRAG, SILK_VERT } from "@/lib/silk-shader";
+
+const MAX_DPR = 1.5;
+
+function compile(gl: WebGLRenderingContext, type: number, source: string): WebGLShader | null {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    gl.deleteShader(shader);
+    return null;
+  }
+  return shader;
+}
+
 export function WeaveSilk() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [still, setStill] = useState(false);
+
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setStill(true);
+      return;
+    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const gl = canvas.getContext("webgl", {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: "low-power",
+    });
+    if (!gl || !gl.getExtension("OES_standard_derivatives")) {
+      setStill(true);
+      return;
+    }
+
+    const vert = compile(gl, gl.VERTEX_SHADER, SILK_VERT);
+    const frag = compile(gl, gl.FRAGMENT_SHADER, SILK_FRAG);
+    if (!vert || !frag) {
+      setStill(true);
+      return;
+    }
+    const program = gl.createProgram();
+    if (!program) {
+      setStill(true);
+      return;
+    }
+    gl.attachShader(program, vert);
+    gl.attachShader(program, frag);
+    gl.bindAttribLocation(program, 0, "aPos");
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      setStill(true);
+      return;
+    }
+    gl.useProgram(program);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes = gl.getUniformLocation(program, "uRes");
+    const uTime = gl.getUniformLocation(program, "uTime");
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      const width = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+      const height = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    };
+
+    let raf = 0;
+    let offset = 0;
+    let pausedAt = 0;
+    let running = false;
+    const draw = (now: number) => {
+      resize();
+      gl.useProgram(program);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uTime, (now - offset) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      raf = window.requestAnimationFrame(draw);
+    };
+    const start = () => {
+      if (running || document.hidden) return;
+      running = true;
+      raf = window.requestAnimationFrame(draw);
+    };
+    const stop = () => {
+      running = false;
+      window.cancelAnimationFrame(raf);
+    };
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+        pausedAt = performance.now();
+        return;
+      }
+      offset += performance.now() - pausedAt;
+      start();
+    };
+    const onLost = (event: Event) => {
+      event.preventDefault();
+      stop();
+      setStill(true);
+    };
+    const onResize = () => resize();
+
+    resize();
+    canvas.addEventListener("webglcontextlost", onLost);
+    window.addEventListener("resize", onResize);
+    document.addEventListener("visibilitychange", onVisibility);
+    start();
+
+    return () => {
+      stop();
+      canvas.removeEventListener("webglcontextlost", onLost);
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
+      gl.deleteProgram(program);
+      gl.deleteShader(vert);
+      gl.deleteShader(frag);
+      gl.deleteBuffer(buffer);
+    };
+  }, []);
+
   return (
-    <div className="weave-silk weave-silk--flow" aria-hidden="true">
-      <svg className="weave-silk__defs" width="0" height="0" focusable="false">
-        <filter
-          id="weave-silk-displace"
-          x="-20%"
-          y="-20%"
-          width="140%"
-          height="140%"
-          colorInterpolationFilters="sRGB"
-        >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.005"
-            numOctaves="2"
-            seed="2"
-            result="silkNoise"
-          >
-            <animate
-              attributeName="baseFrequency"
-              dur="28s"
-              values="0.004;0.0075;0.004"
-              calcMode="spline"
-              keyTimes="0;0.5;1"
-              keySplines="0.45 0 0.55 1;0.45 0 0.55 1"
-              repeatCount="indefinite"
-            />
-          </feTurbulence>
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="silkNoise"
-            scale="32"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
-      </svg>
-      <div className="weave-silk__motion">
-        <div className="weave-silk__sheet" />
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className={still ? "weave-silk weave-silk--still" : "weave-silk"}
+      aria-hidden="true"
+    />
   );
 }
