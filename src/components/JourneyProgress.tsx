@@ -1,15 +1,19 @@
 "use client";
 
-import { Suspense, useContext } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppProgressContext, BuyerGateContext } from "@/components/journey-gate";
 import {
   JOURNEY_FINISHED_CAPTION,
   JOURNEY_STEP_COUNT,
   JOURNEY_STEPS,
+  journeyBackHref,
+  journeyDotKind,
   journeyFillPercent,
   journeyStep,
   normalizeJourneyPath,
+  rememberJourneyReached,
   type AppProgress,
   type BuyerGate,
 } from "@/lib/journey";
@@ -33,7 +37,14 @@ export function JourneyBar({ step }: { step: number }) {
   const finished = step > JOURNEY_STEPS.length;
   const current = JOURNEY_STEPS[step - 1];
   const caption = finished ? JOURNEY_FINISHED_CAPTION : current?.label;
-  const fill = journeyFillPercent(step);
+  const [reached, setReached] = useState(step);
+
+  useEffect(() => {
+    setReached(rememberJourneyReached(step));
+  }, [step]);
+
+  const far = Math.max(step, reached);
+  const fill = journeyFillPercent(far);
 
   return (
     <nav className="journey" aria-label="Progress" data-journey-step={step}>
@@ -50,20 +61,33 @@ export function JourneyBar({ step }: { step: number }) {
           <ol className="journey__steps" role="list">
             {JOURNEY_STEPS.map((item, index) => {
               const number = index + 1;
-              const done = number < step;
-              const active = number === step;
+              const kind = journeyDotKind(number, step, far);
+              const done = kind === "done";
+              const active = kind === "current";
               const state = active ? "journey__step--current" : done ? "journey__step--done" : "";
+              const href = done ? journeyBackHref(number) : null;
+              const mark = (
+                <>
+                  <span className="journey__dot">{done ? <CheckIcon /> : null}</span>
+                  <span className="journey__label">
+                    {item.label}
+                    {done ? <span className="visually-hidden">, completed</span> : null}
+                  </span>
+                </>
+              );
               return (
                 <li
                   key={item.label}
                   className={state ? `journey__step ${state}` : "journey__step"}
                   aria-current={active ? "step" : undefined}
                 >
-                  <span className="journey__dot">{done ? <CheckIcon /> : null}</span>
-                  <span className="journey__label">
-                    {item.label}
-                    {done ? <span className="visually-hidden">, completed</span> : null}
-                  </span>
+                  {href ? (
+                    <Link className="journey__jump" href={href} aria-label={`Go back to ${item.label}`}>
+                      {mark}
+                    </Link>
+                  ) : (
+                    mark
+                  )}
                 </li>
               );
             })}

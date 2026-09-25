@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -16,6 +16,7 @@ import { captionDisposition } from "@/lib/app-capture";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
+import { reviewCaptureView } from "@/lib/journey";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
 import {
@@ -91,6 +92,8 @@ async function lookupEntitlement(email: string): Promise<EntitlementLookup> {
 
 export default function CaptureStudio() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const review = searchParams.get("review");
   const takeInputId = useId();
   const uploadInputId = useId();
   const captionId = useId();
@@ -148,7 +151,14 @@ export default function CaptureStudio() {
     answeredGeneration,
   });
   useReportBuyerGate(captureOpen, hydrated);
-  useReportAppProgress(busy ? "turn" : questionOpen ? "good" : "upload");
+  const reviewView = reviewCaptureView({
+    review,
+    busy,
+    questionOpen,
+    hasPhoto: Boolean(photo) || Boolean(savedPhoto),
+    hasCaption: caption.trim().length > 0,
+  });
+  useReportAppProgress(reviewView.progress);
 
   function applyEntitlement(result: EntitlementLookup) {
     const sessionOpen = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
@@ -257,6 +267,9 @@ export default function CaptureStudio() {
           setSelectedJoyId(chosen.id);
           if (!storedId) writeChosenJoy(day, chosen.id);
         }
+        if ((review === "good" || review === "weave") && stash?.caption) {
+          setCaption(stash.caption);
+        }
         const pendingFile = pendingMoment?.file && pendingMoment.file.size > 0 ? pendingMoment.file : null;
         const activeMomentId = readActiveMoment(day);
         const restorePending = shouldRestorePending({
@@ -281,7 +294,7 @@ export default function CaptureStudio() {
       setHydrated(true);
       setCaptureError(explainClientFetchError(error));
     }
-  }, [day, hydrated]);
+  }, [day, hydrated, review]);
 
   useEffect(() => {
     void refresh();
@@ -877,7 +890,7 @@ export default function CaptureStudio() {
             ) : null}
           </section>
 
-          {questionOpen ? (
+          {reviewView.showQuestion ? (
             <section id="caption-box" className="card card--lavender card--compact" aria-labelledby="caption-heading">
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
@@ -926,7 +939,7 @@ export default function CaptureStudio() {
             </p>
           ) : null}
 
-          {questionOpen ? (
+          {reviewView.showWeave ? (
             <section className="card card--aqua card--compact" aria-label="Weave my good moment">
               <button
                 className="btn btn--turn"

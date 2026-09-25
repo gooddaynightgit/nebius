@@ -73,3 +73,132 @@ export function journeyFillPercent(step: number): number {
   const span = JOURNEY_STEP_COUNT - 1;
   return ((Math.min(step, JOURNEY_STEP_COUNT) - 1) / span) * 100;
 }
+
+/**
+ * Page for each 1-based step. Unlock opens the price screen; a signed-out visit
+ * is sent on to email sign-in by that page. Capture, the good question, and the
+ * weave button share `/app` and only change which part is on screen.
+ */
+const JOURNEY_STEP_HREFS = [
+  "/",
+  "/app/joy",
+  "/moments",
+  "/app?review=capture",
+  "/app?review=good",
+  "/app?review=weave",
+  "/app/yours",
+] as const;
+
+export function journeyBackHref(stepNumber: number): string | null {
+  if (stepNumber < 1 || stepNumber > JOURNEY_STEPS.length) return null;
+  return JOURNEY_STEP_HREFS[stepNumber - 1] ?? null;
+}
+
+export type JourneyDotKind = "done" | "current" | "future";
+
+/** A finished story reports step 8, past the last dot. */
+export function journeyDotKind(number: number, viewing: number, reached: number): JourneyDotKind {
+  const far = Math.max(1, viewing, reached);
+  if (viewing >= 1 && viewing <= JOURNEY_STEP_COUNT && number === viewing) return "current";
+  if (number < far) return "done";
+  return "future";
+}
+
+export function journeyClickableSteps(viewing: number, reached: number): number[] {
+  const steps: number[] = [];
+  for (let number = 1; number <= JOURNEY_STEP_COUNT; number += 1) {
+    if (journeyDotKind(number, viewing, reached) === "done") steps.push(number);
+  }
+  return steps;
+}
+
+export const JOURNEY_REACHED_KEY = "gooddaynight.journeyReached";
+
+export function readJourneyReached(): number {
+  try {
+    const raw = sessionStorage.getItem(JOURNEY_REACHED_KEY);
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 1) return 1;
+    return Math.min(Math.floor(n), JOURNEY_STEP_COUNT + 1);
+  } catch {
+    return 1;
+  }
+}
+
+export function rememberJourneyReached(step: number): number {
+  const next = Math.max(readJourneyReached(), Math.max(1, step));
+  try {
+    sessionStorage.setItem(JOURNEY_REACHED_KEY, String(next));
+  } catch {
+    /* private mode */
+  }
+  return next;
+}
+
+export type JourneyKeptState = {
+  joyId: string | null;
+  credits: number;
+  photoId: string | null;
+  caption: string;
+  storyId: string | null;
+};
+
+/** Going back is a link. It does not charge, clear, or replace the saved moment. */
+export function journeyStateAfterBack(
+  stepNumber: number,
+  state: JourneyKeptState,
+): { href: string | null; state: JourneyKeptState; charged: false; reset: false } {
+  return {
+    href: journeyBackHref(stepNumber),
+    state: { ...state },
+    charged: false,
+    reset: false,
+  };
+}
+
+export type ReviewCaptureInput = {
+  review: string | null;
+  busy: boolean;
+  questionOpen: boolean;
+  hasPhoto: boolean;
+  hasCaption: boolean;
+};
+
+export type ReviewCaptureView = {
+  progress: AppProgress;
+  showQuestion: boolean;
+  showWeave: boolean;
+  charged: false;
+  reset: false;
+};
+
+/**
+ * Which part of the photo page to show when a completed step is opened again.
+ * Missing photo or description falls back to the capture step. Nothing is cleared.
+ */
+export function reviewCaptureView(input: ReviewCaptureInput): ReviewCaptureView {
+  const natural: AppProgress = input.busy ? "turn" : input.questionOpen ? "good" : "upload";
+  const kept = { charged: false as const, reset: false as const };
+  if (input.review === "capture") {
+    return { progress: "upload", showQuestion: false, showWeave: false, ...kept };
+  }
+  if (input.review === "good") {
+    if (input.questionOpen || input.hasCaption) {
+      return { progress: "good", showQuestion: true, showWeave: false, ...kept };
+    }
+    return { progress: "upload", showQuestion: false, showWeave: false, ...kept };
+  }
+  if (input.review === "weave") {
+    if (input.busy) return { progress: "turn", showQuestion: input.questionOpen, showWeave: false, ...kept };
+    if (input.questionOpen || input.hasCaption) {
+      return { progress: "turn", showQuestion: true, showWeave: true, ...kept };
+    }
+    return { progress: "upload", showQuestion: false, showWeave: false, ...kept };
+  }
+  return {
+    progress: natural,
+    showQuestion: input.questionOpen,
+    showWeave: input.questionOpen,
+    ...kept,
+  };
+}
