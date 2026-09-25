@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import StepControl from "@/components/StepControl";
+import { readCaptureStash } from "@/lib/capture-stash";
 import { readJson } from "@/lib/client-fetch";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
-import { STEP_LABEL } from "@/lib/journey";
+import { restoredJoyId, STEP_LABEL } from "@/lib/journey";
 import { LANDING, accordionJoys, getJoyById, type JoyType } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
 import { uploadPhotoDestination } from "@/lib/photo-entry";
@@ -42,17 +43,50 @@ export default function JoyStudio() {
     return base;
   }, [selectedJoy]);
 
+  useLayoutEffect(() => {
+    if (pathname && pathname !== "/app/joy") return;
+    const stored = restoredJoyId(readChosenJoy(day), null, null);
+    if (stored) setSelectedJoyId(stored);
+  }, [day, pathname]);
+
   useEffect(() => {
     if (pathname && pathname !== "/app/joy") return;
+    let cancel = false;
     function restoreCatalogJoy() {
-      const stored = readChosenJoy(day);
-      setSelectedJoyId(stored && getJoyById(stored) ? stored : null);
+      const stored = restoredJoyId(readChosenJoy(day), null, null);
+      if (stored) setSelectedJoyId(stored);
       setResetSignal((current) => current + 1);
     }
     restoreCatalogJoy();
+    (async () => {
+      let stashJoy: string | null = null;
+      let photoJoy: string | null = null;
+      try {
+        stashJoy = (await readCaptureStash(day))?.joyType ?? null;
+      } catch {
+        stashJoy = null;
+      }
+      try {
+        const res = await fetch(`/api/session?day=${encodeURIComponent(day)}`, {
+          credentials: "same-origin",
+        });
+        const session = await readJson<{ todayPhoto?: { joyType?: string } | null }>(res);
+        photoJoy = session.todayPhoto?.joyType ?? null;
+      } catch {
+        photoJoy = null;
+      }
+      if (cancel) return;
+      const id = restoredJoyId(readChosenJoy(day), stashJoy, photoJoy);
+      if (!id) return;
+      setSelectedJoyId(id);
+      if (!readChosenJoy(day)) writeChosenJoy(day, id);
+    })();
     const onPageShow = () => restoreCatalogJoy();
     window.addEventListener("pageshow", onPageShow);
-    return () => window.removeEventListener("pageshow", onPageShow);
+    return () => {
+      cancel = true;
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, [day, pathname]);
 
   useEffect(() => {

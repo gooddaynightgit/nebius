@@ -1,3 +1,5 @@
+import { getJoyById } from "./landing";
+
 /** Caption under a finished story, and the last dot on the bar. */
 export const JOURNEY_FINISHED_CAPTION = "My good moment weaved";
 
@@ -180,7 +182,12 @@ export function reviewCaptureView(input: ReviewCaptureInput): ReviewCaptureView 
   const natural: AppProgress = input.busy ? "turn" : input.questionOpen ? "good" : "upload";
   const kept = { charged: false as const, reset: false as const };
   if (input.review === "capture") {
-    return { progress: "upload", showQuestion: false, showWeave: false, ...kept };
+    return {
+      progress: "upload",
+      showQuestion: input.hasCaption,
+      showWeave: false,
+      ...kept,
+    };
   }
   if (input.review === "good") {
     if (input.questionOpen || input.hasCaption) {
@@ -201,4 +208,29 @@ export function reviewCaptureView(input: ReviewCaptureInput): ReviewCaptureView 
     showWeave: input.questionOpen,
     ...kept,
   };
+}
+
+/** Joy already chosen, or the joy saved with the photo, so a return visit stays selected. */
+export function restoredJoyId(
+  chosenJoyId: string | null | undefined,
+  stashJoyId: string | null | undefined,
+  photoJoyId: string | null | undefined,
+): string | null {
+  for (const id of [chosenJoyId, stashJoyId, photoJoyId]) {
+    const joy = getJoyById(id);
+    if (joy) return joy.id;
+  }
+  return null;
+}
+
+/** Description already written. A blank field must not replace it. */
+export function restoredMomentText(input: {
+  currentCaption: string;
+  stashCaption?: string | null;
+  photoCaption?: string | null;
+}): string {
+  if (input.currentCaption.trim()) return input.currentCaption;
+  const stash = input.stashCaption?.trim() ?? "";
+  if (stash) return stash;
+  return input.photoCaption?.trim() ?? "";
 }

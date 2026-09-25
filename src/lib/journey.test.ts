@@ -9,6 +9,8 @@ import {
   journeyFillPercent,
   journeyStateAfterBack,
   journeyStep,
+  restoredJoyId,
+  restoredMomentText,
   reviewCaptureView,
 } from "./journey";
 import { LANDING } from "./landing";
@@ -147,7 +149,7 @@ describe("journey progress", () => {
       questionOpen: true,
       hasPhoto: true,
       hasCaption: true,
-    })).toMatchObject({ progress: "upload", showQuestion: false, showWeave: false, charged: false, reset: false });
+    })).toMatchObject({ progress: "upload", showQuestion: true, showWeave: false, charged: false, reset: false });
     expect(reviewCaptureView({
       review: "good",
       busy: false,
@@ -183,5 +185,35 @@ describe("journey progress", () => {
       hasPhoto: true,
       hasCaption: false,
     })).toMatchObject({ progress: "good", showQuestion: true, showWeave: true });
+  });
+
+  it("shows the joy, photo, and description already kept when a step is opened again", () => {
+    expect(restoredJoyId("morning-sunlight", "just-this", "a-small-hello")).toBe("morning-sunlight");
+    expect(restoredJoyId(null, "just-this", "a-small-hello")).toBe("just-this");
+    expect(restoredJoyId(null, null, "a-small-hello")).toBe("a-small-hello");
+    expect(restoredJoyId("saved-joy-moments", null, "just-this")).toBe("just-this");
+    expect(restoredJoyId(null, null, null)).toBeNull();
+    expect(restoredMomentText({
+      currentCaption: "",
+      stashCaption: "Pre breakfast chocolate",
+      photoCaption: "other",
+    })).toBe("Pre breakfast chocolate");
+    expect(restoredMomentText({
+      currentCaption: "  ",
+      stashCaption: "",
+      photoCaption: "gold on the table",
+    })).toBe("gold on the table");
+    expect(restoredMomentText({
+      currentCaption: "kept on screen",
+      stashCaption: "stash",
+      photoCaption: "photo",
+    })).toBe("kept on screen");
+    const joy = readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8");
+    const capture = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
+    expect(joy).toMatch(/useLayoutEffect/);
+    expect(joy).toMatch(/restoredJoyId/);
+    expect(capture).toMatch(/restoredMomentText/);
+    expect(capture).toMatch(/restoredJoyId/);
+    expect(capture).toMatch(/keptMediaUrl/);
   });
 });
