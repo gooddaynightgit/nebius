@@ -860,7 +860,8 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/router\.push/);
     expect(joy).toMatch(/href="\/"/);
     expect(joy).toMatch(/STEP_LABEL\.start/);
-    expect(joy).toMatch(/STEP_LABEL\.photo/);
+    expect(joy).toMatch(/Unlock\/Capture/);
+    expect(joy).not.toMatch(/STEP_LABEL\.photo/);
     expect(joy).not.toMatch(/LANDING\.app\.uploadPhoto/);
     expect(joy).toMatch(/uploadPhotoDestination/);
     expect(joy).toMatch(/if \(!selectedJoy\) return/);
