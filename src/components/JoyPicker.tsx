@@ -111,11 +111,11 @@ export default function JoyPicker({
   return (
     <fieldset
       className={
-        unset
-          ? emptyAlert
+        promptWhenEmpty && !(unset && emptyAlert)
+          ? "joy-fieldset joy-fieldset--lime"
+          : unset && emptyAlert
             ? "joy-fieldset joy-fieldset--unset"
-            : "joy-fieldset joy-fieldset--lime"
-          : "joy-fieldset"
+            : "joy-fieldset"
       }
     >
       <legend className={legend ? "joy-legend" : "visually-hidden"}>{legend || "Pick your joy"}</legend>

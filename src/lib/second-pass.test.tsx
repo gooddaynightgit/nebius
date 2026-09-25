@@ -80,12 +80,16 @@ describe("second pass after a finished story", () => {
     expect(container.querySelector(".joy-fieldset--unset")).toBeTruthy();
     expect(container.querySelector("#joy-need")?.textContent).toContain("Pick the kind of quiet joy first.");
     expect(container.querySelector("#joy-need")?.className).toContain("step-nudge--alert");
+    const message = container.querySelector("#joy-need");
+    const back = container.querySelector(".step-back");
+    expect(back?.compareDocumentPosition(message!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(message?.compareDocumentPosition(uploadEarly) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await act(async () => {
       saved.click();
     });
     expect(saved.checked).toBe(true);
     expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
-    expect(container.querySelector(".joy-fieldset--lime")).toBeNull();
+    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
     expect(container.querySelector("#joy-need")).toBeNull();
     expect(container.textContent).not.toContain("Pick the kind of quiet joy first.");
     expect(assigned).toEqual(["/app/yours"]);
@@ -109,6 +113,7 @@ describe("second pass after a finished story", () => {
     const kept = container.querySelector('input[value="just-this"]') as HTMLInputElement;
     expect(savedAfter.checked).toBe(false);
     expect(kept.checked).toBe(true);
+    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
     expect(container.textContent).not.toContain("Pick the kind of quiet joy first.");
 
     const nextJoy = container.querySelector('input[value="morning-sunlight"]') as HTMLInputElement;

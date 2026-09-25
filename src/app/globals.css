@@ -1124,6 +1124,14 @@ body:has(.story-opening) .header-meta {
   border: 2px solid var(--lime);
 }
 
+.joy-fieldset--lime .joy__pick input:checked {
+  -webkit-appearance: auto;
+  appearance: auto;
+  border: 0;
+  background: transparent;
+  accent-color: var(--navy);
+}
+
 .joy-fieldset--unset .joy__pick input {
   border: 3px solid #d92d20;
 }
@@ -2075,6 +2083,11 @@ body:has(.story-opening) .header-meta {
 .step-nav--joy .step-next {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+.step-nav--joy .step-nudge--block {
+  flex: 1 1 100%;
+  margin: 0.1rem 0;
 }
 
 .step-back,

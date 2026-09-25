@@ -80,6 +80,15 @@ export default function JoyStudio() {
     };
   }, [day]);
 
+  useEffect(() => {
+    if (!joyMissed || !needsJoyPick || selectedJoy) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("joy-need")?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "center",
+    });
+  }, [joyMissed, needsJoyPick, selectedJoy]);
+
   function pickJoy(joy: JoyType) {
     setJoyMissed(false);
     chooseStoryJoy(joy.id, (joyId) => {
@@ -174,6 +183,11 @@ export default function JoyStudio() {
 
         <nav className="step-nav step-nav--joy" aria-label="Steps">
           <StepControl direction="back" href="/" label={STEP_LABEL.start} />
+          {joyMissed && needsJoyPick && !selectedJoy ? (
+            <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
+              {LANDING.app.joyNeed}
+            </p>
+          ) : null}
           <button
             className="step-next"
             type="button"
@@ -183,11 +197,6 @@ export default function JoyStudio() {
             Unlock/Capture
           </button>
         </nav>
-        {joyMissed && needsJoyPick && !selectedJoy ? (
-          <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
-            {LANDING.app.joyNeed}
-          </p>
-        ) : null}
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>
