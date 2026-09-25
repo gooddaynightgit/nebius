@@ -26,6 +26,7 @@ import {
   nextStoryOpeningIndex,
 } from "@/lib/story-opening";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
+import { useReportAppProgress } from "@/components/journey-gate";
 
 function PlayIcon() {
   return (
@@ -111,6 +112,7 @@ export default function YoursStory() {
   const readyBody = state.status === "ready" ? state.story.body : "";
   const readyPhotoId =
     state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
+  useReportAppProgress(state.status === "ready" ? "weaved" : "turn");
 
   const weaveYours = useCallback(async (): Promise<WeaveResult> => {
     const open = await fetch("/api/yours", {
