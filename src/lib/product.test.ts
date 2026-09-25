@@ -785,6 +785,13 @@ describe("landing", () => {
     expect(page).toMatch(/href="\/app\/joy"/);
     expect(page).toMatch(/STEP_LABEL\.start/);
     expect(page).toMatch(/className="step-next"/);
+    expect(page.indexOf("STEP_LABEL.start")).toBeLessThan(page.indexOf('className="landing-demo"'));
+    expect(page.indexOf('className="landing-demo"')).toBeLessThan(page.indexOf("closing-heading"));
+    expect(page).toMatch(/src="\/landing-demo\.mp4"/);
+    expect(page).toMatch(/poster="\/landing-demo-poster\.jpg"/);
+    expect(page).toMatch(/aria-label="Demo of weaving a good moment"/);
+    expect(page).not.toMatch(/\bcontrols\b/);
+    expect(styles).toMatch(/\.landing-demo[\s\S]*aspect-ratio:\s*720\s*\/\s*1198/);
     expect(page).not.toMatch(/CreateStoryButton/);
     expect(page).not.toMatch(/\/api\/auth/);
     expect(page).not.toMatch(/\/api\/payfast/);
