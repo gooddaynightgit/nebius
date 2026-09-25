@@ -2,15 +2,10 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { authAttempt, type AuthBody } from "@/lib/auth-note";
-import { readJson, readResponsePayload } from "@/lib/client-fetch";
+import { readResponsePayload } from "@/lib/client-fetch";
 import { followVerifiedLogin } from "@/lib/login-destination";
 import { PRIVACY_NOTE } from "@/lib/privacy";
-import { EMAIL_VERIFIED_NOTE, isSixDigitCode } from "@/lib/verify-code";
-
-type SessionPeek = {
-  email?: string | null;
-  otpVerified?: boolean;
-};
+import { isSixDigitCode } from "@/lib/verify-code";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,35 +18,15 @@ function emailOk(raw: string): boolean {
   return email.length > 3 && email.length < 254 && EMAIL_RE.test(email);
 }
 
-export default function MomentsCheckout() {
+export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [note, setNote] = useState<string | null>(null);
-  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const verifyLock = useRef(false);
   const autoTried = useRef("");
 
   const normalized = normalize(email);
-  const verified = Boolean(verifiedEmail && verifiedEmail === normalized && emailOk(normalized));
-
-  useEffect(() => {
-    let cancel = false;
-    void fetch("/api/session", { credentials: "same-origin" })
-      .then((res) => readJson<SessionPeek>(res))
-      .then((data) => {
-        if (cancel || !data.otpVerified || !data.email || !emailOk(data.email)) return;
-        const known = normalize(data.email);
-        setEmail(known);
-        setVerifiedEmail(known);
-      })
-      .catch(() => {
-        // Checkout still asks for a code when this session is not verified.
-      });
-    return () => {
-      cancel = true;
-    };
-  }, []);
 
   async function sendCode() {
     if (!emailOk(email)) {
@@ -68,7 +43,6 @@ export default function MomentsCheckout() {
         body: JSON.stringify({ email: normalized }),
       });
       const data = await readResponsePayload<AuthBody>(res);
-      if (verifiedEmail === normalized) setVerifiedEmail(null);
       setCode("");
       autoTried.current = "";
       setNote(authAttempt(data, res.ok, "We couldn’t send a code right now.").note);
@@ -80,9 +54,8 @@ export default function MomentsCheckout() {
   }
 
   async function verifyCode() {
-    if (verifyLock.current || verified) return;
+    if (verifyLock.current) return;
     if (!emailOk(email)) {
-      setVerifiedEmail(null);
       setNote("Enter a valid email.");
       return;
     }
@@ -98,24 +71,16 @@ export default function MomentsCheckout() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ email: normalized, code: code.trim(), mode: "checkout" }),
+        body: JSON.stringify({ email: normalized, code: code.trim() }),
       });
       const data = await readResponsePayload<AuthBody>(res);
       const attempt = authAttempt(data, res.ok, "That code didn’t work. Request a new one.");
       if (!attempt.accepted) {
-        setVerifiedEmail(null);
         setNote(attempt.note);
         return;
       }
-      const next = followVerifiedLogin(data.next);
-      if (next === "/app") {
-        window.location.assign(next);
-        return;
-      }
-      setVerifiedEmail(normalized);
-      setNote(EMAIL_VERIFIED_NOTE);
+      window.location.assign(followVerifiedLogin(data.next));
     } catch {
-      setVerifiedEmail(null);
       setNote("We couldn’t check that code right now.");
     } finally {
       verifyLock.current = false;
@@ -127,26 +92,25 @@ export default function MomentsCheckout() {
   verifyRef.current = verifyCode;
 
   useEffect(() => {
-    if (verified || !isSixDigitCode(code) || !emailOk(email)) return;
+    if (!isSixDigitCode(code) || !emailOk(email)) return;
     const key = `${normalized}:${code.trim()}`;
     if (autoTried.current === key) return;
     autoTried.current = key;
     void verifyRef.current();
-  }, [code, email, normalized, verified]);
+  }, [code, email, normalized]);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
-    if (verified) return;
     event.preventDefault();
     void verifyCode();
   }
 
   return (
-    <form className="moments-buy" method="post" action="/api/payfast/checkout" onSubmit={onSubmit}>
-      <label className="whisper-label" htmlFor="moments-email">
+    <form className="moments-buy" onSubmit={onSubmit}>
+      <label className="whisper-label" htmlFor="signin-email">
         Email
       </label>
       <input
-        id="moments-email"
+        id="signin-email"
         className="whisper"
         name="email"
         type="email"
@@ -163,11 +127,11 @@ export default function MomentsCheckout() {
       <button className="btn moments-code" type="button" disabled={busy} onClick={() => void sendCode()}>
         Email me a code
       </button>
-      <label className="whisper-label" htmlFor="moments-code">
+      <label className="whisper-label" htmlFor="signin-code">
         Code
       </label>
       <input
-        id="moments-code"
+        id="signin-code"
         className="whisper"
         type="text"
         inputMode="numeric"
@@ -179,20 +143,15 @@ export default function MomentsCheckout() {
           setNote(null);
         }}
       />
-      {verified ? null : (
-        <button className="btn btn--lime verify-code" type="button" disabled={busy} onClick={() => void verifyCode()}>
-          Verify code
-        </button>
-      )}
+      <button className="btn verify-code" type="button" disabled={busy} onClick={() => void verifyCode()}>
+        Verify code
+      </button>
       {note ? (
         <p className="moments-status" role="status">
           {note}
         </p>
       ) : null}
       <p className="privacy-note">{PRIVACY_NOTE}</p>
-      <button className="moments-cta" type="submit" disabled={!verified || busy}>
-        Start hunting — R450 ZAR / $28 USD
-      </button>
     </form>
   );
 }

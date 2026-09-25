@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import MomentsCheckout from "@/components/MomentsCheckout";
+import { isPersonalPhotoSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "40 good moments — GoodDayNight",
   description: "Several good moments. 40 good moments — R450 ZAR · $28 USD. Not an archive.",
 };
+
+export const dynamic = "force-dynamic";
 
 function queryValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
@@ -16,6 +20,8 @@ export default async function MomentsPage({
 }: {
   searchParams: Promise<{ paid?: string; cancelled?: string; ref?: string }>;
 }) {
+  if (!(await isPersonalPhotoSession())) redirect("/signin");
+
   const query = await searchParams;
   const paid = queryValue(query.paid) === "1";
   const cancelled = queryValue(query.cancelled) === "1";

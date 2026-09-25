@@ -88,7 +88,8 @@ describe("moments pack page", () => {
     const appPage = readFileSync(path.resolve("src/app/app/page.tsx"), "utf8");
     expect(appPage).toMatch(/dynamic = "force-dynamic"/);
     expect(appPage).toMatch(/isPersonalPhotoSession/);
-    expect(appPage).toMatch(/redirect\("\/moments"\)/);
+    expect(appPage).toMatch(/redirect\("\/signin"\)/);
+    expect(appPage).not.toMatch(/redirect\("\/moments"\)/);
     expect(appPage).not.toMatch(/signedIn=\{signedIn\}/);
     expect(capture).toMatch(/setCaptureOpen\(true\)/);
     expect(capture).not.toMatch(/const captureOpen = false/);
