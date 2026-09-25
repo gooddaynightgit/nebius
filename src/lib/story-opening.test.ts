@@ -59,7 +59,11 @@ describe("story opening status", () => {
     expect(silk).toMatch(/MAX_DPR = 1\.5/);
     expect(shader).toMatch(/fbm\(/);
     expect(shader).toMatch(/vec2 warp/);
+    expect(shader).toMatch(/addBlob\(/);
+    expect(shader).toMatch(/bloom/);
+    expect(shader).toMatch(/pulse/);
     expect(shader).toMatch(/pow\(ndh, 1[0-9][0-9]\.0\)/);
+    expect(silk).toMatch(/OES_standard_derivatives/);
     expect(shader).toMatch(/#C9B6F2/);
     expect(shader).toMatch(/#F4B8E4/);
     expect(shader).toMatch(/#A98BF0/);

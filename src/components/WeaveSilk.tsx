@@ -36,7 +36,7 @@ export function WeaveSilk() {
       stencil: false,
       powerPreference: "low-power",
     });
-    if (!gl) {
+    if (!gl || !gl.getExtension("OES_standard_derivatives")) {
       setStill(true);
       return;
     }
