@@ -616,20 +616,19 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.3;
 }
 
-/* Finished story card only. Soft wash: yellow, pink, lavender, sky, mint. */
+/* Finished story card only. Bright yellow on the left, Nebius tones in the centre, sky to mint on the right. */
 #yours.card--lavender {
   color: var(--navy);
-  background-color: #d0f0fd;
+  background-color: #e6e3fd;
   background-image:
-    radial-gradient(58% 46% at 0% 0%, #fff1a0 0%, rgba(255, 241, 160, 0.4) 34%, rgba(255, 241, 160, 0) 70%),
-    radial-gradient(52% 40% at 0% 30%, #fddde8 0%, rgba(253, 221, 232, 0) 72%),
-    radial-gradient(56% 42% at 2% 50%, #eee2fa 0%, rgba(238, 226, 250, 0) 74%),
-    radial-gradient(70% 52% at 0% 100%, #dfefff 0%, rgba(223, 239, 255, 0) 76%),
+    radial-gradient(88% 130% at 0% 40%, #ffe45c 0%, #ffe45c 24%, #ffea7a 40%, rgba(255, 234, 122, 0) 62%),
+    radial-gradient(55% 72% at 44% 46%, #e6e3fd 0%, rgba(230, 227, 253, 0) 72%),
+    radial-gradient(42% 58% at 50% 54%, #f1d0fe 0%, rgba(241, 208, 254, 0) 70%),
+    radial-gradient(26% 34% at 48% 50%, #cdb4fd 0%, rgba(205, 180, 253, 0) 66%),
     radial-gradient(62% 70% at 100% 0%, #bfeefe 0%, rgba(191, 238, 254, 0) 78%),
     radial-gradient(48% 78% at 100% 42%, #beedff 0%, rgba(190, 237, 255, 0) 80%),
     radial-gradient(68% 56% at 100% 100%, #b9f9df 0%, rgba(185, 249, 223, 0) 74%),
-    radial-gradient(90% 55% at 48% 0%, #ccf2ff 0%, rgba(204, 242, 255, 0) 80%),
-    linear-gradient(180deg, #d8ecff 0%, #d0f0fd 46%, #e3ebfe 100%);
+    linear-gradient(100deg, #ffe45c 0%, #ffea7a 22%, #e6e3fd 42%, #f1d0fe 56%, #bfeefe 78%, #b9f9df 100%);
 }
 
 /* Processing lines: lavender, green, then amber and the peach card. Navy stays readable. */
