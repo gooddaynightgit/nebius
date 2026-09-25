@@ -45,7 +45,7 @@ describe("journey progress", () => {
       "Unlock your good moments",
       "Capture it",
       "What is the good in this moment?",
-      "Turn my moment",
+      "Weave my good moment",
       "My good moment weaved",
     ]);
     expect(JOURNEY_FINISHED_CAPTION).toBe("My good moment weaved");
