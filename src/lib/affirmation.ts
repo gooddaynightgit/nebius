@@ -1,6 +1,6 @@
 import { toFirstPersonStory } from "./first-person";
 
-/** Eight closes. Straight apostrophe, en dash with spaces. One is saved on each new keepsake. */
+/** Ten closes. Same apostrophe as "It's", en dash with spaces on the first eight. One is saved on each new keepsake. */
 export const KEEPSAKE_CLOSING_LINES = [
   "I love this moment. It's beautiful \u2013 the joy and awe of being.",
   "I treasure this moment. It's radiant \u2013 the wonder and delight of being.",
@@ -10,6 +10,8 @@ export const KEEPSAKE_CLOSING_LINES = [
   "I embrace this moment. It's breathtaking \u2013 the joy and awe of simply being.",
   "I savour this moment. It's exquisite \u2013 the delight and wonder of being.",
   "I love this moment. It's gorgeous \u2013 the quiet joy and awe of being.",
+  "Something in this moment lights up heaven in me.",
+  "I'm so glad you found me, you beautiful moment.",
 ] as const;
 
 const OLD_AFFIRMATION =

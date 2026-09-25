@@ -250,6 +250,11 @@ function shieldFixedPhrases(text: string): { text: string; slots: string[] } {
   }
 
   shielded = shielded.replace(/\bthank[ -]you\b/gi, (match) => keep(match));
+  // This close speaks to the moment as "you". Leave that address as written.
+  shielded = shielded.replace(
+    /I['’]m so glad you found me, you beautiful moment\./gi,
+    (match) => keep(match),
+  );
   return { text: shielded, slots };
 }
 
