@@ -7,7 +7,7 @@ export const JOURNEY_STEPS = [
   { label: "Unlock your good moments" },
   { label: "Capture it" },
   { label: "What is the good in this moment?" },
-  { label: "Turn my moment" },
+  { label: "Weave my good moment" },
   { label: JOURNEY_FINISHED_CAPTION },
 ] as const;
 
@@ -40,7 +40,7 @@ export function normalizeJourneyPath(pathname: string): string {
  * 1-based step for the shared progress bar, or null when the route is not part of the flow.
  * On `/app`, Unlock stays current until the buyer gate is open, except a PayFast return
  * (`paid=1`) which is already the photo step. After that, the photo page moves to the
- * good-in-this-moment question, then to Turn my moment while the story is weaving.
+ * good-in-this-moment question, then to Weave my good moment while the story is weaving.
  * The last dot stays empty until `/app/yours` is showing a woven story.
  * `/signin` is the same Unlock step: email only, before the price.
  * Cancelled checkout stays on `/moments`.

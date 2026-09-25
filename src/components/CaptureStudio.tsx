@@ -94,6 +94,7 @@ export default function CaptureStudio() {
   const takeInputId = useId();
   const uploadInputId = useId();
   const captionId = useId();
+  const captionRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const takeInputRef = useRef<HTMLInputElement | null>(null);
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -109,6 +110,7 @@ export default function CaptureStudio() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
+  const [captionMissed, setCaptionMissed] = useState(false);
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
   const [joyError, setJoyError] = useState<string | null>(null);
@@ -583,6 +585,15 @@ export default function CaptureStudio() {
 
   async function saveMoment(event: FormEvent) {
     event.preventDefault();
+    if (!caption.trim()) {
+      setCaptionMissed(true);
+      const field = captionRef.current;
+      field?.focus({ preventScroll: true });
+      field?.scrollIntoView({ block: "center", inline: "nearest" });
+      return;
+    }
+    setCaptionMissed(false);
+    const kept = captionDisposition(caption);
     const joy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
     const pending = await readPendingPhoto(day);
     const existingStash = await readCaptureStash(day);
@@ -600,7 +611,6 @@ export default function CaptureStudio() {
       return;
     }
     if (!sparkAnswer) return;
-    const kept = captionDisposition(caption);
     if (!kept.caption) return;
     setBusy(true);
     setCaptureError(null);
@@ -875,18 +885,27 @@ export default function CaptureStudio() {
               <p className="caption-help">{LANDING.app.captionHelp}</p>
               <input
                 id={captionId}
-                className="whisper"
+                ref={captionRef}
+                className={captionMissed ? "whisper whisper--alert" : "whisper"}
                 type="text"
                 maxLength={WHISPER_MAX}
                 autoComplete="off"
                 placeholder={LANDING.app.captionExamples}
-                required
                 aria-required="true"
+                aria-invalid={captionMissed || undefined}
+                aria-describedby={captionMissed ? "caption-need" : undefined}
                 value={caption}
-                onChange={(event) =>
-                  setCaption(event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX))
-                }
+                onChange={(event) => {
+                  const next = event.target.value.replace(/[\r\n]+/g, " ").slice(0, WHISPER_MAX);
+                  setCaption(next);
+                  if (next.trim()) setCaptionMissed(false);
+                }}
               />
+              {captionMissed ? (
+                <p className="whisper-nudge" id="caption-need" role="alert">
+                  A gentle nudge: type the good in this moment first.
+                </p>
+              ) : null}
               <p className="whisper-count">
                 {caption.length}/{WHISPER_MAX}
               </p>
@@ -908,14 +927,14 @@ export default function CaptureStudio() {
           ) : null}
 
           {questionOpen ? (
-            <section className="card card--aqua card--compact" aria-label="Turn my moment">
+            <section className="card card--aqua card--compact" aria-label="Weave my good moment">
               <button
                 className="btn btn--turn"
                 type="submit"
-                disabled={busy || !caption.trim()}
+                disabled={busy}
                 aria-busy={busy}
               >
-                {busy ? "Turning your moment…" : "Turn my moment"}
+                {busy ? "Weaving your good moment…" : "Weave my good moment"}
               </button>
               {turnError ? (
                 <p className="error" role="alert">

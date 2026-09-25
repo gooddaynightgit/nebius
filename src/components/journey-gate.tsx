@@ -41,7 +41,7 @@ export function useReportBuyerGate(passed: boolean, ready: boolean) {
   }, [report, passed, ready]);
 }
 
-/** Moves the photo page from upload, to the good-in-this-moment question, to Turn my moment. */
+/** Moves the photo page from upload, to the good-in-this-moment question, to Weave my good moment. */
 export function useReportAppProgress(progress: AppProgress) {
   const report = useContext(ReportAppProgressContext);
   useEffect(() => {

@@ -438,6 +438,12 @@ body:has(.journey) .skip-link:focus {
   border: 1.5px solid rgba(22, 50, 74, 0.28);
 }
 
+#caption-box .whisper.whisper--alert,
+#caption-box .whisper.whisper--alert:hover,
+#caption-box .whisper.whisper--alert:focus {
+  border: 3px solid #d92d20;
+}
+
 #caption-box .whisper-label,
 #caption-box .caption-help,
 #caption-box .whisper-count {
@@ -657,6 +663,14 @@ body:has(.journey) .skip-link:focus {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 650;
+}
+
+.whisper-nudge {
+  margin: 0.45rem 0 0.15rem;
+  color: #d92d20;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .caption-help {
@@ -1433,23 +1447,24 @@ body:has(.story-opening) .header-meta {
 }
 
 .btn--turn {
-  background: #9ed4d4;
-  border-color: #8ec8c8;
-  color: var(--navy);
+  border: 2px solid var(--navy);
+  background: var(--navy);
+  color: var(--lime);
+  font-weight: 800;
 }
 
 .btn--turn:hover:not(:disabled) {
-  background: #8bc8c8;
-  border-color: #7ababa;
-  color: var(--navy);
+  background: #0e2436;
+  border-color: #0e2436;
+  color: var(--lime);
 }
 
 .btn--turn:disabled,
 .btn--turn:disabled:hover {
-  background: #e4f3f3;
-  border-color: #d5e8e8;
-  color: rgba(22, 50, 74, 0.38);
-  opacity: 1;
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--lime);
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
