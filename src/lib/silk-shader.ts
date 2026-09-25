@@ -80,27 +80,24 @@ void addBlob(
   inout float field, inout vec3 tint, inout float weight, inout vec3 bloom, inout float bloomW
 ) {
   float travel = fract(phase + t / dur);
-  float fade = smoothstep(0.0, 0.14, travel) * (1.0 - smoothstep(0.84, 1.0, travel));
-  float x = clamp(xBias + 0.14 * sin(t / sway + phase * 6.28318), 0.06, 0.94);
+  float fade = smoothstep(0.0, 0.28, travel) * (1.0 - smoothstep(0.72, 1.0, travel));
+  float x = xBias + 0.12 * sin(t / sway + phase * 6.28318);
   float y = travel;
-  float ang = 0.68 + 0.16 * sin(t / (swell * 1.7) + phase * 3.0);
+  float ang = 0.62 + 0.22 * sin(t / (swell * 1.8) + phase * 2.4);
   float ca = cos(ang);
   float sa = sin(ang);
-  vec2 delta = uv - vec2(x, y);
-  vec2 fold = mat2(ca, -sa, sa, ca) * delta;
-  float across = fold.x / max((0.16 + 0.03 * sin(t / swell + phase)) * scale, 0.07);
-  float along = fold.y / max((0.92 + 0.16 * sin(t / (swell * 1.2))) * scale, 0.32);
-  float q = across * across + along * along;
-  float reach = clamp(1.0 - sqrt(q), 0.0, 1.0);
-  float core = fade * reach * reach * (3.0 - 2.0 * reach);
-  float haloReach = clamp(1.0 - sqrt(q) * 0.72, 0.0, 1.0);
-  float pulse = 0.7 + 0.3 * sin(t * 0.74 + phase * 6.28318);
-  float wide = fade * pulse * haloReach * haloReach;
-  vec3 emit = mix(ink, pearlWhite(), glowBoost * reach * reach * 0.72);
+  vec2 fold = mat2(ca, -sa, sa, ca) * (uv - vec2(x, y));
+  float ax = (0.14 + 0.025 * sin(t / swell + phase)) * scale;
+  float ay = (0.62 + 0.08 * sin(t / (swell * 1.25) + phase)) * scale;
+  float q = (fold.x * fold.x) / (ax * ax) + (fold.y * fold.y) / (ay * ay);
+  float pulse = 0.72 + 0.28 * sin(t * 0.74 + phase * 6.28318);
+  float core = fade * exp(-q * 2.2);
+  float wide = fade * pulse * exp(-q * 0.42);
+  vec3 emit = mix(ink, pearlWhite(), glowBoost * exp(-q * 2.4) * 0.55);
   field += core;
   tint += ink * core;
   weight += core;
-  bloom += emit * wide * (0.7 + glowBoost);
+  bloom += emit * wide * (0.65 + glowBoost);
   bloomW += wide;
 }
 
@@ -110,12 +107,12 @@ void blobs(vec2 uv, float t, out float field, out vec3 tint, out float weight, o
   weight = 0.0;
   bloom = vec3(0.0);
   bloomW = 0.0;
-  addBlob(uv, t, 0.12, 15.4, 19.5, 9.2, mix(pearlWhite(), pearl(), 0.28), 1.0, 0.56, 1.02, field, tint, weight, bloom, bloomW);
-  addBlob(uv, t, 0.46, 13.8, 16.2, 8.4, mix(yellow(), gold(), 0.45), 0.82, 0.78, 1.05, field, tint, weight, bloom, bloomW);
-  addBlob(uv, t, 0.7, 17.2, 21.4, 10.8, aqua(), 0.38, 0.46, 1.16, field, tint, weight, bloom, bloomW);
-  addBlob(uv, t, 0.33, 14.6, 18.8, 7.9, sky(), 0.42, 0.24, 1.08, field, tint, weight, bloom, bloomW);
-  addBlob(uv, t, 0.88, 16.8, 13.4, 11.1, pink(), 0.34, 0.84, 1.0, field, tint, weight, bloom, bloomW);
-  addBlob(uv, t, 0.58, 12.8, 22.6, 9.6, lilac(), 0.2, 0.18, 0.86, field, tint, weight, bloom, bloomW);
+  addBlob(uv, t, 0.16, 15.2, 19.0, 9.4, mix(pearlWhite(), pearl(), 0.15), 0.9, 0.58, 1.0, field, tint, weight, bloom, bloomW);
+  addBlob(uv, t, 0.48, 14.4, 16.8, 8.6, mix(yellow(), gold(), 0.35), 0.75, 0.86, 0.78, field, tint, weight, bloom, bloomW);
+  addBlob(uv, t, 0.72, 17.6, 21.0, 10.6, aqua(), 0.22, 0.4, 1.38, field, tint, weight, bloom, bloomW);
+  addBlob(uv, t, 0.34, 13.2, 18.4, 8.1, sky(), 0.26, 0.18, 1.28, field, tint, weight, bloom, bloomW);
+  addBlob(uv, t, 0.88, 16.4, 13.6, 11.2, pink(), 0.24, 0.74, 1.34, field, tint, weight, bloom, bloomW);
+  addBlob(uv, t, 0.6, 12.6, 22.2, 9.8, lilac(), 0.12, 0.28, 0.84, field, tint, weight, bloom, bloomW);
 }
 
 void main() {
@@ -136,12 +133,12 @@ void main() {
   vec3 halo = bloom;
   float haloW = bloomW;
 
-  float dome = clamp(field, 0.0, 1.2) / 1.2;
-  float h = clamp(pow(dome, 1.05) * 0.8 + silk * 0.16, 0.0, 1.0);
+  float dome = field / (field + 0.55);
+  float h = clamp(0.22 + dome * 0.48 + (silk - 0.4) * 0.9, 0.0, 1.0);
   float dx = dFdx(h) * uRes.x;
   float dy = dFdy(h) * uRes.y;
   float slope = length(vec2(dx, dy));
-  vec3 n = normalize(vec3(-dx, -dy, 0.4));
+  vec3 n = normalize(vec3(-dx * 2.1, -dy * 2.1, 0.46));
 
   vec3 light = normalize(vec3(-0.22, 0.48, 0.85));
   vec3 halfV = normalize(light + vec3(0.0, 0.0, 1.0));
@@ -152,24 +149,22 @@ void main() {
   float fres = pow(1.0 - clamp(n.z, 0.0, 1.0), 1.65);
   float ridge = smoothstep(0.45, 1.6, slope) * (1.0 - smoothstep(2.4, 4.0, slope));
 
-  vec3 base = weight > 0.02 ? tint / weight : mix(sky(), aqua(), 0.55);
-  float lit = mix(0.8, 1.04, smoothstep(0.02, 0.8, ndl));
-  vec3 col = min(base * lit, vec3(1.0));
-  col = mix(col, mix(base, pearlWhite(), 0.16), satin * 0.12);
+  vec3 base = tint / max(weight, 0.0001);
+  float shade = smoothstep(0.0, 0.88, ndl);
+  vec3 col = mix(base * 0.78, min(base * 1.05, vec3(1.0)), shade);
+  col = mix(col, mix(base, pearlWhite(), 0.2), satin * 0.28);
 
-  vec3 glow = halo / max(haloW, 0.001);
+  vec3 glow = halo / max(haloW, 0.0001);
   float breathe = 0.78 + 0.22 * sin(t * 0.72);
-  float haloAmt = clamp(bloomW * 0.85, 0.0, 1.0);
-  col = mix(col, min(glow * (0.92 + 0.14 * breathe), vec3(1.0)), haloAmt * smoothstep(0.12, 0.55, dome) * 0.3);
-  float crest = max(ridge, smoothstep(0.7, 2.4, slope) * gloss);
-  float filmU = clamp(fres * 1.35 + n.x * 0.28 - n.y * 0.08, 0.0, 1.0);
-  vec3 rim = mix(pink(), yellow(), smoothstep(0.0, 0.4, filmU));
-  rim = mix(rim, aqua(), smoothstep(0.28, 0.72, filmU));
-  rim = mix(rim, pearlWhite(), smoothstep(0.58, 1.0, filmU) * 0.4);
-  col = mix(col, rim, crest * 0.62);
-  col += mix(pearlWhite(), yellow(), 0.46) * crest * 0.55;
-  float valley = smoothstep(0.28, 0.02, dome) + smoothstep(0.34, 0.0, ndl);
-  col = mix(col, crease(), clamp(valley, 0.0, 1.0) * 0.8);
+  col = mix(col, glow, smoothstep(0.15, 0.85, bloomW) * breathe * 0.22);
+  float crest = smoothstep(0.35, 1.15, slope) * (0.25 + 0.75 * gloss);
+  float filmU = clamp(0.15 + fres * 0.9 + n.x * 0.25, 0.0, 1.0);
+  vec3 rim = mix(pink(), yellow(), smoothstep(0.05, 0.48, filmU));
+  rim = mix(rim, aqua(), smoothstep(0.38, 0.82, filmU));
+  col = mix(col, rim, smoothstep(0.12, 0.7, fres) * crest * 0.55);
+  col += mix(pearlWhite(), yellow(), 0.4) * (gloss * 0.9 + satin * 0.12 + ridge * 0.15);
+  float trough = smoothstep(0.48, 0.2, h) * smoothstep(0.55, 0.12, ndl);
+  col = mix(col, crease(), trough * 0.55);
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
