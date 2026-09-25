@@ -297,6 +297,10 @@ body:has(.journey) .skip-link:focus {
   overflow-wrap: break-word;
 }
 
+.signin-keep {
+  white-space: nowrap;
+}
+
 .signin-card .moments-buy {
   box-sizing: border-box;
   width: 100%;

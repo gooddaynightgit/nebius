@@ -42,9 +42,10 @@ describe("email-only sign-in screen", () => {
     expect(page).toMatch(/SignInForm/);
     expect(page).toContain("Your moment.");
     expect(page).toContain("Your moment — GoodDayNight");
-    expect(page).toContain(
-      "Enter your email and we'll send a 6-digit code. No password, no account — your moments stay tied to you.",
-    );
+    expect(page).toContain("Enter your email and we'll send a ");
+    expect(page).toContain('<span className="signin-keep">6-digit</span>');
+    expect(page).toContain(" code. No password, no account — your moments stay tied to you.");
+    expect(read("src/app/globals.css")).toMatch(/\.signin-keep\s*\{[^}]*white-space:\s*nowrap/);
     expect(page).not.toContain(">Sign in<");
     expect(page).toMatch(/destinationForVerifiedEmail/);
     expect(page).not.toMatch(/R450|\$28|Start hunting|moments-cta/);

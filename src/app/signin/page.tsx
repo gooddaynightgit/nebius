@@ -30,7 +30,7 @@ export default async function SignInPage() {
         <section className="signin-card" aria-labelledby="signin-heading">
           <h1 id="signin-heading">Your moment.</h1>
           <p className="signin-subline">
-            Enter your email and we'll send a 6-digit code. No password, no account — your moments stay tied to you.
+            Enter your email and we'll send a <span className="signin-keep">6-digit</span> code. No password, no account — your moments stay tied to you.
           </p>
           <SignInForm />
         </section>
