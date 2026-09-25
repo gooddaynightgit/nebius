@@ -10,6 +10,11 @@ describe("moments pack page", () => {
   const privacy = readFileSync(path.resolve("src/lib/privacy.ts"), "utf8");
 
   it("states the wound, the nots, the offer, and a path into the app", () => {
+    expect(page).toContain("Your good moments are waiting.");
+    expect(page).toContain(
+      "To capture one, begin your hunt below. Every photo you take becomes a story that's yours to keep.",
+    );
+    expect(page.indexOf("moments-waiting")).toBeLessThan(page.indexOf("moments-price"));
     expect(page).toContain("The good in your own day dies unnoticed — every single night.");
     expect(page).toContain("Anyone can take a photo.");
     expect(page).toContain("GoodDayNight makes you notice what it was.");

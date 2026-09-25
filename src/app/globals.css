@@ -216,6 +216,45 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.35;
 }
 
+.moments-waiting {
+  margin: 0 0 0.9rem;
+  padding: 1.35rem 1.3rem 1.45rem;
+  border-radius: var(--radius);
+  color: var(--navy);
+  background:
+    linear-gradient(165deg, rgba(212, 255, 0, 0.42) 0%, rgba(255, 255, 255, 0.92) 38%, #f7f8fb 100%);
+  box-shadow: 0 0.55rem 1.4rem rgba(22, 50, 74, 0.06);
+}
+
+.moments-waiting::before {
+  content: "";
+  display: block;
+  width: 2.6rem;
+  height: 0.38rem;
+  margin-bottom: 0.9rem;
+  border-radius: 999px;
+  background: var(--lime);
+}
+
+.moments-waiting h2 {
+  margin: 0 0 0.55rem;
+  max-width: 14ch;
+  color: var(--navy);
+  font-size: clamp(1.55rem, 6.4vw, 1.95rem);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.12;
+}
+
+.moments-waiting p {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--navy);
+  font-size: 1.05rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
 .signin-card {
   min-height: 0;
   margin: 0 0 0.9rem;

@@ -63,6 +63,10 @@ describe("email-only sign-in screen", () => {
     expect(checkout).not.toMatch(/<input/);
     expect(checkout).not.toMatch(/Email me a code|Verify code|PRIVACY_NOTE|EMAIL_VERIFIED_NOTE/);
     expect(moments).not.toMatch(/type="email"/);
+    expect(moments).toContain("Your good moments are waiting.");
+    expect(moments).toContain(
+      "To capture one, begin your hunt below. Every photo you take becomes a story that's yours to keep.",
+    );
     expect(verify).toMatch(/destinationForVerifiedEmail/);
     expect(verify).not.toMatch(/mode === "checkout"/);
     expect(verify.indexOf("setOtpSession")).toBeLessThan(verify.indexOf("destinationForVerifiedEmail"));
