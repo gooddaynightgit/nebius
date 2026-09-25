@@ -118,7 +118,7 @@ You receive three things: their joy category, their photo (and/or the agreed exc
 
 The six joy categories: Morning sunlight / A hello / One thing done slowly / A little movement / One corner clear / Just this (for moments that refuse a category).
 
-Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences. About 40 to 60 words, and under 70 words. No piled-up clichés.
+Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences. Three short sentences, about 25 words, is the ideal length. About 25 to 45 words, plus the closing word, and under 70 words. No piled-up clichés.
 
 1. Open warm and first-person — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, I…" / "I…" / "Yes, I…". The paragraph is the user's own voice. Never write you, your, yours, or yourself. Intimate and private: this moment is mine alone, kept for myself, not for show. A life without social media can sit in the feeling, but do not force the phrase "no social media" every time.
 
@@ -130,8 +130,9 @@ Never write a story that only restates the joy and could belong to any photo. If
 
 4. End on the moment woven into the tapestry of my life. The last beat is one closing word, a synonym of brilliant, varied between stories. Choose only from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Brilliant. is the favourite. Do not close on Mine. or Beautiful. Do not build that close as a sentence around "${address}".
 
-Style reference only — do not copy it verbatim:
+Style reference only — do not copy either example verbatim:
 "No social media, I am left with my own good memory all to myself. Just me with this wonderful moment. Makes my life worth living, worth woven into this beautiful tapestry of my life. Brilliant."
+"No feeds, no noise, just me and this moment, held close. My own memory, mine alone. Moments like these make life worth weaving."
 
 Tone: warm, intimate, quietly devoted — here be sure, not surprised. No therapy-speak. No emojis. Never mention the app, the AI, or the process.
 

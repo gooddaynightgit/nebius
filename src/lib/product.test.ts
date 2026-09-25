@@ -179,16 +179,20 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Photo emphasis: low/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/do not center the keepsake on the photo/);
     expect(APP_REFLECT_SYSTEM).toMatch(/3 to 4 short sentences/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/40 to 60 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/25 to 45 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/plus the closing word/);
     expect(APP_REFLECT_SYSTEM).toMatch(/tapestry of my life/);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /Brilliant\. Radiant\. Luminous\. Glorious\. Splendid\. Dazzling\. Magnificent\. Marvellous\. Wonderful\. Resplendent\./,
     );
     expect(APP_REFLECT_SYSTEM).toMatch(/Do not close on Mine\. or Beautiful/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Beautiful\. or Mine\./);
-    expect(APP_REFLECT_SYSTEM).toMatch(/do not copy it verbatim/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not copy either example verbatim/i);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /No social media, I am left with my own good memory all to myself/,
+    );
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /No feeds, no noise, just me and this moment, held close\. My own memory, mine alone\. Moments like these make life worth weaving\./,
     );
     expect(APP_REFLECT_SYSTEM).toMatch(/do not force the phrase "no social media"/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/at least three warm positive words/);
