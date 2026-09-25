@@ -115,7 +115,8 @@ export default function YoursStory() {
   const requestedStory = searchParams.get("story") || "";
   const requestedMoment = searchParams.get("moment") || "";
   const readyStoryId = state.status === "ready" ? state.story.id : "";
-  const readyBody = state.status === "ready" ? displayKeepsakeText(state.story.body) : "";
+  const readyBody =
+    state.status === "ready" ? displayKeepsakeText(state.story.body, state.story.id) : "";
   const weaved = splitKeepsakeClosing(readyBody);
   const readyPhotoId =
     state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
@@ -326,7 +327,7 @@ export default function YoursStory() {
       audio.onended = () => setPlaying(false);
       return;
     }
-    const spokenBody = displayKeepsakeText(record.body);
+    const spokenBody = displayKeepsakeText(record.body, record.id);
     const spokenTitle = displayStoryText(record.title);
     const spoken = spokenTitle ? `${spokenTitle}. ${spokenBody}` : spokenBody;
     const utterance = new SpeechSynthesisUtterance(spoken);
@@ -350,7 +351,10 @@ export default function YoursStory() {
       let blob = cardBlobRef.current;
       if (!blob) {
         const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
-        blob = await composeKeepCardJpeg({ photo, story: displayKeepsakeText(state.story.body) });
+        blob = await composeKeepCardJpeg({
+          photo,
+          story: displayKeepsakeText(state.story.body, state.story.id),
+        });
         cardBlobRef.current = blob;
       }
       const result = await shareOrDownloadKeepCard({

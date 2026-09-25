@@ -601,9 +601,10 @@ describe("ingest and weave fallbacks", () => {
     expect(story.title).toBe("");
     expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
-    expect(story.body.endsWith("\n\nI love this moment. It's beautiful \u2013 the joy and awe of being.")).toBe(
-      true,
-    );
+    const { KEEPSAKE_CLOSING_LINES } = await import("./affirmation");
+    expect(
+      KEEPSAKE_CLOSING_LINES.some((line) => story.body.endsWith(`\n\n${line}`)),
+    ).toBe(true);
     expect(story.mock).toBe(true);
     expect(story.excavateModel).toBe("mock-excavation");
   });
