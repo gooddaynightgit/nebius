@@ -41,7 +41,9 @@ describe("moments worth noticing", () => {
     expect(panel?.id).toBe(button?.getAttribute("aria-controls"));
     expect(panel?.hasAttribute("hidden")).toBe(true);
     expect(container.querySelectorAll(".noticing__panel li")).toHaveLength(LANDING.app.noticing.length);
-    expect(container.textContent).toContain(LANDING.app.noticingClose);
+    expect(container.querySelector(".noticing__close")).toBeNull();
+    expect(container.textContent).not.toContain("already gone");
+    expect(container.textContent).toContain("Nothing happening — and it feeling like peace");
     expect(container.textContent).toContain("Rain on the roof while you’re warm inside");
 
     await act(async () => {

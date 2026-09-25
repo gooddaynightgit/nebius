@@ -55,8 +55,6 @@ export const LANDING = {
       "Being forgiven",
       "Nothing happening — and it feeling like peace",
     ],
-    noticingClose:
-      "One of these happens to you almost every day. Most nights, it’s already gone.",
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     yours: "My good moment weaved",
