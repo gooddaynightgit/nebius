@@ -1,4 +1,5 @@
-export const JOURNEY_STEP_COUNT = 6;
+/** Caption under a finished story, and the last dot on the bar. */
+export const JOURNEY_FINISHED_CAPTION = "My good moment weaved";
 
 export const JOURNEY_STEPS = [
   { label: "Turn your moment" },
@@ -7,10 +8,10 @@ export const JOURNEY_STEPS = [
   { label: "Capture it" },
   { label: "What is the good in this moment?" },
   { label: "Turn my moment" },
+  { label: JOURNEY_FINISHED_CAPTION },
 ] as const;
 
-/** Caption under a finished story. Not a seventh dot. */
-export const JOURNEY_FINISHED_CAPTION = "My good moment weaved";
+export const JOURNEY_STEP_COUNT = JOURNEY_STEPS.length;
 
 /** Same words as the bar, for the step buttons. */
 export const STEP_LABEL = {
@@ -22,8 +23,8 @@ export const STEP_LABEL = {
   turn: JOURNEY_STEPS[5].label,
 } as const;
 
-/** Where the photo page is within its three steps, after Unlock. */
-export type AppProgress = "upload" | "good" | "turn";
+/** Where the photo page is within its steps, after Unlock. `weaved` is the finished story. */
+export type AppProgress = "upload" | "good" | "turn" | "weaved";
 
 export type BuyerGate = "unknown" | "locked" | "open";
 
@@ -40,6 +41,7 @@ export function normalizeJourneyPath(pathname: string): string {
  * On `/app`, Unlock stays current until the buyer gate is open, except a PayFast return
  * (`paid=1`) which is already the photo step. After that, the photo page moves to the
  * good-in-this-moment question, then to Turn my moment while the story is weaving.
+ * The last dot stays empty until `/app/yours` is showing a woven story.
  * Cancelled checkout stays on `/moments`.
  */
 export function journeyStep(
@@ -52,7 +54,9 @@ export function journeyStep(
   if (path === "/") return 1;
   if (path === "/app/joy") return 2;
   if (path === "/moments") return 3;
-  if (path === "/app/yours") return JOURNEY_STEP_COUNT + 1;
+  if (path === "/app/yours") {
+    return appProgress === "weaved" ? JOURNEY_STEP_COUNT + 1 : 6;
+  }
   if (path === "/app") {
     const onPhoto = search.get("paid") === "1" || gate === "open";
     if (!onPhoto) return 3;

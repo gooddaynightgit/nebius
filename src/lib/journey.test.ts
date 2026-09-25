@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { JOURNEY_FINISHED_CAPTION, JOURNEY_STEPS, journeyFillPercent, journeyStep } from "./journey";
 import { LANDING } from "./landing";
@@ -12,7 +14,9 @@ describe("journey progress", () => {
     expect(journeyStep("/app/joy", search(""), "locked")).toBe(2);
     expect(journeyStep("/moments", search(""), "open")).toBe(3);
     expect(journeyStep("/moments/", search("cancelled=1"), "unknown")).toBe(3);
-    expect(journeyStep("/app/yours", search(""), "locked")).toBe(7);
+    expect(journeyStep("/app/yours", search(""), "locked")).toBe(6);
+    expect(journeyStep("/app/yours", search(""), "open", "turn")).toBe(6);
+    expect(journeyStep("/app/yours", search(""), "open", "weaved")).toBe(8);
     expect(journeyStep("/api/session", search(""), "open")).toBeNull();
     expect(journeyStep("/health", search(""), "open")).toBeNull();
   });
@@ -32,7 +36,7 @@ describe("journey progress", () => {
     expect(journeyStep("/moments", search("cancelled=1"), "open")).toBe(3);
   });
 
-  it("names six steps and captions a finished story without a seventh dot", () => {
+  it("names seven steps and ticks every dot only once the story is weaved", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
       "Turn your moment",
       "Pick your joy",
@@ -40,19 +44,40 @@ describe("journey progress", () => {
       "Capture it",
       "What is the good in this moment?",
       "Turn my moment",
+      "My good moment weaved",
     ]);
     expect(JOURNEY_FINISHED_CAPTION).toBe("My good moment weaved");
     expect(LANDING.app.yours).toBe(JOURNEY_FINISHED_CAPTION);
-    expect(journeyStep("/app/yours", search(""), "open")).toBe(7);
-    expect(journeyFillPercent(7)).toBe(100);
+    expect(JOURNEY_STEPS).toHaveLength(7);
+    expect(journeyStep("/app/yours", search(""), "open")).toBe(6);
+    expect(journeyStep("/app", search(""), "open", "turn")).toBe(6);
+    expect(journeyStep("/app/yours", search(""), "open", "weaved")).toBe(8);
+    expect(journeyFillPercent(8)).toBe(100);
   });
 
   it("fills the track only through completed steps", () => {
     expect(journeyFillPercent(1)).toBe(0);
-    expect(journeyFillPercent(2)).toBe((1 / 5) * 100);
-    expect(journeyFillPercent(3)).toBe((2 / 5) * 100);
-    expect(journeyFillPercent(4)).toBe((3 / 5) * 100);
-    expect(journeyFillPercent(5)).toBe((4 / 5) * 100);
-    expect(journeyFillPercent(6)).toBe(100);
+    expect(journeyFillPercent(2)).toBe((1 / 6) * 100);
+    expect(journeyFillPercent(3)).toBe((2 / 6) * 100);
+    expect(journeyFillPercent(4)).toBe((3 / 6) * 100);
+    expect(journeyFillPercent(5)).toBe((4 / 6) * 100);
+    expect(journeyFillPercent(6)).toBe((5 / 6) * 100);
+    expect(journeyFillPercent(7)).toBe(100);
+    expect(journeyFillPercent(8)).toBe(100);
+  });
+
+  it("spaces seven dots and paints only the finished story card", () => {
+    const css = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
+    expect(css).toMatch(/grid-template-columns:\s*repeat\(7,\s*minmax\(0,\s*1fr\)\)/);
+    expect(css).toMatch(/calc\(100% \/ 14\)/);
+    expect(css).toMatch(/#yours\.card--lavender[\s\S]*?#ffe6b5/);
+    expect(css).toMatch(/#f8c9d8/);
+    expect(css).toMatch(/#d7e3fc/);
+    expect(css).toMatch(/#c5f3e2/);
+    const plain = css.match(/\.card--lavender \{[^}]+\}/)?.[0] ?? "";
+    expect(plain).toMatch(/#ebe7fb/);
+    expect(plain).not.toMatch(/#ffe6b5/);
+    expect(yours).toMatch(/useReportAppProgress\(state\.status === "ready" \? "weaved" : "turn"\)/);
   });
 });
