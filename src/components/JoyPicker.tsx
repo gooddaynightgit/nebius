@@ -47,6 +47,10 @@ type JoyPickerProps = {
   playbackLead?: string;
   /** Joy page uses the dark Nebius-style card. Landing stays plain. */
   playbackVariant?: "plain" | "weaved";
+  /** Joy page only: mark every radio while nothing in this group is chosen. */
+  promptWhenEmpty?: boolean;
+  /** Fires when the empty-prompt state changes. Joy page colours its helper from this. */
+  onEmptyChange?: (empty: boolean) => void;
 };
 
 export default function JoyPicker({
@@ -62,15 +66,23 @@ export default function JoyPicker({
   playbackEyebrow = LANDING.moment.playbackExample,
   playbackLead,
   playbackVariant = "plain",
+  promptWhenEmpty = false,
+  onEmptyChange,
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
   const [trailingOpen, setTrailingOpen] = useState(false);
   const selected = selectedId === undefined ? internalId : selectedId;
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const unset = promptWhenEmpty && !selected && !trailingOpen;
 
   useEffect(() => {
     setTrailingOpen(false);
   }, [resetSignal]);
+
+  useEffect(() => {
+    if (!promptWhenEmpty) return;
+    onEmptyChange?.(unset);
+  }, [promptWhenEmpty, unset, onEmptyChange]);
 
   useEffect(() => {
     if (!selected || !panelRef.current) return;
@@ -94,7 +106,7 @@ export default function JoyPicker({
   }
 
   return (
-    <fieldset className="joy-fieldset">
+    <fieldset className={unset ? "joy-fieldset joy-fieldset--unset" : "joy-fieldset"}>
       <legend className={legend ? "joy-legend" : "visually-hidden"}>{legend || "Pick your joy"}</legend>
       <div className="joy-list">
         {joys.map((joy) => {

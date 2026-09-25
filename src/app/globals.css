@@ -1112,6 +1112,14 @@ body:has(.story-opening) .header-meta {
   flex: 0 0 auto;
 }
 
+/* Joy page only, while nothing in the group is chosen. Same circle, red ring. */
+.joy-fieldset--unset .joy__pick input {
+  appearance: none;
+  border: 2px solid #d92d20;
+  border-radius: 50%;
+  background: #fff;
+}
+
 .joy__copy {
   display: grid;
   gap: 0.18rem;
@@ -2220,6 +2228,10 @@ body:has(.story-opening) .header-meta {
   width: 100%;
   max-width: none;
   margin: 0 0 0.9rem;
+}
+
+.step-nudge.step-nudge--alert {
+  color: #d92d20;
 }
 
 
