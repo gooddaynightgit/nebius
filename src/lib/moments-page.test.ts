@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { PRIVACY_NOTE } from "@/lib/privacy";
 
 describe("moments pack page", () => {
   const page = readFileSync(path.resolve("src/app/moments/page.tsx"), "utf8");
@@ -40,9 +41,11 @@ describe("moments pack page", () => {
     expect(checkout).toMatch(/\/api\/auth\/verify/);
     expect(checkout).toMatch(/mode: "checkout"/);
     expect(checkout).toMatch(/PRIVACY_NOTE/);
-    expect(privacy).toContain(
-      "Your email is only for signing you in and keeping your moments yours. We do not use your photos or words to train AI. They stay personal — for your security and privacy, not for anyone else’s model.",
+    expect(PRIVACY_NOTE).toBe(
+      "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.",
     );
+    const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(styles).toMatch(/\.privacy-note\s*\{[^}]*white-space:\s*pre-line;/);
     expect(privacy).toContain(
       "Email keeps your moments yours. Your photos and words are never used to train AI.",
     );
@@ -68,6 +71,13 @@ describe("moments pack page", () => {
     expect(capture).toMatch(/mode: "buyer"/);
     expect(capture).toMatch(/session\?\.otpVerified/);
     expect(capture).toMatch(/PRIVACY_NOTE/);
+    expect(capture).toMatch(/const showBuyerEmail = !signedIn && !emailDismissed/);
+    expect(capture).not.toMatch(/setBuyerOpen\(true\)/);
+    expect(capture).not.toMatch(/hydrated && buyerOpen/);
+    const appPage = readFileSync(path.resolve("src/app/app/page.tsx"), "utf8");
+    expect(appPage).toMatch(/dynamic = "force-dynamic"/);
+    expect(appPage).toMatch(/isPersonalPhotoSession/);
+    expect(appPage).toMatch(/signedIn=\{signedIn\}/);
     expect(capture).toMatch(/setCaptureOpen\(true\)/);
     expect(capture).not.toMatch(/const captureOpen = false/);
     expect(capture).toContain("You’re in. Take or upload today’s moment.");

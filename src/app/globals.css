@@ -223,6 +223,7 @@ body:has(.journey) .skip-link:focus {
   font-size: 0.92rem;
   font-weight: 550;
   line-height: 1.45;
+  white-space: pre-line;
 }
 
 .moments-code {

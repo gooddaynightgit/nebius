@@ -77,11 +77,16 @@ export async function readOtpSession(): Promise<{ email: string } | null> {
   return openOtpCookie(raw, Math.floor(Date.now() / 1000), secret);
 }
 
-/** Personal-photo routes. Joy picks do not call this. A bare gdn_em cookie is not enough. */
-export async function requirePersonalPhotoOtp() {
+/** Same signed-in check as personal-photo routes: matching gdn_otp and gdn_em cookies. */
+export async function isPersonalPhotoSession(): Promise<boolean> {
   const otp = await readOtpSession();
   const gate = await readGateEmail();
-  if (!otp || !gate || otp.email !== gate) {
+  return Boolean(otp && gate && otp.email === gate);
+}
+
+/** Personal-photo routes. Joy picks do not call this. A bare gdn_em cookie is not enough. */
+export async function requirePersonalPhotoOtp() {
+  if (!(await isPersonalPhotoSession())) {
     return unauthorized("Verify your email to open personal photos.");
   }
   return null;
