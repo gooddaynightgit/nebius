@@ -4,7 +4,7 @@ export const JOURNEY_FINISHED_CAPTION = "My good moment weaved";
 export const JOURNEY_STEPS = [
   { label: "Weave your good moment" },
   { label: "Pick your joy" },
-  { label: "Unlock" },
+  { label: "Unlock your good moments" },
   { label: "Capture it" },
   { label: "What is the good in this moment?" },
   { label: "Turn my moment" },
@@ -42,6 +42,7 @@ export function normalizeJourneyPath(pathname: string): string {
  * (`paid=1`) which is already the photo step. After that, the photo page moves to the
  * good-in-this-moment question, then to Turn my moment while the story is weaving.
  * The last dot stays empty until `/app/yours` is showing a woven story.
+ * `/signin` is the same Unlock step: email only, before the price.
  * Cancelled checkout stays on `/moments`.
  */
 export function journeyStep(
@@ -53,7 +54,7 @@ export function journeyStep(
   const path = normalizeJourneyPath(pathname);
   if (path === "/") return 1;
   if (path === "/app/joy") return 2;
-  if (path === "/moments") return 3;
+  if (path === "/moments" || path === "/signin") return 3;
   if (path === "/app/yours") {
     return appProgress === "weaved" ? JOURNEY_STEP_COUNT + 1 : 6;
   }

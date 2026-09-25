@@ -9,38 +9,40 @@ describe("moments pack page", () => {
   const capture = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
   const privacy = readFileSync(path.resolve("src/lib/privacy.ts"), "utf8");
 
-  it("states the wound, the nots, the offer, and a path into the app", () => {
-    expect(page).toContain("The good in your own day dies unnoticed — every single night.");
-    expect(page).toContain("Anyone can take a photo.");
-    expect(page).toContain("GoodDayNight makes you notice what it was.");
-    expect(page).toContain("an archive of your life");
-    expect(page).toContain("another writing chore");
-    expect(page).toContain("moods, streaks, or charts");
-    expect(page).toContain("a performance for anyone else");
-    expect(page).toContain("several good moments — noticed, and kept so you can look back.");
-    expect(page).toContain("Share only if you want a card to keep. The habit of seeing stays.");
-    expect(page).toContain("40 good moments —");
-    expect(page).toContain("R450 ZAR · $28 USD");
+  it("shows the silk pay box and nothing from the old poster stack", () => {
+    expect(page).toContain("Every good moment weaved adds to the rich tapestry of life");
+    expect(page).toContain("Unlock 40 good moments weaved for");
+    expect(page).toContain(">R450<");
+    expect(page).toContain("ZAR / $28");
+    expect(page).toContain("/weave-silk-1.webp");
+    expect(page).toContain("/weave-silk-1.jpg");
+    expect(page).toMatch(/moments-glass/);
+    expect(page).not.toContain("Your good moments are waiting.");
+    expect(page).not.toContain("The good in your own day dies unnoticed");
+    expect(page).not.toContain("Anyone can take a photo.");
+    expect(page).not.toContain("an archive of your life");
+    expect(page).not.toContain("another writing chore");
+    expect(page).not.toContain("moods, streaks, or charts");
+    expect(page).not.toContain("a performance for anyone else");
+    expect(page).not.toContain("Something good is about to happen!");
     expect(page).not.toContain("5.00");
     expect(page).not.toMatch(/R5(?!0)/);
-    expect(page).toContain("Each moment: one photo upload → Create your story.");
-    expect(page).not.toMatch(/Upload uses a moment/);
-    expect(page).not.toMatch(/Replay and Share/);
-    expect(checkout).toContain("Start hunting — R450 ZAR / $28 USD");
-    expect(page).not.toMatch(/R450(?! ZAR)/);
-    expect(page).toContain("40 moments. Yours to find — the finding changes you.");
     expect(page).not.toMatch(/\$29/);
     expect(page).not.toMatch(/27\.80/);
-    expect(page).toContain("Something good is about to happen!");
-    expect(page).toContain("gooddaynight.com");
+    expect(checkout).toMatch(/>\s*Unlock\s*</);
+    expect(checkout).not.toContain("Start hunting");
     expect(page).toMatch(/MomentsCheckout/);
     expect(checkout).toMatch(/action="\/api\/payfast\/checkout"/);
     expect(checkout).toMatch(/method="post"/);
-    expect(checkout).toMatch(/name="email"/);
-    expect(checkout).toMatch(/\/api\/auth\/request/);
-    expect(checkout).toMatch(/\/api\/auth\/verify/);
-    expect(checkout).toMatch(/mode: "checkout"/);
-    expect(checkout).toMatch(/PRIVACY_NOTE/);
+    expect(checkout).not.toMatch(/type="email"/);
+    expect(checkout).not.toMatch(/<input/);
+    expect(checkout).not.toMatch(/Email me a code/);
+    expect(checkout).not.toMatch(/Verify code/);
+    expect(checkout).not.toMatch(/PRIVACY_NOTE/);
+    expect(checkout).not.toMatch(/disabled/);
+    expect(page).not.toMatch(/type="email"/);
+    expect(page).not.toMatch(/Email me a code/);
+    expect(page).not.toMatch(/Verify code/);
     expect(PRIVACY_NOTE).toBe(
       "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.",
     );
@@ -49,10 +51,11 @@ describe("moments pack page", () => {
     expect(privacy).toContain(
       "Email keeps your moments yours. Your photos and words are never used to train AI.",
     );
-    expect(checkout).toMatch(/className="btn moments-code"/);
-    expect(checkout).toMatch(/Verify code/);
-    expect(checkout).toMatch(/EMAIL_VERIFIED_NOTE/);
-    expect(checkout).toMatch(/isSixDigitCode\(code\)/);
+    const signin = readFileSync(path.resolve("src/components/SignInForm.tsx"), "utf8");
+    expect(signin).toMatch(/className="btn moments-code"/);
+    expect(signin).toMatch(/Verify code/);
+    expect(signin).toMatch(/isSixDigitCode\(code\)/);
+    expect(checkout).not.toMatch(/EMAIL_VERIFIED_NOTE/);
     expect(capture).not.toMatch(/Verify code/);
     expect(capture).not.toMatch(/EMAIL_VERIFIED_NOTE/);
     expect(capture).not.toMatch(/buyer-email/);
@@ -65,7 +68,6 @@ describe("moments pack page", () => {
     expect(checkout).toMatch(/<button className="moments-cta"/);
     expect(page).not.toMatch(/<Link className="moments-cta"/);
     expect(checkout).not.toMatch(/<Link className="moments-cta"/);
-    expect(page).toMatch(/href="\/app"/);
     expect(page).not.toMatch(/stripe/i);
     expect(page).not.toMatch(/one hunt at a time/i);
     expect(page).not.toMatch(/Morning sunlight/);
@@ -88,7 +90,8 @@ describe("moments pack page", () => {
     const appPage = readFileSync(path.resolve("src/app/app/page.tsx"), "utf8");
     expect(appPage).toMatch(/dynamic = "force-dynamic"/);
     expect(appPage).toMatch(/isPersonalPhotoSession/);
-    expect(appPage).toMatch(/redirect\("\/moments"\)/);
+    expect(appPage).toMatch(/redirect\("\/signin"\)/);
+    expect(appPage).not.toMatch(/redirect\("\/moments"\)/);
     expect(appPage).not.toMatch(/signedIn=\{signedIn\}/);
     expect(capture).toMatch(/setCaptureOpen\(true\)/);
     expect(capture).not.toMatch(/const captureOpen = false/);

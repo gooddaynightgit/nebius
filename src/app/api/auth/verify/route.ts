@@ -2,6 +2,7 @@ import { isValidEmail, normalizeEmail } from "@/lib/identity";
 import { badRequest, json } from "@/lib/http";
 import { VERIFY_FAIL, otpTable, verifyOtp } from "@/lib/otp";
 import { setOtpSession } from "@/lib/session";
+import { destinationForVerifiedEmail } from "@/lib/verified-destination";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -30,6 +31,6 @@ export async function POST(request: Request) {
   const signed = await setOtpSession(email);
   if (!signed) return json({ error: "Sign-in isn’t available right now." }, 503);
 
-  const next = body?.mode === "checkout" ? "checkout" : "app";
+  const next = await destinationForVerifiedEmail(email);
   return json({ ok: true, next });
 }

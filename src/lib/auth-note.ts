@@ -2,6 +2,8 @@ export type AuthBody = {
   ok?: boolean;
   message?: string;
   error?: string;
+  /** Server path after a verified code: `/app` or `/moments`. */
+  next?: string;
 };
 
 /**

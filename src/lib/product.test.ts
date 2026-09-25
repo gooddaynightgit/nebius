@@ -1020,10 +1020,14 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/Optional caption/);
     expect(src).toMatch(/captionDisposition/);
     expect(src).toMatch(/LANDING\.footer\.somethingGood/);
-    expect(src).toMatch(/LANDING\.footer\.lookingForward/);
-    expect(src).toMatch(/LANDING\.footer\.hello/);
-    expect(src).toMatch(/mailto:/);
-    expect(src).not.toMatch(/LANDING\.footer\.site/);
+    expect(src).not.toMatch(/LANDING\.footer\.lookingForward/);
+    expect(src).not.toMatch(/LANDING\.footer\.hello/);
+    expect(src).not.toMatch(/mailto:/);
+    expect(src).not.toMatch(/hello@/);
+    expect(src).not.toMatch(/type="email"/);
+    expect(src).not.toMatch(/PRIVACY_NOTE/);
+    expect(src).not.toMatch(/Email me a code/);
+    expect(src).toMatch(/LANDING\.footer\.site/);
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
     expect(src).toMatch(/explainClientFetchError/);
     expect(joy).toMatch(/id="joy-pick"/);

@@ -940,9 +940,8 @@ export default function CaptureStudio() {
       </main>
 
       <footer className="site-footer">
-        <p>{LANDING.footer.lookingForward}</p>
         <p>
-          <a href={`mailto:${LANDING.footer.hello}`}>{LANDING.footer.hello}</a>
+          <Link href="/">{LANDING.footer.site}</Link>
         </p>
       </footer>
     </div>
