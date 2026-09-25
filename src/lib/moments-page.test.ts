@@ -36,11 +36,15 @@ describe("moments pack page", () => {
     expect(page).toMatch(/MomentsCheckout/);
     expect(checkout).toMatch(/action="\/api\/payfast\/checkout"/);
     expect(checkout).toMatch(/method="post"/);
-    expect(checkout).toMatch(/name="email"/);
-    expect(checkout).toMatch(/\/api\/auth\/request/);
-    expect(checkout).toMatch(/\/api\/auth\/verify/);
-    expect(checkout).toMatch(/mode: "checkout"/);
-    expect(checkout).toMatch(/PRIVACY_NOTE/);
+    expect(checkout).not.toMatch(/type="email"/);
+    expect(checkout).not.toMatch(/<input/);
+    expect(checkout).not.toMatch(/Email me a code/);
+    expect(checkout).not.toMatch(/Verify code/);
+    expect(checkout).not.toMatch(/PRIVACY_NOTE/);
+    expect(checkout).not.toMatch(/disabled/);
+    expect(page).not.toMatch(/type="email"/);
+    expect(page).not.toMatch(/Email me a code/);
+    expect(page).not.toMatch(/Verify code/);
     expect(PRIVACY_NOTE).toBe(
       "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.",
     );
@@ -49,10 +53,11 @@ describe("moments pack page", () => {
     expect(privacy).toContain(
       "Email keeps your moments yours. Your photos and words are never used to train AI.",
     );
-    expect(checkout).toMatch(/className="btn moments-code"/);
-    expect(checkout).toMatch(/Verify code/);
-    expect(checkout).toMatch(/EMAIL_VERIFIED_NOTE/);
-    expect(checkout).toMatch(/isSixDigitCode\(code\)/);
+    const signin = readFileSync(path.resolve("src/components/SignInForm.tsx"), "utf8");
+    expect(signin).toMatch(/className="btn moments-code"/);
+    expect(signin).toMatch(/Verify code/);
+    expect(signin).toMatch(/isSixDigitCode\(code\)/);
+    expect(checkout).not.toMatch(/EMAIL_VERIFIED_NOTE/);
     expect(capture).not.toMatch(/Verify code/);
     expect(capture).not.toMatch(/EMAIL_VERIFIED_NOTE/);
     expect(capture).not.toMatch(/buyer-email/);

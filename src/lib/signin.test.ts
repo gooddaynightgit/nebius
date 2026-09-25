@@ -58,6 +58,11 @@ describe("email-only sign-in screen", () => {
     expect(moments).toMatch(/redirect\("\/signin"\)/);
     expect(moments).toMatch(/R450 ZAR/);
     expect(moments).toMatch(/MomentsCheckout/);
+    const checkout = read("src/components/MomentsCheckout.tsx");
+    expect(checkout).not.toMatch(/type="email"/);
+    expect(checkout).not.toMatch(/<input/);
+    expect(checkout).not.toMatch(/Email me a code|Verify code|PRIVACY_NOTE|EMAIL_VERIFIED_NOTE/);
+    expect(moments).not.toMatch(/type="email"/);
     expect(verify).toMatch(/destinationForVerifiedEmail/);
     expect(verify).not.toMatch(/mode === "checkout"/);
     expect(verify.indexOf("setOtpSession")).toBeLessThan(verify.indexOf("destinationForVerifiedEmail"));

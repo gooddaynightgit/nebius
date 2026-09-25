@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isValidEmail, normalizeEmail } from "@/lib/identity";
+import { normalizeEmail } from "@/lib/identity";
 import { otpAllowsEmail } from "@/lib/otp-session";
 import { checkoutHealth, createCheckout, escapeHtml } from "@/lib/payfast";
 import { readOtpSession } from "@/lib/session";
@@ -16,9 +16,9 @@ export async function GET() {
 export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
   const asJson = contentType.includes("application/json");
-  const email = normalizeEmail(await readEmail(request, asJson));
-  if (!isValidEmail(email)) return errorResponse("Enter a valid email.", 400, asJson);
-  if (!otpAllowsEmail(await readOtpSession(), email)) {
+  const otp = await readOtpSession();
+  const email = normalizeEmail(otp?.email ?? "");
+  if (!otpAllowsEmail(otp, email)) {
     return errorResponse("Verify the code we emailed you before checkout.", 403, asJson);
   }
   const result = createCheckout(email);
@@ -30,15 +30,6 @@ export async function POST(request: Request) {
       ...noStore,
     },
   });
-}
-
-async function readEmail(request: Request, asJson: boolean): Promise<string> {
-  if (asJson) {
-    const body = (await request.json().catch(() => null)) as { email?: string } | null;
-    return body?.email ?? "";
-  }
-  const form = await request.formData();
-  return String(form.get("email") ?? "");
 }
 
 function errorResponse(message: string, status: number, asJson: boolean): NextResponse {

@@ -106,8 +106,7 @@ export default async function MomentsPage({
           </p>
           {paid ? (
             <p className="moments-status" role="status">
-              Payfast sent you back. Verify the code on this page, then continue on the{" "}
-              <Link href="/app">photo page</Link>.
+              Payfast sent you back. Continue on the <Link href="/app">photo page</Link>.
             </p>
           ) : null}
           {cancelled ? (
