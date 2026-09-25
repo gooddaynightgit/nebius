@@ -133,7 +133,7 @@ async function stillFromVideo(file: File): Promise<File> {
   }
 }
 
-export default function CaptureStudio({ initialSignedIn = false }: { initialSignedIn?: boolean }) {
+export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname();
   const takeInputId = useId();
   const uploadInputId = useId();
@@ -172,8 +172,8 @@ export default function CaptureStudio({ initialSignedIn = false }: { initialSign
   const [answeredGeneration, setAnsweredGeneration] = useState<number | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
 
-  const [buyerOpen, setBuyerOpen] = useState(!initialSignedIn);
-  const [resign, setResign] = useState(false);
+  const [emailDismissed, setEmailDismissed] = useState(false);
+  const showBuyerEmail = !signedIn && !emailDismissed;
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerCode, setBuyerCode] = useState("");
   const [buyerNote, setBuyerNote] = useState<string | null>(null);
@@ -201,23 +201,14 @@ export default function CaptureStudio({ initialSignedIn = false }: { initialSign
   useReportBuyerGate(captureOpen, hydrated);
   useReportAppProgress(busy ? "turn" : questionOpen ? "good" : "upload");
   useEffect(() => {
-    if (buyerOpen) buyerInputRef.current?.focus();
-  }, [buyerOpen]);
-
-  useEffect(() => {
-    if (!session) return;
-    if (session.otpVerified && captureOpen) {
-      setBuyerOpen(false);
-      return;
-    }
-    if (!session.otpVerified) setBuyerOpen(true);
-  }, [session, captureOpen]);
+    if (showBuyerEmail) buyerInputRef.current?.focus();
+  }, [showBuyerEmail]);
 
   function applyEntitlement(result: EntitlementLookup) {
     const signedIn = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
     if (photoButtonsEnabled(signedIn, result === "open" ? 1 : 0)) {
       setCaptureOpen(true);
-      setBuyerOpen(false);
+      setEmailDismissed(true);
       return;
     }
     setCaptureOpen(false);
@@ -328,11 +319,10 @@ export default function CaptureStudio({ initialSignedIn = false }: { initialSign
     } catch {
       // This page can still take a photo. The next save reads the email cookie.
     }
+    setEmailDismissed(true);
     const result = await lookupEntitlement(email);
     if (result === "open") {
       setCaptureOpen(true);
-      setBuyerOpen(false);
-      setResign(false);
       setBuyerNote("You’re in. Take or upload today’s moment.");
       return;
     }
@@ -372,7 +362,6 @@ export default function CaptureStudio({ initialSignedIn = false }: { initialSign
     }
     setSession(sessionData);
     savedPhotoIdRef.current = sessionData.todayPhoto?.id ?? null;
-    if (!sessionData.otpVerified) setBuyerOpen(true);
     let stash: Awaited<ReturnType<typeof readCaptureStash>>;
     let pendingMoment: Awaited<ReturnType<typeof readPendingMoment>>;
     try {
@@ -834,8 +823,6 @@ export default function CaptureStudio({ initialSignedIn = false }: { initialSign
     };
     reader.readAsDataURL(current);
   }
-
-  const showBuyerEmail = buyerOpen && (!session?.otpVerified || resign);
 
   return (
     <div className="page">
