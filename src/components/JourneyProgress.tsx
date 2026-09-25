@@ -69,9 +69,16 @@ export function JourneyBar({ step }: { step: number }) {
             })}
           </ol>
         </div>
-        <p className="journey__now" aria-hidden="true">
-          {caption}
-        </p>
+        <div className={finished ? "journey__captions journey__captions--finished" : "journey__captions"}>
+          <p className="journey__now" aria-hidden="true">
+            {caption}
+          </p>
+          {finished ? null : (
+            <p className="journey__end" aria-hidden="true">
+              {JOURNEY_FINISHED_CAPTION}
+            </p>
+          )}
+        </div>
       </div>
     </nav>
   );
