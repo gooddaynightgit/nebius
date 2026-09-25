@@ -27,6 +27,7 @@ import {
 } from "@/lib/story-opening";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
 import { useReportAppProgress } from "@/components/journey-gate";
+import { WeaveSilk } from "@/components/WeaveSilk";
 
 function PlayIcon() {
   return (
@@ -60,7 +61,8 @@ export function StoryOpeningStatus() {
       data-line={index}
       aria-live="polite"
     >
-      <p className="card__body" role="status">
+      <WeaveSilk />
+      <p className="card__body silk-frost" role="status">
         {STORY_OPENING_LINES[index]}
       </p>
     </section>
@@ -407,7 +409,7 @@ export default function YoursStory() {
             {cardUrl ? (
               <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
             ) : cardError ? (
-              <p className="card__body">{LANDING.app.keepFailed}</p>
+              <p className="card__body silk-frost">{LANDING.app.keepFailed}</p>
             ) : null}
             <div className="actions" style={{ marginTop: "1rem" }}>
               <button
@@ -448,7 +450,7 @@ export default function YoursStory() {
               ) : null}
             </div>
             {state.earlier.length ? (
-              <nav id="earlier-stories" className="earlier-stories" aria-label="Earlier stories">
+              <nav id="earlier-stories" className="earlier-stories silk-frost" aria-label="Earlier stories">
                 <h2>Earlier stories</h2>
                 <ul>
                   {state.earlier.map((item) => (

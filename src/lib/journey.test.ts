@@ -71,18 +71,16 @@ describe("journey progress", () => {
     const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
     expect(css).toMatch(/grid-template-columns:\s*repeat\(7,\s*minmax\(0,\s*1fr\)\)/);
     expect(css).toMatch(/calc\(100% \/ 14\)/);
-    expect(css).toMatch(/#yours\.card--lavender[\s\S]*?#ffe45c/);
-    expect(css).toMatch(/#ffea7a/);
-    expect(css).toMatch(/#e6e3fd/);
-    expect(css).toMatch(/#f1d0fe/);
-    expect(css).toMatch(/#cdb4fd/);
-    expect(css).toMatch(/#bfeefe/);
-    expect(css).toMatch(/#beedff/);
-    expect(css).toMatch(/#b9f9df/);
-    expect(css).not.toMatch(/#fff1a0|#fddde8|#eee2fa|#dfefff|#fedfd7|#fee1d6|#a5fad1|#8eeaf2/);
+    const finished =
+      css.match(/#yours\.card--lavender,\s*\.card\.story-opening \{[^}]+\}/)?.[0] ?? "";
+    expect(finished).toMatch(/weave-silk\.webp/);
+    expect(finished).toMatch(/weave-silk\.jpg/);
+    expect(finished).toMatch(/background-size:\s*cover/);
+    expect(finished).toMatch(/background-position:\s*center/);
+    expect(finished).not.toMatch(/#ffe45c|#ffea7a|#bfeefe|#b9f9df/);
     const plain = css.match(/\.card--lavender \{[^}]+\}/)?.[0] ?? "";
     expect(plain).toMatch(/#ebe7fb/);
-    expect(plain).not.toMatch(/#ffe45c/);
+    expect(plain).not.toMatch(/weave-silk/);
     const bar = readFileSync(path.resolve("src/components/JourneyProgress.tsx"), "utf8");
     expect(bar).toMatch(/className="journey__end"/);
     expect(bar).toMatch(/finished \? null/);

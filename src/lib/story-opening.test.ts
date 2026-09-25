@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -40,18 +40,26 @@ describe("story opening status", () => {
     );
   });
 
-  it("paints each line from lavender through green to warm, and snaps when motion is reduced", () => {
+  it("holds the silk still behind readable text, and flows it only while weaving", () => {
     const css = readFileSync(path.resolve("src/app/globals.css"), "utf8");
     const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
+    const silk = readFileSync(path.resolve("src/components/WeaveSilk.tsx"), "utf8");
     expect(yours).toMatch(/data-line=\{index\}/);
     expect(yours).toMatch(/story-opening/);
-    const block = css.match(/\.card\.story-opening \{[\s\S]*?prefers-reduced-motion: reduce\) \{\s*\.card\.story-opening \{\s*transition: none;\s*\}/)?.[0];
-    expect(block).toBeTruthy();
-    const colors = [...block!.matchAll(/data-line="(\d)"\] \{\s*background-color: (#[0-9a-f]+);/g)].map(
-      (match) => match[2],
-    );
-    expect(colors).toEqual(["#ebe7fb", "#e7f6ea", "#d7f3e4", "#ffe7b0", "#f8ead6"]);
-    expect(block).toMatch(/transition: background-color 1\.96s var\(--ease\)/);
-    expect(block).toMatch(/color: var\(--navy\)/);
+    expect(yours).toMatch(/<WeaveSilk \/>/);
+    expect(yours).toMatch(/className="card__body silk-frost"/);
+    expect(silk).toMatch(/baseFrequency="0.005"/);
+    expect(silk).toMatch(/numOctaves="2"/);
+    expect(silk).toMatch(/values="0.004;0.0075;0.004"/);
+    expect(silk).toMatch(/feDisplacementMap[\s\S]*scale="32"/);
+    expect(css).toMatch(/background-size:\s*cover/);
+    expect(css).toMatch(/background-position:\s*center/);
+    expect(css).toMatch(/rgba\(255,\s*255,\s*255,\s*0\.66\)/);
+    expect(css).toMatch(/backdrop-filter:\s*blur\(14px\)/);
+    expect(css).toMatch(/weave-silk-pan 26s ease-in-out infinite alternate/);
+    expect(css).toMatch(/@supports \(-webkit-touch-callout: none\)[\s\S]*?filter:\s*none/);
+    expect(css).toMatch(/prefers-reduced-motion: reduce\) \{\s*\.weave-silk--flow \{\s*display: none;\s*\}/);
+    expect(statSync(path.resolve("public/weave-silk.webp")).size).toBeLessThan(300 * 1024);
+    expect(statSync(path.resolve("public/weave-silk.jpg")).size).toBeLessThan(300 * 1024);
   });
 });
