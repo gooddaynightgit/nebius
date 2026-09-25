@@ -36,6 +36,11 @@ describe("email otp gates", () => {
     expect(read("src/app/api/auth/request/route.ts")).not.toMatch(/code: issued/);
     expect(read("src/app/api/auth/verify/route.ts")).toMatch(/verifyOtp/);
     expect(read("src/app/api/auth/verify/route.ts")).toMatch(/setOtpSession/);
+    const returning = read("src/app/api/auth/return/route.ts");
+    expect(returning).toMatch(/openBuyerHandoff/);
+    expect(returning).toMatch(/setOtpSession/);
+    expect(returning).not.toMatch(/searchParams\.get\("email"\)/);
+    expect(read("src/lib/payfast.ts")).toMatch(/buyerReturnUrl/);
     expect(read("src/lib/entitlement.ts")).toMatch(/goodfans/);
     expect(read("src/lib/entitlement.ts")).not.toMatch(/putJSON|getJSON|sleepcoachfans/);
     expect(read("src/lib/fans.ts")).toMatch(/FANS_TABLE/);

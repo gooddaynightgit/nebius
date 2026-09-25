@@ -14,7 +14,8 @@ import {
 } from "react";
 import { captionDisposition } from "@/lib/app-capture";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
-import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
+import { authAttempt, type AuthBody } from "@/lib/auth-note";
+import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson, readResponsePayload } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import { PRIVACY_NOTE } from "@/lib/privacy";
@@ -272,8 +273,8 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
         credentials: "same-origin",
         body: JSON.stringify({ email }),
       });
-      const data = await readJson<{ message?: string; error?: string }>(res);
-      setBuyerNote(data.message || data.error || "We couldn’t send a code right now.");
+      const data = await readResponsePayload<AuthBody>(res);
+      setBuyerNote(authAttempt(data, res.ok, "We couldn’t send a code right now.").note);
     } catch {
       setBuyerNote("We couldn’t send a code right now.");
     } finally {
@@ -302,10 +303,11 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
         credentials: "same-origin",
         body: JSON.stringify({ email, code: buyerCode.trim(), mode: "buyer" }),
       });
-      const data = await readJson<{ ok?: boolean; message?: string; error?: string }>(res);
-      if (!res.ok || !data.ok) {
+      const data = await readResponsePayload<AuthBody>(res);
+      const attempt = authAttempt(data, res.ok, "That code didn’t work. Request a new one.");
+      if (!attempt.accepted) {
         setCaptureOpen(false);
-        setBuyerNote(data.message || data.error || "That code didn’t work. Request a new one.");
+        setBuyerNote(attempt.note);
         return;
       }
     } catch {

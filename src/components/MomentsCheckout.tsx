@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { readJson } from "@/lib/client-fetch";
+import { authAttempt, type AuthBody } from "@/lib/auth-note";
+import { readJson, readResponsePayload } from "@/lib/client-fetch";
 import { PRIVACY_NOTE } from "@/lib/privacy";
 
 type SessionPeek = {
@@ -62,9 +63,9 @@ export default function MomentsCheckout() {
         credentials: "same-origin",
         body: JSON.stringify({ email: normalized }),
       });
-      const data = await readJson<{ message?: string; error?: string }>(res);
+      const data = await readResponsePayload<AuthBody>(res);
       if (verifiedEmail === normalized) setVerifiedEmail(null);
-      setNote(data.message || data.error || "We couldn’t send a code right now.");
+      setNote(authAttempt(data, res.ok, "We couldn’t send a code right now.").note);
     } catch {
       setNote("We couldn’t send a code right now.");
     } finally {
@@ -91,10 +92,11 @@ export default function MomentsCheckout() {
         credentials: "same-origin",
         body: JSON.stringify({ email: normalized, code: code.trim(), mode: "checkout" }),
       });
-      const data = await readJson<{ ok?: boolean; message?: string; error?: string }>(res);
-      if (!res.ok || !data.ok) {
+      const data = await readResponsePayload<AuthBody>(res);
+      const attempt = authAttempt(data, res.ok, "That code didn’t work. Request a new one.");
+      if (!attempt.accepted) {
         setVerifiedEmail(null);
-        setNote(data.message || data.error || "That code didn’t work. Request a new one.");
+        setNote(attempt.note);
         return;
       }
       setVerifiedEmail(normalized);

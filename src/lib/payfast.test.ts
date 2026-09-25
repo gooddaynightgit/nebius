@@ -172,8 +172,10 @@ describe("payfast checkout and ITN", () => {
     expect(result.html).toContain('name="custom_str1" value="amy@example.com"');
     expect(result.html).not.toContain('name="custom_str2"');
     expect(result.html).toContain("https://gooddaynight.com/api/payfast/itn");
-    expect(result.html).toContain("https://gooddaynight.com/app?paid=1&amp;ref=");
+    expect(result.html).toContain("https://gooddaynight.com/api/auth/return?paid=1&amp;ref=");
+    expect(result.html).toContain("&amp;handoff=");
     expect(result.html).toContain("https://gooddaynight.com/moments?cancelled=1");
+    expect(result.html).not.toContain("/app?paid=1");
     expect(result.html).not.toContain("/moments?paid=1");
     expect(result.html).toContain('document.getElementById("payfast-checkout").submit()');
     expect(result.html).not.toContain("test-passphrase");
