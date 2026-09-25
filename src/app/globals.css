@@ -616,10 +616,20 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.3;
 }
 
-/* Finished story card. Same navy field as the weaving screen, transparent panel. */
+/* Finished story card. Same navy field as the weaving screen, for the whole scroll. */
+html:has(#yours) {
+  min-height: 100%;
+  background-color: hsl(223, 90%, 10%);
+}
+
 body:has(#yours) {
-  background: linear-gradient(hsl(223, 90%, 30%), hsl(223, 90%, 10%));
-  background-attachment: fixed;
+  min-height: 100%;
+  min-height: 100vh;
+  background-color: hsl(223, 90%, 10%);
+  background-image: linear-gradient(hsl(223, 90%, 30%), hsl(223, 90%, 10%));
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-size: 100% 100%;
 }
 
 body:has(#yours) .header-meta {
@@ -637,26 +647,17 @@ body:has(#yours) .header-meta:focus-visible,
 }
 
 .weaved-bubbles {
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  left: 0;
-  right: 0;
   display: flex;
   justify-content: center;
+  margin: 0.15rem auto 0.85rem;
   pointer-events: none;
 }
 
 #yours.card--lavender {
-  position: relative;
-  z-index: 1;
-  margin-top: 3.25rem;
-  padding-top: 11rem;
   color: hsl(223, 90%, 92%);
-  background: rgba(255, 255, 255, 0.06);
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: none;
   border: 1px solid rgba(212, 255, 0, 0.35);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
 }
 
 #yours.card--lavender::before,
