@@ -216,6 +216,29 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.35;
 }
 
+.signin-card {
+  min-height: 0;
+  margin: 0 0 0.9rem;
+  padding: 1.4rem 1.2rem 1.5rem;
+  border-radius: var(--radius);
+  color: #f4f7fb;
+  background: var(--navy);
+}
+
+.signin-card h1 {
+  margin: 0 0 0.85rem;
+  max-width: 12ch;
+  color: #fff;
+  font-size: clamp(1.7rem, 7vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.signin-card .moments-buy {
+  margin-top: 0;
+}
+
 .privacy-note {
   margin: 0.15rem 0 0;
   max-width: 36rem;

@@ -25,8 +25,8 @@ describe("upload photo after a joy pick", () => {
   });
 
   it("sends a signed-out buyer to the email screen", () => {
-    expect(uploadPhotoDestination(false, 0)).toBe("/moments");
-    expect(uploadPhotoDestination(false, 40)).toBe("/moments");
+    expect(uploadPhotoDestination(false, 0)).toBe("/signin");
+    expect(uploadPhotoDestination(false, 40)).toBe("/signin");
     expect(uploadPhotoDestination(true, null)).toBe("/app");
     expect(uploadPhotoDestination(true, 2)).toBe("/app");
     expect(uploadPhotoDestination(true, 0)).toBe("/moments");

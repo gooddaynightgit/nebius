@@ -13,6 +13,8 @@ describe("journey progress", () => {
     expect(journeyStep("/", search(""), "unknown")).toBe(1);
     expect(journeyStep("/app/joy", search(""), "locked")).toBe(2);
     expect(journeyStep("/moments", search(""), "open")).toBe(3);
+    expect(journeyStep("/signin", search(""), "locked")).toBe(3);
+    expect(journeyStep("/signin/", search(""), "unknown")).toBe(3);
     expect(journeyStep("/moments/", search("cancelled=1"), "unknown")).toBe(3);
     expect(journeyStep("/app/yours", search(""), "locked")).toBe(6);
     expect(journeyStep("/app/yours", search(""), "open", "turn")).toBe(6);

@@ -1,8 +1,12 @@
+import { SIGN_IN_HREF } from "./login-destination";
+
 /** Photo page. A visitor with no verified session is sent to the email screen first. */
 export const CAPTURE_PHOTO_HREF = "/app";
 
 /** Buy page when `goodfans.game` is not above zero. */
 export const BUY_MOMENTS_HREF = "/moments";
+
+export { SIGN_IN_HREF };
 
 export type EntitlementGate = "open" | "closed" | "exhausted" | "error";
 
@@ -18,14 +22,14 @@ export function destinationForGame(game: number): typeof CAPTURE_PHOTO_HREF | ty
 
 /**
  * Upload your photo.
- * Signed out opens the email screen (`/moments`), not a form on the photo page.
+ * Signed out opens the email screen (`/signin`), not the price and not a form on the photo page.
  * Signed in follows `game`. A failed balance check stays on the photo page.
  */
 export function uploadPhotoDestination(
   signedIn: boolean,
   game: number | null,
-): typeof CAPTURE_PHOTO_HREF | typeof BUY_MOMENTS_HREF {
-  if (!signedIn) return BUY_MOMENTS_HREF;
+): typeof CAPTURE_PHOTO_HREF | typeof BUY_MOMENTS_HREF | typeof SIGN_IN_HREF {
+  if (!signedIn) return SIGN_IN_HREF;
   if (game === null) return CAPTURE_PHOTO_HREF;
   return destinationForGame(game);
 }
