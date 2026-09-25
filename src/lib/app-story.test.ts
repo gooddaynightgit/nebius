@@ -83,6 +83,17 @@ describe("app story length and BLOCK", () => {
     expect(expanded).toMatch(/^(Today, I|Yes, I|I\b)/);
     expect(expanded).toMatch(/\bFantastic me\b/);
     expect(expanded).toMatch(/hunted one good moment today|found one good moment today|becoming someone who looks/);
+    const sentence =
+      "I kept the chocolate in the golden morning light before breakfast, sweet and dark and mine alone on the quiet table.";
+    const long = Array.from({ length: 8 }, () => sentence).join(" ");
+    expect(countAppStoryWords(long)).toBeGreaterThan(APP_STORY_WORD_MAX);
+    const clipped = trimAppStory(long);
+    expect(countAppStoryWords(clipped)).toBeLessThanOrEqual(APP_STORY_WORD_MAX);
+    expect(countAppStoryWords(clipped)).toBeGreaterThan(40);
+    expect(countAppStorySentences(clipped)).toBeLessThanOrEqual(APP_STORY_SENTENCE_MAX);
+    expect(clipped.startsWith("I kept the chocolate")).toBe(true);
+    expect(clipped.endsWith(".")).toBe(true);
+
     expect(parseAppWeaveReply("BLOCK")).toBe("BLOCK");
     expect(finishAppStory(short).length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(leaksAppStoryInstruction(expanded)).toBe(false);

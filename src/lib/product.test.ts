@@ -178,12 +178,21 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/could belong to any photo/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Photo emphasis: low/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/do not center the keepsake on the photo/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/at least three warm positive words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/3 to 4 short sentences/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/40 to 60 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/tapestry of my life/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Brilliant\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not copy it verbatim/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /No social media, I am left with my own good memory all to myself/,
+    );
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not force the phrase "no social media"/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/at least three warm positive words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Remarkable me/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect/i);
-    expect(APP_REFLECT_SYSTEM).toMatch(/the hunting became my happiness/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/the finding is what's changing me/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/becoming someone who looks/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/the hunting became my happiness/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/the finding is what's changing me/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/becoming someone who looks/);
     expect(APP_REFLECT_SYSTEM).toMatch(/here be sure, not surprised/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Oooh you/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/How awesome is this, you/);

@@ -375,23 +375,28 @@ function logAppReflectFallback(fail?: AppReflectFail) {
   );
 }
 
+function keepsakeShape(address: string): string {
+  return `3 to 4 short sentences, about 40 to 60 words, under 70 words. First person, intimate, mine alone. Name the concrete thing. End with the moment woven into the tapestry of my life, then one word. Brilliant. is the favourite; Beautiful. or Mine. may stand in. Do not open that close with ${address}. Do not copy a style sample verbatim.`;
+}
+
 function reflectRetryHint(problems: string[], lastBody: string, address: string): string {
+  const shape = keepsakeShape(address);
   if (problems.includes("person")) {
-    return `Rewrite in first person from the keeper's own voice. Use I, me, my, mine. No you, your, yours, or yourself. Open with "Today, I", "I", or "Yes, I". Close with exactly: ${address}. Then one hunt-find truth. Under 70 words.`;
+    return `Rewrite in first person from the keeper's own voice. Use I, me, my, mine. No you, your, yours, or yourself. Open with "Today, I", "I", or "Yes, I". ${shape}`;
   }
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
-    return `The last draft was too short. Open quietly: "Today, I", "I", or "Yes, I" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. At least three warm words. Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Use I, me, my, mine — never you or your.`;
+    return `The last draft was too short. Open quietly: "Today, I", "I", or "Yes, I" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. Use I, me, my, mine — never you or your. ${shape}`;
   }
   if (problems.includes("long")) {
-    return `The last draft was too long. Keep it under 70 words and at most four sentences. Quiet first-person open, only established details, warm words, then close with exactly: ${address}.`;
+    return `The last draft was too long. Quiet first-person open, only established details. ${shape}`;
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return `Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet first-person keepsake. Under 70 words. Close with exactly: ${address}. Do not invent weather or props the excavate and their answer did not establish.`;
+    return `Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Do not invent weather or props the excavate and their answer did not establish. ${shape}`;
   }
   if (problems.includes("picture")) {
-    return `The last draft left the picture out and restated only the joy. Name what the photo read and their answer established. The joy is the mood, not the scene. Open with "Today, I", "I", or "Yes, I". Under 70 words. Close with exactly: ${address}. Then one hunt-find truth.`;
+    return `The last draft left the picture out and restated only the joy. Name what the photo read and their answer established. The joy is the mood, not the scene. Open with "Today, I", "I", or "Yes, I". ${shape}`;
   }
-  return `Rewrite the quieter keepsake in first person. Open with "Today, I", "I", or "Yes, I". Weave the photo read and their answer to "What is the good in this moment?" Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Invent nothing beyond that floor. No you, your, yours, or yourself.`;
+  return `Rewrite the quieter keepsake in first person. Open with "Today, I", "I", or "Yes, I". Weave the photo read and their answer to "What is the good in this moment?" Invent nothing beyond that floor. No you, your, yours, or yourself. ${shape}`;
 }
 
 async function excavateAppPhoto(input: {

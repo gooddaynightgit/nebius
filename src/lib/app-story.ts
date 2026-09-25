@@ -87,13 +87,28 @@ function clipToWordCap(text: string, maxWords: number): string {
   return /[.!?]$/.test(clipped) ? clipped : `${clipped.replace(/[,:;]+$/, "")}.`;
 }
 
+/** First complete sentences that still fit in ~70 words, at most four. */
+function keepCompleteSentences(text: string, maxWords: number, maxSentences: number): string {
+  const sentences = splitSentences(text);
+  if (!sentences.length) return text;
+  const kept: string[] = [];
+  let words = 0;
+  for (const sentence of sentences) {
+    if (kept.length >= maxSentences) break;
+    const count = countAppStoryWords(sentence);
+    if (words + count > maxWords) {
+      if (!kept.length) return clipToWordCap(sentence, maxWords);
+      break;
+    }
+    kept.push(sentence);
+    words += count;
+  }
+  return kept.join(" ").trim();
+}
+
 export function trimAppStory(body: string, max = APP_STORY_MAX): string {
   let text = body.replace(/\s+/g, " ").trim();
-  const sentences = splitSentences(text);
-  if (sentences.length > APP_STORY_SENTENCE_MAX) {
-    text = sentences.slice(0, APP_STORY_SENTENCE_MAX).join(" ").trim();
-  }
-  text = clipToWordCap(text, APP_STORY_WORD_HARD_MAX);
+  text = keepCompleteSentences(text, APP_STORY_WORD_MAX, APP_STORY_SENTENCE_MAX);
   if (text.length <= max) return text;
   const slice = text.slice(0, max);
   const lastStop = Math.max(
