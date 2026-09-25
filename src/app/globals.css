@@ -657,9 +657,9 @@ body:has(.journey) .skip-link:focus {
   backdrop-filter: blur(14px);
 }
 
-/* Weaving screen: ribbons fill the viewport under the progress bar. */
+/* Weaving screen fills the viewport under the progress bar. The photo is the still fallback. */
 body:has(.story-opening) {
-  background: #7e6fd6;
+  background: #6f5fc8;
 }
 
 body:has(.story-opening) .site-header {
@@ -682,8 +682,15 @@ body:has(.story-opening) .site-header {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #7e6fd6;
-  background-image: none;
+  background-color: #6f5fc8;
+  background-image: url("/weave-silk.jpg");
+  background-image: image-set(
+    url("/weave-silk.webp") type("image/webp"),
+    url("/weave-silk.jpg") type("image/jpeg")
+  );
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
   color: var(--navy);
 }
 
@@ -697,6 +704,10 @@ body:has(.story-opening) .site-header {
   pointer-events: none;
   transform: translateZ(0);
   will-change: transform;
+}
+
+.weave-silk--still {
+  visibility: hidden;
 }
 
 .card.story-opening .story-opening__line {

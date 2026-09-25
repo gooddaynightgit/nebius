@@ -1,193 +1,147 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import {
-  SILK_COLORS,
-  SILK_RIBBONS,
-  SILK_SLICES,
-  SILK_VIEW,
-  silkBands,
-  silkGradientShift,
-  type SilkBand,
-} from "@/lib/silk-weave";
+import { useEffect, useRef, useState } from "react";
+import { SILK_FRAG, SILK_VERT } from "@/lib/silk-shader";
 
-const IRID_STOPS = [
-  SILK_COLORS.deep,
-  SILK_COLORS.violet,
-  SILK_COLORS.pink,
-  SILK_COLORS.yellow,
-  SILK_COLORS.aqua,
-  SILK_COLORS.sky,
-  SILK_COLORS.lilac,
-];
+const MAX_DPR = 1.5;
 
-function stopsFor(index: number): string[] {
-  const stops: string[] = [];
-  for (let step = 0; step < IRID_STOPS.length; step += 1) {
-    stops.push(IRID_STOPS[(index + step) % IRID_STOPS.length]);
+function compile(gl: WebGLRenderingContext, type: number, source: string): WebGLShader | null {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    gl.deleteShader(shader);
+    return null;
   }
-  return stops;
-}
-
-function paint(svg: SVGSVGElement, frame: SilkBand[], t: number) {
-  for (const item of frame) {
-    svg.querySelector(`#silk-band-${item.ribbon}`)?.setAttribute("d", item.d);
-    svg.querySelector(`#silk-crease-${item.ribbon}`)?.setAttribute("d", item.crease);
-    svg.querySelector(`#silk-glint-${item.ribbon}`)?.setAttribute("d", item.glint);
-  }
-  SILK_RIBBONS.forEach((_, index) => {
-    const grad = svg.querySelector(`[data-irid="${index}"]`);
-    if (!grad) return;
-    const shift = silkGradientShift(index, t);
-    grad.setAttribute("x1", shift.x1.toFixed(1));
-    grad.setAttribute("y1", shift.y1.toFixed(1));
-    grad.setAttribute("x2", shift.x2.toFixed(1));
-    grad.setAttribute("y2", shift.y2.toFixed(1));
-  });
+  return shader;
 }
 
 export function WeaveSilk() {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const still = silkBands(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [still, setStill] = useState(false);
 
   useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    paint(svg, silkBands(0), 0);
-    if (reduce) return;
+    if (reduce) {
+      setStill(true);
+      return;
+    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const gl = canvas.getContext("webgl", {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: "low-power",
+    });
+    if (!gl) {
+      setStill(true);
+      return;
+    }
+
+    const vert = compile(gl, gl.VERTEX_SHADER, SILK_VERT);
+    const frag = compile(gl, gl.FRAGMENT_SHADER, SILK_FRAG);
+    if (!vert || !frag) {
+      setStill(true);
+      return;
+    }
+    const program = gl.createProgram();
+    if (!program) {
+      setStill(true);
+      return;
+    }
+    gl.attachShader(program, vert);
+    gl.attachShader(program, frag);
+    gl.bindAttribLocation(program, 0, "aPos");
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      setStill(true);
+      return;
+    }
+    gl.useProgram(program);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes = gl.getUniformLocation(program, "uRes");
+    const uTime = gl.getUniformLocation(program, "uTime");
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      const width = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+      const height = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    };
 
     let raf = 0;
     let offset = 0;
     let pausedAt = 0;
-    const loop = (now: number) => {
-      const seconds = (now - offset) / 1000;
-      paint(svg, silkBands(seconds), seconds);
-      raf = window.requestAnimationFrame(loop);
+    let running = false;
+    const draw = (now: number) => {
+      resize();
+      gl.useProgram(program);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uTime, (now - offset) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      raf = window.requestAnimationFrame(draw);
     };
     const start = () => {
-      raf = window.requestAnimationFrame(loop);
+      if (running || document.hidden) return;
+      running = true;
+      raf = window.requestAnimationFrame(draw);
+    };
+    const stop = () => {
+      running = false;
+      window.cancelAnimationFrame(raf);
     };
     const onVisibility = () => {
       if (document.hidden) {
-        window.cancelAnimationFrame(raf);
+        stop();
         pausedAt = performance.now();
         return;
       }
       offset += performance.now() - pausedAt;
       start();
     };
-    if (!document.hidden) start();
+    const onLost = (event: Event) => {
+      event.preventDefault();
+      stop();
+      setStill(true);
+    };
+    const onResize = () => resize();
+
+    resize();
+    canvas.addEventListener("webglcontextlost", onLost);
+    window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVisibility);
+    start();
+
     return () => {
-      window.cancelAnimationFrame(raf);
+      stop();
+      canvas.removeEventListener("webglcontextlost", onLost);
+      window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
+      gl.deleteProgram(program);
+      gl.deleteShader(vert);
+      gl.deleteShader(frag);
+      gl.deleteBuffer(buffer);
     };
   }, []);
 
   return (
-    <svg
-      ref={svgRef}
-      className="weave-silk"
-      viewBox={`0 0 ${SILK_VIEW.w} ${SILK_VIEW.h}`}
-      preserveAspectRatio="xMidYMid slice"
+    <canvas
+      ref={canvasRef}
+      className={still ? "weave-silk weave-silk--still" : "weave-silk"}
       aria-hidden="true"
-      focusable="false"
-    >
-      <defs>
-        <linearGradient id="silk-ground" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={SILK_COLORS.violet} />
-          <stop offset="48%" stopColor={SILK_COLORS.lilac} />
-          <stop offset="100%" stopColor={SILK_COLORS.deep} />
-        </linearGradient>
-        <filter id="silk-fold-shadow" x="-35%" y="-35%" width="170%" height="170%" colorInterpolationFilters="sRGB">
-          <feDropShadow dx="0" dy="2.2" stdDeviation="1.5" floodColor="#3a2d78" floodOpacity="0.58" />
-        </filter>
-        {SILK_RIBBONS.map((ribbon, index) => (
-          <linearGradient key={`fold-${ribbon.y0}`} id={`silk-fold-${index}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={ribbon.ridge} />
-            <stop offset="38%" stopColor={ribbon.body} />
-            <stop offset="78%" stopColor={ribbon.hem} />
-            <stop offset="100%" stopColor={SILK_COLORS.deep} />
-          </linearGradient>
-        ))}
-        {SILK_RIBBONS.map((ribbon, index) => (
-          <linearGradient
-            key={`irid-${ribbon.y0}`}
-            id={`silk-irid-${index}`}
-            data-irid={index}
-            gradientUnits="userSpaceOnUse"
-            x1="0"
-            y1="0"
-            x2="100"
-            y2="30"
-          >
-            {stopsFor(index).map((color, step) => (
-              <stop
-                key={color + step}
-                offset={`${(step / (IRID_STOPS.length - 1)) * 100}%`}
-                stopColor={color}
-              />
-            ))}
-          </linearGradient>
-        ))}
-        {SILK_SLICES.map((slice) => (
-          <clipPath key={slice.id} id={`silk-clip-${slice.id}`}>
-            <polygon points={slice.points} />
-          </clipPath>
-        ))}
-        {still.map((band) => (
-          <path key={`band-${band.ribbon}`} id={`silk-band-${band.ribbon}`} d={band.d} />
-        ))}
-        {still.map((band) => (
-          <path key={`crease-${band.ribbon}`} id={`silk-crease-${band.ribbon}`} d={band.crease} />
-        ))}
-        {still.map((band) => (
-          <path key={`glint-${band.ribbon}`} id={`silk-glint-${band.ribbon}`} d={band.glint} />
-        ))}
-      </defs>
-      <rect width={SILK_VIEW.w} height={SILK_VIEW.h} fill="url(#silk-ground)" />
-      {SILK_SLICES.map((slice, segment) => {
-        const order = SILK_RIBBONS.map((_, index) => index);
-        if (segment % 2 === 1) order.reverse();
-        return (
-          <g key={slice.id} clipPath={`url(#silk-clip-${slice.id})`}>
-            {order.map((ribbon, depth) => {
-              const front = depth >= order.length - 2;
-              return (
-                <g key={`${slice.id}-${ribbon}`} filter={front ? "url(#silk-fold-shadow)" : undefined}>
-                  <use href={`#silk-band-${ribbon}`} fill={`url(#silk-fold-${ribbon})`} />
-                  <use
-                    href={`#silk-band-${ribbon}`}
-                    fill={`url(#silk-irid-${ribbon})`}
-                    opacity="0.5"
-                    style={{ mixBlendMode: "overlay" }}
-                  />
-                  {front ? (
-                    <use
-                      href={`#silk-crease-${ribbon}`}
-                      fill="none"
-                      stroke={SILK_COLORS.deep}
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                    />
-                  ) : null}
-                  {front ? (
-                    <use
-                      href={`#silk-glint-${ribbon}`}
-                      fill="none"
-                      stroke="rgba(255,255,255,0.55)"
-                      strokeWidth="1.7"
-                      strokeLinecap="round"
-                      style={{ mixBlendMode: "screen" }}
-                    />
-                  ) : null}
-                </g>
-              );
-            })}
-          </g>
-        );
-      })}
-    </svg>
+    />
   );
 }

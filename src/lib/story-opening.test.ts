@@ -40,11 +40,11 @@ describe("story opening status", () => {
     );
   });
 
-  it("fills the weaving screen with moving silk ribbons and a lighter finished-card frost", () => {
+  it("fills the weaving screen with a silk shader and a lighter finished-card frost", () => {
     const css = readFileSync(path.resolve("src/app/globals.css"), "utf8");
     const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
     const silk = readFileSync(path.resolve("src/components/WeaveSilk.tsx"), "utf8");
-    const weave = readFileSync(path.resolve("src/lib/silk-weave.ts"), "utf8");
+    const shader = readFileSync(path.resolve("src/lib/silk-shader.ts"), "utf8");
     expect(yours).toMatch(/data-line=\{index\}/);
     expect(yours).toMatch(/story-opening/);
     expect(yours).toMatch(/<WeaveSilk \/>/);
@@ -53,21 +53,25 @@ describe("story opening status", () => {
     expect(opening).not.toMatch(/silk-frost/);
     expect(silk).toMatch(/requestAnimationFrame/);
     expect(silk).toMatch(/visibilitychange/);
+    expect(silk).toMatch(/webglcontextlost/);
     expect(silk).toMatch(/prefers-reduced-motion: reduce/);
-    expect(silk).toMatch(/feDropShadow/);
-    expect(silk).toMatch(/mixBlendMode: "overlay"/);
-    expect(silk).toMatch(/mixBlendMode: "screen"/);
-    expect(weave).toMatch(/#C9B6F2/);
-    expect(weave).toMatch(/#F4B8E4/);
-    expect(weave).toMatch(/#A98BF0/);
-    expect(weave).toMatch(/#9FE6EE/);
-    expect(weave).toMatch(/#B7DDFB/);
-    expect(weave).toMatch(/#FFF1A8/);
-    expect(weave).toMatch(/#7E6FD6/);
+    expect(silk).toMatch(/Math\.min\(window\.devicePixelRatio \|\| 1, MAX_DPR\)/);
+    expect(silk).toMatch(/MAX_DPR = 1\.5/);
+    expect(shader).toMatch(/fbm\(/);
+    expect(shader).toMatch(/vec2 warp/);
+    expect(shader).toMatch(/pow\(ndh, 1[0-9][0-9]\.0\)/);
+    expect(shader).toMatch(/#C9B6F2/);
+    expect(shader).toMatch(/#F4B8E4/);
+    expect(shader).toMatch(/#A98BF0/);
+    expect(shader).toMatch(/#9FE6EE/);
+    expect(shader).toMatch(/#B7DDFB/);
+    expect(shader).toMatch(/#FFF1A8/);
+    expect(shader).toMatch(/#6F5FC8/);
     expect(css).toMatch(/\.card\.story-opening \{[^}]*position:\s*fixed;/);
     expect(css).toMatch(/\.story-opening__line \{[^}]*text-shadow:/);
     expect(css).toMatch(/rgba\(255,\s*255,\s*255,\s*0\.35\)/);
     expect(css).toMatch(/backdrop-filter:\s*blur\(14px\)/);
+    expect(css).toMatch(/weave-silk\.webp/);
     expect(css).toMatch(/background-size:\s*cover/);
     expect(statSync(path.resolve("public/weave-silk.webp")).size).toBeLessThan(300 * 1024);
     expect(statSync(path.resolve("public/weave-silk.jpg")).size).toBeLessThan(300 * 1024);
