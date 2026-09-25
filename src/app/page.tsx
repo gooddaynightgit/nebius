@@ -33,6 +33,20 @@ export default function HomePage() {
           </Link>
         </nav>
 
+        <video
+          className="landing-demo"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/landing-demo-poster.jpg"
+          src="/landing-demo.mp4"
+          width={720}
+          height={1198}
+          aria-label="Demo of weaving a good moment"
+        />
+
         <section className="card card--lime" aria-labelledby="closing-heading">
           <h2 id="closing-heading">Something good is about to happen!</h2>
         </section>

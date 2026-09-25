@@ -2154,6 +2154,21 @@ body:has(.story-opening) .header-meta {
   color: var(--lime);
 }
 
+.landing-demo {
+  display: block;
+  width: min(100%, 300px);
+  max-width: 300px;
+  height: auto;
+  aspect-ratio: 720 / 1198;
+  margin: 0 auto 0.9rem;
+  border-radius: 1.35rem;
+  background: var(--navy);
+  box-shadow:
+    0 0 0 1px rgba(212, 255, 0, 0.45),
+    0 14px 32px rgba(22, 50, 74, 0.16);
+  object-fit: cover;
+}
+
 .step-back:hover {
   background: rgba(22, 50, 74, 0.06);
 }
