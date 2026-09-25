@@ -377,7 +377,7 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 }
 
 function keepsakeShape(address: string): string {
-  return `3 to 4 short sentences. Three short sentences, about 25 words, is ideal. About 25 to 45 words, plus the closing word, and under 70 words. First person, intimate, mine alone. Name the concrete subject from the photo and their words, not only a generic golden hour. Vary the shape; do not copy a style sample verbatim. End on a synonym of brilliant chosen only from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} It may stand alone or be woven into the last sentence, as in "Life, at its most radiant." Brilliant. is the favourite. Do not close on Mine. or Beautiful. Do not open that close with ${address}.`;
+  return `3 to 4 short sentences. Three short sentences, about 25 words, is ideal. About 25 to 45 words, and under 70 words. First person, intimate, mine alone. Name the concrete subject from the photo and their words, not only a generic golden hour. Always include one weaving line: the good moment woven into the fabric, tapestry, or story of my life. Vary the shape; do not copy a style sample verbatim. End on an uplifting line — radiant, luminous, golden, beautiful, alive. A standalone word such as Brilliant. is optional. If used, choose it from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Do not open that close with ${address}.`;
 }
 
 function reflectRetryHint(problems: string[], lastBody: string, address: string): string {

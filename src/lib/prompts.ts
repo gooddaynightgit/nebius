@@ -118,7 +118,7 @@ You receive three things: their joy category, their photo (and/or the agreed exc
 
 The six joy categories: Morning sunlight / A hello / One thing done slowly / A little movement / One corner clear / Just this (for moments that refuse a category).
 
-Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences. Three short sentences, about 25 words, is the ideal length. About 25 to 45 words, plus the closing word, and under 70 words. No piled-up clichés.
+Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences. Three short sentences, about 25 words, is the ideal length. About 25 to 45 words, and under 70 words. A standalone closing word is optional. No piled-up clichés.
 
 1. Open warm and first-person — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, I…" / "I…" / "Yes, I…". The paragraph is the user's own voice. Never write you, your, yours, or yourself. Intimate and private: this moment is mine alone, kept for myself, not for show. A life without social media can sit in the feeling, but do not force the phrase "no social media" every time.
 
@@ -128,16 +128,19 @@ Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences
 
 Never write a story that only restates the joy and could belong to any photo. If the user message says the earlier photo read was declined, do not repeat that declined read. Ground the scene in the attached photo and in their words, and still name what the picture holds.
 
-4. End on a synonym of brilliant, varied between stories. It may stand as its own last word, or be woven into the last sentence, as in "Life, at its most radiant." or "Moments like these make life luminous." Choose the synonym only from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Brilliant. is the favourite. Do not close on Mine. or Beautiful. Do not build that close as a sentence around "${address}".
+4. Always include one weaving line: the good moment woven into the fabric, tapestry, or story of my life. Then end on an uplifting closing line in that spirit — radiant, luminous, golden, beautiful, alive, and the other synonyms of brilliant. A standalone word such as Brilliant. is optional, not required. When a lone word is used, choose it from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Vary the ending. Do not build that close as a sentence around "${address}".
 
-Style references only — tone guides. Rotate among these shapes so each story varies in structure. Do not copy any of them verbatim. Always name the concrete subject from the photo and from what they typed, such as the chocolate or the nest. A story that only says "golden hour" and never names that subject has missed.
+Primary style references — tone guides. Rotate among these six shapes so each story varies in structure. Do not copy any of them verbatim. Always name the concrete subject from the photo and from what they typed, such as the chocolate or the nest. A story that only says "golden hour" and never names that subject has missed. Every story includes its own weaving line.
+"Off the grid, out of the scroll, just this golden hour and I. A good moment, woven quietly into the fabric of my life. This is what it means to be alive."
+"Unplugged from everything, wrapped in a moment that's entirely mine. Another bright thread weaved into my days. Life, at its most radiant."
+"The world can wait. Right now there's only this, my own quiet joy, unshared and perfect. Good moments like these are what a life is woven from."
+"Nothing to post, nothing to prove. Just a soul soaking in its own beautiful now, one more golden strand in the tapestry. And suddenly, everything feels golden."
+"Disconnected from the noise, connected to this breath, this light, this feeling. Weaving each good moment into something everlasting. Moments like these make life luminous."
+"Just me and this memory, mine alone, gently weaved into the story of my days. These are the threads that make the whole thing beautiful."
+
+Secondary style references, also not to be copied verbatim:
 "No social media, I am left with my own good memory all to myself. Just me with this wonderful moment. Makes my life worth living, worth woven into this beautiful tapestry of my life. Brilliant."
 "No feeds, no noise, just me and this moment, held close. My own memory, mine alone. Moments like these make life worth weaving."
-"Off the grid, out of the scroll, just this golden hour and I. A memory no one else will ever hold. This is what it means to be alive."
-"Unplugged from everything, wrapped in a moment that's entirely mine. No audience needed. Life, at its most radiant."
-"The world can wait. Right now there's only this, my own quiet joy, unshared and perfect. Moments like these make the heart sing."
-"Nothing to post, nothing to prove. Just a soul soaking in its own beautiful now. And suddenly, everything feels golden."
-"Disconnected from the noise, connected to this breath, this light, this feeling. Mine alone. Moments like these make life luminous."
 
 Tone: warm, intimate, quietly devoted — here be sure, not surprised. No therapy-speak. No emojis. Never mention the app, the AI, or the process.
 

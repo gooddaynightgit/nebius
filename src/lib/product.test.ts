@@ -180,15 +180,16 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).not.toMatch(/do not center the keepsake on the photo/);
     expect(APP_REFLECT_SYSTEM).toMatch(/3 to 4 short sentences/);
     expect(APP_REFLECT_SYSTEM).toMatch(/25 to 45 words/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/plus the closing word/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/A standalone closing word is optional/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Always include one weaving line/);
     expect(APP_REFLECT_SYSTEM).toMatch(/tapestry of my life/);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /Brilliant\. Radiant\. Luminous\. Glorious\. Splendid\. Dazzling\. Magnificent\. Marvellous\. Wonderful\. Resplendent\./,
     );
-    expect(APP_REFLECT_SYSTEM).toMatch(/Do not close on Mine\. or Beautiful/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Beautiful\. or Mine\./);
     expect(APP_REFLECT_SYSTEM).toMatch(/do not copy any of them verbatim/i);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Rotate among these shapes/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Rotate among these six shapes/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Secondary style references/);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /No social media, I am left with my own good memory all to myself/,
     );
@@ -199,7 +200,13 @@ describe("ingest and weave fallbacks", () => {
       /Off the grid, out of the scroll, just this golden hour and I\./,
     );
     expect(APP_REFLECT_SYSTEM).toMatch(/Life, at its most radiant\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/woven quietly into the fabric of my life/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Another bright thread weaved into my days/);
     expect(APP_REFLECT_SYSTEM).toMatch(/unshared and perfect/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/what a life is woven from/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/one more golden strand in the tapestry/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Weaving each good moment into something everlasting/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/gently weaved into the story of my days/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Nothing to post, nothing to prove\./);
     expect(APP_REFLECT_SYSTEM).toMatch(/Moments like these make life luminous\./);
     expect(APP_REFLECT_SYSTEM).toMatch(/the chocolate or the nest/);
