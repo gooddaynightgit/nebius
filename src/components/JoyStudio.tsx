@@ -10,6 +10,7 @@ import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
 import { STEP_LABEL } from "@/lib/journey";
 import { LANDING, accordionJoys, getJoyById, type JoyType } from "@/lib/landing";
+import { latestMoments, momentListLabel } from "@/lib/latest-moments";
 import { uploadPhotoDestination } from "@/lib/photo-entry";
 import {
   SAVED_JOY_MOMENTS_ID,
@@ -18,11 +19,14 @@ import {
   openSavedJoyMoments,
 } from "@/lib/saved-joy-moments";
 
+type SavedMoment = { id: string; day: string; createdAt: string };
+
 export default function JoyStudio() {
   const day = useMemo(() => localDay(), []);
   const pathname = usePathname();
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [resetSignal, setResetSignal] = useState(0);
+  const [savedMoments, setSavedMoments] = useState<SavedMoment[]>([]);
   const selectedJoy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
   const joys = useMemo(() => {
     const base = accordionJoys();
@@ -44,6 +48,31 @@ export default function JoyStudio() {
     window.addEventListener("pageshow", onPageShow);
     return () => window.removeEventListener("pageshow", onPageShow);
   }, [day, pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/yours?day=${encodeURIComponent(day)}`, {
+          credentials: "same-origin",
+        });
+        const data = await readJson<{
+          story?: { id?: string; day?: string; createdAt?: string } | null;
+          earlier?: SavedMoment[];
+        }>(res);
+        if (cancelled) return;
+        const current = data.story?.id && data.story.createdAt
+          ? [{ id: data.story.id, day: data.story.day || data.story.createdAt.slice(0, 10), createdAt: data.story.createdAt }]
+          : [];
+        setSavedMoments(latestMoments([...current, ...(data.earlier ?? [])]));
+      } catch {
+        if (!cancelled) setSavedMoments([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [day]);
 
   function pickJoy(joy: JoyType) {
     chooseStoryJoy(joy.id, (joyId) => {
@@ -111,6 +140,22 @@ export default function JoyStudio() {
               onChoose: () => openSavedJoyMoments((href) => window.location.assign(href)),
             }}
           />
+          {savedMoments.length ? (
+            <nav
+              id="saved-joy-moments-list"
+              className="earlier-stories saved-joy-moments"
+              aria-label={SAVED_JOY_MOMENTS_LABEL}
+            >
+              <h3>{SAVED_JOY_MOMENTS_LABEL}</h3>
+              <ul>
+                {savedMoments.map((item) => (
+                  <li key={item.id}>
+                    <Link href={`/app/yours?story=${item.id}`}>{momentListLabel(item)}</Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>
 

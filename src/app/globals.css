@@ -2082,9 +2082,14 @@ body:has(.story-opening) .header-meta {
   margin-top: 1.25rem;
 }
 
-.earlier-stories h2 {
+.earlier-stories h2,
+.earlier-stories h3 {
   font-size: 1rem;
   margin: 0 0 0.5rem;
+}
+
+.saved-joy-moments h3 {
+  color: var(--navy);
 }
 
 .earlier-stories ul {
