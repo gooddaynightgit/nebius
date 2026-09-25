@@ -1655,11 +1655,18 @@ body:has(.story-opening) .header-meta {
 }
 
 .feedback-ribbon__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
   white-space: nowrap;
 }
 
+.feedback-ribbon__quote {
+  color: #f4f7fb;
+}
+
 .feedback-ribbon__label {
-  color: var(--lime);
+  color: #d4ff00;
   font-weight: 800;
 }
 

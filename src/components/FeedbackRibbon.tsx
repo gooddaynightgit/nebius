@@ -1,11 +1,10 @@
-import { FEEDBACK_LINES, FEEDBACK_PREFIX } from "@/lib/feedback";
+import { FEEDBACK_LINES } from "@/lib/feedback";
 
-function FeedbackLine({ line }: { line: string }) {
-  const rest = line.startsWith(FEEDBACK_PREFIX) ? line.slice(FEEDBACK_PREFIX.length) : line;
+function FeedbackLine({ quote, attribution }: { quote: string; attribution: string }) {
   return (
     <span className="feedback-ribbon__item">
-      <span className="feedback-ribbon__label">{FEEDBACK_PREFIX}</span>
-      {rest}
+      <span className="feedback-ribbon__quote">{quote}</span>
+      <span className="feedback-ribbon__label">{attribution}</span>
     </span>
   );
 }
@@ -14,7 +13,7 @@ function FeedbackGroup({ hidden = false }: { hidden?: boolean }) {
   return (
     <div className="feedback-ribbon__group" aria-hidden={hidden || undefined}>
       {FEEDBACK_LINES.map((line) => (
-        <FeedbackLine key={line} line={line} />
+        <FeedbackLine key={line.quote} quote={line.quote} attribution={line.attribution} />
       ))}
     </div>
   );
