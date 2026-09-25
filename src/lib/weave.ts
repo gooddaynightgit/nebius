@@ -43,7 +43,7 @@ import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
 import { shrinkDataUrlForModels } from "./model-image";
 import { settleDiminishingText, stripDiminishingPhrases } from "./diminish";
-import { stripTrailingAffirmation, withAffirmationLine } from "./affirmation";
+import { stripTrailingClosing, withClosingLine } from "./affirmation";
 import { putBytes } from "./storage";
 
 export class WeaveNeedsWordsError extends Error {
@@ -378,7 +378,7 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 }
 
 function keepsakeShape(address: string): string {
-  return `3 to 4 short sentences. Three short sentences, about 25 words, is ideal. About 25 to 45 words, and under 70 words. First person, intimate, mine alone. Name the concrete subject from the photo and their words, not only a generic golden hour. Always include one weaving line: the good moment woven into the fabric, tapestry, or story of my life. Vary the shape; do not copy a style sample verbatim. End on an uplifting line — radiant, luminous, golden, beautiful, alive. A standalone word such as Brilliant. is optional. If used, choose it from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Do not open that close with ${address}. Do not write the closing affirmation (love for this moment, it is beautiful, I forgive, I am courageous). The app adds that line after a blank line, and it does not count toward the word count.`;
+  return `3 to 4 short sentences. Three short sentences, about 25 words, is ideal. About 25 to 45 words, and under 70 words. First person, intimate, mine alone. Name the concrete subject from the photo and their words, not only a generic golden hour. Always include one weaving line: the good moment woven into the fabric, tapestry, or story of my life. Vary the shape; do not copy a style sample verbatim. End on an uplifting line — radiant, luminous, golden, beautiful, alive. A standalone word such as Brilliant. is optional. If used, choose it from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Do not open that close with ${address}. Do not write the closing line. The app adds one fixed line after a blank line, and it does not count toward the word count.`;
 }
 
 function reflectRetryHint(problems: string[], lastBody: string, address: string): string {
@@ -537,7 +537,7 @@ async function reflectWithModels(
         continue;
       }
       const trimmed = toFirstPersonStory(
-        withoutPerfectYou(trimAppStory(stripTrailingAffirmation(parsed)), addressKey),
+        withoutPerfectYou(trimAppStory(stripTrailingClosing(parsed)), addressKey),
       );
       fail.lastBody = trimmed;
       fail.lastProblems = appStoryProblems(trimmed, template);
@@ -553,7 +553,7 @@ async function reflectWithModels(
             const parsedAgain = parseAppWeaveReply(text);
             if (parsedAgain === "BLOCK") return null;
             return toFirstPersonStory(
-              withoutPerfectYou(trimAppStory(stripTrailingAffirmation(parsedAgain)), addressKey),
+              withoutPerfectYou(trimAppStory(stripTrailingClosing(parsedAgain)), addressKey),
             );
           }),
         );
@@ -580,7 +580,7 @@ async function reflectWithModels(
           const parsedAgain = parseAppWeaveReply(text);
           if (parsedAgain === "BLOCK") return null;
           return toFirstPersonStory(
-            withoutPerfectYou(trimAppStory(stripTrailingAffirmation(parsedAgain)), addressKey),
+            withoutPerfectYou(trimAppStory(stripTrailingClosing(parsedAgain)), addressKey),
           );
         }),
     );
@@ -820,7 +820,7 @@ export async function weaveStory(options: {
   title = stripDiminishingPhrases(toFirstPersonStory(withoutPerfectYou(title, addressKey)));
   body = stripDiminishingPhrases(toFirstPersonStory(withoutPerfectYou(body, addressKey)));
   if (appJoy && appCapture) {
-    body = withAffirmationLine(body);
+    body = withClosingLine(body);
   }
 
   const tts = await synthesizeStory(title ? `${title}. ${body}` : body);

@@ -19,7 +19,7 @@ import {
   shareOrDownloadKeepCard,
 } from "@/lib/keep-card";
 import { localDay } from "@/lib/day";
-import { splitWeavedAffirmation } from "@/lib/affirmation";
+import { displayKeepsakeText, splitKeepsakeClosing } from "@/lib/affirmation";
 import { displayStoryText } from "@/lib/first-person";
 import { LANDING } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
@@ -115,8 +115,8 @@ export default function YoursStory() {
   const requestedStory = searchParams.get("story") || "";
   const requestedMoment = searchParams.get("moment") || "";
   const readyStoryId = state.status === "ready" ? state.story.id : "";
-  const readyBody = state.status === "ready" ? displayStoryText(state.story.body) : "";
-  const weaved = splitWeavedAffirmation(readyBody);
+  const readyBody = state.status === "ready" ? displayKeepsakeText(state.story.body) : "";
+  const weaved = splitKeepsakeClosing(readyBody);
   const readyPhotoId =
     state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
   useReportAppProgress(state.status === "ready" ? "weaved" : "turn");
@@ -326,7 +326,7 @@ export default function YoursStory() {
       audio.onended = () => setPlaying(false);
       return;
     }
-    const spokenBody = displayStoryText(record.body);
+    const spokenBody = displayKeepsakeText(record.body);
     const spokenTitle = displayStoryText(record.title);
     const spoken = spokenTitle ? `${spokenTitle}. ${spokenBody}` : spokenBody;
     const utterance = new SpeechSynthesisUtterance(spoken);
@@ -350,7 +350,7 @@ export default function YoursStory() {
       let blob = cardBlobRef.current;
       if (!blob) {
         const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
-        blob = await composeKeepCardJpeg({ photo, story: displayStoryText(state.story.body) });
+        blob = await composeKeepCardJpeg({ photo, story: displayKeepsakeText(state.story.body) });
         cardBlobRef.current = blob;
       }
       const result = await shareOrDownloadKeepCard({
@@ -421,11 +421,11 @@ export default function YoursStory() {
             ) : null}
             {state.story.title ? <p className="weaved-label">{displayStoryText(state.story.title)}</p> : null}
             <p className="card__body weaved-story">
-              {weaved.affirmation ? (
+              {weaved.closing ? (
                 <>
                   {weaved.story}
                   {"\n\n"}
-                  <span className="weaved-affirmation">{weaved.affirmation}</span>
+                  <span className="weaved-affirmation">{weaved.closing}</span>
                 </>
               ) : (
                 readyBody

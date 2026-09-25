@@ -31,12 +31,12 @@ describe("keep card helpers", () => {
     expect(lines.join(" ")).toMatch(/kept it/);
     expect(lines.length).toBeGreaterThan(1);
     const affirmed = wrapKeepCardLines(
-      "Today, I kept the chocolate.\n\nI love this moment. It's beautiful. I forgive. I am courageous.",
+      "Today, I kept the chocolate.\n\nI love this moment. It's beautiful \u2013 the joy and awe of being.",
       measure,
       400,
     );
     expect(affirmed).toContain("");
-    expect(affirmed.at(-1)).toMatch(/I am courageous/);
+    expect(affirmed.join(" ")).toMatch(/joy and awe of being/);
     expect(wrapKeepCardLines("supercalifragilistic", measure, 40).every((line) => line.length <= 4)).toBe(
       true,
     );

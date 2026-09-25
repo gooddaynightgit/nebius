@@ -130,7 +130,7 @@ Never write a story that only restates the joy and could belong to any photo. If
 
 4. Always include one weaving line: the good moment woven into the fabric, tapestry, or story of my life. Then end on an uplifting closing line in that spirit — radiant, luminous, golden, beautiful, alive, and the other synonyms of brilliant. A standalone word such as Brilliant. is optional, not required. When a lone word is used, choose it from: ${KEEPSAKE_CLOSING_WORDS.join(" ")} Vary the ending. Do not build that close as a sentence around "${address}".
 
-5. Do not write the closing affirmation. The app adds it after a blank line, and it does not count toward the 25 to 45 words. That line is four short first-person sentences in this order: love for this moment, it is beautiful, I forgive, I am courageous. Stop when the weaving story is done.
+5. Do not write the closing line. The app adds one fixed line after a blank line, and it does not count toward the 25 to 45 words. Stop when the weaving story is done.
 
 Primary style references — tone guides. Rotate among these six shapes so each story varies in structure. Do not copy any of them verbatim. Always name the concrete subject from the photo and from what they typed, such as the chocolate or the nest. A story that only says "golden hour" and never names that subject has missed. Every story includes its own weaving line.
 "Off the grid, out of the scroll, just this golden hour and I. A good moment, woven quietly into the fabric of my life. This is what it means to be alive."

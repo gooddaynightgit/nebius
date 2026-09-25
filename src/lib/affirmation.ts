@@ -1,43 +1,49 @@
-const LOVE = ["love", "treasure", "cherish", "adore", "hold dear"] as const;
-const BEAUTY = ["beautiful", "radiant", "luminous", "glorious", "brilliant"] as const;
-const FORGIVE = ["I forgive", "I let go", "I release", "I make peace"] as const;
-const COURAGE = ["courageous", "brave", "fearless", "bold", "strong"] as const;
+import { toFirstPersonStory } from "./first-person";
 
-const LOVE_RE = LOVE.join("|");
-const BEAUTY_RE = BEAUTY.join("|");
-const FORGIVE_RE = "forgive|let go|release|make peace";
-const COURAGE_RE = COURAGE.join("|");
+/** One fixed close on every keepsake. Straight apostrophe, en dash with spaces. */
+export const KEEPSAKE_CLOSING_LINE =
+  "I love this moment. It's beautiful \u2013 the joy and awe of being.";
 
-/** Four short sentences: love this moment, it is beautiful, I forgive, I am courageous. */
-export const AFFIRMATION_LINE_SOURCE = `I (?:${LOVE_RE}) this moment\\. It(?:'s|’s| is) (?:${BEAUTY_RE})\\. I (?:${FORGIVE_RE})\\. I am (?:${COURAGE_RE})\\.`;
+const OLD_AFFIRMATION =
+  "I (?:love|treasure|cherish|adore|hold dear) this moment\\. It(?:'s|\u2019s| is) (?:beautiful|radiant|luminous|glorious|brilliant)\\. I (?:forgive|let go|release|make peace)\\. I am (?:courageous|brave|fearless|bold|strong)\\.";
 
-export const AFFIRMATION_LINE_RE = new RegExp(AFFIRMATION_LINE_SOURCE, "i");
+const CLOSING_COPY =
+  "I love this moment\\. It(?:'s|\u2019s) beautiful\\s*[\u2013\u2014-]\\s*the joy and awe of being\\.";
 
-function pick<T>(list: readonly T[], random: () => number): T {
-  const index = Math.min(list.length - 1, Math.floor(random() * list.length));
-  return list[index] ?? list[0];
+const TRAILING_CLOSE = new RegExp(
+  `(?:\\s*\\n\\s*\\n\\s*|\\s+)(?:${OLD_AFFIRMATION}|${CLOSING_COPY})\\s*$`,
+  "i",
+);
+
+/** Drop a model-written affirmation or a copy of the fixed closing line. */
+export function stripTrailingClosing(text: string): string {
+  let next = text;
+  for (let pass = 0; pass < 4; pass += 1) {
+    const stripped = next.replace(TRAILING_CLOSE, "").trimEnd();
+    if (stripped === next) break;
+    next = stripped;
+  }
+  return next;
 }
 
-/** One varied affirmation line. The four meanings stay in order. */
-export function affirmationLine(random: () => number = Math.random): string {
-  return `I ${pick(LOVE, random)} this moment. It's ${pick(BEAUTY, random)}. ${pick(FORGIVE, random)}. I am ${pick(COURAGE, random)}.`;
+/** Weaving story, then exactly one blank line, then the fixed close. */
+export function withClosingLine(body: string): string {
+  const story = stripTrailingClosing(body).trimEnd();
+  return `${story}\n\n${KEEPSAKE_CLOSING_LINE}`;
 }
 
-/** Drop a model-written copy of the affirmation so the app can add its own. */
-export function stripTrailingAffirmation(text: string): string {
-  const trailing = new RegExp(`(?:\\s*\\n\\s*\\n\\s*|\\s+)${AFFIRMATION_LINE_SOURCE}\\s*$`, "i");
-  return text.replace(trailing, "").trimEnd();
+export function splitKeepsakeClosing(text: string): { story: string; closing: string } {
+  const marker = `\n\n${KEEPSAKE_CLOSING_LINE}`;
+  if (text.endsWith(marker)) {
+    return { story: text.slice(0, -marker.length), closing: KEEPSAKE_CLOSING_LINE };
+  }
+  return { story: text, closing: "" };
 }
 
-/** Weaving story, then a skipped line, then the affirmation. The line is extra. */
-export function withAffirmationLine(body: string, random: () => number = Math.random): string {
-  const story = stripTrailingAffirmation(body).trimEnd();
-  return `${story}\n\n${affirmationLine(random)}`;
-}
-
-export function splitWeavedAffirmation(text: string): { story: string; affirmation: string } {
-  const trailing = new RegExp(`\\n\\n(${AFFIRMATION_LINE_SOURCE})\\s*$`, "i");
-  const match = text.match(trailing);
-  if (!match || match.index === undefined) return { story: text, affirmation: "" };
-  return { story: text.slice(0, match.index).trimEnd(), affirmation: match[1] ?? "" };
+/**
+ * On-screen keepsake. First person, then the fixed close.
+ * A saved story that still ends on the old four-sentence line shows this line instead.
+ */
+export function displayKeepsakeText(text: string): string {
+  return withClosingLine(toFirstPersonStory(text));
 }

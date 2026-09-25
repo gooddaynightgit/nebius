@@ -15,11 +15,11 @@ describe("first person stories", () => {
     expect(displayStoryText(SECOND)).toBe(FIRST);
   });
 
-  it("keeps the blank line before the affirmation while turning the story to first person", () => {
+  it("keeps the blank line before the closing line while turning the story to first person", () => {
     const stored =
-      "Today, you kept your cup, woven into the fabric of your life.\n\nI love this moment. It's beautiful. I forgive. I am courageous.";
+      "Today, you kept your cup, woven into the fabric of your life.\n\nI love this moment. It's beautiful \u2013 the joy and awe of being.";
     expect(displayStoryText(stored)).toBe(
-      "Today, I kept my cup, woven into the fabric of my life.\n\nI love this moment. It's beautiful. I forgive. I am courageous.",
+      "Today, I kept my cup, woven into the fabric of my life.\n\nI love this moment. It's beautiful \u2013 the joy and awe of being.",
     );
   });
 
