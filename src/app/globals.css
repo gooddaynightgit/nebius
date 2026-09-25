@@ -616,56 +616,133 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.3;
 }
 
-/* Finished story card only. Bright yellow on the left, Nebius tones in the centre, sky to mint on the right. */
-#yours.card--lavender {
-  color: var(--navy);
-  background-color: #e6e3fd;
-  background-image:
-    radial-gradient(88% 130% at 0% 40%, #ffe45c 0%, #ffe45c 24%, #ffea7a 40%, rgba(255, 234, 122, 0) 62%),
-    radial-gradient(55% 72% at 44% 46%, #e6e3fd 0%, rgba(230, 227, 253, 0) 72%),
-    radial-gradient(42% 58% at 50% 54%, #f1d0fe 0%, rgba(241, 208, 254, 0) 70%),
-    radial-gradient(26% 34% at 48% 50%, #cdb4fd 0%, rgba(205, 180, 253, 0) 66%),
-    radial-gradient(62% 70% at 100% 0%, #bfeefe 0%, rgba(191, 238, 254, 0) 78%),
-    radial-gradient(48% 78% at 100% 42%, #beedff 0%, rgba(190, 237, 255, 0) 80%),
-    radial-gradient(68% 56% at 100% 100%, #b9f9df 0%, rgba(185, 249, 223, 0) 74%),
-    linear-gradient(100deg, #ffe45c 0%, #ffea7a 22%, #e6e3fd 42%, #f1d0fe 56%, #bfeefe 78%, #b9f9df 100%);
-}
-
-/* Processing lines: lavender, green, then amber and the peach card. Navy stays readable. */
+/* Finished story card and the weaving card. Still silk, cover, centred. */
+#yours.card--lavender,
 .card.story-opening {
-  background-color: #ebe7fb;
-  background-image: none;
   color: var(--navy);
-  transition: background-color 1.96s var(--ease);
+  background-color: #d4e4f2;
+  background-image: url("/weave-silk.jpg");
+  background-image: image-set(
+    url("/weave-silk.webp") type("image/webp"),
+    url("/weave-silk.jpg") type("image/jpeg")
+  );
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 
-.card.story-opening[data-line="0"] {
-  background-color: #ebe7fb;
+#yours.card--lavender::before,
+.card.story-opening.card--lavender::before {
+  content: none;
 }
 
-.card.story-opening[data-line="1"] {
-  background-color: #e7f6ea;
+.silk-frost {
+  position: relative;
+  z-index: 1;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.66);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
-.card.story-opening[data-line="2"] {
-  background-color: #d7f3e4;
+.card.story-opening .silk-frost,
+#yours .card__body.silk-frost,
+#yours .earlier-stories.silk-frost {
+  padding: 0.85rem 1rem;
 }
 
-.card.story-opening[data-line="3"] {
-  background-color: #ffe7b0;
+#yours .actions .btn--icon:not(.btn--keep) {
+  background: rgba(255, 255, 255, 0.66);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
-.card.story-opening[data-line="4"] {
-  background-color: #f8ead6;
+.weave-silk {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.weave-silk__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.weave-silk__motion,
+.weave-silk__sheet {
+  position: absolute;
+  inset: 0;
+}
+
+.weave-silk__sheet {
+  background-color: #d4e4f2;
+  background-image: url("/weave-silk.jpg");
+  background-image: image-set(
+    url("/weave-silk.webp") type("image/webp"),
+    url("/weave-silk.jpg") type("image/jpeg")
+  );
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.weave-silk--flow .weave-silk__motion {
+  animation: weave-silk-hue 30s ease-in-out infinite alternate;
+}
+
+.weave-silk--flow .weave-silk__sheet {
+  inset: -14%;
+  animation: weave-silk-pan 26s ease-in-out infinite alternate;
+  filter: url("#weave-silk-displace");
+  will-change: transform;
+}
+
+@keyframes weave-silk-pan {
+  from {
+    transform: scale(1.04) translate3d(-1.6%, -1%, 0);
+  }
+  to {
+    transform: scale(1.1) translate3d(1.6%, 1.2%, 0);
+  }
+}
+
+@keyframes weave-silk-hue {
+  from {
+    filter: hue-rotate(-4deg);
+  }
+  to {
+    filter: hue-rotate(4deg);
+  }
+}
+
+/* Safari iOS: turbulence is heavy, so keep a calm CSS pan and zoom only. */
+@supports (-webkit-touch-callout: none) {
+  .weave-silk__defs {
+    display: none;
+  }
+
+  .weave-silk--flow .weave-silk__sheet {
+    filter: none;
+  }
+
+  .weave-silk--flow .weave-silk__motion {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card.story-opening {
-    transition: none;
+  .weave-silk--flow {
+    display: none;
   }
 }
 
 .keep-card-view {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
