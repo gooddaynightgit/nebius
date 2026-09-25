@@ -255,7 +255,18 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.45;
 }
 
+.page:has(.signin-card) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(100%, 42rem);
+  min-width: 0;
+}
+
 .signin-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 0;
   margin: 0 0 0.9rem;
   padding: 1.4rem 1.2rem 1.5rem;
@@ -265,8 +276,8 @@ body:has(.journey) .skip-link:focus {
 }
 
 .signin-card h1 {
-  margin: 0 0 0.85rem;
-  max-width: 12ch;
+  margin: 0 0 0.4rem;
+  max-width: 100%;
   color: #fff;
   font-size: clamp(1.7rem, 7vw, 2.15rem);
   font-weight: 700;
@@ -274,8 +285,44 @@ body:has(.journey) .skip-link:focus {
   line-height: 1.15;
 }
 
+.signin-subline {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 0.7rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+
 .signin-card .moments-buy {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin-top: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.signin-card .whisper,
+.signin-card .whisper-label,
+.signin-card .privacy-note,
+.signin-card .moments-status,
+.signin-card .btn {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.signin-card .whisper {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.signin-card .privacy-note {
+  overflow-wrap: break-word;
 }
 
 .privacy-note {

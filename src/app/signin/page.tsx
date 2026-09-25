@@ -8,7 +8,7 @@ import { isPersonalPhotoSession, readGateEmail } from "@/lib/session";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Sign in — GoodDayNight",
+  title: "Your moment — GoodDayNight",
   description: "Email a code to open your moments.",
 };
 
@@ -28,7 +28,10 @@ export default async function SignInPage() {
 
       <main id="main">
         <section className="signin-card" aria-labelledby="signin-heading">
-          <h1 id="signin-heading">Sign in</h1>
+          <h1 id="signin-heading">Your moment.</h1>
+          <p className="signin-subline">
+            Enter your email and we'll send a 6-digit code. No password, no account — your moments stay tied to you.
+          </p>
           <SignInForm />
         </section>
       </main>

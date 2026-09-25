@@ -40,6 +40,12 @@ describe("email-only sign-in screen", () => {
 
   it("shows the email form and the privacy note, with no price", () => {
     expect(page).toMatch(/SignInForm/);
+    expect(page).toContain("Your moment.");
+    expect(page).toContain("Your moment — GoodDayNight");
+    expect(page).toContain(
+      "Enter your email and we'll send a 6-digit code. No password, no account — your moments stay tied to you.",
+    );
+    expect(page).not.toContain(">Sign in<");
     expect(page).toMatch(/destinationForVerifiedEmail/);
     expect(page).not.toMatch(/R450|\$28|Start hunting|moments-cta/);
     expect(form).toContain("Email me a code");
