@@ -12,6 +12,7 @@ import { chooseSpokenLine, cleanSpokenLine, isSelfNegating, proposeSpokenLine } 
 import {
   APP_EXCAVATE_SYSTEM,
   APP_REFLECT_SYSTEM,
+  NANO_INGEST_SYSTEM,
   SUPER_WEAVE_SYSTEM,
   displayMoment,
   isWeavableMoment,
@@ -124,6 +125,15 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_EXCAVATE_SYSTEM).toMatch(/under 45 words/);
     expect(APP_EXCAVATE_SYSTEM).toMatch(/plain description/);
     expect(APP_EXCAVATE_SYSTEM).not.toMatch(/don't|do not say|avoid the word/i);
+    for (const system of [
+      APP_REFLECT_SYSTEM,
+      SUPER_WEAVE_SYSTEM,
+      APP_EXCAVATE_SYSTEM,
+      NANO_INGEST_SYSTEM,
+    ]) {
+      expect(system).toMatch(/Every word must be warm, positive, and affirming/);
+      expect(system).toMatch(/gift received, savoured, or cherished/);
+    }
     for (const opener of EXCAVATE_OPENERS) {
       expect(APP_EXCAVATE_SYSTEM).not.toContain(opener);
     }

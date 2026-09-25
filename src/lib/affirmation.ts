@@ -24,6 +24,22 @@ function flexible(line: string): string {
 
 const LIST_SOURCE = KEEPSAKE_CLOSING_LINES.map(flexible).join("|");
 
+/** Keep a saved closing line byte-for-byte while other text is rewritten. */
+export function maskClosingLines(text: string): { text: string; restore: (value: string) => string } {
+  const slots: string[] = [];
+  let next = text;
+  const re = new RegExp(LIST_SOURCE, "gi");
+  next = next.replace(re, (match) => {
+    const token = `\uE000${slots.length}\uE001`;
+    slots.push(match);
+    return token;
+  });
+  return {
+    text: next,
+    restore: (value) => value.replace(/\uE000(\d+)\uE001/g, (_match, index: string) => slots[Number(index)] ?? ""),
+  };
+}
+
 const TRAILING_CLOSE = new RegExp(
   `(?:\\s*\\n\\s*\\n\\s*|\\s+)(?:${OLD_AFFIRMATION}|${LIST_SOURCE})\\s*$`,
   "i",
