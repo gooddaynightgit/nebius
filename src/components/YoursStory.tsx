@@ -62,7 +62,7 @@ export function StoryOpeningStatus() {
       aria-live="polite"
     >
       <WeaveSilk />
-      <p className="card__body silk-frost" role="status">
+      <p className="card__body story-opening__line" role="status">
         {STORY_OPENING_LINES[index]}
       </p>
     </section>

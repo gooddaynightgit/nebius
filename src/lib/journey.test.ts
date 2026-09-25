@@ -71,8 +71,7 @@ describe("journey progress", () => {
     const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
     expect(css).toMatch(/grid-template-columns:\s*repeat\(7,\s*minmax\(0,\s*1fr\)\)/);
     expect(css).toMatch(/calc\(100% \/ 14\)/);
-    const finished =
-      css.match(/#yours\.card--lavender,\s*\.card\.story-opening \{[^}]+\}/)?.[0] ?? "";
+    const finished = css.match(/#yours\.card--lavender \{[^}]+\}/)?.[0] ?? "";
     expect(finished).toMatch(/weave-silk\.webp/);
     expect(finished).toMatch(/weave-silk\.jpg/);
     expect(finished).toMatch(/background-size:\s*cover/);
