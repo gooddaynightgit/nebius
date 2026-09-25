@@ -19,6 +19,7 @@ import {
   shareOrDownloadKeepCard,
 } from "@/lib/keep-card";
 import { localDay } from "@/lib/day";
+import { displayStoryText } from "@/lib/first-person";
 import { LANDING } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
 import {
@@ -113,7 +114,7 @@ export default function YoursStory() {
   const requestedStory = searchParams.get("story") || "";
   const requestedMoment = searchParams.get("moment") || "";
   const readyStoryId = state.status === "ready" ? state.story.id : "";
-  const readyBody = state.status === "ready" ? state.story.body : "";
+  const readyBody = state.status === "ready" ? displayStoryText(state.story.body) : "";
   const readyPhotoId =
     state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
   useReportAppProgress(state.status === "ready" ? "weaved" : "turn");
@@ -323,7 +324,9 @@ export default function YoursStory() {
       audio.onended = () => setPlaying(false);
       return;
     }
-    const spoken = record.title ? `${record.title}. ${record.body}` : record.body;
+    const spokenBody = displayStoryText(record.body);
+    const spokenTitle = displayStoryText(record.title);
+    const spoken = spokenTitle ? `${spokenTitle}. ${spokenBody}` : spokenBody;
     const utterance = new SpeechSynthesisUtterance(spoken);
     utterance.rate = 0.82;
     utterance.pitch = 0.88;
@@ -345,7 +348,7 @@ export default function YoursStory() {
       let blob = cardBlobRef.current;
       if (!blob) {
         const photo = await loadKeepCardPhoto(keepCardPhotoSrc(photoId, state.story.id));
-        blob = await composeKeepCardJpeg({ photo, story: state.story.body });
+        blob = await composeKeepCardJpeg({ photo, story: displayStoryText(state.story.body) });
         cardBlobRef.current = blob;
       }
       const result = await shareOrDownloadKeepCard({
@@ -414,8 +417,8 @@ export default function YoursStory() {
                 alt="Tonight’s moment"
               />
             ) : null}
-            {state.story.title ? <p className="weaved-label">{state.story.title}</p> : null}
-            <p className="card__body weaved-story">{state.story.body}</p>
+            {state.story.title ? <p className="weaved-label">{displayStoryText(state.story.title)}</p> : null}
+            <p className="card__body weaved-story">{readyBody}</p>
             {cardError ? (
               <p className="notice" role="status">
                 {LANDING.app.keepFailed}

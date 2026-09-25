@@ -172,17 +172,17 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/What is the good in this moment\?/);
     expect(APP_REFLECT_SYSTEM).toMatch(/under 70 words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/NOT with Whoa\/Oooh\/Wow\/Gosh\/Stunning/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Today, you/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Today, I/);
     expect(APP_REFLECT_SYSTEM).toMatch(/factual floor/);
     expect(APP_REFLECT_SYSTEM).toMatch(/mood and the theme only/);
     expect(APP_REFLECT_SYSTEM).toMatch(/could belong to any photo/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Photo emphasis: low/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/do not center the keepsake on the photo/);
     expect(APP_REFLECT_SYSTEM).toMatch(/at least three warm positive words/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/Remarkable you/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Remarkable me/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect/i);
-    expect(APP_REFLECT_SYSTEM).toMatch(/the hunting became your happiness/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/the finding is what's changing you/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/the hunting became my happiness/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/the finding is what's changing me/);
     expect(APP_REFLECT_SYSTEM).toMatch(/becoming someone who looks/);
     expect(APP_REFLECT_SYSTEM).toMatch(/here be sure, not surprised/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Oooh you/);
@@ -336,7 +336,8 @@ describe("ingest and weave fallbacks", () => {
       expect(story.body).not.toMatch(/^title:/im);
       expect(story.body).not.toContain(joy.title);
       expect(story.body).not.toMatch(/Just this is|One corner clear/i);
-      expect(story.body).toMatch(/^(Today, you|Yes, you|You\b)/);
+      expect(story.body).toMatch(/^(Today, I|Yes, I|I\b)/);
+      expect(story.body).not.toMatch(/\b(you|your|yours|yourself)\b/i);
       expect(story.body).not.toMatch(/^(Whoa|Oooh|Wow you|Gosh|Stunning|Look at that)/);
       expect(YOU_ADDRESSES.some((phrase) => story.body.includes(phrase))).toBe(true);
       expect(story.body).not.toMatch(/\bperfect\b/i);
@@ -407,7 +408,8 @@ describe("ingest and weave fallbacks", () => {
       excavation,
     });
     expect(story.body).toMatch(/blossom|petal|bark|tree|sky/i);
-    expect(story.body).toMatch(/^(Today, you|Yes, you|You\b)/);
+    expect(story.body).toMatch(/^(Today, I|Yes, I|I\b)/);
+    expect(story.body).not.toMatch(/\b(you|your|yours|yourself)\b/i);
     expect(story.body).not.toMatch(/^(Whoa|Oooh|Wow you|Gosh|Stunning|Look at that)/);
     expect(YOU_ADDRESSES.some((phrase) => story.body.includes(phrase))).toBe(true);
     expect(story.body).not.toMatch(/\bperfect\b/i);
@@ -782,10 +784,10 @@ describe("landing", () => {
       expect(copy).toContain(title);
     }
     expect(copy).toContain(
-      "This morning, you stood in the sun. Ten quiet minutes. Gold on your skin.",
+      "This morning, I stood in the sun. Ten quiet minutes. Gold on my skin.",
     );
-    expect(copy).toContain("You turned yourself ON.");
-    expect(copy).toContain("You were THERE — fully, radiantly, joyfully there.");
+    expect(copy).toContain("I turned myself ON.");
+    expect(copy).toContain("I was THERE — fully, radiantly, joyfully there.");
   });
 
   it("opens story playback from radios in pale lavender panels", () => {

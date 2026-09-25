@@ -20,7 +20,7 @@ import {
 } from "./weave";
 
 const GOOD =
-  "Today, you kept the cold chocolate and the quiet sheets, eaten standing up before it melted. Lovely on the tongue, bright against the linen, wonderful that you stayed. Fantastic, you found one good moment today — the finding is what's changing you.";
+  "Today, I kept the cold chocolate and the quiet sheets, eaten standing up before it melted. Lovely on the tongue, bright against the linen, wonderful that I stayed. Fantastic, I found one good moment today — the finding is what's changing me.";
 
 const IMAGE = "data:image/jpeg;base64,abc";
 
@@ -185,7 +185,7 @@ describe("Nightly Reflection live fallback", () => {
 
   it("still sends the photo and the confirmed spark after Yes", async () => {
     const body =
-      "Today, you kept a pug in a plaid blanket on the forest path, and you called it your test story. Lovely, bright, and wonderful in the quiet. Phenomenal you hunted one good moment today, and the hunting became your happiness, your joy.";
+      "Today, I kept a pug in a plaid blanket on the forest path, and I called it my test story. Lovely, bright, and wonderful in the quiet. Phenomenal me hunted one good moment today, and the hunting became my happiness, my joy.";
     completeWithFallback.mockResolvedValueOnce({
       text: body,
       model: "moonshotai/Kimi-K2.6",

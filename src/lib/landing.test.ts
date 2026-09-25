@@ -135,22 +135,22 @@ describe("landing copy", () => {
       "No name for it",
     ]);
     expect(JOY_TYPES[0]?.playbackTemplate).toBe(
-      '"This morning, you stood in the sun. Ten quiet minutes. Gold on your skin. Your body remembered its rhythm. And the day began — gently, breathtakingly, beautifully — with you in it."',
+      '"This morning, I stood in the sun. Ten quiet minutes. Gold on my skin. My body remembered its rhythm. And the day began — gently, breathtakingly, beautifully — with me in it."',
     );
     expect(JOY_TYPES[1]?.playbackTemplate).toBe(
-      '"Today, you laughed so hard the room got brighter. You waved like you meant it — and it came right back at you. Somewhere, someone is smiling right now because you exist. That\'s not a small thing. That\'s everything."',
+      '"Today, I laughed so hard the room got brighter. I waved like I meant it — and it came right back at me. Somewhere, someone is smiling right now because I exist. That\'s not a small thing. That\'s everything."',
     );
     expect(JOY_TYPES[2]?.playbackTemplate).toBe(
-      '"Today, you gave one moment everything — and it gave you back the whole world. Every sense on fire. Every second shining. You weren\'t just doing something today. You were THERE — fully, radiantly, joyfully there."',
+      '"Today, I gave one moment everything — and it gave me back the whole world. Every sense on fire. Every second shining. I wasn\'t just doing something today. I was THERE — fully, radiantly, joyfully there."',
     );
     expect(JOY_TYPES[3]?.playbackTemplate).toBe(
-      '"Today, you moved — and your body threw a celebration. Endorphins like fireworks, mood soaring, heart singing. You didn\'t just go for a walk today. You turned yourself ON."',
+      '"Today, I moved — and my body threw a celebration. Endorphins like fireworks, mood soaring, heart singing. I didn\'t just go for a walk today. I turned myself ON."',
     );
     expect(JOY_TYPES[4]?.playbackTemplate).toBe(
-      '"Today, you made order out of chaos — one beautiful corner at a time. You looked at what you built and felt that deep, golden calm: I did this. Your space is brighter. And so are you."',
+      '"Today, I made order out of chaos — one beautiful corner at a time. I looked at what I built and felt that deep, golden calm: I did this. My space is brighter. And so am I."',
     );
     expect(JOY_TYPES[5]?.playbackTemplate).toBe(
-      '"Today held something that doesn\'t fit in any box — and it was yours. You noticed it. You kept it. Some moments are too alive for categories, and tonight, this one is yours to relive, word by word."',
+      '"Today held something that doesn\'t fit in any box — and it was mine. I noticed it. I kept it. Some moments are too alive for categories, and tonight, this one is mine to relive, word by word."',
     );
     expect(JOY_TYPES[0]?.tagline).toBe(
       "You stepped into the early gold and let the day find you.",

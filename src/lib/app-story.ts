@@ -1,3 +1,4 @@
+import { toFirstPersonStory } from "./first-person";
 import { YOU_ADDRESSES } from "./you-address";
 
 export const APP_STORY_MIN = 60;
@@ -16,12 +17,12 @@ export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
 const EMPTY_REFLECTION =
-  "Today, you kept a small good from the day, lovely, bright, and wonderful. Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.";
+  "Today, I kept a small good from the day, lovely, bright, and wonderful. Fantastic me hunted one good moment today, and the hunting became my happiness, my joy.";
 
 const HUNT_CLOSE =
-  "Fantastic, you hunted one good moment today, and the hunting became your happiness, your joy.";
+  "Fantastic me hunted one good moment today, and the hunting became my happiness, my joy.";
 
-const QUIET_OPEN_RE = /^(today,\s+you|yes,\s+you|you\b)/i;
+const QUIET_OPEN_RE = /^(today,\s+i\b|yes,\s+i\b|i\b)/i;
 
 export const APP_STORY_LEAK_RE =
   /nothing else|never more|not a lecture|not a list|do not have to|don't have to|no one else|without adding|only the whisper|kept what the frame|beside the image sits|will not invent|this telling will not|not a pep talk|not a moral|no extra line beside|\bexcavations?\b|\bexcavates?\b|joy pick|nightly reflection|four beats|photo description|optional caption|their whisper|your whisper/i;
@@ -128,14 +129,14 @@ function ensureQuietOpen(text: string): string {
   if (!trimmed) return EMPTY_REFLECTION;
   if (QUIET_OPEN_RE.test(trimmed)) return trimmed;
   const rest = trimmed.replace(/[.!?]+$/, "");
-  return `Today, you ${rest.charAt(0).toLowerCase()}${rest.slice(1)}.`;
+  return `Today, I ${rest.charAt(0).toLowerCase()}${rest.slice(1)}.`;
 }
 
 function hasBrandClose(text: string): boolean {
   const lower = text.toLowerCase();
   const addressed =
     YOU_ADDRESSES.some((phrase) => lower.includes(phrase.toLowerCase())) ||
-    /\b(fantastic|wonderful|beautiful|yes), you\b/i.test(text);
+    /\b(fantastic|wonderful|beautiful|yes), i\b/i.test(text);
   return (
     addressed &&
     /hunted one good moment today|found one good moment today|becoming someone who looks/i.test(text)
@@ -155,6 +156,7 @@ export function hasLecturePunctuation(body: string): boolean {
 export function expandAppStory(body: string, min = APP_STORY_MIN): string {
   let next = softenPunctuation(body);
   if (!next) next = EMPTY_REFLECTION;
+  next = toFirstPersonStory(next);
   next = ensureQuietOpen(next);
   if (!/[.!?]$/.test(next)) next = `${next}.`;
   const needsMore =
@@ -174,14 +176,14 @@ export function stripPlaybackQuotes(template: string): string {
 }
 
 export const CANNED_PLAYBACK_MARKERS = [
-  "Ten quiet minutes. Gold on your skin",
-  "You turned yourself ON",
+  "Ten quiet minutes. Gold on my skin",
+  "I turned myself ON",
   "fully, radiantly, joyfully there",
   "That's not a small thing. That's everything",
-  "Your space is brighter. And so are you",
+  "My space is brighter. And so am I",
   "too alive for categories",
   "Endorphins like fireworks",
-  "breathtakingly, beautifully — with you in it",
+  "breathtakingly, beautifully — with me in it",
 ] as const;
 
 export function usesCannedPlayback(body: string, template: string): boolean {
