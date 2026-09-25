@@ -2,6 +2,7 @@ import { captureImageDataUrl, ingestAppPhoto } from "@/lib/ingest";
 import { isPlausibleClientDay } from "@/lib/day";
 import { badRequest, forbidden, json, notFound } from "@/lib/http";
 import { LANDING } from "@/lib/landing";
+import { latestMoments } from "@/lib/latest-moments";
 import { loadSessionVault, presentSession, requirePersonalPhotoOtp } from "@/lib/session";
 import { WeaveBlockedError, WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
 import {
@@ -31,15 +32,12 @@ function storyPhoto(vault: { captures: CaptureRecord[] }, story: StoryRecord): C
 }
 
 function earlierStories(stories: StoryRecord[], currentId: string | undefined) {
-  return [...stories]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .filter((story) => story.id !== currentId)
-    .map((story) => ({
-      id: story.id,
-      day: story.day,
-      createdAt: story.createdAt,
-      captureId: story.captureIds[0] ?? null,
-    }));
+  return latestMoments(stories, { excludeId: currentId }).map((story) => ({
+    id: story.id,
+    day: story.day,
+    createdAt: story.createdAt,
+    captureId: story.captureIds[0] ?? null,
+  }));
 }
 
 export async function GET(request: Request) {

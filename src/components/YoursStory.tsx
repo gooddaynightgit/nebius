@@ -20,6 +20,7 @@ import {
 } from "@/lib/keep-card";
 import { localDay } from "@/lib/day";
 import { LANDING } from "@/lib/landing";
+import { latestMoments, momentListLabel } from "@/lib/latest-moments";
 import {
   STORY_OPENING_INTERVAL_MS,
   STORY_OPENING_LINES,
@@ -361,6 +362,8 @@ export default function YoursStory() {
   }
 
   const failed = state.status === "expired" || state.status === "missing" || state.status === "blocked" || state.status === "error";
+  const earlierList =
+    state.status === "ready" ? latestMoments(state.earlier, { excludeId: state.story.id }) : [];
 
   return (
     <div className="page">
@@ -455,13 +458,13 @@ export default function YoursStory() {
                 </p>
               ) : null}
             </div>
-            {state.earlier.length ? (
+            {earlierList.length ? (
               <nav id="earlier-stories" className="earlier-stories" aria-label="Earlier stories">
                 <h2>Earlier stories</h2>
                 <ul>
-                  {state.earlier.map((item) => (
+                  {earlierList.map((item) => (
                     <li key={item.id}>
-                      <Link href={`/app/yours?story=${item.id}`}>{item.day}</Link>
+                      <Link href={`/app/yours?story=${item.id}`}>{momentListLabel(item)}</Link>
                     </li>
                   ))}
                 </ul>
