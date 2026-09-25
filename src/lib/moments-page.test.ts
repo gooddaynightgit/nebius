@@ -99,6 +99,6 @@ describe("moments pack page", () => {
     expect(capture).toMatch(/window\.location\.assign\(next\)/);
     expect(capture).not.toMatch(/type="email"/);
     expect(capture).toMatch(/LANDING\.app\.heading/);
-    expect(capture).toMatch(/Capture it/);
+    expect(capture).toMatch(/Capture your good moment/);
   });
 });

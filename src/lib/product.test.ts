@@ -1121,7 +1121,8 @@ describe("app capture client contract", () => {
     expect(readme).not.toMatch(/today-only still, size, not a meme/);
     expect(src).not.toMatch(/Failed to fetch/);
     expect(src).toMatch(/className="step-heading step-heading--navy"/);
-    expect(src).toMatch(/Capture it/);
+    expect(src).toMatch(/Capture your good moment/);
+    expect(src).not.toMatch(/>\s*Capture it\s*</);
     expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(src).not.toMatch(/Your photo/);
     expect(src).toMatch(/Add a photo/);

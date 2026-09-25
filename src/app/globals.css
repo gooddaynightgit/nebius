@@ -2039,6 +2039,15 @@ body:has(.story-opening) .header-meta {
   line-height: 1.15;
 }
 
+.card--dark h2#capture-heading.step-heading {
+  display: inline-block;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  text-wrap: balance;
+  line-height: 1.25;
+}
+
 .step-nav {
   position: relative;
   z-index: 1;

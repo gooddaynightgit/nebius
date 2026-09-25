@@ -1,4 +1,4 @@
-/** Shown beside Capture it when the file is not a usable still. */
+/** Shown beside the capture heading when the file is not a usable still. */
 export const PHOTO_NOT_A_PICTURE =
   "That one didn't come through as a photo. Please capture or choose a picture of your good moment.";
 

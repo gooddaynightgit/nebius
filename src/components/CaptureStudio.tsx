@@ -708,7 +708,7 @@ export default function CaptureStudio() {
         <form onSubmit={saveMoment}>
         <section className="card card--dark" aria-labelledby="capture-heading">
             <h2 id="capture-heading" className="step-heading step-heading--navy">
-              Capture it
+              Capture your good moment
             </h2>
             <p className="visually-hidden">Add a photo</p>
             <p className="cta-copy" style={{ marginTop: 0 }}>
