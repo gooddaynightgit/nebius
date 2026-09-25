@@ -56,17 +56,16 @@ describe("email-only sign-in screen", () => {
   it("sends a visitor with no session to sign-in, and keeps payment for a verified email", () => {
     expect(moments).toMatch(/isPersonalPhotoSession/);
     expect(moments).toMatch(/redirect\("\/signin"\)/);
-    expect(moments).toMatch(/R450 ZAR/);
+    expect(moments).toMatch(/R450/);
+    expect(moments).toMatch(/ZAR \/ \$28/);
     expect(moments).toMatch(/MomentsCheckout/);
     const checkout = read("src/components/MomentsCheckout.tsx");
     expect(checkout).not.toMatch(/type="email"/);
     expect(checkout).not.toMatch(/<input/);
     expect(checkout).not.toMatch(/Email me a code|Verify code|PRIVACY_NOTE|EMAIL_VERIFIED_NOTE/);
     expect(moments).not.toMatch(/type="email"/);
-    expect(moments).toContain("Your good moments are waiting.");
-    expect(moments).toContain(
-      "To capture one, begin your hunt below. Every photo you take becomes a good moment weaved into the rich tapestry of life.",
-    );
+    expect(moments).toContain("Every good moment weaved adds to the rich tapestry of life");
+    expect(moments).not.toContain("Your good moments are waiting.");
     expect(verify).toMatch(/destinationForVerifiedEmail/);
     expect(verify).not.toMatch(/mode === "checkout"/);
     expect(verify.indexOf("setOtpSession")).toBeLessThan(verify.indexOf("destinationForVerifiedEmail"));

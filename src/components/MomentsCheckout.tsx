@@ -3,7 +3,7 @@ export default function MomentsCheckout() {
   return (
     <form className="moments-buy" method="post" action="/api/payfast/checkout">
       <button className="moments-cta" type="submit">
-        Start hunting — R450 ZAR / $28 USD
+        Unlock
       </button>
     </form>
   );
