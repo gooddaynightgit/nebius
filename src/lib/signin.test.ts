@@ -65,7 +65,7 @@ describe("email-only sign-in screen", () => {
     expect(moments).not.toMatch(/type="email"/);
     expect(moments).toContain("Your good moments are waiting.");
     expect(moments).toContain(
-      "To capture one, begin your hunt below. Every photo you take becomes a story that's yours to keep.",
+      "To capture one, begin your hunt below. Every photo you take becomes a good moment weaved into the rich tapestry of life.",
     );
     expect(verify).toMatch(/destinationForVerifiedEmail/);
     expect(verify).not.toMatch(/mode === "checkout"/);

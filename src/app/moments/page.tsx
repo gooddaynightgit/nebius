@@ -38,7 +38,7 @@ export default async function MomentsPage({
         <section className="moments-waiting" aria-labelledby="moments-waiting">
           <h2 id="moments-waiting">Your good moments are waiting.</h2>
           <p>
-            To capture one, begin your hunt below. Every photo you take becomes a story that's yours to keep.
+            To capture one, begin your hunt below. Every photo you take becomes a good moment weaved into the rich tapestry of life.
           </p>
         </section>
 

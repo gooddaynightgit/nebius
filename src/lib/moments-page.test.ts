@@ -12,7 +12,7 @@ describe("moments pack page", () => {
   it("states the wound, the nots, the offer, and a path into the app", () => {
     expect(page).toContain("Your good moments are waiting.");
     expect(page).toContain(
-      "To capture one, begin your hunt below. Every photo you take becomes a story that's yours to keep.",
+      "To capture one, begin your hunt below. Every photo you take becomes a good moment weaved into the rich tapestry of life.",
     );
     expect(page.indexOf("moments-waiting")).toBeLessThan(page.indexOf("moments-price"));
     expect(page).toContain("The good in your own day dies unnoticed — every single night.");
