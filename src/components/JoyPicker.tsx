@@ -49,6 +49,8 @@ type JoyPickerProps = {
   playbackVariant?: "plain" | "weaved";
   /** Joy page only: mark every radio while nothing in this group is chosen. */
   promptWhenEmpty?: boolean;
+  /** After Unlock/Capture with nothing chosen, the empty rings turn red. */
+  emptyAlert?: boolean;
   /** Fires when the empty-prompt state changes. Joy page colours its helper from this. */
   onEmptyChange?: (empty: boolean) => void;
 };
@@ -67,6 +69,7 @@ export default function JoyPicker({
   playbackLead,
   playbackVariant = "plain",
   promptWhenEmpty = false,
+  emptyAlert = false,
   onEmptyChange,
 }: JoyPickerProps) {
   const [internalId, setInternalId] = useState<string | null>(null);
@@ -106,7 +109,15 @@ export default function JoyPicker({
   }
 
   return (
-    <fieldset className={unset ? "joy-fieldset joy-fieldset--unset" : "joy-fieldset"}>
+    <fieldset
+      className={
+        promptWhenEmpty && !(unset && emptyAlert)
+          ? "joy-fieldset joy-fieldset--lime"
+          : unset && emptyAlert
+            ? "joy-fieldset joy-fieldset--unset"
+            : "joy-fieldset"
+      }
+    >
       <legend className={legend ? "joy-legend" : "visually-hidden"}>{legend || "Pick your joy"}</legend>
       <div className="joy-list">
         {joys.map((joy) => {
