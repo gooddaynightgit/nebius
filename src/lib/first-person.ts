@@ -142,9 +142,6 @@ const OBJECT_VERBS = new Set([
   "heard",
   "missed",
   "hugged",
-  "thank",
-  "thanks",
-  "thanked",
 ]);
 
 const VERBISH =
@@ -197,14 +194,79 @@ function youIsObject(before: string, after: string): boolean {
   return false;
 }
 
+const LETTER = /[A-Za-z]/;
+
+/** A straight apostrophe inside a word (`you're`, `I'm`), not a quotation mark. */
+function isApostrophe(text: string, index: number): boolean {
+  return LETTER.test(text[index - 1] ?? "") && LETTER.test(text[index + 1] ?? "");
+}
+
+/** Opening quotation mark, and the character that closes it. Apostrophes are not quotes. */
+function openingQuote(text: string, index: number): string | null {
+  const ch = text[index];
+  if (ch === '"') return '"';
+  if (ch === "\u201C") return "\u201D";
+  if (ch === "\u2018") return "\u2019";
+  if (ch === "'") {
+    if (isApostrophe(text, index)) return null;
+    const prev = text[index - 1] ?? "";
+    if (LETTER.test(prev) || /\d/.test(prev)) return null;
+    return "'";
+  }
+  return null;
+}
+
+function findClose(text: string, from: number, closer: string): number {
+  for (let i = from; i < text.length; i += 1) {
+    if (text[i] !== closer) continue;
+    if (closer === "'" && isApostrophe(text, i)) continue;
+    return i;
+  }
+  return -1;
+}
+
+/** Keep quoted speech and “thank you” out of the pronoun swap. */
+function shieldFixedPhrases(text: string): { text: string; slots: string[] } {
+  const slots: string[] = [];
+  const keep = (chunk: string) => {
+    const token = `\uE000${slots.length}\uE001`;
+    slots.push(chunk);
+    return token;
+  };
+
+  let shielded = "";
+  for (let i = 0; i < text.length; ) {
+    const closer = openingQuote(text, i);
+    if (closer) {
+      const end = findClose(text, i + 1, closer);
+      if (end !== -1) {
+        shielded += keep(text.slice(i, end + 1));
+        i = end + 1;
+        continue;
+      }
+    }
+    shielded += text[i];
+    i += 1;
+  }
+
+  shielded = shielded.replace(/\bthank[ -]you\b/gi, (match) => keep(match));
+  return { text: shielded, slots };
+}
+
+function restoreSlots(text: string, slots: string[]): string {
+  return text.replace(/\uE000(\d+)\uE001/g, (_match, index: string) => slots[Number(index)] ?? "");
+}
+
 /**
  * Turn a story paragraph into first person.
  * Subject you → I, object you → me, your → my, yours → mine, yourself → myself.
  * A sign-off such as "Magnificent you" becomes "Magnificent me".
+ * Quoted speech is left as written. "thank you" and "thank-you" stay put.
  */
 export function toFirstPersonStory(text: string): string {
   if (!text || !hasSecondPerson(text)) return text;
-  let next = text;
+  const shielded = shieldFixedPhrases(text);
+  let next = shielded.text;
   next = apply(next, "\\byourself\\b", "myself");
   next = apply(next, "\\byours\\b", "mine");
   next = apply(next, "\\byour\\b", "my");
@@ -249,7 +311,7 @@ export function toFirstPersonStory(text: string): string {
     const after = whole.slice(offset + match.length);
     return youIsObject(before, after) ? meLike(match) : "I";
   });
-  return next;
+  return restoreSlots(next, shielded.slots);
 }
 
 /** On-screen story text. Stored paragraphs are left as they were saved. */

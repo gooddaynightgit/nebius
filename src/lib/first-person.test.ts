@@ -38,6 +38,24 @@ describe("first person stories", () => {
     );
   });
 
+  it("leaves thank you and quoted speech unchanged", () => {
+    expect(toFirstPersonStory("thank you. You are here.")).toBe("thank you. I am here.");
+    expect(toFirstPersonStory("Thank you. You were glad.")).toBe("Thank you. I was glad.");
+    expect(toFirstPersonStory("a thank-you note for you")).toBe("a thank-you note for me");
+    expect(toFirstPersonStory('She said "your hands" and you smiled.')).toBe(
+      'She said "your hands" and I smiled.',
+    );
+    expect(toFirstPersonStory("She said “you held it” and you smiled.")).toBe(
+      "She said “you held it” and I smiled.",
+    );
+    expect(toFirstPersonStory("She said ‘your day’ and you smiled.")).toBe(
+      "She said ‘your day’ and I smiled.",
+    );
+    expect(toFirstPersonStory("She said 'you matter' and you smiled.")).toBe(
+      "She said 'you matter' and I smiled.",
+    );
+  });
+
   it("keeps the example story boxes in first person", () => {
     for (const joy of JOY_TYPES) {
       expect(hasSecondPerson(joy.playbackTemplate)).toBe(false);
