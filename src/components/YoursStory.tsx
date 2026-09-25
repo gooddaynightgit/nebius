@@ -19,6 +19,7 @@ import {
   shareOrDownloadKeepCard,
 } from "@/lib/keep-card";
 import { localDay } from "@/lib/day";
+import { splitWeavedAffirmation } from "@/lib/affirmation";
 import { displayStoryText } from "@/lib/first-person";
 import { LANDING } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
@@ -115,6 +116,7 @@ export default function YoursStory() {
   const requestedMoment = searchParams.get("moment") || "";
   const readyStoryId = state.status === "ready" ? state.story.id : "";
   const readyBody = state.status === "ready" ? displayStoryText(state.story.body) : "";
+  const weaved = splitWeavedAffirmation(readyBody);
   const readyPhotoId =
     state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
   useReportAppProgress(state.status === "ready" ? "weaved" : "turn");
@@ -418,7 +420,17 @@ export default function YoursStory() {
               />
             ) : null}
             {state.story.title ? <p className="weaved-label">{displayStoryText(state.story.title)}</p> : null}
-            <p className="card__body weaved-story">{readyBody}</p>
+            <p className="card__body weaved-story">
+              {weaved.affirmation ? (
+                <>
+                  {weaved.story}
+                  {"\n\n"}
+                  <span className="weaved-affirmation">{weaved.affirmation}</span>
+                </>
+              ) : (
+                readyBody
+              )}
+            </p>
             {cardError ? (
               <p className="notice" role="status">
                 {LANDING.app.keepFailed}

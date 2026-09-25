@@ -3,6 +3,7 @@ import { hasTokenFactoryKey } from "./config";
 import { getJoyById } from "./landing";
 import { completeWithFallback, nanoModels, type ChatMessage } from "./nebius";
 import { NANO_INGEST_SYSTEM, mockGoodMoment, spokenWords } from "./prompts";
+import { settleDiminishingText } from "./diminish";
 import { imageDataUrlForModels } from "./model-image";
 import { getBytes } from "./storage";
 import type { CaptureKind, CaptureRecord } from "./types";
@@ -214,7 +215,22 @@ export async function ingestAppPhoto(input: {
         clear: false,
       };
     }
-    const nanoGood = parsed.good ?? result.text.slice(0, 220);
+    const nanoGood = await settleDiminishingText(parsed.good ?? result.text.slice(0, 220), async () => {
+      const again = await completeWithFallback(
+        nanoModels(Boolean(input.imageDataUrl)),
+        [
+          {
+            role: "system",
+            content: input.imageDataUrl
+              ? `${NANO_INGEST_SYSTEM}\nWhen a photo is attached, include "clear" in the JSON. clear is false only for a blank surface, plain wall, ceiling, sky with nothing in it, a finger over the lens, blur past recognition, or pitch dark. clear is true when a subject or scene is visible.`
+              : NANO_INGEST_SYSTEM,
+          },
+          { role: "user", content: userContent },
+        ],
+        { temperature: 0.35, maxTokens: 220 },
+      );
+      return parseGood(again.text).good ?? null;
+    });
     if (caption && isSelfNegating(caption)) {
       if (nanoGood && !isSelfNegating(nanoGood) && nanoGood.length >= 8) {
         return {

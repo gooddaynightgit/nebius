@@ -178,12 +178,47 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/could belong to any photo/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Photo emphasis: low/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/do not center the keepsake on the photo/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/at least three warm positive words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/3 to 4 short sentences/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/25 to 45 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/A standalone closing word is optional/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Always include one weaving line/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Do not write the closing affirmation/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/does not count toward the 25 to 45 words/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/tapestry of my life/);
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /Brilliant\. Radiant\. Luminous\. Glorious\. Splendid\. Dazzling\. Magnificent\. Marvellous\. Wonderful\. Resplendent\./,
+    );
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/Beautiful\. or Mine\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not copy any of them verbatim/i);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Rotate among these six shapes/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Secondary style references/);
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /No social media, I am left with my own good memory all to myself/,
+    );
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /No feeds, no noise, just me and this moment, held close\. My own memory, mine alone\. Moments like these make life worth weaving\./,
+    );
+    expect(APP_REFLECT_SYSTEM).toMatch(
+      /Off the grid, out of the scroll, just this golden hour and I\./,
+    );
+    expect(APP_REFLECT_SYSTEM).toMatch(/Life, at its most radiant\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/woven quietly into the fabric of my life/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Another bright thread weaved into my days/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/unshared and perfect/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/what a life is woven from/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/one more golden strand in the tapestry/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Weaving each good moment into something everlasting/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/gently weaved into the story of my days/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Nothing to post, nothing to prove\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Moments like these make life luminous\./);
+    expect(APP_REFLECT_SYSTEM).toMatch(/the chocolate or the nest/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/do not force the phrase "no social media"/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/at least three warm positive words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Remarkable me/);
-    expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect/i);
-    expect(APP_REFLECT_SYSTEM).toMatch(/the hunting became my happiness/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/the finding is what's changing me/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/becoming someone who looks/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/perfect you/i);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/the hunting became my happiness/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/the finding is what's changing me/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/becoming someone who looks/);
     expect(APP_REFLECT_SYSTEM).toMatch(/here be sure, not surprised/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/Oooh you/);
     expect(APP_REFLECT_SYSTEM).not.toMatch(/How awesome is this, you/);
@@ -563,6 +598,9 @@ describe("ingest and weave fallbacks", () => {
     expect(story.title).toBe("");
     expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
+    expect(story.body).toMatch(
+      /\n\nI (?:love|treasure|cherish|adore|hold dear) this moment\. It's (?:beautiful|radiant|luminous|glorious|brilliant)\. I (?:forgive|let go|release|make peace)\. I am (?:courageous|brave|fearless|bold|strong)\.$/,
+    );
     expect(story.mock).toBe(true);
     expect(story.excavateModel).toBe("mock-excavation");
   });
