@@ -667,6 +667,11 @@ body:has(.story-opening) .site-header {
   z-index: 25;
 }
 
+body:has(.story-opening) .header-meta {
+  color: #d4ff00;
+  text-decoration: underline;
+}
+
 .card.story-opening {
   position: fixed;
   z-index: 20;
