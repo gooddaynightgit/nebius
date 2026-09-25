@@ -24,7 +24,11 @@ export {
   usesCannedPlayback,
 } from "./app-story";
 
-export const PRECIOUS_MOMENT_CRAFT = `The moment is precious and worth keeping. Write it warm and uplifting. Never diminish or downplay the moment. First person only (I, my, me). Never address the reader as you. Never use unremarkable, ordinary, mundane, nothing special, insignificant, plain, boring, or just a. Never use simple to dismiss the moment, or small or little to belittle it.`;
+export const WARM_WORDS_ONLY = `Every word must be warm, positive, and affirming. Never imply wrongdoing, guilt, stealing, indulgence as a sin, lack, sadness, flaws, or anything negative, even playfully. No sweet theft, guilty pleasure, stolen moment, sinful, or imperfect. Describe the moment as a gift received, savoured, or cherished. In the story itself, leave dark and grey unsaid; a night sky can stay quiet, bright, and full of stars. Private solitude is welcome when the moment is mine; lonely is not.`;
+
+export const PRECIOUS_MOMENT_CRAFT = `The moment is precious and worth keeping. Write it warm and uplifting. Never diminish or downplay the moment. First person only (I, my, me). Never address the reader as you. Never use unremarkable, ordinary, mundane, nothing special, insignificant, plain, boring, or just a. Never use simple to dismiss the moment, or small or little to belittle it.
+
+${WARM_WORDS_ONLY}`;
 
 /** Last beat of the short keepsake. Varied per story. Brilliant. is the favourite. */
 export const KEEPSAKE_CLOSING_WORDS = [

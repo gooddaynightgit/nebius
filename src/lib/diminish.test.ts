@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { KEEPSAKE_CLOSING_LINES } from "./affirmation";
 import {
   DIMINISHING_PHRASES,
   hasDiminishingPhrase,
@@ -7,15 +8,28 @@ import {
 } from "./diminish";
 
 describe("diminishing phrase filter", () => {
-  it("lists the banned phrases", () => {
-    expect([...DIMINISHING_PHRASES]).toEqual([
-      "unremarkable",
-      "mundane",
-      "ordinary",
-      "nothing special",
-      "insignificant",
-      "boring",
-    ]);
+  it("lists the banned phrases and leaves dark, grey, and alone off the hard filter", () => {
+    expect(DIMINISHING_PHRASES).toEqual(
+      expect.arrayContaining([
+        "unremarkable",
+        "mundane",
+        "ordinary",
+        "nothing special",
+        "insignificant",
+        "boring",
+        "theft",
+        "stolen",
+        "imperfect",
+        "sadness",
+        "failure",
+      ]),
+    );
+    expect(DIMINISHING_PHRASES).not.toEqual(expect.arrayContaining(["dark", "grey", "alone"]));
+    expect(hasDiminishingPhrase("mine alone under a grey sky, full of darkness and stars")).toBe(
+      false,
+    );
+    expect(hasDiminishingPhrase("Remarkable me kept an Extraordinary hour")).toBe(false);
+    expect(hasDiminishingPhrase("a flawless sincere morning")).toBe(false);
   });
 
   it("turns perfectly unremarkable into perfectly mine", () => {
@@ -56,6 +70,66 @@ describe("diminishing phrase filter", () => {
       "Today, I kept the radiant light.",
     );
     expect(clean).not.toHaveBeenCalled();
+  });
+
+  it("turns a sweet theft into a sweet gift, including inflections", () => {
+    expect(
+      stripDiminishingPhrases("A small, sweet theft woven into the story of my mornings."),
+    ).toBe("A small, sweet gift woven into the story of my mornings.");
+    expect(hasDiminishingPhrase("A small, sweet theft woven into the story of my mornings.")).toBe(
+      true,
+    );
+    expect(stripDiminishingPhrases("a stolen moment")).toBe("a gifted moment");
+    expect(stripDiminishingPhrases("an imperfect cup")).toBe("a cup just as it is");
+    expect(stripDiminishingPhrases("She was stealing a quiet hour")).toBe(
+      "She was savouring a quiet hour",
+    );
+    for (const word of [
+      "stealing",
+      "stole",
+      "stolen",
+      "sneaky",
+      "guilty",
+      "sinful",
+      "imperfect",
+      "flaws",
+      "sadness",
+      "wasted",
+      "regrets",
+      "hurting",
+      "afraid",
+      "worries",
+      "lacking",
+      "missing",
+      "failures",
+      "thefts",
+      "thieves",
+    ]) {
+      expect(hasDiminishingPhrase(`I kept the ${word} light`)).toBe(true);
+      expect(hasDiminishingPhrase(stripDiminishingPhrases(`I kept the ${word} light`))).toBe(false);
+    }
+  });
+
+  it("leaves a saved closing line untouched while it rewrites the story", () => {
+    const close = KEEPSAKE_CLOSING_LINES[1];
+    const cleaned = stripDiminishingPhrases(
+      `A small, sweet theft woven into the story of my mornings.\n\n${close}`,
+    );
+    expect(cleaned).toBe(
+      `A small, sweet gift woven into the story of my mornings.\n\n${close}`,
+    );
+    expect(hasDiminishingPhrase(close)).toBe(false);
+  });
+
+  it("regenerates once when a theft remains, then replaces it", async () => {
+    const regenerate = vi.fn(async () => "A small, sweet theft woven into the story of my mornings.");
+    const kept = await settleDiminishingText(
+      "A small, sweet theft woven into the story of my mornings.",
+      regenerate,
+    );
+    expect(regenerate).toHaveBeenCalledTimes(1);
+    expect(kept).toBe("A small, sweet gift woven into the story of my mornings.");
+    expect(hasDiminishingPhrase(kept)).toBe(false);
   });
 
   it("scrubs the first draft when the regenerate fails", async () => {
