@@ -70,6 +70,9 @@ describe("story opening status", () => {
     expect(shader).toMatch(/#9FE6EE/);
     expect(shader).toMatch(/#B7DDFB/);
     expect(shader).toMatch(/#FFF1A8/);
+    expect(shader).toMatch(/#FFE98A/);
+    expect(shader).toMatch(/#F4F0FF/);
+    expect(shader).toMatch(/#FFFFFF/);
     expect(shader).toMatch(/#6F5FC8/);
     expect(css).toMatch(/\.card\.story-opening \{[^}]*position:\s*fixed;/);
     expect(css).toMatch(/\.story-opening__line \{[^}]*text-shadow:/);
