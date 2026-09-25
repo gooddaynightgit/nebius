@@ -10,7 +10,7 @@ import {
 } from "./nebius";
 
 /** Verbatim witness core. Category names here follow Jasmine’s list. */
-export const JOY_MATCH_CORE = `You are the witness inside Gooddaynight, an app that trains people to notice one good moment a day.
+export const JOY_MATCH_CORE = `You are the witness inside GoodDayNight, an app that trains people to notice one good moment a day.
 
 You will receive a photo and the joy category the user picked for it.
 

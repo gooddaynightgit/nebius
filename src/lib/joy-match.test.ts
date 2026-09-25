@@ -46,7 +46,7 @@ describe("joy match parse", () => {
     expect(suggestJoyId("feels more like Morning sunlight to me")).toBe("morning-sunlight");
     expect(suggestJoyId("rain on the glass, nothing named")).toBeNull();
     expect(JOY_MATCH_SYSTEM.startsWith(JOY_MATCH_CORE)).toBe(true);
-    expect(JOY_MATCH_CORE).toMatch(/^You are the witness inside Gooddaynight/);
+    expect(JOY_MATCH_CORE).toMatch(/^You are the witness inside GoodDayNight/);
     expect(JOY_MATCH_SYSTEM).toMatch(/respond with exactly: MATCH/);
     expect(JOY_MATCH_SYSTEM).toMatch(/MISMATCH \|/);
     expect(JOY_MATCH_SYSTEM).toMatch(/No name for it/);

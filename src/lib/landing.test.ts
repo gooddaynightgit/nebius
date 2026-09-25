@@ -46,7 +46,7 @@ describe("landing copy", () => {
     expect(LANDING.app.noticingClose).toMatch(/it’s/);
     expect(LANDING.app.noticing.join(" ")).toMatch(/you’re/);
     expect(LANDING.app.yours).toBe("My good moment weaved");
-    expect(LANDING.app.brand).toBe("gooddaynight.com");
+    expect(LANDING.app.brand).toBe("GoodDayNight");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
     expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");
     expect(LANDING.app.sparkYes).toBe("Yes");
@@ -69,12 +69,12 @@ describe("landing copy", () => {
     expect(LANDING.app.keepBusy).toBe("Sharing…");
     expect(LANDING.app.replace).toBe("Replace today’s photo");
     expect(LANDING.app.reach).toBe(
-      "Couldn't reach Gooddaynight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
+      "Couldn't reach GoodDayNight — if you're on the preview link, refresh and sign into Vercel again, then retry.",
     );
     expect(LANDING.app.reachLive).toBe(
-      "Couldn't reach Gooddaynight — check your connection and try again.",
+      "Couldn't reach GoodDayNight — check your connection and try again.",
     );
-    expect(LANDING.app.unexpected).toBe("Couldn't read Gooddaynight's reply. Refresh and try again.");
+    expect(LANDING.app.unexpected).toBe("Couldn't read GoodDayNight's reply. Refresh and try again.");
     expect(LANDING.app.takePhoto).toBe("Take your photo");
     expect(LANDING.app.uploadPhoto).toBe("Upload your photo");
     expect(LANDING.app.keepStill).toBe("Keep this still");
@@ -116,7 +116,7 @@ describe("landing copy", () => {
     );
     expect(LANDING.footer.oneMoment).toBe("One moment. One story.");
     expect(LANDING.footer.somethingGood).toBe("Something good is about to happen!");
-    expect(LANDING.footer.site).toBe("Gooddaynight.com");
+    expect(LANDING.footer.site).toBe("gooddaynight.com");
     expect(LANDING.footer.lookingForward).toBe("Looking forward to hearing from you:");
     expect(LANDING.footer.hello).toBe("hello@gooddaynight.com");
     expect(WHISPER_MAX).toBe(80);

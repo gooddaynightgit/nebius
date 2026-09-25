@@ -72,11 +72,13 @@ describe("journey progress", () => {
     expect(css).toMatch(/grid-template-columns:\s*repeat\(7,\s*minmax\(0,\s*1fr\)\)/);
     expect(css).toMatch(/calc\(100% \/ 14\)/);
     const finished = css.match(/#yours\.card--lavender \{[^}]+\}/)?.[0] ?? "";
-    expect(finished).toMatch(/weave-silk\.webp/);
-    expect(finished).toMatch(/weave-silk\.jpg/);
-    expect(finished).toMatch(/background-size:\s*cover/);
-    expect(finished).toMatch(/background-position:\s*center/);
+    expect(finished).toMatch(/rgba\(255,\s*255,\s*255,\s*0\.06\)/);
+    expect(finished).toMatch(/rgba\(212,\s*255,\s*0,\s*0\.35\)/);
+    expect(finished).not.toMatch(/weave-silk/);
     expect(finished).not.toMatch(/#ffe45c|#ffea7a|#bfeefe|#b9f9df/);
+    expect(css).toMatch(
+      /body:has\(#yours\) \{[^}]*linear-gradient\(hsl\(223,\s*90%,\s*30%\),\s*hsl\(223,\s*90%,\s*10%\)\)/,
+    );
     const plain = css.match(/\.card--lavender \{[^}]+\}/)?.[0] ?? "";
     expect(plain).toMatch(/#ebe7fb/);
     expect(plain).not.toMatch(/weave-silk/);

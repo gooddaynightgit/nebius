@@ -1,7 +1,11 @@
-/** Jasmine's feedback lines, including the Feedback: prefix and GoodDayNight capitalization. */
+/** Ticker quotes. Attributions render separately in lime. */
 export const FEEDBACK_LINES = [
-  'Feedback: "Anyone can take a photo — GoodDayNight makes you notice what it was."',
-  'Feedback: "The app doesn\'t just save your best moment — it rewires your whole day hunting for it."',
+  {
+    quote: '"Anyone can take a photo — GoodDayNight makes you notice what it was."',
+    attribution: "— early user",
+  },
+  {
+    quote: '"The app doesn\'t just save your best moment — it rewires your whole day hunting for it."',
+    attribution: "— Kim, beta tester",
+  },
 ] as const;
-
-export const FEEDBACK_PREFIX = "Feedback:";

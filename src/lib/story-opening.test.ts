@@ -76,8 +76,9 @@ describe("story opening status", () => {
     expect(css).toMatch(/\.story-opening__line \{[^}]*text-shadow:/);
     expect(css).toMatch(/rgba\(255,\s*255,\s*255,\s*0\.35\)/);
     expect(css).toMatch(/backdrop-filter:\s*blur\(14px\)/);
-    expect(css).toMatch(/weave-silk\.webp/);
-    expect(css).toMatch(/background-size:\s*cover/);
+    expect(css).not.toMatch(/#yours\.card--lavender \{[^}]*weave-silk/);
+    expect(yours).toMatch(/className="weaved-bubbles"/);
+    expect(yours.match(/<WeaveBubbles \/>/g)).toHaveLength(2);
     expect(statSync(path.resolve("public/weave-silk.webp")).size).toBeLessThan(300 * 1024);
     expect(statSync(path.resolve("public/weave-silk.jpg")).size).toBeLessThan(300 * 1024);
     for (const layer of [1, 2, 3, 4]) {

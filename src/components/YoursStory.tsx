@@ -104,7 +104,6 @@ export default function YoursStory() {
   const [playing, setPlaying] = useState(false);
   const [keepBusy, setKeepBusy] = useState(false);
   const [keepNote, setKeepNote] = useState<string | null>(null);
-  const [cardUrl, setCardUrl] = useState<string | null>(null);
   const [cardError, setCardError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cardBlobRef = useRef<Blob | null>(null);
@@ -289,33 +288,26 @@ export default function YoursStory() {
   useEffect(() => {
     if (!readyPhotoId) {
       cardBlobRef.current = null;
-      setCardUrl(null);
       setCardError(Boolean(readyStoryId));
       return;
     }
     let cancelled = false;
-    let url: string | null = null;
     setCardError(false);
-    setCardUrl(null);
     (async () => {
       try {
         const photo = await loadKeepCardPhoto(keepCardPhotoSrc(readyPhotoId, readyStoryId));
         const blob = await composeKeepCardJpeg({ photo, story: readyBody });
         if (cancelled) return;
         cardBlobRef.current = blob;
-        url = URL.createObjectURL(blob);
-        setCardUrl(url);
       } catch {
         if (!cancelled) {
           cardBlobRef.current = null;
-          setCardUrl(null);
           setCardError(true);
         }
       }
     })();
     return () => {
       cancelled = true;
-      if (url) URL.revokeObjectURL(url);
     };
   }, [readyBody, readyPhotoId, readyStoryId]);
 
@@ -374,7 +366,7 @@ export default function YoursStory() {
     <div className="page">
       <header className="site-header">
         <Link className="badge" href="/">
-          Gooddaynight
+          GoodDayNight
         </Link>
         <Link className="header-meta" href="/app">
           Back to today
@@ -404,16 +396,29 @@ export default function YoursStory() {
           </section>
         ) : null}
         {state.status === "ready" ? (
-          <section id="yours" className="card card--lavender card--compact" aria-labelledby="yours-heading">
+          <div className="weaved-finale">
+            <div className="weaved-bubbles" aria-hidden="true">
+              <WeaveBubbles />
+            </div>
+            <section id="yours" className="card card--lavender card--compact" aria-labelledby="yours-heading">
             <h1 id="yours-heading" className="step-heading step-heading--navy">
               {LANDING.app.yours}
             </h1>
-            {cardUrl ? (
-              <img className="keep-card-view" src={cardUrl} alt={state.story.body} />
-            ) : cardError ? (
-              <p className="card__body silk-frost">{LANDING.app.keepFailed}</p>
+            {readyPhotoId ? (
+              <img
+                className="keep-card-view"
+                src={keepCardPhotoSrc(readyPhotoId, state.story.id)}
+                alt="Tonight’s moment"
+              />
             ) : null}
-            <div className="actions" style={{ marginTop: "1rem" }}>
+            {state.story.title ? <p className="weaved-label">{state.story.title}</p> : null}
+            <p className="card__body weaved-story">{state.story.body}</p>
+            {cardError ? (
+              <p className="notice" role="status">
+                {LANDING.app.keepFailed}
+              </p>
+            ) : null}
+            <div className="actions">
               <button
                 className="btn btn--icon"
                 type="button"
@@ -427,7 +432,6 @@ export default function YoursStory() {
                   }
                   speakStory(state.story);
                 }}
-                style={{ color: "var(--navy)", borderColor: "rgba(22,50,74,0.25)" }}
               >
                 {playing ? <PauseIcon /> : <PlayIcon />}
                 {playing ? LANDING.app.pause : LANDING.app.playMoment}
@@ -452,7 +456,7 @@ export default function YoursStory() {
               ) : null}
             </div>
             {state.earlier.length ? (
-              <nav id="earlier-stories" className="earlier-stories silk-frost" aria-label="Earlier stories">
+              <nav id="earlier-stories" className="earlier-stories" aria-label="Earlier stories">
                 <h2>Earlier stories</h2>
                 <ul>
                   {state.earlier.map((item) => (
@@ -463,7 +467,8 @@ export default function YoursStory() {
                 </ul>
               </nav>
             ) : null}
-          </section>
+            </section>
+          </div>
         ) : null}
       </main>
     </div>

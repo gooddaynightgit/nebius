@@ -6,7 +6,7 @@ export default function HomePage() {
     <div className="page">
       <header className="site-header">
         <Link className="badge" href="/">
-          gooddaynight.com
+          GoodDayNight
         </Link>
       </header>
 
