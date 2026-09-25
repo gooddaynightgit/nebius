@@ -50,11 +50,9 @@ describe("story opening status", () => {
     const opening = yours.match(/function StoryOpeningStatus\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
     expect(opening).toMatch(/className="card__body story-opening__line"/);
     expect(opening).not.toMatch(/silk-frost/);
-    expect(photos).toMatch(/weave-silk-1\.webp/);
-    expect(photos).toMatch(/weave-silk-2\.webp/);
-    expect(photos).toMatch(/weave-silk-3\.webp/);
-    expect(photos).toMatch(/weave-silk-4\.webp/);
-    expect(photos).toMatch(/weave-silk-1\.jpg/);
+    expect(photos).toMatch(/SILK_LAYERS = \[1, 2, 3, 4\]/);
+    expect(photos).toMatch(/\/weave-silk-\$\{layer\}\.webp/);
+    expect(photos).toMatch(/\/weave-silk-\$\{layer\}\.jpg/);
     expect(photos).not.toMatch(/webgl|canvas|getContext/i);
     expect(css).not.toMatch(/\.weave-silk \{/);
     expect(css).toMatch(/object-fit:\s*cover/);
