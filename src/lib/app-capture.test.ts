@@ -64,7 +64,9 @@ describe("app photo save rules", () => {
         size: 1200,
         takenDay: today,
       }),
-    ).toMatch(/still frame/i);
+    ).toBe(
+      "That one didn't come through as a photo. Please capture or choose a picture of your good moment.",
+    );
     expect(
       appPhotoRejection({
         day: today,

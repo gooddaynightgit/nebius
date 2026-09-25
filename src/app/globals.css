@@ -467,6 +467,15 @@ body:has(.journey) .skip-link:focus {
   outline-color: var(--lime);
 }
 
+.capture-reject {
+  flex: 1 1 100%;
+  margin: 0.2rem 0 0;
+  color: var(--lime);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .card--compact {
   min-height: 0;
   padding-bottom: 1.5rem;
