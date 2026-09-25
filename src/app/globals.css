@@ -657,9 +657,9 @@ body:has(.journey) .skip-link:focus {
   backdrop-filter: blur(14px);
 }
 
-/* Weaving screen fills the viewport under the progress bar. The photo is the still fallback. */
+/* Weaving screen fills the viewport under the progress bar. */
 body:has(.story-opening) {
-  background: #6f5fc8;
+  background: #d5deea;
 }
 
 body:has(.story-opening) .site-header {
@@ -682,36 +682,116 @@ body:has(.story-opening) .site-header {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #6f5fc8;
-  background-image: url("/weave-silk.jpg");
-  background-image: image-set(
-    url("/weave-silk.webp") type("image/webp"),
-    url("/weave-silk.jpg") type("image/jpeg")
-  );
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
+  background: #d5deea;
   color: var(--navy);
 }
 
-.weave-silk {
+.weave-photos {
   position: absolute;
   inset: 0;
   z-index: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
+  overflow: hidden;
   pointer-events: none;
-  transform: translateZ(0);
-  will-change: transform;
 }
 
-.weave-silk--still {
-  visibility: hidden;
+.weave-photos__layer {
+  position: absolute;
+  left: -20%;
+  top: -20%;
+  width: 140%;
+  height: 140%;
+  margin: 0;
+  display: block;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  animation-name: weave-fade, weave-drift-1;
+  animation-duration: 20s, 22s;
+  animation-timing-function: ease-in-out, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-fill-mode: both, both;
+}
+
+.weave-photos__layer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border: 0;
+  user-select: none;
+}
+
+.weave-photos__layer--2 {
+  animation-name: weave-fade, weave-drift-2;
+  animation-duration: 20s, 26s;
+  animation-delay: -5s, -4s;
+}
+
+.weave-photos__layer--3 {
+  animation-name: weave-fade, weave-drift-3;
+  animation-duration: 20s, 18s;
+  animation-delay: -10s, -9s;
+}
+
+.weave-photos__layer--4 {
+  animation-name: weave-fade, weave-drift-4;
+  animation-duration: 20s, 24s;
+  animation-delay: -15s, -6s;
+}
+
+.weave-photos__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 42%,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  animation: weave-glow 8s ease-in-out infinite;
+}
+
+@keyframes weave-fade {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  45% { opacity: 1; }
+  75% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes weave-drift-1 {
+  0% { transform: translate3d(-1.4%, 1%, 0) scale(1.08) rotate(-1.4deg); }
+  50% { transform: translate3d(1.6%, -1.2%, 0) scale(1.16) rotate(1.6deg); }
+  100% { transform: translate3d(-1.4%, 1%, 0) scale(1.08) rotate(-1.4deg); }
+}
+
+@keyframes weave-drift-2 {
+  0% { transform: translate3d(1.5%, -0.8%, 0) scale(1.14) rotate(1.2deg); }
+  50% { transform: translate3d(-1.2%, 1.5%, 0) scale(1.07) rotate(-1.8deg); }
+  100% { transform: translate3d(1.5%, -0.8%, 0) scale(1.14) rotate(1.2deg); }
+}
+
+@keyframes weave-drift-3 {
+  0% { transform: translate3d(-0.8%, -1.4%, 0) scale(1.1) rotate(1.8deg); }
+  50% { transform: translate3d(1.4%, 1%, 0) scale(1.18) rotate(-1.2deg); }
+  100% { transform: translate3d(-0.8%, -1.4%, 0) scale(1.1) rotate(1.8deg); }
+}
+
+@keyframes weave-drift-4 {
+  0% { transform: translate3d(1%, 1.3%, 0) scale(1.16) rotate(-1.6deg); }
+  50% { transform: translate3d(-1.6%, -0.6%, 0) scale(1.08) rotate(1.4deg); }
+  100% { transform: translate3d(1%, 1.3%, 0) scale(1.16) rotate(-1.6deg); }
+}
+
+@keyframes weave-glow {
+  0%,
+  100% { opacity: 0.1; }
+  50% { opacity: 0.24; }
 }
 
 .card.story-opening .story-opening__line {
-  z-index: 1;
+  z-index: 2;
   max-width: 16rem;
   margin: 0;
   color: var(--navy);
@@ -727,9 +807,27 @@ body:has(.story-opening) .site-header {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .weave-silk {
+  .weave-photos__layer,
+  .weave-photos__glow {
+    animation: none;
     will-change: auto;
+  }
+
+  .weave-photos__layer {
+    opacity: 0;
     transform: none;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .weave-photos__layer--1 {
+    opacity: 1;
+  }
+
+  .weave-photos__glow {
+    opacity: 0;
   }
 }
 
