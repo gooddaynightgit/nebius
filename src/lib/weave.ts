@@ -41,6 +41,7 @@ import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
 import { newId } from "./identity";
 import { shrinkDataUrlForModels } from "./model-image";
+import { settleDiminishingText, stripDiminishingPhrases } from "./diminish";
 import { putBytes } from "./storage";
 
 export class WeaveNeedsWordsError extends Error {
@@ -55,6 +56,22 @@ export class WeaveBlockedError extends Error {
     super(WEAVE_BLOCKED);
     this.name = "WeaveBlockedError";
   }
+}
+
+const DIMINISH_REWRITE =
+  "Rewrite so the moment feels precious and worth keeping. Leave out unremarkable, mundane, ordinary, nothing special, insignificant, and boring. Keep the same facts. First person: I, my, me. Never you.";
+
+async function rewriteWithoutDiminishing(
+  models: string[],
+  messages: ChatMessage[],
+  read: (text: string) => string | null,
+): Promise<string | null> {
+  const result = await completeWithFallback(
+    models,
+    [...messages, { role: "user", content: DIMINISH_REWRITE }],
+    { temperature: 0.4, maxTokens: 420 },
+  );
+  return read(result.text);
 }
 
 function parseExcavationReply(text: string): "BLOCK" | string {
@@ -146,9 +163,15 @@ async function weaveWithSuper(
           });
           continue;
         }
+        const body = await settleDiminishingText(toFirstPersonStory(parsed.body), () =>
+          rewriteWithoutDiminishing(superModels(), messages, (text) => {
+            const next = parseTitleBody(text).body;
+            return next ? toFirstPersonStory(next) : null;
+          }),
+        );
         return {
-          title: toFirstPersonStory(parsed.title),
-          body: toFirstPersonStory(parsed.body),
+          title: stripDiminishingPhrases(toFirstPersonStory(parsed.title)),
+          body,
           model: result.model,
         };
       }
@@ -403,13 +426,30 @@ async function excavateAppPhoto(input: {
     return { text: parsed, model };
   };
 
+  async function releaseExcavation(
+    parsed: ReturnType<typeof tryParse>,
+    messages: ChatMessage[],
+    models: string[],
+  ) {
+    if (!parsed || !("text" in parsed) || typeof parsed.text !== "string") return parsed;
+    const draft = parsed.text;
+    const model = parsed.model;
+    const text = await settleDiminishingText(draft, () =>
+      rewriteWithoutDiminishing(models, messages, (raw) => {
+        const next = tryParse(raw, model);
+        return next && "text" in next && typeof next.text === "string" ? next.text : null;
+      }),
+    );
+    return { text, model };
+  }
+
   if (hasImage) {
     try {
       const result = await completeWithFallback(visionModels(), visionMessages, {
         temperature: 0.25,
         maxTokens: 700,
       });
-      const parsed = tryParse(result.text, result.model);
+      const parsed = await releaseExcavation(tryParse(result.text, result.model), visionMessages, visionModels());
       if (parsed) return parsed;
     } catch {
       // Fall through to a text-only best-effort excavation.
@@ -428,7 +468,7 @@ async function excavateAppPhoto(input: {
       temperature: 0.2,
       maxTokens: 500,
     });
-    return tryParse(result.text, result.model);
+    return releaseExcavation(tryParse(result.text, result.model), textMessages, textExcavateModels());
   } catch {
     return null;
   }
@@ -443,9 +483,11 @@ export async function sparkForPhoto(
     const live = await excavateAppPhoto({ photoNotes: "", imageDataUrl });
     if (live && "unclear" in live) return { unclear: true };
     if (live && "blocked" in live && live.blocked) return { blocked: true };
-    if (live && "text" in live && live.text.trim()) return { spark: live.text.trim() };
+    if (live && "text" in live && live.text.trim()) {
+      return { spark: stripDiminishingPhrases(live.text.trim()) };
+    }
   }
-  return { spark: mockExcavation(voice ? { voice } : {}) };
+  return { spark: stripDiminishingPhrases(mockExcavation(voice ? { voice } : {})) };
 }
 
 const FATAL_REFLECT_PROBLEMS = new Set(["canned", "wellness", "despair", "leak", "picture"]);
@@ -497,7 +539,14 @@ async function reflectWithModels(
         continue;
       }
       if (fail.lastProblems.length === 0) {
-        return { body: toFirstPersonStory(trimmed), model: result.model };
+        const body = await settleDiminishingText(toFirstPersonStory(trimmed), () =>
+          rewriteWithoutDiminishing(models, baseMessages, (text) => {
+            const parsedAgain = parseAppWeaveReply(text);
+            if (parsedAgain === "BLOCK") return null;
+            return toFirstPersonStory(withoutPerfectYou(trimAppStory(parsedAgain), addressKey));
+          }),
+        );
+        return { body, model: result.model };
       }
     } catch (error) {
       fail.lastError = closerErrorMessage(error);
@@ -513,8 +562,17 @@ async function reflectWithModels(
     fail.lastBody &&
     !fail.lastProblems.some((item) => FATAL_REFLECT_PROBLEMS.has(item))
   ) {
+    const body = await settleDiminishingText(
+      toFirstPersonStory(withoutPerfectYou(finishAppStory(fail.lastBody), addressKey)),
+      () =>
+        rewriteWithoutDiminishing(models, baseMessages, (text) => {
+          const parsedAgain = parseAppWeaveReply(text);
+          if (parsedAgain === "BLOCK") return null;
+          return toFirstPersonStory(withoutPerfectYou(trimAppStory(parsedAgain), addressKey));
+        }),
+    );
     return {
-      body: toFirstPersonStory(withoutPerfectYou(finishAppStory(fail.lastBody), addressKey)),
+      body,
       model: fail.lastModel || "mock-fallback",
     };
   }
@@ -746,8 +804,8 @@ export async function weaveStory(options: {
     }
   }
 
-  title = toFirstPersonStory(withoutPerfectYou(title, addressKey));
-  body = toFirstPersonStory(withoutPerfectYou(body, addressKey));
+  title = stripDiminishingPhrases(toFirstPersonStory(withoutPerfectYou(title, addressKey)));
+  body = stripDiminishingPhrases(toFirstPersonStory(withoutPerfectYou(body, addressKey)));
 
   const tts = await synthesizeStory(title ? `${title}. ${body}` : body);
   let audioKey: string | undefined;
