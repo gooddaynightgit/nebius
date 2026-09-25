@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import StepControl from "@/components/StepControl";
 import { readJson } from "@/lib/client-fetch";
@@ -27,6 +27,10 @@ export default function JoyStudio() {
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [resetSignal, setResetSignal] = useState(0);
   const [savedMoments, setSavedMoments] = useState<SavedMoment[]>([]);
+  const [needsJoyPick, setNeedsJoyPick] = useState(true);
+  const reportJoyEmpty = useCallback((empty: boolean) => {
+    setNeedsJoyPick(empty);
+  }, []);
   const selectedJoy = getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day));
   const joys = useMemo(() => {
     const base = accordionJoys();
@@ -134,6 +138,8 @@ export default function JoyStudio() {
             playbackTitle="Example: My good moment weaved"
             playbackLead={LANDING.app.playbackLead}
             playbackVariant="weaved"
+            promptWhenEmpty
+            onEmptyChange={reportJoyEmpty}
             trailingChoice={{
               id: SAVED_JOY_MOMENTS_ID,
               title: SAVED_JOY_MOMENTS_LABEL,
@@ -171,7 +177,15 @@ export default function JoyStudio() {
           </button>
         </nav>
         {selectedJoy ? null : (
-          <p className="step-nudge step-nudge--block" id="joy-need" role="status">
+          <p
+            className={
+              needsJoyPick
+                ? "step-nudge step-nudge--block step-nudge--alert"
+                : "step-nudge step-nudge--block"
+            }
+            id="joy-need"
+            role="status"
+          >
             {LANDING.app.joyNeed}
           </p>
         )}
