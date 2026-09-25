@@ -9,6 +9,7 @@ import {
   trimAppStory,
 } from "./app-story";
 import { clipCaption } from "./app-capture";
+import { readPhotoClear, stripPhotoClear } from "./photo-picture";
 import { hasTokenFactoryKey, useUltra } from "./config";
 import { getJoyById } from "./landing";
 import {
@@ -374,7 +375,12 @@ async function excavateAppPhoto(input: {
   caption?: string;
   photoNotes: string;
   imageDataUrl?: string;
-}): Promise<{ blocked: true; model: string } | { text: string; model: string } | null> {
+}): Promise<
+  | { blocked: true; model: string }
+  | { unclear: true; model: string }
+  | { text: string; model: string }
+  | null
+> {
   const imageDataUrl = input.imageDataUrl;
   const hasImage = Boolean(imageDataUrl);
   const visionText = appExcavateUserText({ ...input, hasImage });
@@ -390,7 +396,8 @@ async function excavateAppPhoto(input: {
   ];
 
   const tryParse = (text: string, model: string) => {
-    const parsed = parseExcavationReply(text);
+    if (readPhotoClear(text) === false) return { unclear: true as const, model };
+    const parsed = parseExcavationReply(stripPhotoClear(text));
     if (parsed === "BLOCK") return { blocked: true as const, model };
     if (parsed.replace(/\s+/g, " ").trim().length < 40) return null;
     return { text: parsed, model };
@@ -431,9 +438,10 @@ async function excavateAppPhoto(input: {
 export async function sparkForPhoto(
   imageDataUrl?: string,
   voice?: { opener: string; closer: string },
-): Promise<{ blocked: true } | { spark: string }> {
+): Promise<{ blocked: true } | { unclear: true } | { spark: string }> {
   if (imageDataUrl && hasTokenFactoryKey()) {
     const live = await excavateAppPhoto({ photoNotes: "", imageDataUrl });
+    if (live && "unclear" in live) return { unclear: true };
     if (live && "blocked" in live && live.blocked) return { blocked: true };
     if (live && "text" in live && live.text.trim()) return { spark: live.text.trim() };
   }

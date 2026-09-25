@@ -37,7 +37,7 @@ import {
   normalizePhotoFile,
   preparePhotoForUpload,
 } from "@/lib/prepare-photo";
-import { PHOTO_NOT_A_PICTURE, blobLooksBlank, isStillImageFile } from "@/lib/photo-picture";
+import { PHOTO_NOT_A_PICTURE, PHOTO_NOT_CLEAR, blobLooksBlank, isStillImageFile } from "@/lib/photo-picture";
 import {
   openRearCamera,
   prefersLiveCamera,
@@ -358,6 +358,24 @@ export default function CaptureStudio() {
     setCaptureError(PHOTO_NOT_A_PICTURE);
   }
 
+  async function rejectUnclearPicture() {
+    setDateNote(null);
+    setSpark(null);
+    setSparkPending(false);
+    setSparkAnswer(null);
+    setPhoto(null);
+    photoRef.current = null;
+    if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current);
+    photoUrlRef.current = null;
+    setPhotoUrl(null);
+    setCaptureError(PHOTO_NOT_CLEAR);
+    try {
+      await clearPendingPhoto();
+    } catch {
+      // The picture is already dropped from the screen.
+    }
+  }
+
   async function takePhoto(file: File | null, fromCamera = false) {
     if (!file || !canPickPhoto) return;
     setCaptureError(null);
@@ -382,7 +400,7 @@ export default function CaptureStudio() {
     }
     try {
       if (await blobLooksBlank(next)) {
-        rejectUnpicture();
+        await rejectUnclearPicture();
         return;
       }
     } catch {
@@ -546,9 +564,17 @@ export default function CaptureStudio() {
     } catch (err) {
       if (seq !== sparkSeq.current) return;
       const message = err instanceof Error ? err.message : "";
-      if (/verify your email/i.test(message)) {
+      if (
+        message === PHOTO_NOT_CLEAR ||
+        message === PHOTO_NOT_A_PICTURE ||
+        /verify your email/i.test(message)
+      ) {
         setSparkPending(false);
-        setCaptureError(message);
+        if (message === PHOTO_NOT_CLEAR || message === PHOTO_NOT_A_PICTURE) {
+          await rejectUnclearPicture();
+        } else {
+          setCaptureError(message);
+        }
         return;
       }
       finishSpark("this still from the day");
@@ -751,9 +777,9 @@ export default function CaptureStudio() {
                     event.target.value = "";
                   }}
                 />
-                {captureError === PHOTO_NOT_A_PICTURE ? (
+                {captureError === PHOTO_NOT_A_PICTURE || captureError === PHOTO_NOT_CLEAR ? (
                   <p className="capture-reject" role="alert">
-                    {PHOTO_NOT_A_PICTURE}
+                    {captureError}
                   </p>
                 ) : null}
               </div>
@@ -813,7 +839,9 @@ export default function CaptureStudio() {
                 {dateNote}
               </p>
             ) : null}
-            {captureError && captureError !== PHOTO_NOT_A_PICTURE ? (
+            {captureError &&
+            captureError !== PHOTO_NOT_A_PICTURE &&
+            captureError !== PHOTO_NOT_CLEAR ? (
               <p className="error" role="alert">
                 {captureError}
                 {isReachabilityError(captureError) ? (

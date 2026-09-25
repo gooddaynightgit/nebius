@@ -1,4 +1,5 @@
 import { badRequest, json } from "@/lib/http";
+import { PHOTO_NOT_CLEAR } from "@/lib/photo-picture";
 import { uploadedPictureRejection } from "@/lib/photo-picture-server";
 import { LANDING } from "@/lib/landing";
 import { requirePersonalPhotoOtp } from "@/lib/session";
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     if (picture) return badRequest(picture);
     const imageDataUrl = imageDataUrlForModels(file.type || "image/jpeg", bytes);
     const result = await sparkForPhoto(imageDataUrl, voice);
+    if ("unclear" in result) return badRequest(PHOTO_NOT_CLEAR);
     if ("blocked" in result) return json({ blocked: true, spark: LANDING.app.blocked });
     return dressedSpark(result.spark, voice);
   } catch {
