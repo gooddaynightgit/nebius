@@ -226,19 +226,44 @@ body:has(.journey) .skip-link:focus {
   white-space: pre-line;
 }
 
-.moments-code {
+.btn.moments-code {
   justify-self: start;
   width: auto;
   min-height: 2.8rem;
-  border-color: var(--navy);
-  background: transparent;
+  background: var(--lime);
+  border-color: var(--lime);
   color: var(--navy);
 }
 
-.moments-code:hover {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: #fff;
+.btn.moments-code:hover {
+  background: #eaff6a;
+  border-color: #eaff6a;
+  color: var(--navy);
+}
+
+.btn.moments-code:disabled,
+.btn.moments-code:disabled:hover,
+.btn.verify-code:disabled,
+.btn.verify-code:disabled:hover {
+  opacity: 0.72;
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+}
+
+.btn.verify-code {
+  justify-self: start;
+  width: auto;
+  min-height: 2.8rem;
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+}
+
+.btn.verify-code:hover {
+  background: #eaff6a;
+  border-color: #eaff6a;
+  color: var(--navy);
 }
 
 .moments-cta:disabled {

@@ -241,6 +241,24 @@ export function dynamoOtpTable(): OtpTable {
   return new DynamoOtpTable(dynamoDocument(), authTableName());
 }
 
+let devMemory: MemoryOtpTable | null = null;
+
+/**
+ * Local screenshot and dev servers can set OTP_STORE=memory.
+ * Production always uses DynamoDB, even if that variable is set.
+ */
+export function otpTable(): OtpTable {
+  if (process.env.OTP_STORE === "memory" && process.env.NODE_ENV !== "production") {
+    devMemory ??= new MemoryOtpTable();
+    return devMemory;
+  }
+  return dynamoOtpTable();
+}
+
+export function devOtpEchoAllowed(): boolean {
+  return process.env.OTP_STORE === "memory" && process.env.NODE_ENV !== "production";
+}
+
 export async function sendOtpEmail(email: string, code: string): Promise<void> {
   const from = process.env.SES_NOREPLY?.trim();
   const region = process.env.AWS_REGION?.trim();

@@ -1,4 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
+import { buyerReturnUrl } from "./buyer-handoff";
 import { isValidEmail, newId, normalizeEmail } from "./identity";
 import { creditMoments, recordedPayment } from "./entitlement";
 
@@ -303,7 +304,7 @@ export function buildCheckoutFields(email: string, mPaymentId: string): Checkout
   return {
     merchant_id: merchant.merchantId,
     merchant_key: merchant.merchantKey,
-    return_url: `${origin}/app?paid=1&ref=${ref}`,
+    return_url: buyerReturnUrl(origin, ref, normalized),
     cancel_url: `${origin}/moments?cancelled=1`,
     notify_url: `${origin}/api/payfast/itn`,
     email_address: normalized,

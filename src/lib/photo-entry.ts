@@ -1,4 +1,4 @@
-/** Photo page. Unsigned buyers see the existing email and OTP form here. */
+/** Photo page. A visitor with no verified session is sent to the email screen first. */
 export const CAPTURE_PHOTO_HREF = "/app";
 
 /** Buy page when `goodfans.game` is not above zero. */
@@ -18,14 +18,15 @@ export function destinationForGame(game: number): typeof CAPTURE_PHOTO_HREF | ty
 
 /**
  * Upload your photo.
- * Signed out opens the existing email + OTP form.
- * Signed in follows `game` (null means the balance check failed, so stay on that form).
+ * Signed out opens the email screen (`/moments`), not a form on the photo page.
+ * Signed in follows `game`. A failed balance check stays on the photo page.
  */
 export function uploadPhotoDestination(
   signedIn: boolean,
   game: number | null,
 ): typeof CAPTURE_PHOTO_HREF | typeof BUY_MOMENTS_HREF {
-  if (!signedIn || game === null) return CAPTURE_PHOTO_HREF;
+  if (!signedIn) return BUY_MOMENTS_HREF;
+  if (game === null) return CAPTURE_PHOTO_HREF;
   return destinationForGame(game);
 }
 
@@ -46,7 +47,7 @@ export function releaseCaptureVisit(wasBusy: boolean): { busy: false; startNewMo
   return { busy: false, startNewMoment: wasBusy };
 }
 
-/** After OTP on the photo page: open capture, leave for the buy page, or stay on an error. */
+/** After a balance check on the photo page: stay to capture, leave for the buy page, or stay on an error. */
 export function destinationForEntitlement(
   result: EntitlementGate,
 ): typeof CAPTURE_PHOTO_HREF | typeof BUY_MOMENTS_HREF | null {

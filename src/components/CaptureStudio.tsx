@@ -17,7 +17,6 @@ import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
-import { PRIVACY_NOTE } from "@/lib/privacy";
 import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
 import {
   applySparkVoice,
@@ -133,7 +132,7 @@ async function stillFromVideo(file: File): Promise<File> {
   }
 }
 
-export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
+export default function CaptureStudio() {
   const pathname = usePathname();
   const takeInputId = useId();
   const uploadInputId = useId();
@@ -172,16 +171,7 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
   const [answeredGeneration, setAnsweredGeneration] = useState<number | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
 
-  const [emailDismissed, setEmailDismissed] = useState(false);
-  const showBuyerEmail = !signedIn && !emailDismissed;
-  const [buyerEmail, setBuyerEmail] = useState("");
-  const [buyerCode, setBuyerCode] = useState("");
-  const [buyerNote, setBuyerNote] = useState<string | null>(null);
-  const [codeBusy, setCodeBusy] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(false);
-  const buyerInputRef = useRef<HTMLInputElement | null>(null);
-  const buyerId = useId();
-  const buyerCodeId = useId();
 
   const day = useMemo(() => localDay(), []);
   const sessionRef = useRef(session);
@@ -200,15 +190,11 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
   });
   useReportBuyerGate(captureOpen, hydrated);
   useReportAppProgress(busy ? "turn" : questionOpen ? "good" : "upload");
-  useEffect(() => {
-    if (showBuyerEmail) buyerInputRef.current?.focus();
-  }, [showBuyerEmail]);
 
   function applyEntitlement(result: EntitlementLookup) {
-    const signedIn = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
-    if (photoButtonsEnabled(signedIn, result === "open" ? 1 : 0)) {
+    const sessionOpen = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
+    if (photoButtonsEnabled(sessionOpen, result === "open" ? 1 : 0)) {
       setCaptureOpen(true);
-      setEmailDismissed(true);
       return;
     }
     setCaptureOpen(false);
@@ -251,89 +237,6 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
     window.addEventListener("pageshow", onPageShow);
     return () => window.removeEventListener("pageshow", onPageShow);
   }, [pathname]);
-
-  function buyerEmailOk(email: string): boolean {
-    return email.length > 3 && email.length < 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  async function sendBuyerCode() {
-    const email = buyerEmail.trim().toLowerCase();
-    if (!buyerEmailOk(email)) {
-      setCaptureOpen(false);
-      setBuyerNote("That doesn’t look like an email yet.");
-      return;
-    }
-    setCodeBusy(true);
-    setBuyerNote("Sending a code…");
-    try {
-      const res = await fetch("/api/auth/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ email }),
-      });
-      const data = await readJson<{ message?: string; error?: string }>(res);
-      setBuyerNote(data.message || data.error || "We couldn’t send a code right now.");
-    } catch {
-      setBuyerNote("We couldn’t send a code right now.");
-    } finally {
-      setCodeBusy(false);
-    }
-  }
-
-  async function noteBuyerEmail(event: FormEvent) {
-    event.preventDefault();
-    const email = buyerEmail.trim().toLowerCase();
-    if (!buyerEmailOk(email)) {
-      setCaptureOpen(false);
-      setBuyerNote("That doesn’t look like an email yet.");
-      return;
-    }
-    if (!/^\d{6}$/.test(buyerCode.trim())) {
-      setCaptureOpen(false);
-      setBuyerNote("Enter the 6-digit code from your email.");
-      return;
-    }
-    setBuyerNote("Checking…");
-    try {
-      const res = await fetch("/api/auth/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ email, code: buyerCode.trim(), mode: "buyer" }),
-      });
-      const data = await readJson<{ ok?: boolean; message?: string; error?: string }>(res);
-      if (!res.ok || !data.ok) {
-        setCaptureOpen(false);
-        setBuyerNote(data.message || data.error || "That code didn’t work. Request a new one.");
-        return;
-      }
-    } catch {
-      setCaptureOpen(false);
-      setBuyerNote("We couldn’t check that code right now.");
-      return;
-    }
-    try {
-      const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
-      setSession(await readJson<SessionState>(sessionRes));
-    } catch {
-      // This page can still take a photo. The next save reads the email cookie.
-    }
-    setEmailDismissed(true);
-    const result = await lookupEntitlement(email);
-    if (result === "open") {
-      setCaptureOpen(true);
-      setBuyerNote("You’re in. Take or upload today’s moment.");
-      return;
-    }
-    setCaptureOpen(false);
-    const next = destinationForEntitlement(result);
-    if (next === "/moments") {
-      window.location.assign(next);
-      return;
-    }
-    setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
-  }
 
   const previewSrc = capturePreviewSrc({
     localPreviewUrl: photoUrl,
@@ -839,54 +742,6 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
           <NoticingMoments />
-          {showBuyerEmail ? (
-            <form className="buyer-email" onSubmit={noteBuyerEmail}>
-              <label className="whisper-label" htmlFor={buyerId}>
-                Email
-              </label>
-              <input
-                id={buyerId}
-                ref={buyerInputRef}
-                className="whisper"
-                type="text"
-                inputMode="email"
-                autoComplete="email"
-                value={buyerEmail}
-                onChange={(event) => {
-                  setBuyerEmail(event.target.value);
-                  setBuyerNote(null);
-                }}
-              />
-              <button className="btn btn--lime" type="button" disabled={codeBusy} onClick={() => void sendBuyerCode()}>
-                Email me a code
-              </button>
-              <label className="whisper-label" htmlFor={buyerCodeId}>
-                Code
-              </label>
-              <input
-                id={buyerCodeId}
-                className="whisper"
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={buyerCode}
-                onChange={(event) => {
-                  setBuyerCode(event.target.value.replace(/\D/g, "").slice(0, 6));
-                  setBuyerNote(null);
-                }}
-              />
-              <button className="btn btn--lime" type="submit">
-                Open my moments
-              </button>
-              <p className="privacy-note">{PRIVACY_NOTE}</p>
-            </form>
-          ) : null}
-          {buyerNote ? (
-            <p className="buyer-email__note" role="status">
-              {buyerNote}
-            </p>
-          ) : null}
         </section>
 
         <form onSubmit={saveMoment}>
