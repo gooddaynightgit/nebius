@@ -800,6 +800,12 @@ body:has(#yours) .header-meta:focus-visible,
   white-space: pre-wrap;
 }
 
+#yours .weaved-affirmation {
+  color: #d4ff00;
+  font-style: italic;
+  font-weight: 650;
+}
+
 #yours .keep-card-view {
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 1rem;

@@ -15,6 +15,14 @@ describe("first person stories", () => {
     expect(displayStoryText(SECOND)).toBe(FIRST);
   });
 
+  it("keeps the blank line before the affirmation while turning the story to first person", () => {
+    const stored =
+      "Today, you kept your cup, woven into the fabric of your life.\n\nI love this moment. It's beautiful. I forgive. I am courageous.";
+    expect(displayStoryText(stored)).toBe(
+      "Today, I kept my cup, woven into the fabric of my life.\n\nI love this moment. It's beautiful. I forgive. I am courageous.",
+    );
+  });
+
   it("keeps verb agreement and leaves a first-person story untouched", () => {
     expect(toFirstPersonStory("You are here. You were glad. You have the cup.")).toBe(
       "I am here. I was glad. I have the cup.",

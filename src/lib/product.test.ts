@@ -182,6 +182,8 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/25 to 45 words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/A standalone closing word is optional/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Always include one weaving line/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Do not write the closing affirmation/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/does not count toward the 25 to 45 words/);
     expect(APP_REFLECT_SYSTEM).toMatch(/tapestry of my life/);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /Brilliant\. Radiant\. Luminous\. Glorious\. Splendid\. Dazzling\. Magnificent\. Marvellous\. Wonderful\. Resplendent\./,
@@ -596,6 +598,9 @@ describe("ingest and weave fallbacks", () => {
     expect(story.title).toBe("");
     expect(story.body.length).toBeGreaterThanOrEqual(APP_STORY_MIN);
     expect(story.body.length).toBeLessThanOrEqual(APP_STORY_MAX);
+    expect(story.body).toMatch(
+      /\n\nI (?:love|treasure|cherish|adore|hold dear) this moment\. It's (?:beautiful|radiant|luminous|glorious|brilliant)\. I (?:forgive|let go|release|make peace)\. I am (?:courageous|brave|fearless|bold|strong)\.$/,
+    );
     expect(story.mock).toBe(true);
     expect(story.excavateModel).toBe("mock-excavation");
   });
