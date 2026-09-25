@@ -165,6 +165,11 @@ void main() {
   col += mix(pearlWhite(), yellow(), 0.4) * (gloss * 0.9 + satin * 0.12 + ridge * 0.15);
   float trough = smoothstep(0.48, 0.2, h) * smoothstep(0.55, 0.12, ndl);
   col = mix(col, crease(), trough * 0.55);
+  col = max(col, vec3(0.0));
+  float luma = dot(col, vec3(0.299, 0.587, 0.114));
+  float floorL = dot(crease(), vec3(0.299, 0.587, 0.114));
+  // One 8-bit code above the crease so UNORM rounding cannot slip under #6F5FC8.
+  col = mix(crease(), col, step(floorL + 1.0 / 255.0, luma));
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
