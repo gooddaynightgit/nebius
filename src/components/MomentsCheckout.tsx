@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { authAttempt, type AuthBody } from "@/lib/auth-note";
 import { readJson, readResponsePayload } from "@/lib/client-fetch";
 import { PRIVACY_NOTE } from "@/lib/privacy";
+import { EMAIL_VERIFIED_NOTE, isSixDigitCode } from "@/lib/verify-code";
 
 type SessionPeek = {
   email?: string | null;
@@ -27,6 +28,8 @@ export default function MomentsCheckout() {
   const [note, setNote] = useState<string | null>(null);
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const verifyLock = useRef(false);
+  const autoTried = useRef("");
 
   const normalized = normalize(email);
   const verified = Boolean(verifiedEmail && verifiedEmail === normalized && emailOk(normalized));
@@ -65,6 +68,8 @@ export default function MomentsCheckout() {
       });
       const data = await readResponsePayload<AuthBody>(res);
       if (verifiedEmail === normalized) setVerifiedEmail(null);
+      setCode("");
+      autoTried.current = "";
       setNote(authAttempt(data, res.ok, "We couldn’t send a code right now.").note);
     } catch {
       setNote("We couldn’t send a code right now.");
@@ -74,15 +79,17 @@ export default function MomentsCheckout() {
   }
 
   async function verifyCode() {
+    if (verifyLock.current || verified) return;
     if (!emailOk(email)) {
       setVerifiedEmail(null);
       setNote("Enter a valid email.");
       return;
     }
-    if (!/^\d{6}$/.test(code.trim())) {
+    if (!isSixDigitCode(code)) {
       setNote("Enter the 6-digit code from your email.");
       return;
     }
+    verifyLock.current = true;
     setBusy(true);
     setNote("Checking…");
     try {
@@ -100,14 +107,26 @@ export default function MomentsCheckout() {
         return;
       }
       setVerifiedEmail(normalized);
-      setNote("Code verified. You can start hunting.");
+      setNote(EMAIL_VERIFIED_NOTE);
     } catch {
       setVerifiedEmail(null);
       setNote("We couldn’t check that code right now.");
     } finally {
+      verifyLock.current = false;
       setBusy(false);
     }
   }
+
+  const verifyRef = useRef(verifyCode);
+  verifyRef.current = verifyCode;
+
+  useEffect(() => {
+    if (verified || !isSixDigitCode(code) || !emailOk(email)) return;
+    const key = `${normalized}:${code.trim()}`;
+    if (autoTried.current === key) return;
+    autoTried.current = key;
+    void verifyRef.current();
+  }, [code, email, normalized, verified]);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     if (verified) return;
@@ -154,6 +173,11 @@ export default function MomentsCheckout() {
           setNote(null);
         }}
       />
+      {verified ? null : (
+        <button className="btn btn--lime verify-code" type="button" disabled={busy} onClick={() => void verifyCode()}>
+          Verify code
+        </button>
+      )}
       {note ? (
         <p className="moments-status" role="status">
           {note}

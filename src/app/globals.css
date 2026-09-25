@@ -242,10 +242,27 @@ body:has(.journey) .skip-link:focus {
 }
 
 .btn.moments-code:disabled,
-.btn.moments-code:disabled:hover {
+.btn.moments-code:disabled:hover,
+.btn.verify-code:disabled,
+.btn.verify-code:disabled:hover {
   opacity: 0.72;
   background: var(--lime);
   border-color: var(--lime);
+  color: var(--navy);
+}
+
+.btn.verify-code {
+  justify-self: start;
+  width: auto;
+  min-height: 2.8rem;
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+}
+
+.btn.verify-code:hover {
+  background: #eaff6a;
+  border-color: #eaff6a;
   color: var(--navy);
 }
 

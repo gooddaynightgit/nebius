@@ -50,6 +50,11 @@ describe("moments pack page", () => {
       "Email keeps your moments yours. Your photos and words are never used to train AI.",
     );
     expect(checkout).toMatch(/className="btn moments-code"/);
+    expect(checkout).toMatch(/Verify code/);
+    expect(checkout).toMatch(/EMAIL_VERIFIED_NOTE/);
+    expect(checkout).toMatch(/isSixDigitCode\(code\)/);
+    expect(capture).toMatch(/Verify code/);
+    expect(capture).toMatch(/EMAIL_VERIFIED_NOTE/);
     expect(styles).toMatch(/\.btn\.moments-code\s*\{[^}]*background:\s*var\(--lime\);/);
     expect(styles).toMatch(/\.btn\.moments-code\s*\{[^}]*color:\s*var\(--navy\);/);
     expect(styles).toMatch(/\.btn\.moments-code:disabled[\s\S]*color:\s*var\(--navy\);/);

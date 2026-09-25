@@ -1,6 +1,6 @@
 import { isValidEmail, normalizeEmail } from "@/lib/identity";
 import { badRequest, json } from "@/lib/http";
-import { VERIFY_FAIL, dynamoOtpTable, verifyOtp } from "@/lib/otp";
+import { VERIFY_FAIL, otpTable, verifyOtp } from "@/lib/otp";
 import { setOtpSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   let matched = false;
   try {
-    matched = await verifyOtp(email, code, dynamoOtpTable());
+    matched = await verifyOtp(email, code, otpTable());
   } catch {
     return json({ error: "Sign-in isn’t available right now." }, 503);
   }

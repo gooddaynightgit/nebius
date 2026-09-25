@@ -72,6 +72,7 @@ import type { SessionState } from "@/lib/types";
 import { useReportAppProgress, useReportBuyerGate } from "@/components/journey-gate";
 import { StoryOpeningStatus } from "@/components/YoursStory";
 import { destinationForEntitlement, photoButtonsEnabled, releaseCaptureVisit } from "@/lib/photo-entry";
+import { EMAIL_VERIFIED_NOTE, isSixDigitCode } from "@/lib/verify-code";
 import NoticingMoments from "@/components/NoticingMoments";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
@@ -274,6 +275,8 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
         body: JSON.stringify({ email }),
       });
       const data = await readResponsePayload<AuthBody>(res);
+      setBuyerCode("");
+      autoTried.current = "";
       setBuyerNote(authAttempt(data, res.ok, "We couldn’t send a code right now.").note);
     } catch {
       setBuyerNote("We couldn’t send a code right now.");
@@ -282,19 +285,23 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
     }
   }
 
-  async function noteBuyerEmail(event: FormEvent) {
-    event.preventDefault();
+  const verifyLock = useRef(false);
+  const autoTried = useRef("");
+
+  async function verifyBuyerCode() {
+    if (verifyLock.current || emailDismissed) return;
     const email = buyerEmail.trim().toLowerCase();
     if (!buyerEmailOk(email)) {
       setCaptureOpen(false);
       setBuyerNote("That doesn’t look like an email yet.");
       return;
     }
-    if (!/^\d{6}$/.test(buyerCode.trim())) {
+    if (!isSixDigitCode(buyerCode)) {
       setCaptureOpen(false);
       setBuyerNote("Enter the 6-digit code from your email.");
       return;
     }
+    verifyLock.current = true;
     setBuyerNote("Checking…");
     try {
       const res = await fetch("/api/auth/verify", {
@@ -314,6 +321,8 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
       setCaptureOpen(false);
       setBuyerNote("We couldn’t check that code right now.");
       return;
+    } finally {
+      verifyLock.current = false;
     }
     try {
       const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
@@ -322,6 +331,7 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
       // This page can still take a photo. The next save reads the email cookie.
     }
     setEmailDismissed(true);
+    setBuyerNote(EMAIL_VERIFIED_NOTE);
     const result = await lookupEntitlement(email);
     if (result === "open") {
       setCaptureOpen(true);
@@ -335,6 +345,23 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
       return;
     }
     setBuyerNote("Noted. Capture stays closed until this purchase is confirmed.");
+  }
+
+  const verifyBuyerRef = useRef(verifyBuyerCode);
+  verifyBuyerRef.current = verifyBuyerCode;
+
+  useEffect(() => {
+    if (!showBuyerEmail || !isSixDigitCode(buyerCode)) return;
+    const email = buyerEmail.trim().toLowerCase();
+    const key = `${email}:${buyerCode.trim()}`;
+    if (autoTried.current === key) return;
+    autoTried.current = key;
+    void verifyBuyerRef.current();
+  }, [buyerCode, buyerEmail, showBuyerEmail]);
+
+  function noteBuyerEmail(event: FormEvent) {
+    event.preventDefault();
+    void verifyBuyerCode();
   }
 
   const previewSrc = capturePreviewSrc({
@@ -878,6 +905,14 @@ export default function CaptureStudio({ signedIn }: { signedIn: boolean }) {
                   setBuyerNote(null);
                 }}
               />
+              <button
+                className="btn btn--lime verify-code"
+                type="button"
+                disabled={codeBusy}
+                onClick={() => void verifyBuyerCode()}
+              >
+                Verify code
+              </button>
               <button className="btn btn--lime" type="submit">
                 Open my moments
               </button>
