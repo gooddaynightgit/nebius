@@ -40,40 +40,38 @@ describe("story opening status", () => {
     );
   });
 
-  it("fills the weaving screen with a silk shader and a lighter finished-card frost", () => {
+  it("shows rising bubbles on the weaving screen and keeps the silk photos and frost", () => {
     const css = readFileSync(path.resolve("src/app/globals.css"), "utf8");
     const yours = readFileSync(path.resolve("src/components/YoursStory.tsx"), "utf8");
-    const silk = readFileSync(path.resolve("src/components/WeaveSilk.tsx"), "utf8");
-    const shader = readFileSync(path.resolve("src/lib/silk-shader.ts"), "utf8");
+    const bubbles = readFileSync(path.resolve("src/components/WeaveBubbles.tsx"), "utf8");
+    const photos = readFileSync(path.resolve("src/components/WeavePhotos.tsx"), "utf8");
     expect(yours).toMatch(/data-line=\{index\}/);
     expect(yours).toMatch(/story-opening/);
-    expect(yours).toMatch(/<WeaveSilk \/>/);
+    expect(yours).toMatch(/<WeaveBubbles \/>/);
+    expect(yours).not.toMatch(/<WeavePhotos \/>/);
     const opening = yours.match(/function StoryOpeningStatus\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
     expect(opening).toMatch(/className="card__body story-opening__line"/);
     expect(opening).not.toMatch(/silk-frost/);
-    expect(silk).toMatch(/requestAnimationFrame/);
-    expect(silk).toMatch(/visibilitychange/);
-    expect(silk).toMatch(/webglcontextlost/);
-    expect(silk).toMatch(/prefers-reduced-motion: reduce/);
-    expect(silk).toMatch(/Math\.min\(window\.devicePixelRatio \|\| 1, MAX_DPR\)/);
-    expect(silk).toMatch(/MAX_DPR = 1\.5/);
-    expect(shader).toMatch(/fbm\(/);
-    expect(shader).toMatch(/vec2 warp/);
-    expect(shader).toMatch(/addBlob\(/);
-    expect(shader).toMatch(/bloom/);
-    expect(shader).toMatch(/pulse/);
-    expect(shader).toMatch(/pow\(ndh, 1[0-9][0-9]\.0\)/);
-    expect(silk).toMatch(/OES_standard_derivatives/);
-    expect(shader).toMatch(/#C9B6F2/);
-    expect(shader).toMatch(/#F4B8E4/);
-    expect(shader).toMatch(/#A98BF0/);
-    expect(shader).toMatch(/#9FE6EE/);
-    expect(shader).toMatch(/#B7DDFB/);
-    expect(shader).toMatch(/#FFF1A8/);
-    expect(shader).toMatch(/#FFE98A/);
-    expect(shader).toMatch(/#F4F0FF/);
-    expect(shader).toMatch(/#FFFFFF/);
-    expect(shader).toMatch(/#6F5FC8/);
+    expect(bubbles).toMatch(/BUBBLE_COUNT = 3/);
+    expect(bubbles).toMatch(/DROP_COUNT = 7/);
+    expect(bubbles).not.toMatch(/webgl|canvas|getContext/i);
+    expect(photos).toMatch(/SILK_LAYERS = \[1, 2, 3, 4\]/);
+    expect(photos).toMatch(/\/weave-silk-\$\{layer\}\.webp/);
+    expect(css).toMatch(/--hue:\s*223/);
+    expect(css).toMatch(/width:\s*12em/);
+    expect(css).toMatch(/height:\s*12em/);
+    expect(css).toMatch(/animation:\s*bubble-rise-before 1\.5s linear infinite/);
+    expect(css).toMatch(/animation-delay:\s*0\.15s/);
+    expect(css).toMatch(/animation-delay:\s*0\.3s/);
+    expect(css).toMatch(/rotate\(calc\(360deg \/ 7 \* 6\)\)/);
+    expect(css).toMatch(/@keyframes bubble-rise-before/);
+    expect(css).toMatch(/@keyframes bubble-rise-after/);
+    expect(css).toMatch(/@keyframes bubble-drop/);
+    expect(css).toMatch(/cubic-bezier\(0\.12,\s*0,\s*0\.39,\s*0\)/);
+    expect(css).toMatch(/linear-gradient\(hsl\(223,\s*90%,\s*30%\),\s*hsl\(223,\s*90%,\s*10%\)\)/);
+    expect(css).toMatch(/hsl\(223,\s*90%,\s*90%\)/);
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce/);
+    expect(css).toMatch(/animation-duration:\s*12s/);
     expect(css).toMatch(/\.card\.story-opening \{[^}]*position:\s*fixed;/);
     expect(css).toMatch(/\.story-opening__line \{[^}]*text-shadow:/);
     expect(css).toMatch(/rgba\(255,\s*255,\s*255,\s*0\.35\)/);
@@ -82,5 +80,11 @@ describe("story opening status", () => {
     expect(css).toMatch(/background-size:\s*cover/);
     expect(statSync(path.resolve("public/weave-silk.webp")).size).toBeLessThan(300 * 1024);
     expect(statSync(path.resolve("public/weave-silk.jpg")).size).toBeLessThan(300 * 1024);
+    for (const layer of [1, 2, 3, 4]) {
+      expect(statSync(path.resolve(`public/weave-silk-${layer}.webp`)).size).toBeLessThan(200 * 1024);
+      expect(statSync(path.resolve(`public/weave-silk-${layer}.jpg`)).size).toBeLessThan(200 * 1024);
+    }
+    expect(() => statSync(path.resolve("src/lib/silk-shader.ts"))).toThrow();
+    expect(() => statSync(path.resolve("src/components/WeaveSilk.tsx"))).toThrow();
   });
 });
