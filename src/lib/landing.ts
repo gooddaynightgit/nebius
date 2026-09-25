@@ -121,7 +121,7 @@ export const JOY_TYPES: JoyType[] = [
     capture:
       "a photo of the light on your table, the sky on your street, your shadow stretched long on the pavement.",
     playbackTemplate:
-      '"This morning, you stood in the sun. Ten quiet minutes. Gold on your skin. Your body remembered its rhythm. And the day began — gently, breathtakingly, beautifully — with you in it."',
+      '"This morning, I stood in the sun. Ten quiet minutes. Gold on my skin. My body remembered its rhythm. And the day began — gently, breathtakingly, beautifully — with me in it."',
   },
   {
     id: "a-small-hello",
@@ -131,7 +131,7 @@ export const JOY_TYPES: JoyType[] = [
     capture:
       "a photo of the two of you mid-laugh, their name on your screen, your hand still raised in that wave.",
     playbackTemplate:
-      '"Today, you laughed so hard the room got brighter. You waved like you meant it — and it came right back at you. Somewhere, someone is smiling right now because you exist. That\'s not a small thing. That\'s everything."',
+      '"Today, I laughed so hard the room got brighter. I waved like I meant it — and it came right back at me. Somewhere, someone is smiling right now because I exist. That\'s not a small thing. That\'s everything."',
   },
   {
     id: "one-thing-done-slowly",
@@ -140,7 +140,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "The coffee pours like liquid gold — and you watch every drop like it matters, because it does. Your hands in the garden soil, the earth humming beneath your fingers. A chapter so good the whole world falls away. Phone forgotten. Every sense awake. Every second golden. This is being gloriously, completely alive.",
     capture: "a photo of the steam rising, the soil on your palms, the open book on your knee.",
     playbackTemplate:
-      '"Today, you gave one moment everything — and it gave you back the whole world. Every sense on fire. Every second shining. You weren\'t just doing something today. You were THERE — fully, radiantly, joyfully there."',
+      '"Today, I gave one moment everything — and it gave me back the whole world. Every sense on fire. Every second shining. I wasn\'t just doing something today. I was THERE — fully, radiantly, joyfully there."',
   },
   {
     id: "a-little-movement",
@@ -150,7 +150,7 @@ export const JOY_TYPES: JoyType[] = [
     capture:
       "a photo of your shoes on the pavement, your arms reaching wide to the sky, the path stretching out ahead of you.",
     playbackTemplate:
-      '"Today, you moved — and your body threw a celebration. Endorphins like fireworks, mood soaring, heart singing. You didn\'t just go for a walk today. You turned yourself ON."',
+      '"Today, I moved — and my body threw a celebration. Endorphins like fireworks, mood soaring, heart singing. I didn\'t just go for a walk today. I turned myself ON."',
   },
   {
     id: "one-corner-clear",
@@ -160,7 +160,7 @@ export const JOY_TYPES: JoyType[] = [
     capture:
       "a photo of the cleared surface gleaming, your hands mid-tidy, the before-and-after smile on your face.",
     playbackTemplate:
-      '"Today, you made order out of chaos — one beautiful corner at a time. You looked at what you built and felt that deep, golden calm: I did this. Your space is brighter. And so are you."',
+      '"Today, I made order out of chaos — one beautiful corner at a time. I looked at what I built and felt that deep, golden calm: I did this. My space is brighter. And so am I."',
   },
   {
     id: "just-this",
@@ -169,7 +169,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "Some joys refuse categories — and they're often the best ones. The unexpected. The unrepeatable. The moment you almost didn't capture. It counts. It always counts. Whatever it was, it found you today, and you were wise enough to keep it.",
     capture: "exactly as it happened. No explanation required.",
     playbackTemplate:
-      '"Today held something that doesn\'t fit in any box — and it was yours. You noticed it. You kept it. Some moments are too alive for categories, and tonight, this one is yours to relive, word by word."',
+      '"Today held something that doesn\'t fit in any box — and it was mine. I noticed it. I kept it. Some moments are too alive for categories, and tonight, this one is mine to relive, word by word."',
   },
   {
     id: "a-sound-you-stopped-for",
@@ -178,7 +178,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "Somewhere in the day a sound asked you to pause. A kettle starting. A voice you know. Rain, or a song you didn't plan to hear. You stopped, and the pause was the moment.",
     capture: "a photo of whatever made the sound — the kettle, the street, the open window.",
     playbackTemplate:
-      '"Today, a sound found you and you let it. You stopped. The day got quieter and closer, and you were in it."',
+      '"Today, a sound found me and I let it. I stopped. The day got quieter and closer, and I was in it."',
   },
   {
     id: "someone-elses-good-moment",
@@ -187,7 +187,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "A friend mid-laugh. A stranger's small win. A hello that belonged to someone else and still warmed you. You noticed their good, and a little of it became yours.",
     capture: "a photo of their smile, their name on the screen, the moment you were glad to witness.",
     playbackTemplate:
-      '"Today, someone else\'s good moment found you. You noticed it. You kept a little of that warmth, and tonight it is yours to hold."',
+      '"Today, someone else\'s good moment found me. I noticed it. I kept a little of that warmth, and tonight it is mine to hold."',
   },
   {
     id: "no-name-for-it",
@@ -196,7 +196,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "Some moments refuse a name. Rain on the glass. A weird lovely ordinary thing. You don't have to classify it. Noticing it was enough.",
     capture: "exactly as it happened. No category required.",
     playbackTemplate:
-      '"Today held something with no name — and you kept it anyway. You noticed it. Tonight it is still yours."',
+      '"Today held something with no name — and I kept it anyway. I noticed it. Tonight it is still mine."',
   },
 ];
 

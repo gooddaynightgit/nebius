@@ -1,25 +1,25 @@
 /** One address per story. The model is given only the phrase this picker returns. */
 export const YOU_ADDRESSES = [
-  "Remarkable you",
-  "Incredible you",
-  "Fantastic you",
-  "Brilliant you",
-  "Marvelous you",
-  "Splendid you",
-  "Extraordinary you",
-  "Phenomenal you",
-  "Magnificent you",
-  "Wonderful you",
-  "Spectacular you",
-  "Amazing you",
-  "Outstanding you",
-  "Exceptional you",
-  "Stunning you",
-  "Dazzling you",
-  "Superb you",
-  "Impressive you",
-  "Sensational you",
-  "Terrific you",
+  "Remarkable me",
+  "Incredible me",
+  "Fantastic me",
+  "Brilliant me",
+  "Marvelous me",
+  "Splendid me",
+  "Extraordinary me",
+  "Phenomenal me",
+  "Magnificent me",
+  "Wonderful me",
+  "Spectacular me",
+  "Amazing me",
+  "Outstanding me",
+  "Exceptional me",
+  "Stunning me",
+  "Dazzling me",
+  "Superb me",
+  "Impressive me",
+  "Sensational me",
+  "Terrific me",
 ] as const;
 
 function slot(key: string, modulo: number): number {
@@ -39,7 +39,7 @@ export function youAddressFor(key = "still"): string {
 /** Swap a leftover "perfect you" for this story's address, then clear any remaining perfect. */
 export function withoutPerfectYou(text: string, key = "still"): string {
   const phrase = youAddressFor(key);
-  const adjective = phrase.replace(/ you$/i, "");
-  const addressed = text.replace(/\bperfect\s*,?\s*you\b/gi, phrase);
+  const adjective = phrase.replace(/ (?:you|me)$/i, "");
+  const addressed = text.replace(/\bperfect\s*,?\s*(?:you|me)\b/gi, phrase);
   return addressed.replace(/\bperfect\b/gi, adjective);
 }

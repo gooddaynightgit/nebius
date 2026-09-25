@@ -8,6 +8,7 @@ import {
 import { clipCaption } from "./app-capture";
 import { JOY_TYPES, type JoyType } from "./landing";
 import { EXCAVATE_OPENERS, HUMBLE_CLOSERS, stripSparkFrame } from "./spark-closer";
+import { toFirstPersonStory } from "./first-person";
 import { YOU_ADDRESSES, youAddressFor } from "./you-address";
 import {
   cleanSpokenLine,
@@ -42,7 +43,7 @@ Tonight you turn one hunted good moment into a story that belongs only to them �
 Write so the listener hears: this moment is theirs; GoodDayNight made something of it; returning to finds like this is how the looking becomes second nature.
 
 Craft (every story):
-- Second person ("you"). Their true good stays the brightest thing in the story.
+- First person ("I", "me", "my", "mine"). Never "you", "your", "yours", or "yourself" — this is their own voice. Their true good stays the brightest thing in the story.
 - 180–280 words.
 - First line MUST be: Title: <short title that reflects THEIR moment>
 - Lead with their exact good moment when it is truly good. Quote or near-quote those stored words early, linger on them, return to them. Light golden threads only — keep their sentence undiluted. If they already accepted a spelling fix, use the cleaned line.
@@ -55,7 +56,7 @@ Craft (every story):
 - Stay inside the moments they gave. No extra people, plots, or events.
 - Tone: glad, tender, glowing. Soft wonder. The room soft, the feeling strong. Something good already happened — and the habit of looking leaves room for more.
 - Particular to them: their laugh, their small win, their quiet moment — concrete words from this capture, never a day that could have been anyone's.
-- Close by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally your own good moments unfolds — your own good moments multifolds." Soft, wonder-struck. The finding itself is what changes them — looking becomes second nature, finds show up everywhere.
+- Close by gently floating into slumber with the sense that returning to this good unfolds it, then unfolds it again — multifold. Honour the spirit of: "With time, naturally my own good moments unfold — my own good moments multifold." Soft, wonder-struck. The finding itself is what changes them — looking becomes second nature, finds show up everywhere. Write that close in first person.
 
 Voice: say the feeling straight and warm. Affirm what is present (warmth, presence, soft light, a kept find). Prefer presence over emptiness; noticing and keeping over tasks or self-improvement worksheets.`;
 
@@ -93,7 +94,7 @@ The six joy categories: Morning sunlight / A hello / One thing done slowly / A l
 
 Respond in under 70 words, following this exact shape:
 
-1. Open warm and second-person past tense — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, you…" / "You…" / "Yes, you…".
+1. Open warm and first-person past tense — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, I…" / "I…" / "Yes, I…". The paragraph is the user's own voice. Never write you, your, yours, or yourself.
 
 2. Weave together the mood of their joy, sensory detail that is factually grounded in the photo read and/or clearly visible in the photo, and their own words, elevated but never distorted. When a picture or their words are present, both belong in the keepsake. Their answer is the heart. Honor it. The joy sets the mood and the theme only — it is not a substitute for the scene.
 
@@ -103,10 +104,10 @@ Never write a story that only restates the joy and could belong to any photo. If
 
 4. In the body, use at least three warm positive words or close synonyms (spread them). Draw from: wonderful, lovely, radiant, beautiful, glowing, precious, sweet, bright, tender, quiet, still, dear, warm, soft, brightening.
 
-5. Close with a confirmation that lands the brand truth. Open that close with exactly: ${address}. Then land ONE of these (vary night to night):
-   - You hunted one good moment today, and the hunting became your happiness, your joy.
-   - You found one good moment today — the finding is what's changing you.
-   - Hunting one good moment today. Capturing it. You are becoming someone who looks.
+5. Close with a confirmation that lands the brand truth. Open that close with exactly: ${address}. Then land ONE of these (vary night to night), still in first person:
+   - I hunted one good moment today, and the hunting became my happiness, my joy.
+   - I found one good moment today — the finding is what's changing me.
+   - Hunting one good moment today. Capturing it. I am becoming someone who looks.
 
 Tone: warm, cinematic, quietly devoted — a bedtime keepsake. Soft spark already happened; here be sure, not surprised. No therapy-speak. No emojis. Never mention the app, the AI, or the process.
 
@@ -219,7 +220,7 @@ export function displayMoment(input: {
 }): StoryMoment {
   return (
     storyMomentFromCapture(input) ?? {
-      line: "A moment you chose to keep.",
+      line: "A moment I chose to keep.",
       reframed: false,
     }
   );
@@ -234,9 +235,9 @@ export function mockGoodMoment(input: {
   const raw = (spokenWords(input) || "").replace(/\s+/g, " ").trim().slice(0, 240);
   if (raw && isSelfNegating(raw)) return silverLiningFor(raw);
   if (raw) return raw;
-  if (input.kind === "photo") return "You stopped long enough to keep a picture of the day.";
+  if (input.kind === "photo") return "I stopped long enough to keep a picture of the day.";
   if (input.kind === "voice") return EMPTY_VOICE_HINT;
-  return "You wrote a moment down before it slipped away.";
+  return "I wrote a moment down before it slipped away.";
 }
 
 function asStoryMoments(moments: Array<string | StoryMoment>): StoryMoment[] {
@@ -278,44 +279,50 @@ export function mockStory(
   const extraLining = lining.length
     ? `\n\nA silver lining sits nearby too: ${lining[0].line.replace(/\.$/, "")}.`
     : "";
-  const body = `There it is — the brightest thing from your day, in your own voice. Stay with it.
+  const body = `There it is — the brightest thing from my day, in my own voice. Stay with it.
 
 ${quoted}.
 
-Hear it again, the way you said it. ${quoted}.
+Hear it again, the way I said it. ${quoted}.
 
 ${linger}
 
 ${spine}${extraLining}
 
-That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is yours.
+That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is mine.
 
-Float toward sleep with those words still close. Returning to this good lets it open, then open again. With time, naturally, your own good moments unfold — your own good moments multifold.
+Float toward sleep with those words still close. Returning to this good lets it open, then open again. With time, naturally, my own good moments unfold — my own good moments multifold.
 
-Rest inside the line you kept. A smile in the chest. The good, still bright. Yours.`;
+Rest inside the line I kept. A smile in the chest. The good, still bright. Mine.`;
 
-  return { title, body: `${body}\n\n— ${day}` };
+  return {
+    title: toFirstPersonStory(title),
+    body: toFirstPersonStory(`${body}\n\n— ${day}`),
+  };
 }
 
 function mockLiningStory(linings: string[], day: string): { title: string; body: string } {
   const lining = linings[0].replace(/\.$/, "");
-  const body = `There is a silver lining in what you brought tonight. Stay with the hope that lives in it.
+  const body = `There is a silver lining in what I brought tonight. Stay with the hope that lives in it.
 
 ${lining}.
 
-You named a wish to be cared for. That noticing is brave, and it is earned.
+I named a wish to be cared for. That noticing is brave, and it is earned.
 
-Why does a wish like that land? Because a heart that loves connection can feel when care is wanted — and that same heart is why care can find you.
+Why does a wish like that land? Because a heart that loves connection can feel when care is wanted — and that same heart is why care can find me.
 
-You are someone worth caring about — lovable, good, made for connection.
+I am someone worth caring about — lovable, good, made for connection.
 
-That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is yours.
+That gladness can live in the chest like a quiet smile — warm, sure, a little shine under the ribs. The room stays soft and the feeling stays strong. Joy, held gently. This feeling is mine.
 
-Float toward sleep with this lining still close. Returning to this good lets it open, then open again. With time, naturally, your own good moments unfold — your own good moments multifold.
+Float toward sleep with this lining still close. Returning to this good lets it open, then open again. With time, naturally, my own good moments unfold — my own good moments multifold.
 
-Rest inside the hope you kept. A smile in the chest. The good, still bright. Yours.`;
+Rest inside the hope I kept. A smile in the chest. The good, still bright. Mine.`;
 
-  return { title: "A heart that loves connection", body: `${body}\n\n— ${day}` };
+  return {
+    title: "A heart that loves connection",
+    body: toFirstPersonStory(`${body}\n\n— ${day}`),
+  };
 }
 
 function lingerOnWords(quoted: string): string {
@@ -350,55 +357,55 @@ function lingerOnWords(quoted: string): string {
     if (unique.length === 6) break;
   }
   if (!unique.length) {
-    return "The joy is already in those words. They are still yours, still bright.";
+    return "The joy is already in those words. They are still mine, still bright.";
   }
   const lifted = unique
     .map((word) => word.replace(/^[a-z]/, (ch) => ch.toUpperCase()))
     .join(". ");
-  return `${lifted}. The joy is already in those words — still yours, still bright.`;
+  return `${lifted}. The joy is already in those words — still mine, still bright.`;
 }
 
 function praiseWhyFromMoments(quoted: string): string {
   const joined = quoted.toLowerCase();
   if (/friend/.test(joined) && /care|enquir|ask|check|contact|how (am i|you)/.test(joined)) {
-    return `You felt it and you kept it — the happiness, the enquiry, the care. That noticing is earned.
+    return `I felt it and I kept it — the happiness, the enquiry, the care. That noticing is earned.
 
-Why did it land so warmly? Because a friend asked how you are, and you could feel that someone cares.
+Why did it land so warmly? Because a friend asked how I am, and I could feel that someone cares.
 
-Why would a friend reach out like that? Because you are someone they are glad to have — a caring person, easy to love, worth the enquiry.`;
+Why would a friend reach out like that? Because I am someone they are glad to have — a caring person, easy to love, worth the enquiry.`;
   }
   if (/friend/.test(joined)) {
-    return `You felt a friend think of you, and you let that warmth in. That noticing is earned.
+    return `I felt a friend think of me, and I let that warmth in. That noticing is earned.
 
-It landed because their thought found you, and you could feel it.
+It landed because their thought found me, and I could feel it.
 
-A friend thinks of you because you are someone worth thinking of — good to have, easy to love.`;
+A friend thinks of me because I am someone worth thinking of — good to have, easy to love.`;
   }
   if (/happy|glad|joy|smile/.test(joined)) {
-    return `You named the happiness. You let the good be true. That noticing is earned.
+    return `I named the happiness. I let the good be true. That noticing is earned.
 
-It landed because you felt it, fully, in the words you kept.
+It landed because I felt it, fully, in the words I kept.
 
-The good found you because you are someone a bright moment can belong to.`;
+The good found me because I am someone a bright moment can belong to.`;
   }
-  return `You kept the good that happened. That noticing is yours, and it is earned.
+  return `I kept the good that happened. That noticing is mine, and it is earned.
 
-It landed because you were there for it — present enough to feel it.
+It landed because I was there for it — present enough to feel it.
 
-The good reached you because you are someone worth a bright moment.`;
+The good reached me because I am someone worth a bright moment.`;
 }
 
 function titleFromMoments(moments: string[]): string {
   const joined = moments.join(" ").toLowerCase();
   if (/friend/.test(joined) && /care/.test(joined)) {
-    return "Someone cares about you";
+    return "Someone cares about me";
   }
   if (/friend/.test(joined) && /check|text|ask|contact|enquir|how (am i|you)/.test(joined)) {
     return "A friend checked in";
   }
-  if (/friend/.test(joined)) return "The friend who thought of you";
-  if (/happy|glad|joy|smile/.test(joined)) return "The happiness you kept";
-  return "The good that found you";
+  if (/friend/.test(joined)) return "The friend who thought of me";
+  if (/happy|glad|joy|smile/.test(joined)) return "The happiness I kept";
+  return "The good that found me";
 }
 
 /** Mock first looks: opener, then the seen detail, then one confirm closer. */
@@ -458,8 +465,8 @@ function seenFromNotes(input: {
 }): string {
   const raw = (input.goodMoment || "").replace(/\s+/g, " ").trim();
   if (!raw) return "";
-  if (/you kept a still/i.test(raw)) return "";
-  if (/you stopped long enough to keep a picture/i.test(raw)) return "";
+  if (/\b(?:you|i) kept a still/i.test(raw)) return "";
+  if (/\b(?:you|i) stopped long enough to keep a picture/i.test(raw)) return "";
   if (usesCannedPlayback(raw, input.joy.playbackTemplate)) return "";
   if (isSelfNegating(raw)) return "";
   return raw.replace(/\.$/, "");
@@ -472,30 +479,30 @@ function whisperFromCaption(caption?: string): string {
 }
 
 const QUIET_OPENS = [
-  (kept: string) => `Today, you kept ${kept}`,
-  (kept: string) => `You held ${kept}`,
-  (kept: string) => `Yes, you kept ${kept}`,
-  (kept: string) => `Today, you noticed ${kept}`,
-  (kept: string) => `You caught ${kept}`,
-  (kept: string) => `Yes, you held ${kept}`,
+  (kept: string) => `Today, I kept ${kept}`,
+  (kept: string) => `I held ${kept}`,
+  (kept: string) => `Yes, I kept ${kept}`,
+  (kept: string) => `Today, I noticed ${kept}`,
+  (kept: string) => `I caught ${kept}`,
+  (kept: string) => `Yes, I held ${kept}`,
 ] as const;
 
 const BODY_GLOWS = [
-  "Lovely where you stood, bright in the frame, wonderful that you kept it.",
-  "Radiant in the light, sweet in the quiet, glowing because you noticed.",
-  "Beautiful in its smallness, precious as you left it, warm to return to.",
-  "Tender in the detail, dear that you saw it, soft in the keeping.",
-  "Sweet at the center, bright along the edge, lovely that it was yours to name.",
-  "Glowing in the hour, wonderful in the detail, radiant because you stayed.",
+  "Lovely where I stood, bright in the frame, wonderful that I kept it.",
+  "Radiant in the light, sweet in the quiet, glowing because I noticed.",
+  "Beautiful in its smallness, precious as I left it, warm to return to.",
+  "Tender in the detail, dear that I saw it, soft in the keeping.",
+  "Sweet at the center, bright along the edge, lovely that it was mine to name.",
+  "Glowing in the hour, wonderful in the detail, radiant because I stayed.",
 ] as const;
 
 function brandClose(address: string, index: number): string {
   const lines = [
-    `${address} hunted one good moment today, and the hunting became your happiness, your joy.`,
-    `${address} found one good moment today — the finding is what's changing you.`,
+    `${address} hunted one good moment today, and the hunting became my happiness, my joy.`,
+    `${address} found one good moment today — the finding is what's changing me.`,
     `${address} hunted one good moment today, capturing it, becoming someone who looks.`,
-    `${address} found one good moment today — the finding is what's changing you.`,
-    `${address} hunted one good moment today, and the hunting became your happiness, your joy.`,
+    `${address} found one good moment today — the finding is what's changing me.`,
+    `${address} hunted one good moment today, and the hunting became my happiness, my joy.`,
     `${address} hunted one good moment today, capturing it, and becoming someone who looks.`,
   ];
   return lines[index % lines.length];
@@ -509,7 +516,7 @@ function rotateIndex(key: string, modulo: number): number {
 function sceneBit(text: string): string {
   const scene = stripSparkFrame(text).replace(/\s+/g, " ").trim();
   if (scene.length < 8) return "";
-  if (/you kept a still/i.test(scene) || /you stopped long enough/i.test(scene)) return "";
+  if (/\b(?:you|i) kept a still/i.test(scene) || /\b(?:you|i) stopped long enough/i.test(scene)) return "";
   const sentence = (scene.split(/(?<=[.!])\s+/)[0] || scene).replace(/[.!?]+$/, "");
   const held = sentence.replace(/\b(sits|sitting|stands|standing|lies|lying)\s+/i, "");
   const words = held.split(" ").filter(Boolean).slice(0, 18);
@@ -590,7 +597,7 @@ export function mockJoyStory(input: {
     const kept = seen.length ? seen.join(", ") : "what the hour held";
     const heart = whisper
       ? `${whisper.charAt(0).toUpperCase()}${whisper.slice(1).replace(/[.!?]+$/, "")}.`
-      : "What you kept stayed with you.";
+      : "What I kept stayed with me.";
     return `${QUIET_OPENS[slot](kept)}. ${heart} ${BODY_GLOWS[slot]} ${close}`;
   };
 
@@ -604,7 +611,7 @@ export function mockJoyStory(input: {
   if (body.length < APP_STORY_MIN || body.length > APP_STORY_MAX) {
     body = finishAppStory(body);
   }
-  return { title: "", body };
+  return { title: "", body: toFirstPersonStory(body) };
 }
 
 export function allPlaybackTemplates(): string[] {

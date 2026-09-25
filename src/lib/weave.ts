@@ -34,6 +34,7 @@ import {
 } from "./prompts";
 import { isHorrificText } from "./safety-text";
 import { stripSparkFrame } from "./spark-closer";
+import { hasSecondPerson, toFirstPersonStory } from "./first-person";
 import { withoutPerfectYou, youAddressFor } from "./you-address";
 import { synthesizeStory } from "./tts";
 import type { CaptureRecord, StoryRecord } from "./types";
@@ -136,7 +137,19 @@ async function weaveWithSuper(
       });
       const parsed = parseTitleBody(result.text);
       if (parsed.body.length > 80 && !celebratesDespair(parsed.body)) {
-        return { ...parsed, model: result.model };
+        if (hasSecondPerson(parsed.body) && attempt === 0) {
+          messages.push({
+            role: "user",
+            content:
+              "Rewrite that story in first person only. Use I, me, my, mine, myself. Do not use you, your, yours, or yourself. Keep the same facts.",
+          });
+          continue;
+        }
+        return {
+          title: toFirstPersonStory(parsed.title),
+          body: toFirstPersonStory(parsed.body),
+          model: result.model,
+        };
       }
     } catch {
       // Retry once, then fall through to a word-centered mock.
@@ -339,19 +352,22 @@ function logAppReflectFallback(fail?: AppReflectFail) {
 }
 
 function reflectRetryHint(problems: string[], lastBody: string, address: string): string {
+  if (problems.includes("person")) {
+    return `Rewrite in first person from the keeper's own voice. Use I, me, my, mine. No you, your, yours, or yourself. Open with "Today, I", "I", or "Yes, I". Close with exactly: ${address}. Then one hunt-find truth. Under 70 words.`;
+  }
   if (problems.includes("short") || (lastBody && countAppStoryWords(lastBody) < APP_STORY_WORD_MIN)) {
-    return `The last draft was too short. Open quietly: "Today, you", "You", or "Yes, you" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. At least three warm words. Close with exactly: ${address}. Then one hunt-find truth. Under 70 words.`;
+    return `The last draft was too short. Open quietly: "Today, I", "I", or "Yes, I" — not Whoa, Oooh, Wow, Gosh, or Stunning. Weave only what the excavate read and their answer established. At least three warm words. Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Use I, me, my, mine — never you or your.`;
   }
   if (problems.includes("long")) {
-    return `The last draft was too long. Keep it under 70 words and at most four sentences. Quiet open, only established details, warm words, then close with exactly: ${address}.`;
+    return `The last draft was too long. Keep it under 70 words and at most four sentences. Quiet first-person open, only established details, warm words, then close with exactly: ${address}.`;
   }
   if (problems.includes("leak") || problems.includes("lecture")) {
-    return `Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet keepsake. Under 70 words. Close with exactly: ${address}. Do not invent weather or props the excavate and their answer did not establish.`;
+    return `Rewrite without questions, extra exclamation marks, or mention of the app, the AI, or the process. Quiet first-person keepsake. Under 70 words. Close with exactly: ${address}. Do not invent weather or props the excavate and their answer did not establish.`;
   }
   if (problems.includes("picture")) {
-    return `The last draft left the picture out and restated only the joy. Name what the photo read and their answer established. The joy is the mood, not the scene. Open with "Today, you", "You", or "Yes, you". Under 70 words. Close with exactly: ${address}. Then one hunt-find truth.`;
+    return `The last draft left the picture out and restated only the joy. Name what the photo read and their answer established. The joy is the mood, not the scene. Open with "Today, I", "I", or "Yes, I". Under 70 words. Close with exactly: ${address}. Then one hunt-find truth.`;
   }
-  return `Rewrite the quieter keepsake. Open with "Today, you", "You", or "Yes, you". Weave the photo read and their answer to "What is the good in this moment?" Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Invent nothing beyond that floor.`;
+  return `Rewrite the quieter keepsake in first person. Open with "Today, I", "I", or "Yes, I". Weave the photo read and their answer to "What is the good in this moment?" Close with exactly: ${address}. Then one hunt-find truth. Under 70 words. Invent nothing beyond that floor. No you, your, yours, or yourself.`;
 }
 
 async function excavateAppPhoto(input: {
@@ -439,6 +455,7 @@ async function reflectWithModels(
     lastProblems: [],
   };
   if (!models.length) return { fail };
+  let personRetried = false;
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
@@ -462,12 +479,17 @@ async function reflectWithModels(
         if (!fail.lastBody) break;
         continue;
       }
-      const trimmed = withoutPerfectYou(trimAppStory(parsed), addressKey);
+      const trimmed = toFirstPersonStory(withoutPerfectYou(trimAppStory(parsed), addressKey));
       fail.lastBody = trimmed;
       fail.lastProblems = appStoryProblems(trimmed, template);
       if (storyMissesPicture(trimmed, picture)) fail.lastProblems.push("picture");
+      if (fail.lastProblems.length === 0 && hasSecondPerson(parsed) && !personRetried) {
+        personRetried = true;
+        fail.lastProblems = ["person"];
+        continue;
+      }
       if (fail.lastProblems.length === 0) {
-        return { body: trimmed, model: result.model };
+        return { body: toFirstPersonStory(trimmed), model: result.model };
       }
     } catch (error) {
       fail.lastError = closerErrorMessage(error);
@@ -484,7 +506,7 @@ async function reflectWithModels(
     !fail.lastProblems.some((item) => FATAL_REFLECT_PROBLEMS.has(item))
   ) {
     return {
-      body: withoutPerfectYou(finishAppStory(fail.lastBody), addressKey),
+      body: toFirstPersonStory(withoutPerfectYou(finishAppStory(fail.lastBody), addressKey)),
       model: fail.lastModel || "mock-fallback",
     };
   }
@@ -716,8 +738,8 @@ export async function weaveStory(options: {
     }
   }
 
-  title = withoutPerfectYou(title, addressKey);
-  body = withoutPerfectYou(body, addressKey);
+  title = toFirstPersonStory(withoutPerfectYou(title, addressKey));
+  body = toFirstPersonStory(withoutPerfectYou(body, addressKey));
 
   const tts = await synthesizeStory(title ? `${title}. ${body}` : body);
   let audioKey: string | undefined;

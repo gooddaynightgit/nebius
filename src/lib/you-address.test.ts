@@ -4,26 +4,26 @@ import { YOU_ADDRESSES, withoutPerfectYou, youAddressFor } from "./you-address";
 describe("you addresses", () => {
   it("lists exactly Jasmine's twenty phrases, with no perfect", () => {
     expect([...YOU_ADDRESSES]).toEqual([
-      "Remarkable you",
-      "Incredible you",
-      "Fantastic you",
-      "Brilliant you",
-      "Marvelous you",
-      "Splendid you",
-      "Extraordinary you",
-      "Phenomenal you",
-      "Magnificent you",
-      "Wonderful you",
-      "Spectacular you",
-      "Amazing you",
-      "Outstanding you",
-      "Exceptional you",
-      "Stunning you",
-      "Dazzling you",
-      "Superb you",
-      "Impressive you",
-      "Sensational you",
-      "Terrific you",
+      "Remarkable me",
+      "Incredible me",
+      "Fantastic me",
+      "Brilliant me",
+      "Marvelous me",
+      "Splendid me",
+      "Extraordinary me",
+      "Phenomenal me",
+      "Magnificent me",
+      "Wonderful me",
+      "Spectacular me",
+      "Amazing me",
+      "Outstanding me",
+      "Exceptional me",
+      "Stunning me",
+      "Dazzling me",
+      "Superb me",
+      "Impressive me",
+      "Sensational me",
+      "Terrific me",
     ]);
     expect(YOU_ADDRESSES).toHaveLength(20);
     for (const phrase of YOU_ADDRESSES) {
@@ -51,7 +51,7 @@ describe("you addresses", () => {
       `${phrase} hunted one good moment today.`,
     );
     expect(withoutPerfectYou("A perfect you kept the light. It was perfect.", key)).toBe(
-      `A ${phrase} kept the light. It was ${phrase.replace(/ you$/i, "")}.`,
+      `A ${phrase} kept the light. It was ${phrase.replace(/ (?:you|me)$/i, "")}.`,
     );
     expect(withoutPerfectYou("PERFECT YOU stayed.", key).toLowerCase()).not.toMatch(/\bperfect\b/);
     expect(withoutPerfectYou("Today, you kept the kettle.", key)).toBe("Today, you kept the kettle.");
