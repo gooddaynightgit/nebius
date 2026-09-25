@@ -133,7 +133,7 @@ async function stillFromVideo(file: File): Promise<File> {
   }
 }
 
-export default function CaptureStudio() {
+export default function CaptureStudio({ initialSignedIn = false }: { initialSignedIn?: boolean }) {
   const pathname = usePathname();
   const takeInputId = useId();
   const uploadInputId = useId();
@@ -172,7 +172,7 @@ export default function CaptureStudio() {
   const [answeredGeneration, setAnsweredGeneration] = useState<number | null>(null);
   const [captionScroll, setCaptionScroll] = useState(0);
 
-  const [buyerOpen, setBuyerOpen] = useState(true);
+  const [buyerOpen, setBuyerOpen] = useState(!initialSignedIn);
   const [resign, setResign] = useState(false);
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerCode, setBuyerCode] = useState("");
@@ -205,8 +205,13 @@ export default function CaptureStudio() {
   }, [buyerOpen]);
 
   useEffect(() => {
-    if (session?.otpVerified && captureOpen) setBuyerOpen(false);
-  }, [session?.otpVerified, captureOpen]);
+    if (!session) return;
+    if (session.otpVerified && captureOpen) {
+      setBuyerOpen(false);
+      return;
+    }
+    if (!session.otpVerified) setBuyerOpen(true);
+  }, [session, captureOpen]);
 
   function applyEntitlement(result: EntitlementLookup) {
     const signedIn = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
@@ -349,19 +354,39 @@ export default function CaptureStudio() {
 
   const refresh = useCallback(async () => {
     const flowAtStart = flowRef.current;
+    const sessionTask = fetch(`/api/session?day=${day}`, { credentials: "same-origin" }).then((res) =>
+      readJson<SessionState>(res),
+    );
+    const localTask = Promise.all([readCaptureStash(day), readPendingMoment(day)]);
+    let sessionData: SessionState;
     try {
-      const [sessionRes, stash, pendingMoment] = await Promise.all([
-        fetch(`/api/session?day=${day}`, { credentials: "same-origin" }),
-        readCaptureStash(day),
-        readPendingMoment(day),
-      ]);
-      const sessionData = await readJson<SessionState>(sessionRes);
-      if (flowRef.current !== flowAtStart) {
-        setHydrated(true);
-        return;
-      }
-      setSession(sessionData);
-      savedPhotoIdRef.current = sessionData.todayPhoto?.id ?? null;
+      sessionData = await sessionTask;
+    } catch (error) {
+      setHydrated(true);
+      setCaptureError(explainClientFetchError(error));
+      return;
+    }
+    if (flowRef.current !== flowAtStart) {
+      setHydrated(true);
+      return;
+    }
+    setSession(sessionData);
+    savedPhotoIdRef.current = sessionData.todayPhoto?.id ?? null;
+    if (!sessionData.otpVerified) setBuyerOpen(true);
+    let stash: Awaited<ReturnType<typeof readCaptureStash>>;
+    let pendingMoment: Awaited<ReturnType<typeof readPendingMoment>>;
+    try {
+      [stash, pendingMoment] = await localTask;
+    } catch (error) {
+      setHydrated(true);
+      setCaptureError(explainClientFetchError(error));
+      return;
+    }
+    if (flowRef.current !== flowAtStart) {
+      setHydrated(true);
+      return;
+    }
+    try {
       setPendingReady(Boolean(pendingMoment));
       if (sessionData.yoursOpened) {
         await clearCaptureStashIfOpened(day, true);
@@ -402,6 +427,7 @@ export default function CaptureStudio() {
       setHydrated(true);
       setCaptureError((current) => (isReachabilityError(current) ? null : current));
     } catch (error) {
+      setHydrated(true);
       setCaptureError(explainClientFetchError(error));
     }
   }, [day, hydrated]);
@@ -809,6 +835,8 @@ export default function CaptureStudio() {
     reader.readAsDataURL(current);
   }
 
+  const showBuyerEmail = buyerOpen && (!session?.otpVerified || resign);
+
   return (
     <div className="page">
       <header className="site-header">
@@ -824,7 +852,7 @@ export default function CaptureStudio() {
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
           <NoticingMoments />
-          {hydrated && buyerOpen && (!session?.otpVerified || resign) ? (
+          {showBuyerEmail ? (
             <form className="buyer-email" onSubmit={noteBuyerEmail}>
               <label className="whisper-label" htmlFor={buyerId}>
                 Email

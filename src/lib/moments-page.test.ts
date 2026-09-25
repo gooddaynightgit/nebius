@@ -71,6 +71,13 @@ describe("moments pack page", () => {
     expect(capture).toMatch(/mode: "buyer"/);
     expect(capture).toMatch(/session\?\.otpVerified/);
     expect(capture).toMatch(/PRIVACY_NOTE/);
+    expect(capture).toMatch(/const showBuyerEmail = buyerOpen && \(!session\?\.otpVerified \|\| resign\)/);
+    expect(capture).not.toMatch(/hydrated && buyerOpen/);
+    expect(capture).toMatch(/initialSignedIn/);
+    const appPage = readFileSync(path.resolve("src/app/app/page.tsx"), "utf8");
+    expect(appPage).toMatch(/dynamic = "force-dynamic"/);
+    expect(appPage).toMatch(/readOtpSession/);
+    expect(appPage).toMatch(/initialSignedIn=\{Boolean\(otp\)\}/);
     expect(capture).toMatch(/setCaptureOpen\(true\)/);
     expect(capture).not.toMatch(/const captureOpen = false/);
     expect(capture).toContain("You’re in. Take or upload today’s moment.");
