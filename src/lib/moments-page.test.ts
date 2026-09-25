@@ -53,8 +53,12 @@ describe("moments pack page", () => {
     expect(checkout).toMatch(/Verify code/);
     expect(checkout).toMatch(/EMAIL_VERIFIED_NOTE/);
     expect(checkout).toMatch(/isSixDigitCode\(code\)/);
-    expect(capture).toMatch(/Verify code/);
-    expect(capture).toMatch(/EMAIL_VERIFIED_NOTE/);
+    expect(capture).not.toMatch(/Verify code/);
+    expect(capture).not.toMatch(/EMAIL_VERIFIED_NOTE/);
+    expect(capture).not.toMatch(/buyer-email/);
+    expect(capture).not.toMatch(/Open my moments/);
+    expect(capture).not.toMatch(/Email me a code/);
+    expect(capture).not.toMatch(/PRIVACY_NOTE/);
     expect(styles).toMatch(/\.btn\.moments-code\s*\{[^}]*background:\s*var\(--lime\);/);
     expect(styles).toMatch(/\.btn\.moments-code\s*\{[^}]*color:\s*var\(--navy\);/);
     expect(styles).toMatch(/\.btn\.moments-code:disabled[\s\S]*color:\s*var\(--navy\);/);
@@ -76,23 +80,22 @@ describe("moments pack page", () => {
 
   it("opens Take and Upload only after the paid email has moments left", () => {
     expect(capture).toMatch(/\/api\/payfast\/entitlement/);
-    expect(capture).toMatch(/\/api\/auth\/verify/);
-    expect(capture).toMatch(/mode: "buyer"/);
+    expect(capture).not.toMatch(/\/api\/auth\/verify/);
+    expect(capture).not.toMatch(/mode: "buyer"/);
     expect(capture).toMatch(/session\?\.otpVerified/);
-    expect(capture).toMatch(/PRIVACY_NOTE/);
-    expect(capture).toMatch(/const showBuyerEmail = !signedIn && !emailDismissed/);
     expect(capture).not.toMatch(/setBuyerOpen\(true\)/);
     expect(capture).not.toMatch(/hydrated && buyerOpen/);
     const appPage = readFileSync(path.resolve("src/app/app/page.tsx"), "utf8");
     expect(appPage).toMatch(/dynamic = "force-dynamic"/);
     expect(appPage).toMatch(/isPersonalPhotoSession/);
-    expect(appPage).toMatch(/signedIn=\{signedIn\}/);
+    expect(appPage).toMatch(/redirect\("\/moments"\)/);
+    expect(appPage).not.toMatch(/signedIn=\{signedIn\}/);
     expect(capture).toMatch(/setCaptureOpen\(true\)/);
     expect(capture).not.toMatch(/const captureOpen = false/);
-    expect(capture).toContain("You’re in. Take or upload today’s moment.");
-    expect(capture).toContain("Noted. Capture stays closed until this purchase is confirmed.");
     expect(capture).toMatch(/destinationForEntitlement/);
     expect(capture).toMatch(/window\.location\.assign\(next\)/);
     expect(capture).not.toMatch(/type="email"/);
+    expect(capture).toMatch(/LANDING\.app\.heading/);
+    expect(capture).toMatch(/Capture it/);
   });
 });
