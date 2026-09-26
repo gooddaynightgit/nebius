@@ -1022,6 +1022,9 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/id="yours-heading" className="step-heading step-heading--navy"/);
     expect(yours).toMatch(/export function StoryOpeningStatus/);
     expect(yours).toMatch(/id="earlier-stories"/);
+    expect(yours).toMatch(/aria-label="My saved joy moments"/);
+    expect(yours).toMatch(/<h2>My saved joy moments<\/h2>/);
+    expect(yours).not.toMatch(/Earlier stories/);
     expect(yours).not.toMatch(/your new story/);
     expect(yours).not.toMatch(/story-actions/);
     expect(src).toMatch(/shouldRestorePending/);
