@@ -75,7 +75,7 @@ describe("moments pack page", () => {
     expect(styles).toMatch(/\.btn\.moments-code\s*\{[^}]*background:\s*var\(--lime\);/);
     expect(styles).toMatch(/\.btn\.moments-code\s*\{[^}]*color:\s*var\(--navy\);/);
     expect(styles).toMatch(/\.btn\.moments-code:disabled[\s\S]*color:\s*var\(--navy\);/);
-    expect(checkout).toMatch(/<button className="moments-cta"/);
+    expect(checkout).toMatch(/<button className="moments-cta step-pin"/);
     expect(page).not.toMatch(/<Link className="moments-cta"/);
     expect(checkout).not.toMatch(/<Link className="moments-cta"/);
     expect(page).not.toMatch(/stripe/i);

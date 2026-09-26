@@ -224,7 +224,7 @@ export default function JoyStudio() {
             </p>
           ) : null}
           <button
-            className="step-next"
+            className="step-next step-pin"
             type="button"
             aria-describedby={joyMissed && needsJoyPick && !selectedJoy ? "joy-need" : undefined}
             onClick={() => void uploadPhoto()}

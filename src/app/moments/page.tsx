@@ -33,8 +33,8 @@ export default async function MomentsPage() {
               <span className="moments-price-hero__amount">R450</span>
               <span className="moments-price-hero__unit">ZAR / $28</span>
             </p>
-            <MomentsCheckout />
           </section>
+          <MomentsCheckout />
         </div>
       </main>
       <SiteFooter className="site-footer--moments" />

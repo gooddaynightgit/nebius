@@ -784,7 +784,7 @@ describe("landing", () => {
   it("opens Weave your good moment from the landing straight to joy", () => {
     expect(page).toMatch(/href="\/app\/joy"/);
     expect(page).toMatch(/STEP_LABEL\.start/);
-    expect(page).toMatch(/className="step-next"/);
+    expect(page).toMatch(/className="step-next step-pin"/);
     expect(page.indexOf("STEP_LABEL.start")).toBeLessThan(page.indexOf('className="landing-demo"'));
     expect(page.indexOf('className="landing-demo"')).toBeLessThan(page.indexOf("closing-heading"));
     expect(page).toMatch(/src="\/landing-demo\.mp4"/);
@@ -925,7 +925,7 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/uploadPhotoDestination/);
     expect(joy).toMatch(/if \(!selectedJoy\)/);
     expect(joy).toMatch(/setJoyMissed\(true\)/);
-    expect(joy).toMatch(/className="step-next"/);
+    expect(joy).toMatch(/className="step-next step-pin"/);
     expect(joy).not.toMatch(/disabled=\{!selectedJoy\}/);
     expect(joy).not.toMatch(/tone="soft"/);
     expect(joy).toMatch(/LANDING\.app\.joyNeed/);
@@ -1097,7 +1097,7 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/id="joy-pick"/);
     expect(src).toMatch(/id="caption-box" className="card card--lavender card--compact"/);
     expect(src).toMatch(/card card--aqua card--compact/);
-    expect(src).toMatch(/btn btn--turn/);
+    expect(src).toMatch(/btn btn--turn step-pin/);
     expect(src).toMatch(/Weave my good moment/);
     expect(src).toMatch(/Weaving your good moment…/);
     expect(src).not.toMatch(/Turn my moment/);
