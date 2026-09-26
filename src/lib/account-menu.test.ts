@@ -18,18 +18,20 @@ function read(rel: string): string {
 }
 
 describe("account menu items", () => {
-  it("offers sign in and about when signed out", () => {
+  it("offers sign in, a review, and about when signed out", () => {
     expect(accountMenuItems({ signedIn: false })).toEqual([
       { kind: "link", label: "Sign in", href: "/signin" },
+      { kind: "link", label: "Leave a review", href: "/review" },
       { kind: "link", label: "About the maker", href: "/about" },
     ]);
   });
 
-  it("shows the email, moments, log out, and about when signed in", () => {
+  it("shows the email, moments, log out, a review, and about when signed in", () => {
     expect(accountMenuItems({ signedIn: true, email: "amy@email.com" })).toEqual([
       { kind: "email", email: "amy@email.com" },
       { kind: "link", label: "My moments", href: "/moments" },
       { kind: "logout", label: "Log out" },
+      { kind: "link", label: "Leave a review", href: "/review" },
       { kind: "link", label: "About the maker", href: "/about" },
     ]);
     expect(accountMenuItems({ signedIn: true, email: "amy@email.com" }).some((item) => item.kind === "link" && item.label === "Sign in")).toBe(false);
