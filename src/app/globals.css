@@ -38,6 +38,14 @@ body:has(.step-pin) {
   padding-bottom: calc(2.75rem + 0.5rem + 48px + 0.55rem + 4.25rem + env(safe-area-inset-bottom));
 }
 
+body:has(.share-pin) {
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 5.25rem);
+}
+
+body:has(.step-pin):has(.share-pin) {
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.55rem + 5.25rem);
+}
+
 img,
 svg {
   display: block;
@@ -1948,6 +1956,60 @@ body:has(.about-screen) {
   width: max-content;
 }
 
+/* Result-screen Share sits on the right, in the same slot as a pinned step button. */
+.btn.share-pin {
+  position: fixed;
+  z-index: 44;
+  left: auto;
+  right: max(0.7rem, env(safe-area-inset-right));
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem);
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 1.4rem - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 8px 18px rgba(18, 40, 64, 0.28);
+}
+
+body:has(.step-pin) .share-pin {
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.55rem);
+}
+
+.share-pin__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.share-pin__action {
+  font-weight: 800;
+}
+
+.share-pin__note {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.share-pin:hover,
+.share-pin:focus-visible {
+  background: #eaff6a;
+  border-color: #eaff6a;
+  color: var(--navy);
+}
+
+.share-pin:focus-visible {
+  outline: 3px solid #122840;
+  outline-offset: 3px;
+}
+
 .moments-cta.step-pin {
   position: fixed;
   z-index: 44;
@@ -2702,6 +2764,14 @@ body:has(.about-screen) {
 
   body:has(.step-pin) {
     padding-bottom: calc(2.75rem + 0.5rem + 48px + 0.55rem + 4.25rem + env(safe-area-inset-bottom));
+  }
+
+  body:has(.share-pin) {
+    padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 5.25rem);
+  }
+
+  body:has(.step-pin):has(.share-pin) {
+    padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.55rem + 5.25rem);
   }
 
   .btn,

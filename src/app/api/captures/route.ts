@@ -14,7 +14,8 @@ import { loadSessionVault, presentSession, requirePersonalPhotoOtp, toPublicSess
 import { imageDataUrlForModels } from "@/lib/model-image";
 import { putBytes } from "@/lib/storage";
 import { isMomentId } from "@/lib/moment";
-import { addCapture, appPhotoById, capturesForDay, saveAppMoment } from "@/lib/vault";
+import { localTodayForClient, readTzOffset } from "@/lib/moment-expiry";
+import { addCapture, appPhotoById, capturesForDay, purgeExpiredSavedMoments, saveAppMoment } from "@/lib/vault";
 import type { CaptureKind } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,10 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const day = url.searchParams.get("day") || todayStamp();
   const { sessionId, vault } = await loadSessionVault();
+  await purgeExpiredSavedMoments(
+    vault,
+    localTodayForClient({ day, tzOffset: readTzOffset(url.searchParams.get("tzOffset")) }),
+  );
   return json({
     session: await presentSession(vault, sessionId, day),
     captures: capturesForDay(vault, day),
@@ -36,6 +41,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const { sessionId, vault } = await loadSessionVault();
   const form = await request.formData();
+  const formDay = String(form.get("day") ?? "");
+  await purgeExpiredSavedMoments(
+    vault,
+    localTodayForClient({
+      day: formDay,
+      tzOffset: readTzOffset(form.get("tzOffset") == null ? null : String(form.get("tzOffset"))),
+    }),
+  );
   if (String(form.get("source") ?? "") === "app") {
     return saveAppPhoto(sessionId, vault, form);
   }

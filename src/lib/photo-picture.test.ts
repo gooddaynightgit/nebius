@@ -56,6 +56,7 @@ vi.mock("@/lib/vault", () => ({
   addCapture: vi.fn(),
   appPhotoById: vi.fn(() => null),
   capturesForDay: vi.fn(() => []),
+  purgeExpiredSavedMoments: vi.fn(async () => undefined),
   saveAppMoment: vi.fn(async (_vault: unknown, capture: unknown) => capture),
 }));
 

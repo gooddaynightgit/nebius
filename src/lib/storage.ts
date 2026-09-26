@@ -1,17 +1,19 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import {
   BlobNotFoundError,
+  del as deleteBlob,
   get as getBlob,
   head as headBlob,
   list as listBlob,
   put as putBlob,
   type PutBlobResult,
 } from "@vercel/blob";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   blobAccess,
@@ -315,6 +317,60 @@ export async function getBytes(
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+export async function deleteBytes(key: string): Promise<void> {
+  if (!key) return;
+  if (hasVercelBlob()) {
+    await deleteBlobBytes(key);
+    return;
+  }
+  if (hasNebiusObjectStorage()) {
+    const { client, bucket } = s3();
+    try {
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: `${prefix()}/${key}`,
+        }),
+      );
+    } catch (error) {
+      const name = error instanceof Error ? error.name : "";
+      if (name === "NoSuchKey" || name === "NotFound") return;
+      console.error(`[storage] s3 delete failed key=${key}`, error);
+      throw error;
+    }
+    return;
+  }
+  try {
+    await unlink(localPath(key));
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") return;
+    throw error;
+  }
+}
+
+async function deleteBlobBytes(key: string): Promise<void> {
+  const pathname = blobPath(key);
+  const url = blobUrlByPath.get(pathname) || blobCdnUrl(pathname);
+  if (!url) {
+    logBlob("del", pathname, "missing url");
+    return;
+  }
+  const auth = blobAuth();
+  const token = "token" in auth ? auth.token : undefined;
+  try {
+    await deleteBlob(url, token ? { token } : {});
+    blobUrlByPath.delete(pathname);
+  } catch (error) {
+    if (isBlobMissingError(error)) {
+      blobUrlByPath.delete(pathname);
+      return;
+    }
+    logBlob("del", pathname, error);
     throw error;
   }
 }

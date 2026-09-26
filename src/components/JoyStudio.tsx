@@ -7,12 +7,14 @@ import JoyPicker from "@/components/JoyPicker";
 import SiteFooter from "@/components/SiteFooter";
 import StepControl from "@/components/StepControl";
 import { readCaptureStash } from "@/lib/capture-stash";
+import { withClientClock, useLocalDay } from "@/lib/client-day";
 import { readJson } from "@/lib/client-fetch";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
 import { restoredJoyId, STEP_LABEL } from "@/lib/journey";
 import { LANDING, accordionJoys, getJoyById, type JoyType } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
+import { keptSavedMoments } from "@/lib/moment-expiry";
 import { uploadPhotoDestination } from "@/lib/photo-entry";
 import {
   SAVED_JOY_MOMENTS_ID,
@@ -23,8 +25,15 @@ import {
 
 type SavedMoment = { id: string; day: string; createdAt: string };
 
+function savedDay(story: { day?: string; createdAt: string }): string {
+  if (story.day) return story.day;
+  const ms = Date.parse(story.createdAt);
+  if (Number.isNaN(ms)) return "";
+  return localDay(new Date(ms));
+}
+
 export default function JoyStudio() {
-  const day = useMemo(() => localDay(), []);
+  const day = useLocalDay();
   const pathname = usePathname();
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [resetSignal, setResetSignal] = useState(0);
@@ -68,8 +77,9 @@ export default function JoyStudio() {
         stashJoy = null;
       }
       try {
-        const res = await fetch(`/api/session?day=${encodeURIComponent(day)}`, {
+        const res = await fetch(withClientClock(`/api/session?day=${encodeURIComponent(day)}`), {
           credentials: "same-origin",
+          cache: "no-store",
         });
         const session = await readJson<{ todayPhoto?: { joyType?: string } | null }>(res);
         photoJoy = session.todayPhoto?.joyType ?? null;
@@ -94,8 +104,9 @@ export default function JoyStudio() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/yours?day=${encodeURIComponent(day)}`, {
+        const res = await fetch(withClientClock(`/api/yours?day=${encodeURIComponent(day)}`), {
           credentials: "same-origin",
+          cache: "no-store",
         });
         const data = await readJson<{
           story?: { id?: string; day?: string; createdAt?: string } | null;
@@ -103,9 +114,9 @@ export default function JoyStudio() {
         }>(res);
         if (cancelled) return;
         const current = data.story?.id && data.story.createdAt
-          ? [{ id: data.story.id, day: data.story.day || data.story.createdAt.slice(0, 10), createdAt: data.story.createdAt }]
+          ? [{ id: data.story.id, day: savedDay({ day: data.story.day, createdAt: data.story.createdAt }), createdAt: data.story.createdAt }]
           : [];
-        setSavedMoments(latestMoments([...current, ...(data.earlier ?? [])]));
+        setSavedMoments(latestMoments(keptSavedMoments([...current, ...(data.earlier ?? [])], day)));
       } catch {
         if (!cancelled) setSavedMoments([]);
       }
@@ -143,8 +154,9 @@ export default function JoyStudio() {
     let signedIn = false;
     let game: number | null = null;
     try {
-      const sessionRes = await fetch(`/api/session?day=${encodeURIComponent(day)}`, {
+      const sessionRes = await fetch(withClientClock(`/api/session?day=${encodeURIComponent(day)}`), {
         credentials: "same-origin",
+        cache: "no-store",
       });
       const session = await readJson<{ otpVerified?: boolean; email?: string | null }>(sessionRes);
       if (session.otpVerified && session.email) {

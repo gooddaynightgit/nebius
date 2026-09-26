@@ -1,4 +1,5 @@
-import { getJSON, putJSON } from "./storage";
+import { isSavedMomentExpired } from "./moment-expiry";
+import { deleteBytes, getJSON, putJSON } from "./storage";
 import type { CaptureRecord, StoryRecord, VaultRecord } from "./types";
 import { anonVaultId, emailVaultId, newId } from "./identity";
 
@@ -47,6 +48,73 @@ export async function loadVault(vaultId: string): Promise<VaultRecord | null> {
 export async function saveVault(vault: VaultRecord): Promise<void> {
   vault.updatedAt = new Date().toISOString();
   await putJSON(vaultKey(vault.id), vault);
+}
+
+/**
+ * Drop saved moments from before the viewer's local today.
+ * Each moment lasts through 23:59 of the calendar day it was saved.
+ * Returns media keys that belonged only to the removed rows.
+ */
+export function dropExpiredSavedMoments(
+  vault: VaultRecord,
+  today: string,
+): { changed: boolean; mediaKeys: string[] } {
+  const expired = (day: string) => isSavedMomentExpired(day, today);
+  const media = new Set<string>();
+  let changed = false;
+  const keptStories: StoryRecord[] = [];
+  for (const story of vault.stories) {
+    if (!expired(story.day)) {
+      keptStories.push(story);
+      continue;
+    }
+    changed = true;
+    if (story.tts.audioKey) media.add(story.tts.audioKey);
+  }
+  const keptCaptures: CaptureRecord[] = [];
+  for (const capture of vault.captures) {
+    if (!expired(capture.day)) {
+      keptCaptures.push(capture);
+      continue;
+    }
+    changed = true;
+    if (capture.mediaKey) media.add(capture.mediaKey);
+  }
+  if (vault.yoursOpened) {
+    for (const day of Object.keys(vault.yoursOpened)) {
+      if (!expired(day)) continue;
+      delete vault.yoursOpened[day];
+      changed = true;
+    }
+  }
+  if (!changed) return { changed: false, mediaKeys: [] };
+  vault.stories = keptStories;
+  vault.captures = keptCaptures;
+  vault.captureIds = keptCaptures.map((capture) => capture.id);
+  const stillUsed = new Set<string>();
+  for (const story of vault.stories) {
+    if (story.tts.audioKey) stillUsed.add(story.tts.audioKey);
+  }
+  for (const capture of vault.captures) {
+    if (capture.mediaKey) stillUsed.add(capture.mediaKey);
+  }
+  return { changed: true, mediaKeys: [...media].filter((key) => !stillUsed.has(key)) };
+}
+
+/** Remove expired moments from the vault file and delete their photo and audio bytes. */
+export async function purgeExpiredSavedMoments(vault: VaultRecord, today: string): Promise<void> {
+  const removed = dropExpiredSavedMoments(vault, today);
+  if (!removed.changed) return;
+  await saveVault(vault);
+  await Promise.all(
+    removed.mediaKeys.map(async (key) => {
+      try {
+        await deleteBytes(key);
+      } catch (error) {
+        console.error(`[vault] expired media stayed key=${key}`, error);
+      }
+    }),
+  );
 }
 
 export async function getOrCreateAnonVault(

@@ -3,6 +3,7 @@ import { isPlausibleClientDay } from "@/lib/day";
 import { badRequest, forbidden, json, notFound } from "@/lib/http";
 import { LANDING } from "@/lib/landing";
 import { latestMoments } from "@/lib/latest-moments";
+import { localTodayForClient, readTzOffset } from "@/lib/moment-expiry";
 import { loadSessionVault, presentSession, requirePersonalPhotoOtp } from "@/lib/session";
 import { WeaveBlockedError, WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
 import {
@@ -13,6 +14,7 @@ import {
   listStories,
   markMomentOpened,
   matchingStoryForPhoto,
+  purgeExpiredSavedMoments,
   saveVault,
   storyForCapture,
 } from "@/lib/vault";
@@ -47,6 +49,10 @@ export async function GET(request: Request) {
   const day = url.searchParams.get("day") || "";
   if (!isPlausibleClientDay(day)) return notFound(EXPIRED);
   const { sessionId, vault } = await loadSessionVault();
+  await purgeExpiredSavedMoments(
+    vault,
+    localTodayForClient({ day, tzOffset: readTzOffset(url.searchParams.get("tzOffset")) }),
+  );
   const stories = listStories(vault);
   const requestedStory = url.searchParams.get("story") || "";
   const requestedMoment = url.searchParams.get("moment") || "";
@@ -120,10 +126,18 @@ export async function POST(request: Request) {
     day?: string;
     momentId?: string;
     captureId?: string;
+    tzOffset?: number | string;
   };
   const day = body.day || "";
   if (!isPlausibleClientDay(day)) return notFound(EXPIRED);
   const { sessionId, vault } = await loadSessionVault();
+  await purgeExpiredSavedMoments(
+    vault,
+    localTodayForClient({
+      day,
+      tzOffset: readTzOffset(body.tzOffset == null ? null : String(body.tzOffset)),
+    }),
+  );
   const requested = body.captureId || body.momentId || "";
   const photo = requested ? appPhotoById(vault, requested) : appPhotoForDay(vault, day);
   const joyType = photo?.joyType;
