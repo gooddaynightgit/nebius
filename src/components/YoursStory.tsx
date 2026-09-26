@@ -479,8 +479,8 @@ export default function YoursStory() {
               ) : null}
             </div>
             {earlierList.length ? (
-              <nav id="earlier-stories" className="earlier-stories" aria-label="Earlier stories">
-                <h2>Earlier stories</h2>
+              <nav id="earlier-stories" className="earlier-stories" aria-label="My saved joy moments">
+                <h2>My saved joy moments</h2>
                 <ul>
                   {earlierList.map((item) => (
                     <li key={item.id}>
