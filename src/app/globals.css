@@ -97,6 +97,12 @@ body:has(.journey) .skip-link:focus {
   padding: 1rem 1rem 2.5rem;
 }
 
+@media (max-width: 480px) {
+  .page {
+    padding-right: calc(1rem + 56px);
+  }
+}
+
 .site-header {
   display: flex;
   align-items: center;
@@ -2727,6 +2733,12 @@ body:has(.moments-page) {
   justify-content: center;
   min-height: calc(100dvh - 7.6rem);
   padding: 1.15rem 1rem 1.35rem;
+}
+
+@media (max-width: 480px) {
+  .moments-stage {
+    padding-right: calc(1rem + 56px);
+  }
 }
 
 .moments-glass {
