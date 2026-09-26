@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { REVIEW_LONG, REVIEW_NEED, REVIEW_SLOW, REVIEW_STARS, REVIEW_THANKS } from "./review-copy";
+import { REVIEW_KIND, REVIEW_LONG, REVIEW_LOW, REVIEW_NEED, REVIEW_SLOW, REVIEW_STARS, REVIEW_THANKS } from "./review-copy";
 import { REVIEW_INDEX_KEY, resetReviewRateLimit } from "./review";
 
 const { store, send, sent } = vi.hoisted(() => {
@@ -184,9 +184,49 @@ describe("review API", () => {
     process.env.SES_NOREPLY = "noreply@gooddaynight.com";
     process.env.AWS_REGION = "eu-west-1";
     send.mockRejectedValueOnce(new Error("ses down"));
-    const res = await post({ stars: 2 }, "203.0.113.19");
+    const res = await post({ stars: 4 }, "203.0.113.19");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, message: REVIEW_THANKS, emailed: false });
     expect(savedReviews()).toHaveLength(1);
+  });
+
+  it("does not store or email a comment with profanity", async () => {
+    process.env.SES_NOREPLY = "noreply@gooddaynight.com";
+    process.env.AWS_REGION = "eu-west-1";
+    const res = await post({ stars: 5, comment: "This is f*cking awful", name: "Amy" }, "203.0.113.20");
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: REVIEW_KIND });
+    expect(savedReviews()).toEqual([]);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("does not store or email a name with obfuscated profanity", async () => {
+    process.env.SES_NOREPLY = "noreply@gooddaynight.com";
+    process.env.AWS_REGION = "eu-west-1";
+    const res = await post({ stars: 5, comment: "The light stayed.", name: "sh1t" }, "203.0.113.21");
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: REVIEW_KIND });
+    expect(savedReviews()).toEqual([]);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("does not store or email a 1 or 2 star review", async () => {
+    process.env.SES_NOREPLY = "noreply@gooddaynight.com";
+    process.env.AWS_REGION = "eu-west-1";
+    const one = await post({ stars: 1, comment: "Not for me." }, "203.0.113.22");
+    expect(one.status).toBe(200);
+    expect(await one.json()).toEqual({ ok: true, message: REVIEW_LOW, emailed: false });
+    const two = await post({ stars: 2, comment: "I wanted more." }, "203.0.113.23");
+    expect(two.status).toBe(200);
+    expect(await two.json()).toEqual({ ok: true, message: REVIEW_LOW, emailed: false });
+    expect(savedReviews()).toEqual([]);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("asks for kinder words before the low-star note when both apply", async () => {
+    const res = await post({ stars: 1, comment: "f*ck" }, "203.0.113.24");
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: REVIEW_KIND });
+    expect(savedReviews()).toEqual([]);
   });
 });

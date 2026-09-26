@@ -1,5 +1,6 @@
 import { badRequest, json } from "@/lib/http";
-import { REVIEW_SLOW, REVIEW_THANKS, REVIEW_UNAVAILABLE } from "@/lib/review-copy";
+import { isUnkindReview } from "@/lib/review-filter";
+import { REVIEW_KIND, REVIEW_LOW, REVIEW_SLOW, REVIEW_THANKS, REVIEW_UNAVAILABLE } from "@/lib/review-copy";
 import { allowReview, emailReview, parseReview, reviewClientKey, saveReview, type ReviewBody } from "@/lib/review";
 import { readGateEmail, readOtpSession } from "@/lib/session";
 
@@ -19,6 +20,10 @@ export async function POST(request: Request) {
   if (!parsed.ok) return badRequest(parsed.message);
   if (parsed.honeypot) return json({ ok: true, message: REVIEW_THANKS });
   if (!allowReview(reviewClientKey(request))) return json({ error: REVIEW_SLOW }, 429);
+  if (isUnkindReview(parsed.comment, parsed.name)) return badRequest(REVIEW_KIND);
+  if (parsed.stars === 1 || parsed.stars === 2) {
+    return json({ ok: true, message: REVIEW_LOW, emailed: false });
+  }
 
   try {
     const review = await saveReview({

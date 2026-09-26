@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { REVIEW_COMMENT_MAX, REVIEW_NAME_MAX, REVIEW_THANKS, REVIEW_UNAVAILABLE } from "@/lib/review-copy";
+import { REVIEW_COMMENT_MAX, REVIEW_KIND, REVIEW_NAME_MAX, REVIEW_THANKS, REVIEW_UNAVAILABLE } from "@/lib/review-copy";
 
 function StarGlyph({ on }: { on: boolean }) {
   return (
@@ -18,13 +18,13 @@ function StarGlyph({ on }: { on: boolean }) {
 }
 
 export default function ReviewForm({ signedInEmail }: { signedInEmail: string | null }) {
-  const [stars, setStars] = useState<number | null>(null);
+  const [stars, setStars] = useState(5);
   const [comment, setComment] = useState("");
   const [name, setName] = useState("");
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,7 +42,7 @@ export default function ReviewForm({ signedInEmail }: { signedInEmail: string | 
         setError(data?.error || REVIEW_UNAVAILABLE);
         return;
       }
-      setDone(true);
+      setDone(data?.message || REVIEW_THANKS);
     } catch {
       setError(REVIEW_UNAVAILABLE);
     } finally {
@@ -53,7 +53,7 @@ export default function ReviewForm({ signedInEmail }: { signedInEmail: string | 
   if (done) {
     return (
       <p className="review-thanks" role="status">
-        {REVIEW_THANKS}
+        {done}
       </p>
     );
   }
@@ -64,7 +64,7 @@ export default function ReviewForm({ signedInEmail }: { signedInEmail: string | 
         <legend>How many stars?</legend>
         <div className="review-stars__row">
           {[1, 2, 3, 4, 5].map((value) => {
-            const on = stars !== null && value <= stars;
+            const on = value <= stars;
             return (
               <label key={value} className={on ? "review-star review-star--on" : "review-star"}>
                 <input
@@ -125,7 +125,7 @@ export default function ReviewForm({ signedInEmail }: { signedInEmail: string | 
       </label>
 
       {error ? (
-        <p className="review-error" role="alert">
+        <p className={error === REVIEW_KIND ? "review-kind" : "review-error"} role="alert">
           {error}
         </p>
       ) : null}

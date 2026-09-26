@@ -3453,6 +3453,13 @@ body:has(.moments-page) {
   font-weight: 700;
 }
 
+.review-kind {
+  margin: 0;
+  color: var(--navy);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .review-thanks {
   position: relative;
   z-index: 1;
