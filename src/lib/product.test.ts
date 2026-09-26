@@ -1112,7 +1112,8 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/method: "POST"[\s\S]*\/api\/yours/);
     expect(src).toMatch(/router\.push\(`\/app\/yours\?moment=/);
     expect(src).toMatch(/StoryOpeningStatus/);
-    expect(src).toMatch(/useReportAppProgress\(busy \? "turn" : questionOpen \? "good" : "upload"\)/);
+    expect(src).toMatch(/useReportAppProgress\(reviewView\.progress\)/);
+    expect(src).toMatch(/reviewCaptureView/);
     expect(src).not.toMatch(/useJourneyCaption/);
     expect(src).toMatch(/\{busy \? <StoryOpeningStatus \/> : null\}/);
     expect(src).not.toMatch(/LANDING\.app\.save\b/);

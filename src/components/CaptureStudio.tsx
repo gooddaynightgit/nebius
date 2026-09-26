@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   FormEvent,
   SyntheticEvent,
@@ -16,6 +16,7 @@ import { captionDisposition } from "@/lib/app-capture";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
 import { localDay } from "@/lib/day";
+import { restoredJoyId, restoredMomentText, reviewCaptureView } from "@/lib/journey";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
 import {
@@ -91,6 +92,8 @@ async function lookupEntitlement(email: string): Promise<EntitlementLookup> {
 
 export default function CaptureStudio() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const review = searchParams.get("review");
   const takeInputId = useId();
   const uploadInputId = useId();
   const captionId = useId();
@@ -148,7 +151,14 @@ export default function CaptureStudio() {
     answeredGeneration,
   });
   useReportBuyerGate(captureOpen, hydrated);
-  useReportAppProgress(busy ? "turn" : questionOpen ? "good" : "upload");
+  const reviewView = reviewCaptureView({
+    review,
+    busy,
+    questionOpen,
+    hasPhoto: Boolean(photo) || Boolean(savedPhoto),
+    hasCaption: caption.trim().length > 0,
+  });
+  useReportAppProgress(reviewView.progress);
 
   function applyEntitlement(result: EntitlementLookup) {
     const sessionOpen = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
@@ -197,10 +207,12 @@ export default function CaptureStudio() {
     return () => window.removeEventListener("pageshow", onPageShow);
   }, [pathname]);
 
+  const keptMediaUrl =
+    review && savedPhoto?.id ? `/api/media/${encodeURIComponent(savedPhoto.id)}` : null;
   const previewSrc = capturePreviewSrc({
     localPreviewUrl: photoUrl,
     hasLocalPhoto: Boolean(photo),
-    savedMediaUrl: null,
+    savedMediaUrl: keptMediaUrl,
   });
   const canPickPhoto = captureOpen;
 
@@ -251,11 +263,13 @@ export default function CaptureStudio() {
       }
       if (!hydrated) {
         const storedId = readChosenJoy(day);
-        const savedId = sessionData.todayPhoto?.joyType ?? (sessionData.yoursOpened ? null : stash?.joyType);
-        const chosen = getJoyById(storedId || savedId);
-        if (chosen) {
-          setSelectedJoyId(chosen.id);
-          if (!storedId) writeChosenJoy(day, chosen.id);
+        const returning = review === "capture" || review === "good" || review === "weave";
+        const keptJoy = getJoyById(
+          restoredJoyId(storedId, stash?.joyType, sessionData.todayPhoto?.joyType),
+        );
+        if (keptJoy) {
+          setSelectedJoyId(keptJoy.id);
+          if (!storedId) writeChosenJoy(day, keptJoy.id);
         }
         const pendingFile = pendingMoment?.file && pendingMoment.file.size > 0 ? pendingMoment.file : null;
         const activeMomentId = readActiveMoment(day);
@@ -265,14 +279,41 @@ export default function CaptureStudio() {
           pendingMomentId: pendingMoment?.momentId ?? null,
           activeMomentId,
         });
-        if (restorePending && pendingFile) {
+        if (restorePending && pendingFile && !returning) {
           const momentId = pendingMoment?.momentId || activeMomentId || newMomentId();
           momentRef.current = momentId;
           writeActiveMoment(day, momentId);
           showLocalPhoto(pendingFile);
-          if (chosen) void runPhotoSpark(pendingFile);
+          if (keptJoy) void runPhotoSpark(pendingFile);
+        } else if (returning && !photoRef.current) {
+          const keptFile =
+            restorePending && pendingFile
+              ? pendingFile
+              : stash?.photo
+                ? stashPhotoFile(stash)
+                : null;
+          if (restorePending && pendingFile) {
+            const momentId = pendingMoment?.momentId || activeMomentId || newMomentId();
+            momentRef.current = momentId;
+            writeActiveMoment(day, momentId);
+          }
+          if (keptFile && keptFile.size > 0) {
+            const url = URL.createObjectURL(keptFile);
+            photoRef.current = keptFile;
+            photoUrlRef.current = url;
+            setPhoto(keptFile);
+            setPhotoUrl(url);
+          }
         } else if (sessionData.todayPhoto?.dateVerified && !sessionData.hasSavedMoment) {
           setDateNote(PHOTO_DATE_MESSAGES.today);
+        }
+        if (returning) {
+          const keptCaption = restoredMomentText({
+            currentCaption: "",
+            stashCaption: stash?.caption,
+            photoCaption: sessionData.todayPhoto?.caption,
+          });
+          if (keptCaption) setCaption(keptCaption);
         }
       }
       setHydrated(true);
@@ -281,7 +322,7 @@ export default function CaptureStudio() {
       setHydrated(true);
       setCaptureError(explainClientFetchError(error));
     }
-  }, [day, hydrated]);
+  }, [day, hydrated, review]);
 
   useEffect(() => {
     void refresh();
@@ -877,7 +918,7 @@ export default function CaptureStudio() {
             ) : null}
           </section>
 
-          {questionOpen ? (
+          {reviewView.showQuestion ? (
             <section id="caption-box" className="card card--lavender card--compact" aria-labelledby="caption-heading">
               <label id="caption-heading" className="whisper-label" htmlFor={captionId}>
                 {LANDING.app.captionLabel}
@@ -926,7 +967,7 @@ export default function CaptureStudio() {
             </p>
           ) : null}
 
-          {questionOpen ? (
+          {reviewView.showWeave ? (
             <section className="card card--aqua card--compact" aria-label="Weave my good moment">
               <button
                 className="btn btn--turn"
