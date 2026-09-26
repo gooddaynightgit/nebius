@@ -32,6 +32,25 @@ describe("about the maker", () => {
     expect(page).not.toContain("<h1");
   });
 
+  it("fills the page with a silent looping background and shows the poster when motion is reduced", () => {
+    const page = read("src/app/about/page.tsx");
+    const styles = read("src/app/globals.css");
+    expect(page).toContain('src="/about-bg.mp4"');
+    expect(page).toContain('poster="/about-bg-poster.jpg"');
+    expect(page).toContain("autoPlay");
+    expect(page).toContain("muted");
+    expect(page).toContain("loop");
+    expect(page).toContain("playsInline");
+    expect(page).toContain('preload="metadata"');
+    expect(page).not.toMatch(/\bcontrols\b/);
+    expect(styles).toMatch(/\.about-bg__video\s*\{[^}]*position:\s*fixed/);
+    expect(styles).toMatch(/\.about-bg__video\s*\{[^}]*object-fit:\s*cover/);
+    expect(styles).toMatch(/\.about-page \.card--lavender\s*\{[^}]*background:\s*linear-gradient/);
+    expect(styles).toMatch(
+      /@media \(prefers-reduced-motion:\s*reduce\)\s*\{\s*\.about-bg__video\s*\{\s*display:\s*none;/,
+    );
+  });
+
   it("links About the maker from every page footer", () => {
     const footer = read("src/components/SiteFooter.tsx");
     const styles = read("src/app/globals.css");

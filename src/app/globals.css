@@ -1758,6 +1758,56 @@ body:has(.story-opening) .header-meta {
   line-height: 1.4;
 }
 
+body:has(.about-screen) {
+  background: #102433;
+}
+
+.about-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #102433 url("/about-bg-poster.jpg") center / cover no-repeat;
+  pointer-events: none;
+}
+
+.about-bg__video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-bg__shade {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 36, 51, 0.32);
+}
+
+.about-page {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.about-page .card--lavender {
+  background: linear-gradient(180deg, #f3f0fb 0%, #f7f4fa 48%, #f4f8e6 100%);
+}
+
+.about-page .site-footer {
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.9rem 0.15rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--navy);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-bg__video {
+    display: none;
+  }
+}
+
 .feedback-ribbon {
   position: fixed;
   left: 0;
