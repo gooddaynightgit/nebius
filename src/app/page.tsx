@@ -35,7 +35,7 @@ export default async function HomePage() {
         </section>
 
         <nav className="step-nav" aria-label={STEP_LABEL.start}>
-          <Link className="step-next" href="/app/joy">
+          <Link className="step-next step-pin" href="/app/joy">
             {STEP_LABEL.start}
           </Link>
         </nav>
