@@ -24,15 +24,18 @@ export default async function MomentsPage() {
       </div>
 
       <main id="main" className="moments-stage">
-        <section className="moments-glass" aria-labelledby="moments-weave">
-          <h1 id="moments-weave">My saved joy moments</h1>
-          <p className="moments-offer">Unlock 40 good moments weaved for</p>
-          <p className="moments-price-hero">
-            <span className="moments-price-hero__amount">R450</span>
-            <span className="moments-price-hero__unit">ZAR / $28</span>
-          </p>
-          <MomentsCheckout />
-        </section>
+        <div className="moments-stack">
+          <h1 className="moments-page-heading">My saved joy moments</h1>
+          <section className="moments-glass" aria-labelledby="moments-weave">
+            <h2 id="moments-weave">Every good moment weaved adds to the rich tapestry of life</h2>
+            <p className="moments-offer">Unlock 40 good moments weaved for</p>
+            <p className="moments-price-hero">
+              <span className="moments-price-hero__amount">R450</span>
+              <span className="moments-price-hero__unit">ZAR / $28</span>
+            </p>
+            <MomentsCheckout />
+          </section>
+        </div>
       </main>
       <SiteFooter className="site-footer--moments" />
     </div>

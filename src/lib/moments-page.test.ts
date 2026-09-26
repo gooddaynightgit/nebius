@@ -10,8 +10,11 @@ describe("moments pack page", () => {
   const privacy = readFileSync(path.resolve("src/lib/privacy.ts"), "utf8");
 
   it("shows the silk pay box and nothing from the old poster stack", () => {
+    expect(page).toContain("Every good moment weaved adds to the rich tapestry of life");
     expect(page).toContain("My saved joy moments");
     expect(page).toContain("My saved joy moments — GoodDayNight");
+    expect(page.indexOf("moments-page-heading")).toBeLessThan(page.indexOf("moments-glass"));
+    expect(page.indexOf("moments-glass")).toBeLessThan(page.indexOf("Every good moment weaved adds to the rich tapestry of life"));
     expect(page).toContain("Unlock 40 good moments weaved for");
     expect(page).toContain(">R450<");
     expect(page).toContain("ZAR / $28");
@@ -48,6 +51,9 @@ describe("moments pack page", () => {
       "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.",
     );
     const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(styles).toMatch(/\.moments-page-heading\s*\{[^}]*color:\s*#d4ff00;/);
+    expect(styles).toMatch(/\.moments-page-heading\s*\{[^}]*font-weight:\s*800;/);
+    expect(styles).toMatch(/\.moments-page-heading\s*\{[^}]*text-align:\s*center;/);
     expect(styles).toMatch(/\.privacy-note\s*\{[^}]*white-space:\s*pre-line;/);
     expect(privacy).toContain(
       "Email keeps your moments yours. Your photos and words are never used to train AI.",
