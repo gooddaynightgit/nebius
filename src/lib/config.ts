@@ -115,3 +115,8 @@ export function dataDir(): string {
 export function weaveCronSecret(): string | undefined {
   return process.env.WEAVE_CRON_SECRET?.trim() || undefined;
 }
+
+/** Shared secret for Vercel Cron. The daily moment sweep refuses the call when this is empty. */
+export function cronSecret(): string | undefined {
+  return process.env.CRON_SECRET?.trim() || undefined;
+}

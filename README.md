@@ -122,6 +122,16 @@ nebius ai job create \
 4. Schedule it for **21:00** in Amy’s timezone. Serverless Jobs are one-shot; wrap the create call with cron, a Cloud scheduler, or a tiny always-on trigger that fires at 21:00.
 5. For the demo video, skip the clock — tap **Weave now**.
 
+## Daily sweep of saved moments (14:15 SAST)
+
+Saved moments last through 23:59 in the visitor’s own time zone. While someone is in the app, that visit still clears moments from earlier local days. A Vercel Cron also runs once a day so those moments leave storage when the person stays away.
+
+Schedule: `15 12 * * *` (12:15 UTC, **14:15 in South Africa, UTC+2**). That is just after midnight in UTC−12, the last zone to start a new calendar day.
+
+The sweep removes a moment only when its saved day is earlier than today’s date in UTC−12. A moment that is still today for anyone, including UTC−12, stays. Story text, photo bytes, and audio bytes go with it when nothing else in that vault still points at the file. Anonymous vaults and email vaults are both included. A long listing continues on the next run from the saved place.
+
+Set `CRON_SECRET` on the Vercel project (Production). Vercel sends `Authorization: Bearer <CRON_SECRET>` to `GET /api/cron/expire-moments`. The route answers only when that header matches.
+
 ## Demo script (≤3 minutes)
 
 1. **0:00** Landing. Point at the mint and lavender cards and the **Gooddaynight does →** arrow into `/app/joy`. Open **One good moment today**, drop a photo, pick a quiet-joy radio, and show the pale lavender My good moment playback. There is no signup field. Click through.
@@ -146,6 +156,7 @@ nebius ai job create \
 | POST | `/api/payfast/itn` | Payfast ITN. Verifies signature, VALID, and amount, then credits 25 moments once |
 | POST | `/api/payfast/entitlement` | Already bought: remaining moments for an email; sets the gate cookie when any remain |
 | POST | `/api/weave` | Super weave (session or cron) |
+| GET | `/api/cron/expire-moments` | Daily job at 14:15 SAST. Removes saved moments from days already over in every time zone |
 | GET | `/api/story` | Last story |
 | GET | `/api/story/audio` | Sonic audio when present |
 
