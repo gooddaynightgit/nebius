@@ -5,7 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { isPersonalPhotoSession } from "@/lib/session";
 
 export const metadata: Metadata = {
-  title: "My saved joy moments — GoodDayNight",
+  title: "My new joy moments — GoodDayNight",
   description: "Unlock 40 good moments weaved for R450 ZAR / $28.",
 };
 
@@ -25,7 +25,7 @@ export default async function MomentsPage() {
 
       <main id="main" className="moments-stage">
         <div className="moments-stack">
-          <h1 className="moments-page-heading">My saved joy moments</h1>
+          <h1 className="moments-page-heading">My new joy moments</h1>
           <section className="moments-glass" aria-labelledby="moments-weave">
             <h2 id="moments-weave">Every good moment weaved adds to the rich tapestry of life</h2>
             <p className="moments-offer">Unlock 40 good moments weaved for</p>
