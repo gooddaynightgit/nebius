@@ -1,6 +1,8 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { newId } from "./identity";
 import { LANDING } from "./landing";
+import { otpSessionSecret } from "./otp-session";
 import {
   REVIEW_COMMENT_MAX,
   REVIEW_LONG,
@@ -9,6 +11,7 @@ import {
   REVIEW_NEED,
   REVIEW_STARS,
 } from "./review-copy";
+import { firstNameOnly, newestReviews, reviewShouldPublish, toPublicReview, type PublicReview } from "./review-public";
 import { getJSON, putJSON } from "./storage";
 
 export const REVIEW_INDEX_KEY = "reviews/index.json";
@@ -21,6 +24,16 @@ export type StoredReview = {
   comment: string;
   name: string;
   email: string | null;
+  createdAt: string;
+  published: boolean;
+};
+
+export type AdminReviewRow = {
+  id: string;
+  stars: number | null;
+  comment: string;
+  name: string;
+  published: boolean;
   createdAt: string;
 };
 
@@ -110,6 +123,7 @@ export async function saveReview(input: {
     name: input.name,
     email: input.email,
     createdAt: (input.now ?? new Date()).toISOString(),
+    published: reviewShouldPublish(input.stars),
   };
   await putJSON(reviewObjectKey(review.id), review);
   try {
@@ -123,8 +137,51 @@ export async function saveReview(input: {
   return review;
 }
 
-export function reviewEmailText(review: StoredReview): string {
-  return [
+export function reviewPublicOrigin(): string {
+  const app = process.env.APP_URL?.trim();
+  if (app) return app.replace(/\/+$/, "");
+  const vercel = process.env.VERCEL_URL?.trim();
+  if (vercel) {
+    const host = vercel.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    return `https://${host}`;
+  }
+  return "https://gooddaynight.com";
+}
+
+export function sealHideToken(id: string, secret: string): string {
+  const payload = Buffer.from(JSON.stringify({ id, act: "hide" }), "utf8").toString("base64url");
+  const sig = createHmac("sha256", secret).update(payload).digest("base64url");
+  return `${payload}.${sig}`;
+}
+
+export function openHideToken(token: string, secret: string): string | null {
+  const dot = token.indexOf(".");
+  if (dot <= 0) return null;
+  const payload = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  if (!payload || !sig) return null;
+  const expected = createHmac("sha256", secret).update(payload).digest("base64url");
+  const left = Buffer.from(sig);
+  const right = Buffer.from(expected);
+  if (left.length !== right.length || !timingSafeEqual(left, right)) return null;
+  try {
+    const body = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { id?: unknown; act?: unknown };
+    if (body.act !== "hide" || typeof body.id !== "string" || !body.id.startsWith("review_")) return null;
+    return body.id;
+  } catch {
+    return null;
+  }
+}
+
+export function hideReviewUrl(reviewId: string): string | null {
+  const secret = otpSessionSecret();
+  if (!secret) return null;
+  const token = sealHideToken(reviewId, secret);
+  return `${reviewPublicOrigin()}/review/hide?token=${encodeURIComponent(token)}`;
+}
+
+export function reviewEmailText(review: StoredReview, hideUrl?: string | null): string {
+  const lines = [
     "A new GoodDayNight review",
     "",
     `Stars: ${review.stars ?? "(none)"}`,
@@ -134,7 +191,11 @@ export function reviewEmailText(review: StoredReview): string {
     review.comment || "(none)",
     "",
     `id: ${review.id}`,
-  ].join("\n");
+  ];
+  if (hideUrl) {
+    lines.push("", "Hide this review:", hideUrl);
+  }
+  return lines.join("\n");
 }
 
 /** Sends when the same SES settings as sign-in codes are present. A miss still keeps the saved review. */
@@ -150,7 +211,7 @@ export async function emailReview(review: StoredReview): Promise<boolean> {
         Destination: { ToAddresses: [LANDING.footer.hello] },
         Message: {
           Subject: { Data: "A new GoodDayNight review", Charset: "UTF-8" },
-          Body: { Text: { Data: reviewEmailText(review), Charset: "UTF-8" } },
+          Body: { Text: { Data: reviewEmailText(review, hideReviewUrl(review.id)), Charset: "UTF-8" } },
         },
       }),
     );
@@ -159,4 +220,75 @@ export async function emailReview(review: StoredReview): Promise<boolean> {
     console.error("[review] email failed", error);
     return false;
   }
+}
+
+function asStoredReview(value: unknown): StoredReview | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as Partial<StoredReview>;
+  if (typeof row.id !== "string" || !row.id.startsWith("review_")) return null;
+  const stars = row.stars === 1 || row.stars === 2 || row.stars === 3 || row.stars === 4 || row.stars === 5 ? row.stars : null;
+  return {
+    id: row.id,
+    stars,
+    comment: typeof row.comment === "string" ? row.comment : "",
+    name: typeof row.name === "string" ? row.name : "",
+    email: typeof row.email === "string" ? row.email : null,
+    createdAt: typeof row.createdAt === "string" ? row.createdAt : "",
+    published: row.published === true && reviewShouldPublish(stars),
+  };
+}
+
+export async function readReview(id: string): Promise<StoredReview | null> {
+  if (!id.startsWith("review_")) return null;
+  return asStoredReview(await getJSON<unknown>(reviewObjectKey(id)));
+}
+
+export async function listStoredReviews(): Promise<StoredReview[]> {
+  try {
+    const current = await getJSON<unknown>(REVIEW_INDEX_KEY);
+    const ids = Array.isArray(current) ? current.filter((item): item is string => typeof item === "string") : [];
+    const reviews: StoredReview[] = [];
+    for (const id of ids) {
+      const review = asStoredReview(await getJSON<unknown>(reviewObjectKey(id)));
+      if (review) reviews.push(review);
+    }
+    return newestReviews(reviews);
+  } catch (error) {
+    console.error("[review] list failed", error);
+    return [];
+  }
+}
+
+export async function listPublishedReviews(): Promise<PublicReview[]> {
+  const reviews = await listStoredReviews();
+  return reviews.flatMap((review) => {
+    const pub = toPublicReview(review);
+    return pub ? [pub] : [];
+  });
+}
+
+export async function listAdminReviews(): Promise<AdminReviewRow[]> {
+  const reviews = await listStoredReviews();
+  return reviews.map((review) => ({
+    id: review.id,
+    stars: review.stars,
+    comment: review.comment,
+    name: firstNameOnly(review.name),
+    published: review.published,
+    createdAt: review.createdAt,
+  }));
+}
+
+/** Showing is only allowed for a kind 4 or 5 star review. Hiding always sticks. */
+export async function setReviewPublished(id: string, published: boolean): Promise<StoredReview | null> {
+  const current = await getJSON<StoredReview>(reviewObjectKey(id));
+  const review = asStoredReview(current);
+  if (!review) return null;
+  const next: StoredReview = {
+    ...review,
+    email: typeof current?.email === "string" ? current.email : review.email,
+    published: published && reviewShouldPublish(review.stars),
+  };
+  await putJSON(reviewObjectKey(id), next);
+  return next;
 }

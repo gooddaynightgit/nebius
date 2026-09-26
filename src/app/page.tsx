@@ -1,8 +1,14 @@
 import Link from "next/link";
+import KindWords from "@/components/KindWords";
 import SiteFooter from "@/components/SiteFooter";
 import { STEP_LABEL } from "@/lib/journey";
+import { KIND_WORDS_LIMIT } from "@/lib/review-copy";
+import { listPublishedReviews } from "@/lib/review";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const reviews = await listPublishedReviews();
   return (
     <div className="page">
       <header className="site-header">
@@ -47,6 +53,8 @@ export default function HomePage() {
           height={1198}
           aria-label="Demo of weaving a good moment"
         />
+
+        <KindWords reviews={reviews} limit={KIND_WORDS_LIMIT} showLink />
 
         <section className="card card--lime" aria-labelledby="closing-heading">
           <h2 id="closing-heading">Something good is about to happen!</h2>

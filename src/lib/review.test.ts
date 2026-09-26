@@ -45,6 +45,7 @@ type SavedReview = {
   comment: string;
   name: string;
   email: string | null;
+  published?: boolean;
 };
 
 function post(body: unknown, ip = "203.0.113.10") {
@@ -178,6 +179,9 @@ describe("review API", () => {
     expect(sent[0]?.input.Message?.Body?.Text?.Data).toMatch(/Stars: 5/);
     expect(sent[0]?.input.Message?.Body?.Text?.Data).toMatch(/Kept\./);
     expect(sent[0]?.input.Message?.Body?.Text?.Data).toMatch(/Email: \(not signed in\)/);
+    expect(sent[0]?.input.Message?.Body?.Text?.Data).toMatch(/Hide this review:/);
+    expect(sent[0]?.input.Message?.Body?.Text?.Data).toMatch(/\/review\/hide\?token=/);
+    expect(savedReviews()[0]?.published).toBe(true);
   });
 
   it("still saves the review when the email send fails", async () => {
@@ -228,5 +232,31 @@ describe("review API", () => {
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: REVIEW_KIND });
     expect(savedReviews()).toEqual([]);
+  });
+
+  it("publishes a kind 4 or 5 star review and keeps a 3 star review private", async () => {
+    process.env.SES_NOREPLY = "noreply@gooddaynight.com";
+    process.env.AWS_REGION = "eu-west-1";
+    process.env.APP_URL = "https://gooddaynight.com";
+    const high = await post({ stars: 5, comment: "The quiet stayed.", name: "Amy Hassan", email: "amy@email.com" }, "203.0.113.30");
+    expect(high.status).toBe(200);
+    const mid = await post({ stars: 3, comment: "It was alright.", name: "Sam" }, "203.0.113.31");
+    expect(mid.status).toBe(200);
+    expect((await mid.json()).emailed).toBe(true);
+    const four = await post({ stars: 4, name: "Noor" }, "203.0.113.32");
+    expect(four.status).toBe(200);
+
+    const saved = savedReviews();
+    expect(saved.find((review) => review.stars === 5)?.published).toBe(true);
+    expect(saved.find((review) => review.stars === 4)?.published).toBe(true);
+    expect(saved.find((review) => review.stars === 3)?.published).toBe(false);
+    expect(sent).toHaveLength(3);
+
+    const { listPublishedReviews } = await import("./review");
+    const shown = await listPublishedReviews();
+    expect(shown.map((review) => review.stars).sort()).toEqual([4, 5]);
+    expect(shown.map((review) => review.name).sort()).toEqual(["Amy", "Noor"]);
+    expect(JSON.stringify(shown)).not.toMatch(/amy@email.com|@/);
+    expect(shown.some((review) => review.comment === "It was alright.")).toBe(false);
   });
 });
