@@ -24,10 +24,10 @@ export default function AboutPage() {
           width={720}
           height={1280}
         />
-        <div className="about-bg__shade" />
       </div>
       <div className="page about-page">
-        <header className="site-header">
+        <header className="about-brand">
+          <img className="about-logo" src="/logo.svg" width={96} height={96} alt="GoodDayNight" />
           <Link className="badge" href="/">
             GoodDayNight
           </Link>
@@ -37,7 +37,6 @@ export default function AboutPage() {
           <section className="card card--lavender" aria-label="About the maker">
             <p className="card__body">{LANDING.about.body}</p>
             <p className="about-sign">{LANDING.about.signature}</p>
-            <span className="card__wash card__wash--ten" aria-hidden="true"></span>
           </section>
         </main>
 

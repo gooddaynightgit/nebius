@@ -28,8 +28,13 @@ describe("about the maker", () => {
     expect(page).toContain("LANDING.about.signature");
     expect(page).toContain('className="badge"');
     expect(page).toContain("GoodDayNight");
+    expect(page).toContain('src="/logo.svg"');
+    expect(page).toContain('alt="GoodDayNight"');
+    expect(page).toContain('className="about-logo"');
     expect(page).toContain('className="card card--lavender"');
     expect(page).not.toContain("<h1");
+    expect(page).not.toContain("about-bg__shade");
+    expect(page).not.toContain("card__wash");
   });
 
   it("fills the page with a silent looping background and shows the poster when motion is reduced", () => {
@@ -45,7 +50,15 @@ describe("about the maker", () => {
     expect(page).not.toMatch(/\bcontrols\b/);
     expect(styles).toMatch(/\.about-bg__video\s*\{[^}]*position:\s*fixed/);
     expect(styles).toMatch(/\.about-bg__video\s*\{[^}]*object-fit:\s*cover/);
-    expect(styles).toMatch(/\.about-page \.card--lavender\s*\{[^}]*background:\s*linear-gradient/);
+    expect(styles).toMatch(/\.about-page \.card--lavender,\s*\.about-page \.card--lavender::before\s*\{[^}]*background:\s*rgba\(18,\s*40,\s*64,\s*0\.25\)/);
+    expect(styles).toMatch(/\.about-page \.site-footer\s*\{[^}]*background:\s*rgba\(18,\s*40,\s*64,\s*0\.25\)/);
+    expect(styles).toMatch(/\.about-logo\s*\{[^}]*width:\s*96px/);
+    expect(styles).not.toMatch(/\.about-page \.site-footer\s*\{[^}]*rgba\(255,\s*255,\s*255,\s*0\.92\)/);
+    const logo = read("public/logo.svg");
+    expect(logo).toContain('fill="#D4FF00"');
+    expect(logo).toContain('fill="#122840"');
+    expect(logo).toContain('rx="204.8"');
+    expect(logo).toContain('r="307.2"');
     expect(styles).toMatch(
       /@media \(prefers-reduced-motion:\s*reduce\)\s*\{\s*\.about-bg__video\s*\{\s*display:\s*none;/,
     );
