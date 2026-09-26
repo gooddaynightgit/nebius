@@ -116,6 +116,12 @@ describe("landing copy", () => {
     expect(LANDING.footer.site).toBe("gooddaynight.com");
     expect(LANDING.footer.lookingForward).toBe("Looking forward to hearing from you:");
     expect(LANDING.footer.hello).toBe("hello@gooddaynight.com");
+    expect(LANDING.footer.about).toBe("About the maker");
+    expect(LANDING.about.title).toBe("About the maker — GoodDayNight");
+    expect(LANDING.about.body).toBe(
+      "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, woven into this beautiful tapestry of life. I built GoodDayNight for myself. I honestly want this for you.",
+    );
+    expect(LANDING.about.signature).toBe("— Jasmine Hassam, maker of GoodDayNight");
     expect(WHISPER_MAX).toBe(80);
   });
 

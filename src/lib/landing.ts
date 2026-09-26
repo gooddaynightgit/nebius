@@ -100,6 +100,11 @@ export const LANDING = {
     savedOnPhone: "Saved on this phone — open Create your story from here",
     resaveFailed: "We couldn't send today's photo again. Go back and save it from this phone.",
   },
+  about: {
+    title: "About the maker — GoodDayNight",
+    body: "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, woven into this beautiful tapestry of life. I built GoodDayNight for myself. I honestly want this for you.",
+    signature: "— Jasmine Hassam, maker of GoodDayNight",
+  },
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",
     oneMoment: "One moment. One story.",
@@ -107,6 +112,7 @@ export const LANDING = {
     site: "gooddaynight.com",
     lookingForward: "Looking forward to hearing from you:",
     hello: "hello@gooddaynight.com",
+    about: "About the maker",
   },
 } as const;
 

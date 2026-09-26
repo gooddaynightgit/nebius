@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SiteFooter from "@/components/SiteFooter";
 import { STEP_LABEL } from "@/lib/journey";
 
 export default function HomePage() {
@@ -52,13 +53,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <p>
-          Looking forward to hearing from you:
-          <br />
-          <a href="mailto:hello@gooddaynight.com">hello@gooddaynight.com</a>
-        </p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

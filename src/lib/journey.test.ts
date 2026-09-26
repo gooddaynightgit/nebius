@@ -19,6 +19,8 @@ describe("journey progress", () => {
     expect(journeyStep("/app/yours", search(""), "locked")).toBe(6);
     expect(journeyStep("/app/yours", search(""), "open", "turn")).toBe(6);
     expect(journeyStep("/app/yours", search(""), "open", "weaved")).toBe(8);
+    expect(journeyStep("/about", search(""), "open")).toBeNull();
+    expect(journeyStep("/about/", search(""), "unknown")).toBeNull();
     expect(journeyStep("/api/session", search(""), "open")).toBeNull();
     expect(journeyStep("/health", search(""), "open")).toBeNull();
   });

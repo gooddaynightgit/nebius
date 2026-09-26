@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import SignInForm from "@/components/SignInForm";
+import SiteFooter from "@/components/SiteFooter";
 import { destinationForVerifiedEmail } from "@/lib/verified-destination";
 import { isPersonalPhotoSession, readGateEmail } from "@/lib/session";
 
@@ -33,11 +34,7 @@ export default async function SignInPage() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <p>
-          <Link href="/">gooddaynight.com</Link>
-        </p>
-      </footer>
+      <SiteFooter site />
     </div>
   );
 }
