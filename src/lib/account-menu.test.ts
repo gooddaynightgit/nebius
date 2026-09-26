@@ -29,7 +29,7 @@ describe("account menu items", () => {
   it("shows the email, moments, log out, a review, and about when signed in", () => {
     expect(accountMenuItems({ signedIn: true, email: "amy@email.com" })).toEqual([
       { kind: "email", email: "amy@email.com" },
-      { kind: "link", label: "My moments", href: "/moments" },
+      { kind: "link", label: "My new joy moments", href: "/moments" },
       { kind: "logout", label: "Log out" },
       { kind: "link", label: "Leave a review", href: "/review" },
       { kind: "link", label: "About the maker", href: "/about" },
