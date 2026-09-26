@@ -3,7 +3,8 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { AdminReviewList, AdminUnlock } from "@/components/AdminReviews";
 import SiteFooter from "@/components/SiteFooter";
-import { ADMIN_COOKIE, ADMIN_TOKEN_HINT, adminConfigured, adminCookieMatches } from "@/lib/review-admin";
+import { ADMIN_COOKIE, adminConfigured, adminCookieMatches } from "@/lib/review-admin";
+import { ADMIN_TOKEN_HINT } from "@/lib/review-copy";
 import { listAdminReviews } from "@/lib/review";
 
 export const dynamic = "force-dynamic";

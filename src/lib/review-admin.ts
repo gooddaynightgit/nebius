@@ -1,7 +1,8 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { ADMIN_TOKEN_HINT } from "./review-copy";
 
 export const ADMIN_COOKIE = "gdn_admin";
-export const ADMIN_TOKEN_HINT = "Set ADMIN_TOKEN to open this page.";
+export { ADMIN_TOKEN_HINT };
 
 export function adminConfigured(): boolean {
   return Boolean(process.env.ADMIN_TOKEN?.trim());

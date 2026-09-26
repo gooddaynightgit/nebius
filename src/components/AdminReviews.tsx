@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { ADMIN_TOKEN_HINT } from "@/lib/review-admin";
 import type { AdminReviewRow } from "@/lib/review";
+import { ADMIN_TOKEN_HINT } from "@/lib/review-copy";
 
 export function AdminUnlock() {
   const [token, setToken] = useState("");
