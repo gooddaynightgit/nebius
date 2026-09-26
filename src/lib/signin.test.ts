@@ -48,13 +48,13 @@ describe("email-only sign-in screen", () => {
     expect(read("src/app/globals.css")).toMatch(/\.signin-keep\s*\{[^}]*white-space:\s*nowrap/);
     expect(page).not.toContain(">Sign in<");
     expect(page).toMatch(/destinationForVerifiedEmail/);
-    expect(page).not.toMatch(/R450|\$28|Start hunting|moments-cta/);
+    expect(page).not.toMatch(/R16|\$0\.88|R450|\$28|Start hunting|moments-cta/);
     expect(form).toContain("Email me a code");
     expect(form).toContain("Verify code");
     expect(form).toMatch(/isSixDigitCode\(code\)/);
     expect(form).toMatch(/followVerifiedLogin/);
     expect(form).toMatch(/PRIVACY_NOTE/);
-    expect(form).not.toMatch(/R450|\$28|Start hunting|moments-cta|40 good moments/);
+    expect(form).not.toMatch(/R16|\$0\.88|R450|\$28|Start hunting|moments-cta|25 good moments|40 good moments/);
     expect(PRIVACY_NOTE).toBe(
       "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.",
     );
@@ -63,8 +63,10 @@ describe("email-only sign-in screen", () => {
   it("sends a visitor with no session to sign-in, and keeps payment for a verified email", () => {
     expect(moments).toMatch(/isPersonalPhotoSession/);
     expect(moments).toMatch(/redirect\("\/signin"\)/);
-    expect(moments).toMatch(/R450/);
-    expect(moments).toMatch(/ZAR \/ \$28/);
+    expect(moments).toMatch(/R16/);
+    expect(moments).toMatch(/ZAR \/ \$0\.88/);
+    expect(moments).toMatch(/Unlock 25 good moments weaved for/);
+    expect(moments).not.toMatch(/R450|\$28|40 good moments/);
     expect(moments).toMatch(/MomentsCheckout/);
     const checkout = read("src/components/MomentsCheckout.tsx");
     expect(checkout).not.toMatch(/type="email"/);

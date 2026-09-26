@@ -11,8 +11,9 @@ export type Entitlement = {
 /**
  * Remaining moment saves are the `game` attribute on DynamoDB `goodfans`.
  * The partition key `order` is the normalized buyer email. A confirmed pack
- * adds 40 (the same credit as before). A repeat Payfast payment id does not
- * add again. Blob/S3 entitlement JSON is not used.
+ * adds 25 onto the current `game`. It does not rewrite a balance already
+ * stored. A repeat Payfast payment id does not add again. Blob/S3 entitlement
+ * JSON is not used.
  */
 export async function getEntitlement(email: string): Promise<Entitlement | null> {
   const normalized = normalizeEmail(email);

@@ -16,9 +16,13 @@ describe("moments pack page", () => {
     expect(page).not.toContain("My saved joy moments");
     expect(page.indexOf("moments-page-heading")).toBeLessThan(page.indexOf("moments-glass"));
     expect(page.indexOf("moments-glass")).toBeLessThan(page.indexOf("Every good moment weaved adds to the rich tapestry of life"));
-    expect(page).toContain("Unlock 40 good moments weaved for");
-    expect(page).toContain(">R450<");
-    expect(page).toContain("ZAR / $28");
+    expect(page).toContain("Unlock 25 good moments weaved for");
+    expect(page).toContain("Unlock 25 good moments weaved for R16 ZAR / $0.88.");
+    expect(page).toContain(">R16<");
+    expect(page).toContain("ZAR / $0.88");
+    expect(page).not.toContain("Unlock 40 good moments");
+    expect(page).not.toContain("R450");
+    expect(page).not.toContain("$28");
     expect(page).toContain("/weave-silk-1.webp");
     expect(page).toContain("/weave-silk-1.jpg");
     expect(page).toMatch(/moments-glass/);
@@ -31,6 +35,7 @@ describe("moments pack page", () => {
     expect(page).not.toContain("a performance for anyone else");
     expect(page).not.toContain("Something good is about to happen!");
     expect(page).not.toContain("5.00");
+    expect(page).not.toContain("16.00");
     expect(page).not.toMatch(/R5(?!0)/);
     expect(page).not.toMatch(/\$29/);
     expect(page).not.toMatch(/27\.80/);

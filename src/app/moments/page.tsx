@@ -6,7 +6,7 @@ import { isPersonalPhotoSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "My new joy moments — GoodDayNight",
-  description: "Unlock 40 good moments weaved for R450 ZAR / $28.",
+  description: "Unlock 25 good moments weaved for R16 ZAR / $0.88.",
 };
 
 export const dynamic = "force-dynamic";
@@ -28,10 +28,10 @@ export default async function MomentsPage() {
           <h1 className="moments-page-heading">My new joy moments</h1>
           <section className="moments-glass" aria-labelledby="moments-weave">
             <h2 id="moments-weave">Every good moment weaved adds to the rich tapestry of life</h2>
-            <p className="moments-offer">Unlock 40 good moments weaved for</p>
+            <p className="moments-offer">Unlock 25 good moments weaved for</p>
             <p className="moments-price-hero">
-              <span className="moments-price-hero__amount">R450</span>
-              <span className="moments-price-hero__unit">ZAR / $28</span>
+              <span className="moments-price-hero__amount">R16</span>
+              <span className="moments-price-hero__unit">ZAR / $0.88</span>
             </p>
             <MomentsCheckout />
           </section>

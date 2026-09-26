@@ -95,37 +95,40 @@ describe("payfast signature", () => {
 
   it("signs an ITN like whycantisleep: every field, blanks included, quote_plus of the stripped value", () => {
     const pairs: Array<[string, string]> = [
-      ["amount_gross", "5.00"],
+      ["amount_gross", "16.00"],
       ["name_last", ""],
       ["custom_str2", "   "],
-      ["item_name", "GoodDayNight — 40 good moments"],
+      ["item_name", "GoodDayNight — 25 good moments"],
       ["signature", "ignored"],
       ["merchant_id", "10000100"],
       ["note", "a~b"],
     ];
     expect(itnSignaturePayload(pairs, " salt ")).toBe(
-      "amount_gross=5.00&name_last=&custom_str2=&item_name=GoodDayNight+%E2%80%94+40+good+moments&merchant_id=10000100&note=a~b&passphrase=salt",
+      "amount_gross=16.00&name_last=&custom_str2=&item_name=GoodDayNight+%E2%80%94+25+good+moments&merchant_id=10000100&note=a~b&passphrase=salt",
     );
     expect(signaturePayload(pairs, " salt ")).toBe(
-      "amount_gross=5.00&item_name=GoodDayNight+%E2%80%94+40+good+moments&merchant_id=10000100&note=a%7Eb&passphrase=salt",
+      "amount_gross=16.00&item_name=GoodDayNight+%E2%80%94+25+good+moments&merchant_id=10000100&note=a%7Eb&passphrase=salt",
     );
     expect(itnSignaturePayload(pairs, "salt")).not.toBe(signaturePayload(pairs, "salt"));
   });
 });
 
 describe("amount to moments", () => {
-  it("credits 40 moments at 5.00 ZAR and 0 when the gross is under 5.00", () => {
-    expect(PACK_AMOUNT).toBe("5.00");
-    expect(PACK_MOMENTS).toBe(40);
-    expect(momentsForAmount("5.00")).toBe(40);
-    expect(momentsForAmount("5")).toBe(40);
-    expect(momentsForAmount("5.01")).toBe(40);
-    expect(momentsForAmount(5)).toBe(40);
-    expect(momentsForAmount("4.99")).toBe(0);
-    expect(momentsForAmount(4.99)).toBe(0);
+  it("credits 25 moments at 16.00 ZAR and 0 when the gross is under 16.00", () => {
+    expect(PACK_AMOUNT).toBe("16.00");
+    expect(PACK_MOMENTS).toBe(25);
+    expect(ITEM_NAME).toBe("GoodDayNight — 25 good moments");
+    expect(ITEM_DESCRIPTION).toContain("25 good moments");
+    expect(momentsForAmount("16.00")).toBe(25);
+    expect(momentsForAmount("16")).toBe(25);
+    expect(momentsForAmount("16.01")).toBe(25);
+    expect(momentsForAmount(16)).toBe(25);
+    expect(momentsForAmount("15.99")).toBe(0);
+    expect(momentsForAmount(15.99)).toBe(0);
+    expect(momentsForAmount("5.00")).toBe(0);
     expect(momentsForAmount("0")).toBe(0);
     expect(momentsForAmount("")).toBe(0);
-    expect(momentsForAmount("5.000")).toBe(0);
+    expect(momentsForAmount("16.000")).toBe(0);
     expect(momentsForAmount("nope")).toBe(0);
   });
 });
@@ -156,7 +159,7 @@ describe("payfast checkout and ITN", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("defaults to live Payfast and returns an auto-submitting checkout for 5.00 ZAR", () => {
+  it("defaults to live Payfast and returns an auto-submitting checkout for 16.00 ZAR", () => {
     expect(payfastSandbox()).toBe(false);
     expect(payfastProcessUrl()).toBe("https://www.payfast.co.za/eng/process");
     const result = createCheckout("Amy@Example.com");
@@ -165,7 +168,7 @@ describe("payfast checkout and ITN", () => {
     expect(result.status).toBe(200);
     expect(result.html).toContain('action="https://www.payfast.co.za/eng/process"');
     expect(result.html).toContain('method="post"');
-    expect(result.html).toContain('name="amount" value="5.00"');
+    expect(result.html).toContain('name="amount" value="16.00"');
     expect(result.html).toContain(`name="item_name" value="${ITEM_NAME}"`);
     expect(result.html).toContain(`name="item_description" value="${ITEM_DESCRIPTION}"`);
     expect(result.html).toContain('name="email_address" value="amy@example.com"');
@@ -196,7 +199,7 @@ describe("payfast checkout and ITN", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.html).toContain('action="https://sandbox.payfast.co.za/eng/process"');
-    expect(result.html).toContain('name="amount" value="5.00"');
+    expect(result.html).toContain('name="amount" value="16.00"');
   });
 
   it("refuses checkout without merchant secrets", () => {
@@ -205,7 +208,7 @@ describe("payfast checkout and ITN", () => {
     expect(result).toEqual({ ok: false, status: 500, message: "Payfast is not configured." });
   });
 
-  it("credits 40 moments once when signature, VALID, and amount all pass", async () => {
+  it("credits 25 moments once when signature, VALID, and amount all pass", async () => {
     const raw = signedItn();
     let calls = 0;
     const fetchImpl: typeof fetch = async (input, init) => {
@@ -218,16 +221,16 @@ describe("payfast checkout and ITN", () => {
     const first = await handlePayfastItn(raw, fetchImpl);
     expect(first).toEqual({ status: 200, body: "OK" });
     expect(calls).toBe(1);
-    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(40);
+    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(25);
 
     const second = await handlePayfastItn(raw, fetchImpl);
     expect(second.status).toBe(200);
-    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(40);
+    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(25);
     expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089250"]);
   });
 
-  it("fails closed before fulfilment when the gross is under 5.00", async () => {
-    const raw = signedItn({ amount_gross: "4.99" });
+  it("fails closed before fulfilment when the gross is under 16.00", async () => {
+    const raw = signedItn({ amount_gross: "15.99" });
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;
@@ -240,9 +243,36 @@ describe("payfast checkout and ITN", () => {
     expect(decideItn(raw, "test-passphrase", "10000100").ok).toBe(false);
   });
 
+  it("returns 200 and leaves an existing balance when a recorded 5.00 payment is replayed", async () => {
+    const table = new MemoryFansTable();
+    table.rows.set("amy@example.com", {
+      order: "amy@example.com",
+      game: 40,
+      paymentIds: ["1089250"],
+      emailVaultId: emailVaultId("amy@example.com"),
+      source: "payfast",
+      amountGross: "5.00",
+      pfPaymentId: "1089250",
+      issued: "2026-09-24T04:32:00.000Z",
+      created: "2026-09-24T04:32:00.000Z",
+      updatedAt: "2026-09-24T04:32:00.000Z",
+    });
+    useFansTable(table);
+    const raw = signedItn({ amount_gross: "5.00", custom_str1: "amy@example.com" });
+    let called = false;
+    const result = await handlePayfastItn(raw, async () => {
+      called = true;
+      return new Response("VALID", { status: 200 });
+    });
+    expect(called).toBe(true);
+    expect(result).toEqual({ status: 200, body: "OK" });
+    expect(table.rows.get("amy@example.com")?.game).toBe(40);
+    expect(table.rows.get("amy@example.com")?.paymentIds).toEqual(["1089250"]);
+  });
+
   it("fails closed when the signature or Payfast validate check does not pass", async () => {
     const raw = signedItn();
-    const tampered = raw.replace(`amount_gross=${PACK_AMOUNT}`, "amount_gross=5.01");
+    const tampered = raw.replace(`amount_gross=${PACK_AMOUNT}`, "amount_gross=16.01");
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;
@@ -289,11 +319,11 @@ describe("payfast checkout and ITN", () => {
     try {
       const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
       expect(result).toEqual({ status: 200, body: "OK" });
-      expect((await getEntitlement("amy@example.com"))?.remaining).toBe(40);
+      expect((await getEntitlement("amy@example.com"))?.remaining).toBe(25);
       expect(await getEntitlement("payer@payfast.example")).toBeNull();
       expect(info).toHaveBeenCalledWith("[payfast-itn] credited", {
         pf_payment_id: "1089250",
-        remaining: 40,
+        remaining: 25,
         duplicate: false,
       });
       const logged = JSON.stringify(info.mock.calls);
@@ -318,7 +348,7 @@ describe("payfast checkout and ITN", () => {
     expect(signaturesMatch(given, signPairs(pairs, "test-passphrase"))).toBe(false);
     const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
     expect(result).toEqual({ status: 200, body: "OK" });
-    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(40);
+    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(25);
     expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089251"]);
   });
 
