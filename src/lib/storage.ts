@@ -1,6 +1,7 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -13,7 +14,7 @@ import {
   put as putBlob,
   type PutBlobResult,
 } from "@vercel/blob";
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   blobAccess,
@@ -418,6 +419,120 @@ function guessContentType(key: string): string {
   if (key.endsWith(".jpg") || key.endsWith(".jpeg")) return "image/jpeg";
   if (key.endsWith(".webp")) return "image/webp";
   return "application/octet-stream";
+}
+
+export type ListKeysResult = {
+  keys: string[];
+  cursor?: string;
+};
+
+/** Page through stored objects. Keys are app-relative (`vaults/...`), cursors are backend-specific. */
+export async function listKeys(options: {
+  prefix: string;
+  cursor?: string;
+  limit?: number;
+}): Promise<ListKeysResult> {
+  const limit = Math.min(Math.max(options.limit ?? 1000, 1), 1000);
+  const prefixKey = options.prefix.replace(/^\//, "");
+  if (hasVercelBlob()) return listBlobKeys(prefixKey, options.cursor, limit);
+  if (hasNebiusObjectStorage()) return listS3Keys(prefixKey, options.cursor, limit);
+  return listLocalKeys(prefixKey, options.cursor, limit);
+}
+
+function appKeyFromStoredPath(stored: string): string | null {
+  const normalized = normalizeListedPath(stored);
+  const root = `${prefix()}/`;
+  if (!normalized.startsWith(root)) return null;
+  const key = normalized.slice(root.length);
+  return key || null;
+}
+
+async function listBlobKeys(
+  prefixKey: string,
+  cursor: string | undefined,
+  limit: number,
+): Promise<ListKeysResult> {
+  const listed = await listBlob({
+    prefix: blobPath(prefixKey),
+    cursor,
+    limit,
+    ...blobAuth(),
+  });
+  const keys = listed.blobs
+    .map((blob) => appKeyFromStoredPath(blob.pathname))
+    .filter((key): key is string => Boolean(key));
+  return {
+    keys,
+    cursor: listed.hasMore && listed.cursor ? listed.cursor : undefined,
+  };
+}
+
+async function listS3Keys(
+  prefixKey: string,
+  cursor: string | undefined,
+  limit: number,
+): Promise<ListKeysResult> {
+  const { client, bucket } = s3();
+  const listed = await client.send(
+    new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: `${prefix()}/${prefixKey}`,
+      ContinuationToken: cursor,
+      MaxKeys: limit,
+    }),
+  );
+  const keys = (listed.Contents ?? [])
+    .map((item) => (item.Key ? appKeyFromStoredPath(item.Key) : null))
+    .filter((key): key is string => Boolean(key));
+  return {
+    keys,
+    cursor: listed.IsTruncated && listed.NextContinuationToken ? listed.NextContinuationToken : undefined,
+  };
+}
+
+async function listLocalKeys(
+  prefixKey: string,
+  cursor: string | undefined,
+  limit: number,
+): Promise<ListKeysResult> {
+  const root = localPath(prefixKey);
+  const files: string[] = [];
+  await walkLocalFiles(root, files);
+  const base = dataDir();
+  const keys = files
+    .map((file) => path.relative(base, file).split(path.sep).join("/"))
+    .filter((key) => key && !key.startsWith(".."))
+    .sort();
+  let start = 0;
+  if (cursor) {
+    const next = keys.findIndex((key) => key > cursor);
+    start = next === -1 ? keys.length : next;
+  }
+  const page = keys.slice(start, start + limit);
+  const more = start + limit < keys.length;
+  return {
+    keys: page,
+    cursor: more && page.length ? page[page.length - 1] : undefined,
+  };
+}
+
+async function walkLocalFiles(dir: string, out: string[]): Promise<void> {
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") return;
+    throw error;
+  }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await walkLocalFiles(full, out);
+      continue;
+    }
+    if (entry.isFile()) out.push(full);
+  }
 }
 
 export function storageBackend(): StorageBackend {

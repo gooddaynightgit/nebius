@@ -102,9 +102,12 @@ export function dropExpiredSavedMoments(
 }
 
 /** Remove expired moments from the vault file and delete their photo and audio bytes. */
-export async function purgeExpiredSavedMoments(vault: VaultRecord, today: string): Promise<void> {
+export async function purgeExpiredSavedMoments(
+  vault: VaultRecord,
+  today: string,
+): Promise<{ changed: boolean }> {
   const removed = dropExpiredSavedMoments(vault, today);
-  if (!removed.changed) return;
+  if (!removed.changed) return { changed: false };
   await saveVault(vault);
   await Promise.all(
     removed.mediaKeys.map(async (key) => {
@@ -115,6 +118,7 @@ export async function purgeExpiredSavedMoments(vault: VaultRecord, today: string
       }
     }),
   );
+  return { changed: true };
 }
 
 export async function getOrCreateAnonVault(
