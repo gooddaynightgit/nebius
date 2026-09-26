@@ -55,6 +55,8 @@ describe("moments pack page", () => {
     expect(styles).toMatch(/\.moments-page-heading\s*\{[^}]*color:\s*#d4ff00;/);
     expect(styles).toMatch(/\.moments-page-heading\s*\{[^}]*font-weight:\s*800;/);
     expect(styles).toMatch(/\.moments-page-heading\s*\{[^}]*text-align:\s*center;/);
+    expect(styles).toMatch(/\.moments-stage\s*\{[^}]*position:\s*relative;/);
+    expect(styles).toMatch(/\.moments-stage\s*\{[^}]*z-index:\s*1;/);
     expect(styles).toMatch(/\.privacy-note\s*\{[^}]*white-space:\s*pre-line;/);
     expect(privacy).toContain(
       "Email keeps your moments yours. Your photos and words are never used to train AI.",
