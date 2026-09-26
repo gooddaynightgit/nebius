@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import ExpireSavedMoments from "@/components/ExpireSavedMoments";
 import MomentsCheckout from "@/components/MomentsCheckout";
 import SiteFooter from "@/components/SiteFooter";
 import { isPersonalPhotoSession } from "@/lib/session";
@@ -23,6 +24,7 @@ export default async function MomentsPage() {
         </picture>
       </div>
 
+      <ExpireSavedMoments />
       <main id="main" className="moments-stage">
         <div className="moments-stack">
           <h1 className="moments-page-heading">My new joy moments</h1>

@@ -69,8 +69,21 @@ describe("latestMoments", () => {
       moment("earlier", "2026-09-20T08:00:00.000Z"),
     ]);
     expect(listed.map((item) => item.id)).toEqual(["earlier", "later"]);
-    expect(momentListLabel(listed[0])).toBe("2026-09-20 · 08:00");
-    expect(momentListLabel(listed[1])).toBe("2026-09-20 · 07:15");
+    expect(momentListLabel(listed[0], "UTC")).toBe("2026-09-20 · 08:00");
+    expect(momentListLabel(listed[1], "UTC")).toBe("2026-09-20 · 07:15");
+  });
+
+  it("shows the clock in the viewer's time zone, not the UTC digits of createdAt", () => {
+    const earlyMorning = {
+      day: "2026-09-26",
+      createdAt: "2026-09-25T23:19:00.000Z",
+    };
+    expect(momentListLabel(earlyMorning, "UTC")).toBe("2026-09-25 · 23:19");
+    expect(momentListLabel(earlyMorning, "Africa/Johannesburg")).toBe("2026-09-26 · 01:19");
+    expect(momentListLabel(
+      { day: "2026-09-26", createdAt: "2026-09-26T02:01:00.000Z" },
+      "Africa/Johannesburg",
+    )).toBe("2026-09-26 · 04:01");
   });
 
   it("returns every moment when there are fewer than 8", () => {
@@ -85,7 +98,9 @@ describe("latestMoments", () => {
 
     expect(route).toMatch(/latestMoments\(stories, \{ excludeId: currentId \}\)/);
     expect(route).not.toMatch(/vault\.stories\s*=/);
-    expect(yours).toMatch(/latestMoments\(state\.earlier, \{ excludeId: state\.story\.id \}\)/);
+    expect(yours).toMatch(
+      /latestMoments\(keptSavedMoments\(state\.earlier, day\), \{ excludeId: state\.story\.id \}\)/,
+    );
     expect(yours).not.toMatch(/show more/i);
     expect(joy).toMatch(/latestMoments\(/);
     expect(joy).toMatch(/id="saved-joy-moments-list"/);

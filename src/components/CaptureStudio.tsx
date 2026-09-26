@@ -8,14 +8,13 @@ import {
   useCallback,
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
 } from "react";
 import { captionDisposition } from "@/lib/app-capture";
+import { withClientClock, useLocalDay } from "@/lib/client-day";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
-import { localDay } from "@/lib/day";
 import { restoredJoyId, restoredMomentText, reviewCaptureView } from "@/lib/journey";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
@@ -136,7 +135,7 @@ export default function CaptureStudio() {
 
   const [captureOpen, setCaptureOpen] = useState(false);
 
-  const day = useMemo(() => localDay(), []);
+  const day = useLocalDay();
   const sessionRef = useRef(session);
   sessionRef.current = session;
   const busyRef = useRef(busy);
@@ -219,7 +218,10 @@ export default function CaptureStudio() {
 
   const refresh = useCallback(async () => {
     const flowAtStart = flowRef.current;
-    const sessionTask = fetch(`/api/session?day=${day}`, { credentials: "same-origin" }).then((res) =>
+    const sessionTask = fetch(withClientClock(`/api/session?day=${day}`), {
+      credentials: "same-origin",
+      cache: "no-store",
+    }).then((res) =>
       readJson<SessionState>(res),
     );
     const localTask = Promise.all([readCaptureStash(day), readPendingMoment(day)]);
@@ -716,7 +718,10 @@ export default function CaptureStudio() {
       }
       let latest = data.session;
       try {
-        const sessionRes = await fetch(`/api/session?day=${day}`, { credentials: "same-origin" });
+        const sessionRes = await fetch(withClientClock(`/api/session?day=${day}`), {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
         latest = await readJson<SessionState>(sessionRes);
         setSession(latest);
       } catch {
@@ -729,7 +734,7 @@ export default function CaptureStudio() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ day, momentId }),
+        body: JSON.stringify({ day, momentId, tzOffset: new Date().getTimezoneOffset() }),
       });
       const woven = await readJson<{ story?: { id?: string } }>(open);
       if (!woven.story?.id) {

@@ -18,11 +18,12 @@ import {
   loadKeepCardPhoto,
   shareOrDownloadKeepCard,
 } from "@/lib/keep-card";
-import { localDay } from "@/lib/day";
+import { withClientClock, useLocalDay } from "@/lib/client-day";
 import { displayKeepsakeText, splitKeepsakeClosing } from "@/lib/affirmation";
 import { displayStoryText } from "@/lib/first-person";
 import { LANDING } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
+import { keptSavedMoments, shareMomentButtonLabel, SAVED_MOMENT_EXPIRES_NOTE } from "@/lib/moment-expiry";
 import {
   STORY_OPENING_INTERVAL_MS,
   STORY_OPENING_LINES,
@@ -111,7 +112,7 @@ export default function YoursStory() {
   const [cardError, setCardError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cardBlobRef = useRef<Blob | null>(null);
-  const day = localDay();
+  const day = useLocalDay();
   const searchParams = useSearchParams();
   const requestedStory = searchParams.get("story") || "";
   const requestedMoment = searchParams.get("moment") || "";
@@ -127,7 +128,11 @@ export default function YoursStory() {
     const open = await fetch("/api/yours", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ day, momentId: requestedMoment || undefined }),
+      body: JSON.stringify({
+        day,
+        momentId: requestedMoment || undefined,
+        tzOffset: new Date().getTimezoneOffset(),
+      }),
       credentials: "same-origin",
     });
     const data = await readResponsePayload<{
@@ -205,8 +210,10 @@ export default function YoursStory() {
     (async () => {
       const [res, stash] = await Promise.all([
         fetch(
-          `/api/yours?day=${encodeURIComponent(day)}&story=${encodeURIComponent(requestedStory)}&moment=${encodeURIComponent(requestedMoment)}`,
-          { credentials: "same-origin" },
+          withClientClock(
+            `/api/yours?day=${encodeURIComponent(day)}&story=${encodeURIComponent(requestedStory)}&moment=${encodeURIComponent(requestedMoment)}`,
+          ),
+          { credentials: "same-origin", cache: "no-store" },
         ),
         readCaptureStash(day),
       ]);
@@ -373,7 +380,10 @@ export default function YoursStory() {
 
   const failed = state.status === "expired" || state.status === "missing" || state.status === "blocked" || state.status === "error";
   const earlierList =
-    state.status === "ready" ? latestMoments(state.earlier, { excludeId: state.story.id }) : [];
+    state.status === "ready"
+      ? latestMoments(keptSavedMoments(state.earlier, day), { excludeId: state.story.id })
+      : [];
+  const shareLabel = shareMomentButtonLabel(keepBusy ? LANDING.app.keepBusy : LANDING.app.keep);
 
   return (
     <div className="page">
@@ -409,6 +419,7 @@ export default function YoursStory() {
           </section>
         ) : null}
         {state.status === "ready" ? (
+          <>
           <div className="weaved-finale">
             <div className="weaved-bubbles" aria-hidden="true">
               <WeaveBubbles />
@@ -459,19 +470,6 @@ export default function YoursStory() {
                 {playing ? <PauseIcon /> : <PlayIcon />}
                 {playing ? LANDING.app.pause : LANDING.app.playMoment}
               </button>
-              <button
-                className="btn btn--keep btn--icon"
-                type="button"
-                aria-label={LANDING.app.keepLabel}
-                aria-busy={keepBusy}
-                disabled={keepBusy || !(state.photoId ?? state.story.captureIds[0])}
-                onClick={() => {
-                  void keepTonight();
-                }}
-              >
-                <ShareIcon />
-                {keepBusy ? LANDING.app.keepBusy : LANDING.app.keep}
-              </button>
               {keepNote ? (
                 <p className="notice" role="status">
                   {keepNote}
@@ -492,6 +490,23 @@ export default function YoursStory() {
             ) : null}
             </section>
           </div>
+          <button
+            className="btn btn--keep btn--icon share-pin"
+            type="button"
+            aria-label={`${LANDING.app.keepLabel}. ${shareLabel}`}
+            aria-busy={keepBusy}
+            disabled={keepBusy || !(state.photoId ?? state.story.captureIds[0])}
+            onClick={() => {
+              void keepTonight();
+            }}
+          >
+            <ShareIcon />
+            <span className="share-pin__copy">
+              <span className="share-pin__action">{keepBusy ? LANDING.app.keepBusy : LANDING.app.keep}</span>
+              <span className="share-pin__note">{SAVED_MOMENT_EXPIRES_NOTE}</span>
+            </span>
+          </button>
+          </>
         ) : null}
       </main>
       <SiteFooter />

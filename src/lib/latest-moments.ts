@@ -40,10 +40,43 @@ export function latestMoments<T extends DatedMoment>(
   return unique.slice(0, limit);
 }
 
-/** Day plus UTC time, so a list shows newest-first order even when two stories share a day. */
-export function momentListLabel(item: { day?: string; createdAt: string }): string {
+/**
+ * Day and clock in the viewer's time zone.
+ * `createdAt` is a UTC instant. Slicing its `HH:mm` next to a local `day`
+ * showed future times (23:19 UTC on the previous date labeled as today).
+ */
+export function momentListLabel(
+  item: { day?: string; createdAt: string },
+  timeZone?: string,
+): string {
   const created = item.createdAt.trim();
-  const day = item.day || created.slice(0, 10);
-  const time = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(created) ? created.slice(11, 16) : "";
-  return time ? `${day} · ${time}` : day;
+  const ms = Date.parse(created);
+  if (!Number.isNaN(ms) && /T\d{2}:\d{2}/.test(created)) {
+    const clock = zonedClock(new Date(ms), timeZone);
+    if (clock) return `${clock.day} · ${clock.time}`;
+  }
+  return item.day || created.slice(0, 10);
+}
+
+function zonedClock(date: Date, timeZone?: string): { day: string; time: string } | null {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    });
+    const parts = Object.fromEntries(fmt.formatToParts(date).map((part) => [part.type, part.value]));
+    if (!parts.year || !parts.month || !parts.day || !parts.hour || !parts.minute) return null;
+    const hour = parts.hour === "24" ? "00" : parts.hour.padStart(2, "0");
+    return {
+      day: `${parts.year}-${parts.month}-${parts.day}`,
+      time: `${hour}:${parts.minute.padStart(2, "0")}`,
+    };
+  } catch {
+    return null;
+  }
 }
