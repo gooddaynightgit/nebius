@@ -45,16 +45,17 @@ export const FIELD_ORDER = [
 ] as const;
 
 /**
- * Payfast charge for Jasmine’s live R5 test. The `/moments` price block stays
- * “40 good moments — R450 ZAR · $28 USD”. Do not print this amount there.
+ * Live pack: 25 good moments for 16.00 ZAR. `/moments` shows R16 and
+ * “ZAR / $0.88”. A confirmed ITN adds 25 onto `goodfans.game`. It does not
+ * rewrite a balance that is already stored.
  */
-export const PACK_AMOUNT = "5.00";
-export const PACK_MOMENTS = 40;
-export const ITEM_NAME = "GoodDayNight — 40 good moments";
+export const PACK_AMOUNT = "16.00";
+export const PACK_MOMENTS = 25;
+export const ITEM_NAME = "GoodDayNight — 25 good moments";
 export const ITEM_DESCRIPTION =
-  "Each moment: one photo upload → one My good moment story.";
+  "25 good moments. Each moment: one photo upload → one My good moment story.";
 
-const PACK_CENTS = 500;
+const PACK_CENTS = 1600;
 
 export type PayfastMerchant = {
   merchantId: string;
@@ -66,7 +67,7 @@ export type CheckoutFieldMap = Record<string, string>;
 
 /**
  * Live Payfast (`www.payfast.co.za`) unless SANDBOX is explicitly on.
- * Preview for this R5 test uses the live PF_* keys with SANDBOX unset or false.
+ * Preview uses the live PF_* keys with SANDBOX unset or false.
  */
 export function payfastSandbox(): boolean {
   const raw = process.env.SANDBOX;
@@ -247,7 +248,7 @@ export function signaturesMatch(given: string, expected: string): boolean {
   return timingSafeEqual(left, right);
 }
 
-/** At least 5.00 ZAR credits 40 moment saves. Below 5.00 credits 0. */
+/** At least 16.00 ZAR credits 25 moment saves. Below 16.00 credits 0. */
 export function momentsForAmount(amount: string | number): number {
   const cents = zarToCents(amount);
   if (cents == null || cents < PACK_CENTS) return 0;
@@ -339,7 +340,7 @@ export function createCheckout(email: string): CheckoutResult {
     signature: signCheckout(fields, merchant.passphrase),
   };
   console.info(
-    `[payfast] test charge amount=${PACK_AMOUNT} ZAR credits=${PACK_MOMENTS} display remains R450`,
+    `[payfast] charge amount=${PACK_AMOUNT} ZAR credits=${PACK_MOMENTS}`,
   );
   return {
     ok: true,
@@ -456,7 +457,22 @@ export async function handlePayfastItn(
   if (!merchant) return rejectItn("unconfigured");
   const decision = decideItn(rawBody, merchant.passphrase, merchant.merchantId);
   const buyerBlocked = !decision.ok && (decision.reason === "buyer" || decision.reason === "email");
-  if (!decision.ok && !buyerBlocked) return rejectItn(decision.reason);
+  // A new gross under 16.00 fails closed before Payfast validate. A replay of a
+  // payment id already on a row (including the old 5.00 test charge) still
+  // confirms, then returns 200 without changing `game`.
+  if (!decision.ok && decision.reason === "amount") {
+    const priorId = postedPaymentId(rawBody);
+    if (!priorId) return rejectItn("amount");
+    let prior: { remaining: number } | null = null;
+    try {
+      prior = await recordedPayment(priorId);
+    } catch {
+      return rejectItn("credit");
+    }
+    if (!prior) return rejectItn("amount");
+  } else if (!decision.ok && !buyerBlocked) {
+    return rejectItn(decision.reason);
+  }
   let confirmed = false;
   try {
     confirmed = await payfastConfirms(rawBody, fetchImpl);
