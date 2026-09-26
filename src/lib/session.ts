@@ -68,6 +68,14 @@ export async function setOtpSession(email: string): Promise<boolean> {
   return true;
 }
 
+/** Ends the signed-in cookies only. The vault and saved moments stay. */
+export async function clearOtpSession(): Promise<void> {
+  const jar = await cookies();
+  const expired = { ...cookieBase, maxAge: 0 };
+  jar.set(OTP_COOKIE, "", expired);
+  jar.set(EMAIL_COOKIE, "", expired);
+}
+
 export async function readOtpSession(): Promise<{ email: string } | null> {
   const secret = otpSessionSecret();
   if (!secret) return null;

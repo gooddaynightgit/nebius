@@ -26,7 +26,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(2.75rem + 48px + 0.85rem + env(safe-area-inset-bottom));
   font-family: var(--sans);
   font-size: 1.0625rem;
   line-height: 1.5;
@@ -1891,6 +1891,91 @@ body:has(.about-screen) {
   }
 }
 
+.account-menu {
+  position: fixed;
+  z-index: 45;
+  right: max(0.7rem, env(safe-area-inset-right));
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem);
+}
+
+.account-menu__bubble {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #d4ff00;
+  color: #122840;
+  box-shadow: 0 8px 18px rgba(18, 40, 64, 0.28);
+  cursor: pointer;
+}
+
+.account-menu__bubble:focus-visible {
+  outline: 3px solid #122840;
+  outline-offset: 3px;
+}
+
+.account-menu__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.account-menu__panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.45rem);
+  width: min(16.25rem, calc(100vw - 1.4rem - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  padding: 0.35rem;
+  border: 1px solid rgba(212, 255, 0, 0.55);
+  border-radius: 1rem;
+  background: #122840;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(8, 18, 32, 0.32);
+}
+
+.account-menu__email {
+  margin: 0;
+  padding: 0.4rem 0.75rem 0.15rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.account-menu__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-menu__item--accent {
+  color: #d4ff00;
+}
+
+.account-menu__item:hover,
+.account-menu__item:focus-visible {
+  background: rgba(212, 255, 0, 0.14);
+  outline: 2px solid #d4ff00;
+  outline-offset: 0;
+}
+
 .feedback-ribbon {
   position: fixed;
   left: 0;
@@ -2555,7 +2640,7 @@ body:has(.about-screen) {
   }
 
   body {
-    padding-bottom: 0;
+    padding-bottom: calc(48px + 0.85rem + env(safe-area-inset-bottom));
   }
 
   .btn,
