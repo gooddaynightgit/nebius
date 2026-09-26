@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
+import SiteFooter from "@/components/SiteFooter";
 import StepControl from "@/components/StepControl";
 import { readCaptureStash } from "@/lib/capture-stash";
 import { readJson } from "@/lib/client-fetch";
@@ -237,12 +238,7 @@ export default function JoyStudio() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <p>{LANDING.footer.lookingForward}</p>
-        <p>
-          <a href={`mailto:${LANDING.footer.hello}`}>{LANDING.footer.hello}</a>
-        </p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

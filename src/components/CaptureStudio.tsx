@@ -67,6 +67,7 @@ import {
 } from "@/lib/moment";
 import type { SessionState } from "@/lib/types";
 import { useReportAppProgress, useReportBuyerGate } from "@/components/journey-gate";
+import SiteFooter from "@/components/SiteFooter";
 import { StoryOpeningStatus } from "@/components/YoursStory";
 import { destinationForEntitlement, photoButtonsEnabled, releaseCaptureVisit } from "@/lib/photo-entry";
 import NoticingMoments from "@/components/NoticingMoments";
@@ -993,11 +994,7 @@ export default function CaptureStudio() {
         )}
       </main>
 
-      <footer className="site-footer">
-        <p>
-          <Link href="/">{LANDING.footer.site}</Link>
-        </p>
-      </footer>
+      <SiteFooter site />
     </div>
   );
 }

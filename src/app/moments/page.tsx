@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import MomentsCheckout from "@/components/MomentsCheckout";
+import SiteFooter from "@/components/SiteFooter";
 import { isPersonalPhotoSession } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default async function MomentsPage() {
           <MomentsCheckout />
         </section>
       </main>
+      <SiteFooter className="site-footer--moments" />
     </div>
   );
 }

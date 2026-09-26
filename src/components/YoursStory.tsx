@@ -30,6 +30,7 @@ import {
 } from "@/lib/story-opening";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
 import { useReportAppProgress } from "@/components/journey-gate";
+import SiteFooter from "@/components/SiteFooter";
 import { WeaveBubbles } from "@/components/WeaveBubbles";
 
 function PlayIcon() {
@@ -493,6 +494,7 @@ export default function YoursStory() {
           </div>
         ) : null}
       </main>
+      <SiteFooter />
     </div>
   );
 }

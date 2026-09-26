@@ -1091,7 +1091,7 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/type="email"/);
     expect(src).not.toMatch(/PRIVACY_NOTE/);
     expect(src).not.toMatch(/Email me a code/);
-    expect(src).toMatch(/LANDING\.footer\.site/);
+    expect(src).toMatch(/<SiteFooter site \/>/);
     expect(src).not.toMatch(/LANDING\.app\.privateNote/);
     expect(src).toMatch(/explainClientFetchError/);
     expect(joy).toMatch(/id="joy-pick"/);

@@ -1779,6 +1779,86 @@ body:has(.story-opening) .header-meta {
   color: var(--navy);
 }
 
+.site-footer__about {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  font-weight: 650;
+}
+
+.site-footer--moments {
+  width: min(100% - 2rem, 22.5rem);
+  margin: 0.2rem auto 0.85rem;
+  padding: 0.45rem 1rem 0.2rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--navy);
+  text-align: center;
+}
+
+.about-sign {
+  position: relative;
+  z-index: 1;
+  margin: 1.25rem 0 0;
+  max-width: 22rem;
+  color: var(--navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+body:has(.about-screen) {
+  background: #102433;
+}
+
+.about-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #102433 url("/about-bg-poster.jpg") center / cover no-repeat;
+  pointer-events: none;
+}
+
+.about-bg__video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-bg__shade {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 36, 51, 0.32);
+}
+
+.about-page {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.about-page .card--lavender {
+  background: linear-gradient(180deg, #f3f0fb 0%, #f7f4fa 48%, #f4f8e6 100%);
+}
+
+.about-page .site-footer {
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.9rem 0.15rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--navy);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-bg__video {
+    display: none;
+  }
+}
+
 .feedback-ribbon {
   position: fixed;
   left: 0;
