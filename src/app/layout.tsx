@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import AccountMenu from "@/components/AccountMenu";
 import FeedbackRibbon from "@/components/FeedbackRibbon";
 import JourneyProgress from "@/components/JourneyProgress";
 import { JourneyProvider } from "@/components/journey-gate";
@@ -58,6 +59,7 @@ export default function RootLayout({
           </a>
           <JourneyProgress />
           {children}
+          <AccountMenu />
           <FeedbackRibbon />
         </JourneyProvider>
       </body>
