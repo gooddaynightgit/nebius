@@ -71,7 +71,7 @@ describe("email-only sign-in screen", () => {
     expect(checkout).not.toMatch(/<input/);
     expect(checkout).not.toMatch(/Email me a code|Verify code|PRIVACY_NOTE|EMAIL_VERIFIED_NOTE/);
     expect(moments).not.toMatch(/type="email"/);
-    expect(moments).toContain("Every good moment weaved adds to the rich tapestry of life");
+    expect(moments).toContain("My saved joy moments");
     expect(moments).not.toContain("Your good moments are waiting.");
     expect(verify).toMatch(/destinationForVerifiedEmail/);
     expect(verify).not.toMatch(/mode === "checkout"/);

@@ -10,7 +10,8 @@ describe("moments pack page", () => {
   const privacy = readFileSync(path.resolve("src/lib/privacy.ts"), "utf8");
 
   it("shows the silk pay box and nothing from the old poster stack", () => {
-    expect(page).toContain("Every good moment weaved adds to the rich tapestry of life");
+    expect(page).toContain("My saved joy moments");
+    expect(page).toContain("My saved joy moments — GoodDayNight");
     expect(page).toContain("Unlock 40 good moments weaved for");
     expect(page).toContain(">R450<");
     expect(page).toContain("ZAR / $28");

@@ -18,7 +18,7 @@ export function accountMenuItems(input: {
   }
   return [
     { kind: "email", email: input.email?.trim() || "" },
-    { kind: "link", label: "My moments", href: "/moments" },
+    { kind: "link", label: "My new joy moments", href: "/moments" },
     { kind: "logout", label: "Log out" },
     REVIEW,
     ABOUT,
