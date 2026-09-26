@@ -55,7 +55,7 @@ describe("journey progress", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
       "Weave your good moment",
       "Pick your joy",
-      "Unlock your good moments",
+      "My new joy moments",
       "Capture it",
       "What is the good in this moment?",
       "Weave my good moment",
