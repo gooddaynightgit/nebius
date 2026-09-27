@@ -41,7 +41,8 @@ describe("email-only sign-in screen", () => {
   it("shows the email form and the privacy note, with no price", () => {
     expect(page).toMatch(/SignInForm/);
     expect(page).toContain("Your moment.");
-    expect(page).toContain("Your moment — GoodDayNight");
+    expect(page).toContain("siteTitleMetadata");
+    expect(page).not.toContain("Your moment — GoodDayNight");
     expect(page).toContain("Enter your email and we'll send a ");
     expect(page).toContain('<span className="signin-keep">6-digit</span>');
     expect(page).toContain(" code. No password, no account — your moments stay tied to you.");
@@ -75,7 +76,7 @@ describe("email-only sign-in screen", () => {
     expect(checkout).not.toMatch(/Email me a code|Verify code|PRIVACY_NOTE|EMAIL_VERIFIED_NOTE/);
     expect(moments).not.toMatch(/type="email"/);
     expect(moments).toContain("My new joy moments");
-    expect(moments).toContain("title: SITE_TITLE");
+    expect(moments).toContain("siteTitleMetadata");
     expect(moments).not.toContain("My new joy moments — GoodDayNight");
     expect(moments).toContain("Every good moment weaved adds to the rich tapestry of life");
     expect(moments).not.toContain("Your good moments are waiting.");

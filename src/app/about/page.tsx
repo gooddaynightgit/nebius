@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { LANDING } from "@/lib/landing";
+import { siteTitleMetadata } from "@/lib/site-title";
 
 export const metadata: Metadata = {
-  title: LANDING.about.title,
+  ...siteTitleMetadata,
   description: LANDING.about.signature,
 };
 

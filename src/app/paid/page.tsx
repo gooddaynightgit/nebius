@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PaidConfirming, PaidSuccess } from "@/components/PaidView";
 import { resolvePaidVisit } from "@/lib/paid-return";
-import { SITE_TITLE } from "@/lib/site-title";
+import { siteTitleMetadata } from "@/lib/site-title";
 
 export const metadata: Metadata = {
-  title: SITE_TITLE,
-  openGraph: { title: SITE_TITLE },
-  twitter: { title: SITE_TITLE },
+  ...siteTitleMetadata,
   robots: { index: false, follow: false },
 };
 

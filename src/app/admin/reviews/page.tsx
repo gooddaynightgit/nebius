@@ -6,11 +6,12 @@ import SiteFooter from "@/components/SiteFooter";
 import { ADMIN_COOKIE, adminConfigured, adminCookieMatches } from "@/lib/review-admin";
 import { ADMIN_TOKEN_HINT } from "@/lib/review-copy";
 import { listAdminReviews } from "@/lib/review";
+import { siteTitleMetadata } from "@/lib/site-title";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Reviews — GoodDayNight",
+  ...siteTitleMetadata,
   robots: { index: false, follow: false },
 };
 

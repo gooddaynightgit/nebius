@@ -12,7 +12,7 @@ describe("moments pack page", () => {
   it("shows the silk pay box and nothing from the old poster stack", () => {
     expect(page).toContain("Every good moment weaved adds to the rich tapestry of life");
     expect(page).toContain("My new joy moments");
-    expect(page).toContain("title: SITE_TITLE");
+    expect(page).toContain("siteTitleMetadata");
     expect(page).not.toContain("My new joy moments — GoodDayNight");
     expect(page).not.toContain("My saved joy moments");
     expect(page.indexOf("moments-page-heading")).toBeLessThan(page.indexOf("moments-glass"));
