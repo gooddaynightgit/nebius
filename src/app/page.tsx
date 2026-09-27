@@ -37,6 +37,16 @@ export default async function HomePage() {
         <nav className="step-nav" aria-label={STEP_LABEL.start}>
           <Link className="step-next step-pin" href="/app/joy">
             {STEP_LABEL.start}
+            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 12h13M13 6l6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </Link>
         </nav>
 

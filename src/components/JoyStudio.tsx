@@ -237,21 +237,13 @@ export default function JoyStudio() {
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>
 
-        <nav className="step-nav step-nav--joy" aria-label="Steps">
-          {joyMissed && needsJoyPick && !selectedJoy ? (
+        {joyMissed && needsJoyPick && !selectedJoy ? (
+          <nav className="step-nav step-nav--joy" aria-label="Steps">
             <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
               {LANDING.app.joyNeed}
             </p>
-          ) : null}
-          <button
-            className="step-next step-pin"
-            type="button"
-            aria-describedby={joyMissed && needsJoyPick && !selectedJoy ? "joy-need" : undefined}
-            onClick={() => void uploadPhoto()}
-          >
-            Unlock/Capture
-          </button>
-        </nav>
+          </nav>
+        ) : null}
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>

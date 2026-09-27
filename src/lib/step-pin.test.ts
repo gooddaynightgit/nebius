@@ -17,16 +17,13 @@ describe("pinned step button", () => {
   it("pins one primary advance button on each step page", () => {
     expect(landing).toMatch(/className="step-next step-pin"/);
     expect(landing.match(/step-pin/g)).toHaveLength(1);
-    expect(joy).toMatch(/className="step-next step-pin"/);
     expect(joy).toMatch(/Unlock\/Capture/);
-    expect(joy).not.toMatch(/step-back step-pin|step-pin step-back/);
-    expect(joy.match(/step-pin/g)).toHaveLength(1);
-    expect(checkout).toMatch(/className="moments-cta step-pin"/);
+    expect(joy).not.toMatch(/step-pin/);
+    expect(checkout).toMatch(/type="submit"/);
     expect(checkout).toMatch(/>\s*Unlock\s*</);
-    expect(checkout.match(/step-pin/g)).toHaveLength(1);
-    expect(capture).toMatch(/className="btn btn--turn step-pin"/);
+    expect(checkout).not.toMatch(/step-pin/);
     expect(capture).toMatch(/Weave my good moment/);
-    expect(capture.match(/step-pin/g)).toHaveLength(1);
+    expect(capture).not.toMatch(/step-pin/);
     expect(signin).not.toMatch(/step-pin/);
   });
 
@@ -39,5 +36,20 @@ describe("pinned step button", () => {
     expect(styles).toMatch(/\.account-menu\s*\{[^}]*z-index:\s*45;/);
     expect(styles).toMatch(/\.feedback-ribbon\s*\{[^}]*z-index:\s*40;/);
     expect(styles).toMatch(/body:has\(\.step-pin\)\s*\{[^}]*padding-bottom:/);
+    expect(styles).toMatch(
+      /body:has\(\.step-float\)\s*\{[^}]*padding-bottom:\s*calc\(2\.75rem \+ env\(safe-area-inset-bottom\) \+ 0\.5rem \+ 48px \+ 0\.45rem \+ 4\.5rem \+ 1\.15rem\);/,
+    );
+    expect(styles).toMatch(
+      /body:has\(\.step-float\):has\(\.share-pin\)\s*\{[^}]*padding-bottom:\s*calc\(2\.75rem \+ env\(safe-area-inset-bottom\) \+ 0\.5rem \+ 48px \+ 0\.45rem \+ 44px \+ 0\.45rem \+ 6\.25rem \+ 1\.15rem\);/,
+    );
+    expect(styles).toMatch(/\.step-float\s*\{[^}]*position:\s*fixed;/);
+    expect(styles).toMatch(/\.step-float\s*\{[^}]*z-index:\s*44;/);
+    expect(styles).toMatch(
+      /\.step-float\s*\{[^}]*bottom:\s*calc\(2\.75rem \+ env\(safe-area-inset-bottom\) \+ 0\.5rem \+ 48px \+ 0\.45rem\);/,
+    );
+    expect(styles).toMatch(/\.step-float\s*\{[^}]*right:\s*max\(0\.7rem, env\(safe-area-inset-right\)\);/);
+    expect(styles).toMatch(/\.step-float__back\s*\{[^}]*min-width:\s*44px/);
+    expect(styles).toMatch(/\.step-float__next\s*\{[^}]*min-height:\s*44px/);
+    expect(styles).toMatch(/\.step-float__next:disabled\s*\{[^}]*color:\s*#c5d0da/);
   });
 });

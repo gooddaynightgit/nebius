@@ -14,7 +14,7 @@ export default function MomentsCheckout() {
   });
   return (
     <form id="moments-buy" className="moments-buy" method="post" action="/api/payfast/checkout">
-      <button className="moments-cta step-pin" type="submit">
+      <button className="visually-hidden" type="submit">
         Unlock
       </button>
     </form>
