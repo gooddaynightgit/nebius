@@ -785,6 +785,13 @@ describe("landing", () => {
     expect(page).toMatch(/href="\/app\/joy"/);
     expect(page).toMatch(/STEP_LABEL\.start/);
     expect(page).toMatch(/className="step-next step-pin"/);
+    expect(page).toMatch(/<svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">/);
+    expect(page).toMatch(/d="M5 12h13M13 6l6 6-6 6"/);
+    expect(page).toMatch(/strokeWidth="2\.2"/);
+    expect(styles).toMatch(/\.step-next:has\(\.step-next__arrow\)\s*\{[^}]*gap:\s*0\.4rem/);
+    expect(styles).toMatch(/\.step-next:has\(\.step-next__arrow\)\s*\{[^}]*white-space:\s*nowrap/);
+    expect(styles).toMatch(/\.step-next__arrow\s*\{[^}]*width:\s*1\.2rem/);
+    expect(readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8")).not.toMatch(/step-next__arrow/);
     expect(page.indexOf("STEP_LABEL.start")).toBeLessThan(page.indexOf('className="landing-demo"'));
     expect(page.indexOf('className="landing-demo"')).toBeLessThan(page.indexOf("closing-heading"));
     expect(page).toMatch(/src="\/landing-demo\.mp4"/);

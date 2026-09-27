@@ -2688,6 +2688,18 @@ body:has(.story-opening) .step-forward:has(.step-forward-arrow:disabled) .step-f
   font-size: 1.05rem;
 }
 
+.step-next:has(.step-next__arrow) {
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.step-next__arrow {
+  display: block;
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+}
+
 .step-next:hover {
   background: #0e2436;
   color: var(--lime);
