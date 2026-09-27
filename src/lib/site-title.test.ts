@@ -19,8 +19,8 @@ function sourceFiles(dir: string): string[] {
 }
 
 describe("site title", () => {
-  it("is the exact keep-one-moment title, with an em dash", () => {
-    expect(SITE_TITLE).toBe("GoodDayNight — Keep one moment from today");
+  it("is the exact weave-one-good-moment title, with an em dash", () => {
+    expect(SITE_TITLE).toBe("GoodDayNight — Weave one good moment from today");
     expect(SITE_TITLE).toContain("\u2014");
     expect(SITE_TITLE).not.toMatch(/Hear your story|sleep|bedtime|voice/i);
   });
