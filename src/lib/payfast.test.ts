@@ -95,7 +95,7 @@ describe("payfast signature", () => {
 
   it("signs an ITN like whycantisleep: every field, blanks included, quote_plus of the stripped value", () => {
     const pairs: Array<[string, string]> = [
-      ["amount_gross", "16.00"],
+      ["amount_gross", "130.00"],
       ["name_last", ""],
       ["custom_str2", "   "],
       ["item_name", "GoodDayNight — 25 good moments"],
@@ -104,31 +104,36 @@ describe("payfast signature", () => {
       ["note", "a~b"],
     ];
     expect(itnSignaturePayload(pairs, " salt ")).toBe(
-      "amount_gross=16.00&name_last=&custom_str2=&item_name=GoodDayNight+%E2%80%94+25+good+moments&merchant_id=10000100&note=a~b&passphrase=salt",
+      "amount_gross=130.00&name_last=&custom_str2=&item_name=GoodDayNight+%E2%80%94+25+good+moments&merchant_id=10000100&note=a~b&passphrase=salt",
     );
     expect(signaturePayload(pairs, " salt ")).toBe(
-      "amount_gross=16.00&item_name=GoodDayNight+%E2%80%94+25+good+moments&merchant_id=10000100&note=a%7Eb&passphrase=salt",
+      "amount_gross=130.00&item_name=GoodDayNight+%E2%80%94+25+good+moments&merchant_id=10000100&note=a%7Eb&passphrase=salt",
     );
     expect(itnSignaturePayload(pairs, "salt")).not.toBe(signaturePayload(pairs, "salt"));
   });
 });
 
 describe("amount to moments", () => {
-  it("credits 25 moments at 16.00 ZAR and 0 when the gross is under 16.00", () => {
-    expect(PACK_AMOUNT).toBe("16.00");
+  it("credits 25 moments at exactly 130.00 ZAR and 0 for any other gross", () => {
+    expect(PACK_AMOUNT).toBe("130.00");
     expect(PACK_MOMENTS).toBe(25);
     expect(ITEM_NAME).toBe("GoodDayNight — 25 good moments");
     expect(ITEM_DESCRIPTION).toContain("25 good moments");
-    expect(momentsForAmount("16.00")).toBe(25);
-    expect(momentsForAmount("16")).toBe(25);
-    expect(momentsForAmount("16.01")).toBe(25);
-    expect(momentsForAmount(16)).toBe(25);
+    expect(momentsForAmount("130.00")).toBe(25);
+    expect(momentsForAmount("130")).toBe(25);
+    expect(momentsForAmount("130.0")).toBe(25);
+    expect(momentsForAmount(130)).toBe(25);
+    expect(momentsForAmount("130.01")).toBe(0);
+    expect(momentsForAmount("129.99")).toBe(0);
+    expect(momentsForAmount("16.00")).toBe(0);
+    expect(momentsForAmount("16")).toBe(0);
+    expect(momentsForAmount(16)).toBe(0);
+    expect(momentsForAmount("16.01")).toBe(0);
     expect(momentsForAmount("15.99")).toBe(0);
-    expect(momentsForAmount(15.99)).toBe(0);
     expect(momentsForAmount("5.00")).toBe(0);
     expect(momentsForAmount("0")).toBe(0);
     expect(momentsForAmount("")).toBe(0);
-    expect(momentsForAmount("16.000")).toBe(0);
+    expect(momentsForAmount("130.000")).toBe(0);
     expect(momentsForAmount("nope")).toBe(0);
   });
 });
@@ -159,7 +164,7 @@ describe("payfast checkout and ITN", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("defaults to live Payfast and returns an auto-submitting checkout for 16.00 ZAR", () => {
+  it("defaults to live Payfast and returns an auto-submitting checkout for 130.00 ZAR", () => {
     expect(payfastSandbox()).toBe(false);
     expect(payfastProcessUrl()).toBe("https://www.payfast.co.za/eng/process");
     const result = createCheckout("Amy@Example.com");
@@ -168,7 +173,7 @@ describe("payfast checkout and ITN", () => {
     expect(result.status).toBe(200);
     expect(result.html).toContain('action="https://www.payfast.co.za/eng/process"');
     expect(result.html).toContain('method="post"');
-    expect(result.html).toContain('name="amount" value="16.00"');
+    expect(result.html).toContain('name="amount" value="130.00"');
     expect(result.html).toContain(`name="item_name" value="${ITEM_NAME}"`);
     expect(result.html).toContain(`name="item_description" value="${ITEM_DESCRIPTION}"`);
     expect(result.html).toContain('name="email_address" value="amy@example.com"');
@@ -199,7 +204,7 @@ describe("payfast checkout and ITN", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.html).toContain('action="https://sandbox.payfast.co.za/eng/process"');
-    expect(result.html).toContain('name="amount" value="16.00"');
+    expect(result.html).toContain('name="amount" value="130.00"');
   });
 
   it("refuses checkout without merchant secrets", () => {
@@ -229,18 +234,20 @@ describe("payfast checkout and ITN", () => {
     expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089250"]);
   });
 
-  it("fails closed before fulfilment when the gross is under 16.00", async () => {
-    const raw = signedItn({ amount_gross: "15.99" });
-    let called = false;
-    const fetchImpl: typeof fetch = async () => {
-      called = true;
-      return new Response("VALID", { status: 200 });
-    };
-    const result = await handlePayfastItn(raw, fetchImpl);
-    expect(result.status).toBe(500);
-    expect(called).toBe(false);
-    expect(await getEntitlement("amy@example.com")).toBeNull();
-    expect(decideItn(raw, "test-passphrase", "10000100").ok).toBe(false);
+  it("fails closed before fulfilment when the gross is not exactly 130.00", async () => {
+    for (const amount_gross of ["16.00", "130.01"]) {
+      const raw = signedItn({ amount_gross });
+      let called = false;
+      const fetchImpl: typeof fetch = async () => {
+        called = true;
+        return new Response("VALID", { status: 200 });
+      };
+      const result = await handlePayfastItn(raw, fetchImpl);
+      expect(result.status).toBe(500);
+      expect(called).toBe(false);
+      expect(await getEntitlement("amy@example.com")).toBeNull();
+      expect(decideItn(raw, "test-passphrase", "10000100").ok).toBe(false);
+    }
   });
 
   it("returns 200 and leaves an existing balance when a recorded 5.00 payment is replayed", async () => {
@@ -272,7 +279,7 @@ describe("payfast checkout and ITN", () => {
 
   it("fails closed when the signature or Payfast validate check does not pass", async () => {
     const raw = signedItn();
-    const tampered = raw.replace(`amount_gross=${PACK_AMOUNT}`, "amount_gross=16.01");
+    const tampered = raw.replace(`amount_gross=${PACK_AMOUNT}`, "amount_gross=130.01");
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;

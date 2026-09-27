@@ -45,17 +45,17 @@ export const FIELD_ORDER = [
 ] as const;
 
 /**
- * Live pack: 25 good moments for 16.00 ZAR. `/moments` shows R16 and
- * “ZAR / $0.88”. A confirmed ITN adds 25 onto `goodfans.game`. It does not
+ * Live pack: 25 good moments for 130.00 ZAR. `/moments` shows R130 and
+ * “ZAR / $7.99”. A confirmed ITN adds 25 onto `goodfans.game`. It does not
  * rewrite a balance that is already stored.
  */
-export const PACK_AMOUNT = "16.00";
+export const PACK_AMOUNT = "130.00";
 export const PACK_MOMENTS = 25;
 export const ITEM_NAME = "GoodDayNight — 25 good moments";
 export const ITEM_DESCRIPTION =
   "25 good moments. Each moment: one photo upload → one My good moment story.";
 
-const PACK_CENTS = 1600;
+const PACK_CENTS = 13000;
 
 export type PayfastMerchant = {
   merchantId: string;
@@ -248,10 +248,10 @@ export function signaturesMatch(given: string, expected: string): boolean {
   return timingSafeEqual(left, right);
 }
 
-/** At least 16.00 ZAR credits 25 moment saves. Below 16.00 credits 0. */
+/** Exactly 130.00 ZAR credits 25 moment saves. Any other gross credits 0. */
 export function momentsForAmount(amount: string | number): number {
   const cents = zarToCents(amount);
-  if (cents == null || cents < PACK_CENTS) return 0;
+  if (cents == null || cents !== PACK_CENTS) return 0;
   return PACK_MOMENTS;
 }
 
@@ -457,7 +457,7 @@ export async function handlePayfastItn(
   if (!merchant) return rejectItn("unconfigured");
   const decision = decideItn(rawBody, merchant.passphrase, merchant.merchantId);
   const buyerBlocked = !decision.ok && (decision.reason === "buyer" || decision.reason === "email");
-  // A new gross under 16.00 fails closed before Payfast validate. A replay of a
+  // A new gross other than 130.00 fails closed before Payfast validate. A replay of a
   // payment id already on a row (including the old 5.00 test charge) still
   // confirms, then returns 200 without changing `game`.
   if (!decision.ok && decision.reason === "amount") {
