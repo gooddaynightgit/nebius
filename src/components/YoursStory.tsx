@@ -30,7 +30,9 @@ import {
   nextStoryOpeningIndex,
 } from "@/lib/story-opening";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
+import { journeyNextLabel } from "@/lib/journey";
 import { useReportAppProgress } from "@/components/journey-gate";
+import { useRegisterStepForward } from "@/components/step-forward";
 import SiteFooter from "@/components/SiteFooter";
 import { WeaveBubbles } from "@/components/WeaveBubbles";
 
@@ -123,6 +125,8 @@ export default function YoursStory() {
   const readyPhotoId =
     state.status === "ready" ? (state.photoId ?? state.story.captureIds[0] ?? "") : "";
   useReportAppProgress(state.status === "ready" ? "weaved" : "turn");
+  const storyNext = state.status === "ready" ? null : journeyNextLabel(6);
+  useRegisterStepForward(storyNext ? { label: storyNext, enabled: false, run: () => {} } : null);
 
   const weaveYours = useCallback(async (): Promise<WeaveResult> => {
     const open = await fetch("/api/yours", {

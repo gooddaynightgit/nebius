@@ -963,6 +963,11 @@ body:has(.story-opening) .header-meta {
   text-decoration: underline;
 }
 
+body:has(.story-opening) .step-arrows {
+  position: relative;
+  z-index: 26;
+}
+
 .card.story-opening {
   position: fixed;
   z-index: 20;
@@ -1806,6 +1811,8 @@ body:has(.story-opening) .header-meta {
 }
 
 .site-footer--moments {
+  position: relative;
+  z-index: 1;
   width: min(100% - 2rem, 22.5rem);
   margin: 0.2rem auto 0.85rem;
   padding: 0.45rem 1rem 0.2rem;
@@ -1901,6 +1908,21 @@ body:has(.about-screen) {
   border: 1px solid rgba(255, 255, 255, 0.38);
   background: rgba(18, 40, 64, 0.25);
   color: #fff;
+}
+
+.site-footer a.step-back-arrow,
+.site-footer a.step-back-arrow:hover,
+.about-page .site-footer a.step-back-arrow,
+.about-page .site-footer a.step-back-arrow:hover,
+.site-footer .step-forward-arrow,
+.site-footer .step-forward-arrow:hover,
+.site-footer .step-forward-arrow:disabled,
+.about-page .site-footer .step-forward-arrow,
+.about-page .site-footer .step-forward-arrow:hover,
+.about-page .site-footer .step-forward-arrow:disabled {
+  color: var(--lime);
+  text-shadow: none;
+  background: var(--navy);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2471,6 +2493,93 @@ body:has(.step-pin) .share-pin {
 .step-nav--joy .step-next {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+.step-nav--joy:not(:has(.step-nudge)) {
+  min-height: 0;
+  margin: 0;
+}
+
+.step-arrows {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  margin: 0 0 0.85rem;
+}
+
+.step-forward {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.step-forward__label {
+  color: var(--navy);
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: right;
+  text-shadow: none;
+  max-width: 11rem;
+}
+
+.step-forward:has(.step-forward-arrow:disabled) .step-forward__label {
+  color: var(--muted);
+  opacity: 1;
+}
+
+body:has(.story-opening) .step-forward:has(.step-forward-arrow:disabled) .step-forward__label {
+  color: #e4ebf1;
+}
+
+.step-back-arrow,
+.step-forward-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--lime);
+  text-decoration: none;
+}
+
+.step-back-arrow svg,
+.step-forward-arrow svg {
+  display: block;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.step-back-arrow:hover,
+.step-forward-arrow:hover:not(:disabled) {
+  background: #0e2436;
+  color: var(--lime);
+}
+
+.step-forward-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--lime);
+  background: var(--navy);
+}
+
+.step-back-arrow:focus-visible,
+.step-forward-arrow:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 3px;
 }
 
 .step-nav--joy .step-nudge--block {

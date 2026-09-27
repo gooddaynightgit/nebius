@@ -6,6 +6,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import JoyStudio from "@/components/JoyStudio";
+import { StepForwardProvider } from "@/components/step-forward";
 import { resetChosenJoyForTests, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
 import { photoButtonsEnabled, uploadPhotoDestination } from "@/lib/photo-entry";
@@ -63,7 +64,11 @@ describe("second pass after a finished story", () => {
   it("returns to pick your joy, accepts a new joy, and opens a credited photo page", async () => {
     const day = localDay();
     await act(async () => {
-      root.render(<JoyStudio />);
+      root.render(
+        <StepForwardProvider>
+          <JoyStudio />
+        </StepForwardProvider>,
+      );
     });
 
     const saved = container.querySelector(
@@ -72,6 +77,10 @@ describe("second pass after a finished story", () => {
     expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
     expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
     expect(container.querySelector("#joy-need")).toBeNull();
+    const forwardEarly = container.querySelector(".step-forward-arrow") as HTMLButtonElement;
+    expect(forwardEarly.disabled).toBe(true);
+    expect(forwardEarly.getAttribute("aria-label")).toBe("Unlock/Capture");
+    expect(container.querySelector(".step-forward__label")?.textContent).toBe("Unlock/Capture");
     const uploadEarly = container.querySelector("button.step-next") as HTMLButtonElement;
     await act(async () => {
       uploadEarly.click();
@@ -81,8 +90,12 @@ describe("second pass after a finished story", () => {
     expect(container.querySelector("#joy-need")?.textContent).toContain("Pick the kind of quiet joy first.");
     expect(container.querySelector("#joy-need")?.className).toContain("step-nudge--alert");
     const message = container.querySelector("#joy-need");
-    const back = container.querySelector(".step-back");
-    expect(back?.compareDocumentPosition(message!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const back = container.querySelector(".step-back-arrow");
+    expect(back?.getAttribute("aria-label")).toBe("Back to start");
+    expect(back?.getAttribute("href")).toBe("/");
+    expect(back?.textContent).not.toContain("Weave your good moment");
+    const main = container.querySelector("main");
+    expect(main?.compareDocumentPosition(back!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(message?.compareDocumentPosition(uploadEarly) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await act(async () => {
       saved.click();
@@ -119,6 +132,16 @@ describe("second pass after a finished story", () => {
     const nextJoy = container.querySelector('input[value="morning-sunlight"]') as HTMLInputElement;
     await act(async () => {
       nextJoy.click();
+    });
+    const forward = container.querySelector(".step-forward-arrow") as HTMLButtonElement;
+    expect(forward.disabled).toBe(false);
+    expect(forward.getAttribute("aria-label")).toBe("Unlock/Capture");
+    await act(async () => {
+      forward.click();
+    });
+    expect(assigned).toEqual(["/app"]);
+    assigned.length = 0;
+    await act(async () => {
       upload.click();
     });
     expect(assigned).toEqual(["/app"]);

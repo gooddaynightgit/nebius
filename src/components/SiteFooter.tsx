@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import BackToStart from "@/components/BackToStart";
+import { ForwardStep, stepPageShowsForward, useStepForward } from "@/components/step-forward";
 import { LANDING } from "@/lib/landing";
 
 export default function SiteFooter({
@@ -10,8 +13,17 @@ export default function SiteFooter({
   site?: boolean;
   className?: string;
 }) {
+  const pathname = usePathname();
+  const forward = useStepForward();
+  const showForward = Boolean(forward && stepPageShowsForward(pathname));
   return (
     <footer className={className ? `site-footer ${className}` : "site-footer"}>
+      {pathname !== "/" ? (
+        <div className="step-arrows">
+          <BackToStart />
+          {showForward && forward ? <ForwardStep action={forward} /> : null}
+        </div>
+      ) : null}
       <p>
         {LANDING.footer.lookingForward}
         <br />

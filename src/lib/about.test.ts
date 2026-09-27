@@ -72,12 +72,43 @@ describe("about the maker", () => {
     expect(footer).toContain('href="/about"');
     expect(footer).toContain("LANDING.footer.about");
     expect(footer).toContain('className="site-footer__about"');
+    expect(footer).toContain("<BackToStart");
+    expect(footer).toContain('pathname !== "/"');
+    const back = read("src/components/BackToStart.tsx");
+    expect(back).toContain('aria-label="Back to start"');
+    expect(back).toContain('href="/"');
+    expect(back).toContain('className="step-back-arrow"');
+    expect(read("src/app/page.tsx")).not.toContain("BackToStart");
     expect(styles).toMatch(/\.site-footer__about[\s\S]*min-height:\s*44px/);
+    expect(styles).toMatch(/\.site-footer--moments\s*\{[^}]*z-index:\s*1/);
+    expect(styles).toMatch(/body:has\(\.story-opening\) \.step-arrows\s*\{[^}]*z-index:\s*26/);
+    expect(styles).toMatch(/\.step-forward__label\s*\{[^}]*color:\s*var\(--navy\)/);
+    expect(styles).toMatch(
+      /\.step-forward:has\(\.step-forward-arrow:disabled\) \.step-forward__label\s*\{[^}]*color:\s*var\(--muted\)/,
+    );
+    expect(styles).toMatch(
+      /body:has\(\.story-opening\) \.step-forward:has\(\.step-forward-arrow:disabled\) \.step-forward__label\s*\{[^}]*color:\s*#e4ebf1/,
+    );
+    expect(footer).toContain("<ForwardStep");
+    expect(footer).toContain("stepPageShowsForward");
+    expect(read("src/components/step-forward.tsx")).toContain('className="step-forward-arrow"');
+    expect(read("src/components/step-forward.tsx")).toContain('"/app/joy"');
+    expect(read("src/components/step-forward.tsx")).not.toContain('"/about"');
+    expect(read("src/components/step-forward.tsx")).not.toContain('"/signin"');
+    expect(read("src/components/JoyStudio.tsx")).toContain("journeyNextLabel(2)");
+    expect(read("src/components/MomentsCheckout.tsx")).toContain("journeyNextLabel(3)");
+    expect(read("src/components/YoursStory.tsx")).toContain("journeyNextLabel(6)");
+    expect(read("src/app/signin/page.tsx")).not.toContain("useRegisterStepForward");
+    expect(read("src/app/about/page.tsx")).not.toContain("useRegisterStepForward");
+    expect(read("src/app/review/page.tsx")).not.toContain("useRegisterStepForward");
     for (const file of [
       "src/app/page.tsx",
       "src/app/about/page.tsx",
       "src/app/signin/page.tsx",
       "src/app/moments/page.tsx",
+      "src/app/review/page.tsx",
+      "src/app/review/hide/page.tsx",
+      "src/app/admin/reviews/page.tsx",
       "src/components/JoyStudio.tsx",
       "src/components/CaptureStudio.tsx",
       "src/components/YoursStory.tsx",
