@@ -11,12 +11,28 @@ import {
   journeyBackHref,
   journeyDotKind,
   journeyFillPercent,
+  journeyNextLabel,
   journeyStep,
   normalizeJourneyPath,
   rememberJourneyReached,
   type AppProgress,
   type BuyerGate,
 } from "@/lib/journey";
+
+function NextArrow() {
+  return (
+    <svg className="journey__arrow" viewBox="0 0 28 14" aria-hidden="true">
+      <path
+        d="M1 7h21.5M17.5 2.2 25.2 7l-7.7 4.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function CheckIcon() {
   return (
@@ -37,6 +53,7 @@ export function JourneyBar({ step }: { step: number }) {
   const finished = step > JOURNEY_STEPS.length;
   const current = JOURNEY_STEPS[step - 1];
   const caption = finished ? JOURNEY_FINISHED_CAPTION : current?.label;
+  const nextLabel = journeyNextLabel(step);
   const [reached, setReached] = useState(step);
 
   useEffect(() => {
@@ -52,7 +69,7 @@ export function JourneyBar({ step }: { step: number }) {
         <p className="visually-hidden">
           {finished
             ? `${JOURNEY_FINISHED_CAPTION}. All ${JOURNEY_STEP_COUNT} steps completed.`
-            : `Step ${step} of ${JOURNEY_STEP_COUNT}`}
+            : `Step ${step} of ${JOURNEY_STEP_COUNT}${nextLabel ? `. Next: ${nextLabel}` : ""}`}
         </p>
         <div className="journey__row">
           <div className="journey__track" aria-hidden="true">
@@ -94,9 +111,17 @@ export function JourneyBar({ step }: { step: number }) {
           </ol>
         </div>
         <div className={finished ? "journey__captions journey__captions--finished" : "journey__captions"}>
-          <p className="journey__now" aria-hidden="true">
-            {caption}
-          </p>
+          <div className="journey__lead">
+            <p className="journey__now" aria-hidden="true">
+              {caption}
+            </p>
+            {nextLabel ? (
+              <p className="journey__next" aria-hidden="true">
+                <NextArrow />
+                <span className="journey__next-label">{nextLabel}</span>
+              </p>
+            ) : null}
+          </div>
           {finished ? null : (
             <p className="journey__end" aria-hidden="true">
               {JOURNEY_FINISHED_CAPTION}

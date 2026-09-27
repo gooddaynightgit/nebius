@@ -76,6 +76,12 @@ export function journeyFillPercent(step: number): number {
   return ((Math.min(step, JOURNEY_STEP_COUNT) - 1) / span) * 100;
 }
 
+/** Label of the step after `step`, or null on the last step and after it. */
+export function journeyNextLabel(step: number): string | null {
+  if (!Number.isInteger(step) || step < 1 || step >= JOURNEY_STEPS.length) return null;
+  return JOURNEY_STEPS[step].label;
+}
+
 /**
  * Page for each 1-based step. Unlock opens the price screen; a signed-out visit
  * is sent on to email sign-in by that page. Capture, the good question, and the
