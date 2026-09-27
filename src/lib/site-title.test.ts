@@ -64,6 +64,7 @@ describe("site title", () => {
 
   it("keeps Hear your story only on the visible free call to action", () => {
     const hits = sourceFiles(path.resolve("src"))
+      .filter((file) => !file.endsWith(`${path.sep}site-title.test.ts`))
       .filter((file) => readFileSync(file, "utf8").includes("Hear your story"))
       .map((file) => path.relative(path.resolve("."), file));
     expect(hits.sort()).toEqual([
