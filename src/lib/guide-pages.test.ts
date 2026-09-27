@@ -103,6 +103,7 @@ describe("seven guide pages", () => {
     const controls = weaveControls(html);
     expect(controls).toHaveLength(1);
     expect(controls[0]).toContain(`href="${WEAVE_HREF}"`);
+    expect(controls[0]).toContain("step-pin");
     expect(html).not.toMatch(GUIDE_FORBIDDEN);
     expect(String(meta.title)).toContain(headline);
     expect(String(meta.description).length).toBeGreaterThan(20);

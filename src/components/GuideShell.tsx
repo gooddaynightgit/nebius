@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { STEP_LABEL } from "@/lib/journey";
 import { WEAVE_HREF } from "@/lib/guide-pages";
 
-/** One in-flow weave button. No step pill, no footer. */
+/** One pinned weave button. No step pill, no footer. */
 export default function GuideShell({ children }: { children: ReactNode }) {
   return (
     <div className="page guide-page">
@@ -15,7 +15,7 @@ export default function GuideShell({ children }: { children: ReactNode }) {
       <main id="main">
         {children}
         <nav className="guide-cta">
-          <Link className="step-next" href={WEAVE_HREF}>
+          <Link className="step-next step-pin" href={WEAVE_HREF}>
             {STEP_LABEL.start}
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path

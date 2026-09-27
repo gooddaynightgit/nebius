@@ -4148,7 +4148,7 @@ body:has(.moments-page) {
 }
 
 body:has(.guide-page) {
-  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 1.35rem);
+  padding-bottom: calc(2.75rem + 0.5rem + 48px + 0.55rem + 4.25rem + env(safe-area-inset-bottom));
 }
 
 .guide-story.card--lavender {
