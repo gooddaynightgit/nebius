@@ -76,9 +76,13 @@ export function journeyFillPercent(step: number): number {
   return ((Math.min(step, JOURNEY_STEP_COUNT) - 1) / span) * 100;
 }
 
-/** Label of the step after `step`, or null on the last step and after it. */
+/**
+ * Label of the step after `step`, or null on the last step and after it.
+ * Pick your joy points at the pinned button, "Unlock/Capture".
+ */
 export function journeyNextLabel(step: number): string | null {
   if (!Number.isInteger(step) || step < 1 || step >= JOURNEY_STEPS.length) return null;
+  if (step === 2) return "Unlock/Capture";
   return JOURNEY_STEPS[step].label;
 }
 

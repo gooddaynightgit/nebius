@@ -84,7 +84,7 @@ describe("journey progress", () => {
 
   it("points at the next step label and stops on the final step", () => {
     expect(journeyNextLabel(1)).toBe("Pick your joy");
-    expect(journeyNextLabel(2)).toBe("My new joy moments");
+    expect(journeyNextLabel(2)).toBe("Unlock/Capture");
     expect(journeyNextLabel(3)).toBe("Capture it");
     expect(journeyNextLabel(4)).toBe("What is the good in this moment?");
     expect(journeyNextLabel(5)).toBe("Weave my good moment");
