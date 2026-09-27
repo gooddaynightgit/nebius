@@ -45,9 +45,9 @@ export const FIELD_ORDER = [
 ] as const;
 
 /**
- * Live pack: 25 good moments for 130.00 ZAR. `/moments` shows $7.99 / R130.
- * A confirmed ITN adds 25 onto `goodfans.game` only when the gross is exactly
- * 130.00. It does not rewrite a balance that is already stored.
+ * Live pack: 25 good moments for 130.00 ZAR. `/moments` shows R130 and
+ * “ZAR / $7.99”. A confirmed ITN adds 25 onto `goodfans.game`. It does not
+ * rewrite a balance that is already stored.
  */
 export const PACK_AMOUNT = "130.00";
 export const PACK_MOMENTS = 25;
@@ -457,8 +457,8 @@ export async function handlePayfastItn(
   if (!merchant) return rejectItn("unconfigured");
   const decision = decideItn(rawBody, merchant.passphrase, merchant.merchantId);
   const buyerBlocked = !decision.ok && (decision.reason === "buyer" || decision.reason === "email");
-  // A new gross other than 130.00 fails closed before Payfast validate. A replay
-  // of a payment id already on a row (including an older 5.00 charge) still
+  // A new gross other than 130.00 fails closed before Payfast validate. A replay of a
+  // payment id already on a row (including the old 5.00 test charge) still
   // confirms, then returns 200 without changing `game`.
   if (!decision.ok && decision.reason === "amount") {
     const priorId = postedPaymentId(rawBody);

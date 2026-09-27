@@ -3251,14 +3251,13 @@ body:has(.moments-page) {
   gap: 0.45rem;
   margin: 0.35rem 0 1rem;
   color: var(--navy);
-  white-space: nowrap;
 }
 
 .moments-price-hero__amount {
-  font-size: clamp(2.6rem, 14vw, 3.6rem);
+  font-size: clamp(4.4rem, 24vw, 6.4rem);
   font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 0.9;
+  letter-spacing: -0.07em;
+  line-height: 0.82;
 }
 
 .moments-price-hero__unit {
