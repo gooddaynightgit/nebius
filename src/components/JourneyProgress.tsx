@@ -127,6 +127,7 @@ export default function JourneyProgress() {
   const pathname = usePathname() ?? "/";
   const gate = useContext(BuyerGateContext);
   const appProgress = useContext(AppProgressContext);
+  if (normalizeJourneyPath(pathname) === "/") return null;
   const withoutSearch = journeyStep(pathname, { get: () => null }, gate, appProgress);
   if (withoutSearch == null) return null;
 
