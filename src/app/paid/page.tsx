@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PaidConfirming, PaidSuccess } from "@/components/PaidView";
-import { PAID_UNLOCK_HREF, resolvePaidVisit } from "@/lib/paid-return";
+import { PAID_UNLOCK_HREF } from "@/lib/paid-copy";
+import { resolvePaidVisit } from "@/lib/paid-return";
 import { readGateEmail, readOtpSession } from "@/lib/session";
 
 export const metadata: Metadata = {
-  title: "Your moments are unlocked — GoodDayNight",
+  title: "GoodDayNight",
   robots: { index: false, follow: false },
 };
 

@@ -60,6 +60,19 @@ export function openBuyerHandoff(
  * The return URL is `/paid` plus the order ref and a short-lived signed handoff, not the email.
  * Without a signing secret, `/paid` still receives the ref and asks for the session again.
  */
+const RETURN_REF_RE = /^[A-Za-z0-9_-]{1,80}$/;
+
+/** Where a restored PayFast handoff continues. `to=paid` opens `/paid`; older returns open the photo page. */
+export function authReturnDestination(requestUrl: string): string {
+  const url = new URL(requestUrl);
+  const toPaid = url.searchParams.get("to") === "paid";
+  const dest = new URL(toPaid ? "/paid" : "/app", url.origin);
+  if (!toPaid && url.searchParams.get("paid") === "1") dest.searchParams.set("paid", "1");
+  const ref = url.searchParams.get("ref") ?? "";
+  if (RETURN_REF_RE.test(ref)) dest.searchParams.set("ref", ref);
+  return dest.toString();
+}
+
 export function buyerReturnUrl(origin: string, ref: string, email: string, nowSec = Math.floor(Date.now() / 1000)): string {
   const url = new URL("/paid", origin);
   url.searchParams.set("ref", ref);

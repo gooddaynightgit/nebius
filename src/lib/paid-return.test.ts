@@ -19,7 +19,7 @@ import {
   rememberPayfastOrder,
   resolvePaidVisit,
 } from "./paid-return";
-import { authReturnDestination } from "@/app/api/auth/return/route";
+import { authReturnDestination } from "./buyer-handoff";
 
 const EMAIL = "amy@example.com";
 

@@ -11,7 +11,7 @@ import {
   PAID_UNLOCK_HREF,
   PAID_WAIT_MS,
   PAID_WEAVE_HREF,
-} from "@/lib/paid-return";
+} from "@/lib/paid-copy";
 
 export function PaidSuccess() {
   return (
