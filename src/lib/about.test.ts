@@ -82,6 +82,10 @@ describe("about the maker", () => {
     expect(styles).toMatch(/\.site-footer__about[\s\S]*min-height:\s*44px/);
     expect(styles).toMatch(/\.site-footer--moments\s*\{[^}]*z-index:\s*1/);
     expect(styles).toMatch(/body:has\(\.story-opening\) \.step-arrows\s*\{[^}]*z-index:\s*26/);
+    expect(styles).toMatch(/\.step-forward__label\s*\{[^}]*color:\s*var\(--navy\)/);
+    expect(styles).toMatch(
+      /\.step-forward:has\(\.step-forward-arrow:disabled\) \.step-forward__label\s*\{[^}]*color:\s*var\(--muted\)/,
+    );
     expect(footer).toContain("<ForwardStep");
     expect(footer).toContain("stepPageShowsForward");
     expect(read("src/components/step-forward.tsx")).toContain('className="step-forward-arrow"');

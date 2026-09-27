@@ -2519,17 +2519,22 @@ body:has(.step-pin) .share-pin {
 }
 
 .step-forward__label {
-  color: var(--lime);
+  color: var(--navy);
   font-size: 0.72rem;
   font-weight: 750;
   line-height: 1.2;
   text-align: right;
-  text-shadow: 0 1px 2px rgba(8, 18, 32, 0.55);
+  text-shadow: none;
   max-width: 11rem;
 }
 
 .step-forward:has(.step-forward-arrow:disabled) .step-forward__label {
-  opacity: 0.45;
+  color: var(--muted);
+  opacity: 1;
+}
+
+body:has(.story-opening) .step-forward__label {
+  color: #e4ebf1;
 }
 
 .step-back-arrow,
