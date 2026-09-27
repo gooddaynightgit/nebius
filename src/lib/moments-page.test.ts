@@ -16,10 +16,12 @@ describe("moments pack page", () => {
     expect(page).not.toContain("My saved joy moments");
     expect(page.indexOf("moments-page-heading")).toBeLessThan(page.indexOf("moments-glass"));
     expect(page.indexOf("moments-glass")).toBeLessThan(page.indexOf("Every good moment weaved adds to the rich tapestry of life"));
-    expect(page).toContain("Unlock 25 good moments weaved for");
-    expect(page).toContain("Unlock 25 good moments weaved for R16 ZAR / $0.88.");
-    expect(page).toContain(">R16<");
-    expect(page).toContain("ZAR / $0.88");
+    expect(page).toContain("One price. Unlock 25 good moments weaved.");
+    expect(page).toContain("One price. $7.99 / R130. Unlock 25 good moments weaved.");
+    expect(page).toContain(">$7.99<");
+    expect(page).toContain("/ R130");
+    expect(page).not.toContain("R16");
+    expect(page).not.toContain("$0.88");
     expect(page).not.toContain("Unlock 40 good moments");
     expect(page).not.toContain("R450");
     expect(page).not.toContain("$28");

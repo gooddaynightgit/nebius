@@ -14,7 +14,7 @@ describe("email otp gates", () => {
     expect(checkout).toMatch(/otpAllowsEmail/);
     expect(checkout).toMatch(/Verify the code we emailed you before checkout/);
     expect(checkout.indexOf("otpAllowsEmail")).toBeLessThan(checkout.indexOf("createCheckout"));
-    expect(payfast).toMatch(/PACK_AMOUNT = "16\.00"/);
+    expect(payfast).toMatch(/PACK_AMOUNT = "130\.00"/);
     expect(payfast).toMatch(/PACK_MOMENTS = 25/);
   });
 
