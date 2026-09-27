@@ -23,6 +23,9 @@ describe("account menu items", () => {
       { kind: "link", label: "Sign in", href: "/signin" },
       { kind: "link", label: "Leave a review", href: "/review" },
       { kind: "link", label: "About the maker", href: "/about" },
+      { kind: "link", label: "How it works", href: "/how-it-works" },
+      { kind: "link", label: "Example", href: "/example" },
+      { kind: "link", label: "FAQ", href: "/faq" },
     ]);
   });
 
@@ -33,6 +36,9 @@ describe("account menu items", () => {
       { kind: "logout", label: "Log out" },
       { kind: "link", label: "Leave a review", href: "/review" },
       { kind: "link", label: "About the maker", href: "/about" },
+      { kind: "link", label: "How it works", href: "/how-it-works" },
+      { kind: "link", label: "Example", href: "/example" },
+      { kind: "link", label: "FAQ", href: "/faq" },
     ]);
     expect(accountMenuItems({ signedIn: true, email: "amy@email.com" }).some((item) => item.kind === "link" && item.label === "Sign in")).toBe(false);
   });
