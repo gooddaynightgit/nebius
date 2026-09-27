@@ -81,7 +81,19 @@ describe("about the maker", () => {
     expect(read("src/app/page.tsx")).not.toContain("BackToStart");
     expect(styles).toMatch(/\.site-footer__about[\s\S]*min-height:\s*44px/);
     expect(styles).toMatch(/\.site-footer--moments\s*\{[^}]*z-index:\s*1/);
-    expect(styles).toMatch(/body:has\(\.story-opening\) \.step-back-arrow\s*\{[^}]*z-index:\s*26/);
+    expect(styles).toMatch(/body:has\(\.story-opening\) \.step-arrows\s*\{[^}]*z-index:\s*26/);
+    expect(footer).toContain("<ForwardStep");
+    expect(footer).toContain("stepPageShowsForward");
+    expect(read("src/components/step-forward.tsx")).toContain('className="step-forward-arrow"');
+    expect(read("src/components/step-forward.tsx")).toContain('"/app/joy"');
+    expect(read("src/components/step-forward.tsx")).not.toContain('"/about"');
+    expect(read("src/components/step-forward.tsx")).not.toContain('"/signin"');
+    expect(read("src/components/JoyStudio.tsx")).toContain("journeyNextLabel(2)");
+    expect(read("src/components/MomentsCheckout.tsx")).toContain("journeyNextLabel(3)");
+    expect(read("src/components/YoursStory.tsx")).toContain("journeyNextLabel(6)");
+    expect(read("src/app/signin/page.tsx")).not.toContain("useRegisterStepForward");
+    expect(read("src/app/about/page.tsx")).not.toContain("useRegisterStepForward");
+    expect(read("src/app/review/page.tsx")).not.toContain("useRegisterStepForward");
     for (const file of [
       "src/app/page.tsx",
       "src/app/about/page.tsx",

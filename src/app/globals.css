@@ -963,7 +963,7 @@ body:has(.story-opening) .header-meta {
   text-decoration: underline;
 }
 
-body:has(.story-opening) .step-back-arrow {
+body:has(.story-opening) .step-arrows {
   position: relative;
   z-index: 26;
 }
@@ -1913,7 +1913,13 @@ body:has(.about-screen) {
 .site-footer a.step-back-arrow,
 .site-footer a.step-back-arrow:hover,
 .about-page .site-footer a.step-back-arrow,
-.about-page .site-footer a.step-back-arrow:hover {
+.about-page .site-footer a.step-back-arrow:hover,
+.site-footer .step-forward-arrow,
+.site-footer .step-forward-arrow:hover,
+.site-footer .step-forward-arrow:disabled,
+.about-page .site-footer .step-forward-arrow,
+.about-page .site-footer .step-forward-arrow:hover,
+.about-page .site-footer .step-forward-arrow:disabled {
   color: var(--lime);
   text-shadow: none;
   background: var(--navy);
@@ -2494,15 +2500,49 @@ body:has(.step-pin) .share-pin {
   margin: 0;
 }
 
-.step-back-arrow {
+.step-arrows {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  margin: 0 0 0.85rem;
+}
+
+.step-forward {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.step-forward__label {
+  color: var(--lime);
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: right;
+  text-shadow: 0 1px 2px rgba(8, 18, 32, 0.55);
+  max-width: 11rem;
+}
+
+.step-forward:has(.step-forward-arrow:disabled) .step-forward__label {
+  opacity: 0.45;
+}
+
+.step-back-arrow,
+.step-forward-arrow {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   width: 44px;
   height: 44px;
   min-width: 44px;
   min-height: 44px;
-  margin: 0 0 0.85rem;
+  margin: 0;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -2511,18 +2551,28 @@ body:has(.step-pin) .share-pin {
   text-decoration: none;
 }
 
-.step-back-arrow svg {
+.step-back-arrow svg,
+.step-forward-arrow svg {
   display: block;
   width: 1.2rem;
   height: 1.2rem;
 }
 
-.step-back-arrow:hover {
+.step-back-arrow:hover,
+.step-forward-arrow:hover:not(:disabled) {
   background: #0e2436;
   color: var(--lime);
 }
 
-.step-back-arrow:focus-visible {
+.step-forward-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--lime);
+  background: var(--navy);
+}
+
+.step-back-arrow:focus-visible,
+.step-forward-arrow:focus-visible {
   outline: 3px solid var(--lime);
   outline-offset: 3px;
 }

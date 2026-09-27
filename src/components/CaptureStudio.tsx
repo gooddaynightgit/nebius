@@ -15,7 +15,8 @@ import { captionDisposition } from "@/lib/app-capture";
 import { withClientClock, useLocalDay } from "@/lib/client-day";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { JOY_NEED, explainClientFetchError, isReachabilityError, readJson } from "@/lib/client-fetch";
-import { restoredJoyId, restoredMomentText, reviewCaptureView } from "@/lib/journey";
+import { journeyNextLabel, journeyStep, restoredJoyId, restoredMomentText, reviewCaptureView } from "@/lib/journey";
+import { useRegisterStepForward } from "@/components/step-forward";
 import { LANDING, PHOTO_MAX_BYTES, WHISPER_MAX, getJoyById } from "@/lib/landing";
 import { capturePreviewSrc, isCaptureQuestionOpen } from "@/lib/photo-preview";
 import {
@@ -159,6 +160,23 @@ export default function CaptureStudio() {
     hasCaption: caption.trim().length > 0,
   });
   useReportAppProgress(reviewView.progress);
+  const captureFormRef = useRef<HTMLFormElement | null>(null);
+  const captureStep = journeyStep(
+    "/app",
+    searchParams,
+    !hydrated ? "unknown" : captureOpen ? "open" : "locked",
+    reviewView.progress,
+  );
+  const captureNext = captureStep == null ? null : journeyNextLabel(captureStep);
+  useRegisterStepForward(
+    captureNext
+      ? {
+          label: captureNext,
+          enabled: reviewView.showWeave && !busy,
+          run: () => captureFormRef.current?.requestSubmit(),
+        }
+      : null,
+  );
 
   function applyEntitlement(result: EntitlementLookup) {
     const sessionOpen = Boolean(sessionRef.current?.otpVerified && sessionRef.current.email);
@@ -788,7 +806,7 @@ export default function CaptureStudio() {
           <NoticingMoments />
         </section>
 
-        <form onSubmit={saveMoment}>
+        <form ref={captureFormRef} onSubmit={saveMoment}>
         <section className="card card--dark" aria-labelledby="capture-heading">
             <h2 id="capture-heading" className="step-heading step-heading--navy">
               Capture your good moment

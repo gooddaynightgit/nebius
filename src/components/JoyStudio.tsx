@@ -10,7 +10,8 @@ import { withClientClock, useLocalDay } from "@/lib/client-day";
 import { readJson } from "@/lib/client-fetch";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
-import { restoredJoyId } from "@/lib/journey";
+import { journeyNextLabel, restoredJoyId } from "@/lib/journey";
+import { useRegisterStepForward } from "@/components/step-forward";
 import { LANDING, accordionJoys, getJoyById, type JoyType } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
 import { keptSavedMoments } from "@/lib/moment-expiry";
@@ -174,6 +175,15 @@ export default function JoyStudio() {
     }
     window.location.assign(uploadPhotoDestination(signedIn, game));
   }
+
+  const joyReady = Boolean(getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day)));
+  useRegisterStepForward({
+    label: journeyNextLabel(2) ?? "Unlock/Capture",
+    enabled: joyReady,
+    run: () => {
+      void uploadPhoto();
+    },
+  });
 
   return (
     <div className="page">

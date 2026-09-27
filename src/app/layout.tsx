@@ -4,6 +4,7 @@ import AccountMenu from "@/components/AccountMenu";
 import FeedbackRibbon from "@/components/FeedbackRibbon";
 import JourneyProgress from "@/components/JourneyProgress";
 import { JourneyProvider } from "@/components/journey-gate";
+import { StepForwardProvider } from "@/components/step-forward";
 import "./globals.css";
 
 const inter = Inter({
@@ -54,13 +55,15 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <JourneyProvider>
-          <a className="skip-link" href="#main">
-            Skip to content
-          </a>
-          <JourneyProgress />
-          {children}
-          <AccountMenu />
-          <FeedbackRibbon />
+          <StepForwardProvider>
+            <a className="skip-link" href="#main">
+              Skip to content
+            </a>
+            <JourneyProgress />
+            {children}
+            <AccountMenu />
+            <FeedbackRibbon />
+          </StepForwardProvider>
         </JourneyProvider>
       </body>
     </html>
