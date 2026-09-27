@@ -1405,8 +1405,14 @@ body:has(.story-opening) .step-arrows {
   outline-offset: 3px;
 }
 
+.noticing + .noticing {
+  margin-top: 0.55rem;
+}
+
 .noticing__label {
   min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: break-word;
 }
 
 .noticing__chevron {
@@ -1443,6 +1449,63 @@ body:has(.story-opening) .step-arrows {
   font-size: 0.98rem;
   font-weight: 500;
   line-height: 1.4;
+}
+
+.noticing__panel--saved {
+  max-height: min(16.5rem, calc(100dvh - 18rem));
+  overflow: auto;
+}
+
+.noticing__panel--saved ul {
+  list-style: none;
+  padding: 0;
+  gap: 0.65rem;
+}
+
+.noticing__empty {
+  margin: 0;
+  color: var(--navy);
+  font-size: 0.98rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.saved-today__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-width: 0;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.saved-today__thumb {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.45rem;
+  object-fit: cover;
+  flex: 0 0 auto;
+  background: #e7eef4;
+}
+
+.saved-today__copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.saved-today__time {
+  font-size: 0.92rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.saved-today__lead {
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: break-word;
 }
 
 .notice {

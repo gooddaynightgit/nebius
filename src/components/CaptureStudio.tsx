@@ -71,6 +71,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { StoryOpeningStatus } from "@/components/YoursStory";
 import { destinationForEntitlement, photoButtonsEnabled, releaseCaptureVisit } from "@/lib/photo-entry";
 import NoticingMoments from "@/components/NoticingMoments";
+import SavedMomentsToday from "@/components/SavedMomentsToday";
 
 type EntitlementLookup = "open" | "closed" | "exhausted" | "error";
 
@@ -804,6 +805,7 @@ export default function CaptureStudio() {
         <section className="card card--mint card--compact" aria-labelledby="app-moment-heading">
           <h1 id="app-moment-heading">{LANDING.app.heading}</h1>
           <NoticingMoments />
+          <SavedMomentsToday />
         </section>
 
         <form ref={captureFormRef} onSubmit={saveMoment}>

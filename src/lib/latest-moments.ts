@@ -58,6 +58,14 @@ export function momentListLabel(
   return item.day || created.slice(0, 10);
 }
 
+/** 24-hour clock in a named zone. SAST is `Africa/Johannesburg`. */
+export function clockInTimeZone(createdAt: string, timeZone: string): string {
+  const created = createdAt.trim();
+  const ms = Date.parse(created);
+  if (Number.isNaN(ms) || !/T\d{2}:\d{2}/.test(created)) return "";
+  return zonedClock(new Date(ms), timeZone)?.time ?? "";
+}
+
 function zonedClock(date: Date, timeZone?: string): { day: string; time: string } | null {
   try {
     const fmt = new Intl.DateTimeFormat("en-US", {
