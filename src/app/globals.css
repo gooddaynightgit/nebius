@@ -963,6 +963,11 @@ body:has(.story-opening) .header-meta {
   text-decoration: underline;
 }
 
+body:has(.story-opening) .step-back-arrow {
+  position: relative;
+  z-index: 26;
+}
+
 .card.story-opening {
   position: fixed;
   z-index: 20;
@@ -1806,6 +1811,8 @@ body:has(.story-opening) .header-meta {
 }
 
 .site-footer--moments {
+  position: relative;
+  z-index: 1;
   width: min(100% - 2rem, 22.5rem);
   margin: 0.2rem auto 0.85rem;
   padding: 0.45rem 1rem 0.2rem;

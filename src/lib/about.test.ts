@@ -80,11 +80,16 @@ describe("about the maker", () => {
     expect(back).toContain('className="step-back-arrow"');
     expect(read("src/app/page.tsx")).not.toContain("BackToStart");
     expect(styles).toMatch(/\.site-footer__about[\s\S]*min-height:\s*44px/);
+    expect(styles).toMatch(/\.site-footer--moments\s*\{[^}]*z-index:\s*1/);
+    expect(styles).toMatch(/body:has\(\.story-opening\) \.step-back-arrow\s*\{[^}]*z-index:\s*26/);
     for (const file of [
       "src/app/page.tsx",
       "src/app/about/page.tsx",
       "src/app/signin/page.tsx",
       "src/app/moments/page.tsx",
+      "src/app/review/page.tsx",
+      "src/app/review/hide/page.tsx",
+      "src/app/admin/reviews/page.tsx",
       "src/components/JoyStudio.tsx",
       "src/components/CaptureStudio.tsx",
       "src/components/YoursStory.tsx",
