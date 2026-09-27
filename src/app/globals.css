@@ -4208,3 +4208,17 @@ body:has(.guide-page) {
 .guide-faq h2:first-of-type {
   margin-top: 0.2rem;
 }
+
+.paid-page {
+  padding-bottom: calc(2.75rem + 48px + 2rem + env(safe-area-inset-bottom));
+}
+
+.paid-page .paid-weave {
+  position: relative;
+  z-index: 1;
+  margin: 1.35rem 0 0;
+}
+
+.paid-confirming {
+  font-size: clamp(1.45rem, 6vw, 1.85rem);
+}

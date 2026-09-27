@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { normalizeEmail } from "@/lib/identity";
 import { otpAllowsEmail } from "@/lib/otp-session";
+import { rememberPayfastOrder } from "@/lib/paid-return";
 import { checkoutHealth, createCheckout, escapeHtml } from "@/lib/payfast";
 import { readOtpSession } from "@/lib/session";
 
@@ -23,6 +24,12 @@ export async function POST(request: Request) {
   }
   const result = createCheckout(email);
   if (!result.ok) return errorResponse(result.message, result.status, asJson);
+  try {
+    await rememberPayfastOrder(email, result.mPaymentId);
+  } catch (error) {
+    console.error("[payfast] order receipt stayed", error);
+    return errorResponse("Checkout could not start. Please try again.", 500, asJson);
+  }
   return new NextResponse(result.html, {
     status: 200,
     headers: {

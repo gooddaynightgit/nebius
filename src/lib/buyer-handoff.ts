@@ -57,13 +57,15 @@ export function openBuyerHandoff(
 
 /**
  * PayFast sends the buyer back in a browser that may not have the session cookie.
- * The return URL carries a short-lived signed handoff, not the email itself.
- * Without a signing secret, fall back to the photo page and let it ask again.
+ * The return URL is `/paid` plus the order ref and a short-lived signed handoff, not the email.
+ * Without a signing secret, `/paid` still receives the ref and asks for the session again.
  */
 export function buyerReturnUrl(origin: string, ref: string, email: string, nowSec = Math.floor(Date.now() / 1000)): string {
-  const paid = `${origin}/app?paid=1&ref=${ref}`;
+  const url = new URL("/paid", origin);
+  url.searchParams.set("ref", ref);
   const secret = otpSessionSecret();
-  if (!secret || !isValidEmail(email)) return paid;
-  const handoff = sealBuyerHandoff(email, nowSec, secret);
-  return `${origin}/api/auth/return?paid=1&ref=${ref}&handoff=${encodeURIComponent(handoff)}`;
+  if (secret && isValidEmail(email)) {
+    url.searchParams.set("handoff", sealBuyerHandoff(email, nowSec, secret));
+  }
+  return url.toString();
 }
