@@ -47,11 +47,11 @@ body:has(.step-pin):has(.share-pin) {
 }
 
 body:has(.step-float) {
-  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 3.5rem);
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 4.5rem + 1.15rem);
 }
 
 body:has(.step-float):has(.share-pin) {
-  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 44px + 0.45rem + 5.5rem);
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 44px + 0.45rem + 6.25rem + 1.15rem);
 }
 
 img,
@@ -3070,6 +3070,14 @@ body:has(.story-opening) .step-forward:has(.step-forward-arrow:disabled) .step-f
 
   body:has(.step-pin):has(.share-pin) {
     padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.55rem + 5.25rem);
+  }
+
+  body:has(.step-float) {
+    padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 4.5rem + 1.15rem);
+  }
+
+  body:has(.step-float):has(.share-pin) {
+    padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 44px + 0.45rem + 6.25rem + 1.15rem);
   }
 
   .btn,

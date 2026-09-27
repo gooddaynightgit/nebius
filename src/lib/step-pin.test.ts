@@ -36,6 +36,12 @@ describe("pinned step button", () => {
     expect(styles).toMatch(/\.account-menu\s*\{[^}]*z-index:\s*45;/);
     expect(styles).toMatch(/\.feedback-ribbon\s*\{[^}]*z-index:\s*40;/);
     expect(styles).toMatch(/body:has\(\.step-pin\)\s*\{[^}]*padding-bottom:/);
+    expect(styles).toMatch(
+      /body:has\(\.step-float\)\s*\{[^}]*padding-bottom:\s*calc\(2\.75rem \+ env\(safe-area-inset-bottom\) \+ 0\.5rem \+ 48px \+ 0\.45rem \+ 4\.5rem \+ 1\.15rem\);/,
+    );
+    expect(styles).toMatch(
+      /body:has\(\.step-float\):has\(\.share-pin\)\s*\{[^}]*padding-bottom:\s*calc\(2\.75rem \+ env\(safe-area-inset-bottom\) \+ 0\.5rem \+ 48px \+ 0\.45rem \+ 44px \+ 0\.45rem \+ 6\.25rem \+ 1\.15rem\);/,
+    );
     expect(styles).toMatch(/\.step-float\s*\{[^}]*position:\s*fixed;/);
     expect(styles).toMatch(/\.step-float\s*\{[^}]*z-index:\s*44;/);
     expect(styles).toMatch(
