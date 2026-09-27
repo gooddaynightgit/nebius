@@ -53,6 +53,13 @@ describe("public review display", () => {
     expect(landing).toMatch(/showLink/);
     expect(review.indexOf("<KindWords")).toBeLessThan(review.indexOf("<ReviewForm"));
     expect(KIND_WORDS_HEADING).toBe("Kind words");
+    const words = readFileSync(path.resolve("src/components/KindWords.tsx"), "utf8");
+    expect(words).toMatch(/aria-expanded=\{open\}/);
+    expect(words).toMatch(/aria-controls=\{panelId\}/);
+    expect(words).toMatch(/useState\(false\)/);
+    expect(words).toMatch(/Leave a review/);
+    const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(styles).toMatch(/url\("\/reviews-bg\.jpg"\)/);
     expect(REVIEW_FRIEND).toBe("A GoodDayNight friend");
   });
 });

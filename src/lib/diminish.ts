@@ -1,9 +1,9 @@
 import { maskClosingLines } from "./affirmation";
 
 /**
- * Words and phrases that talk a kept moment down, plus negative words.
- * Matched as whole words, case-insensitive, including common inflections.
- * Dark, grey, and alone stay out of this list on purpose.
+ * Words and phrases that talk a kept moment down, plus negative or edgy words.
+ * Matched as whole words or phrases, case-insensitive, including common inflections.
+ * Dark and grey stay out of this list on purpose.
  */
 export const DIMINISHING_PHRASES = [
   "unremarkable",
@@ -35,6 +35,7 @@ export const DIMINISHING_PHRASES = [
   "sad",
   "sadness",
   "lonely",
+  "alone",
   "tired",
   "exhausted",
   "lost",
@@ -54,10 +55,21 @@ export const DIMINISHING_PHRASES = [
   "ugly",
   "fail",
   "failure",
+  "rebellion",
+  "rebellious",
+  "rebel",
+  "defiance",
+  "defiant",
+  "indulgence",
+  "indulgent",
+  "escape",
+  "unshared",
+  "quiet rebellion",
+  "sweet theft",
 ] as const;
 
 const BANNED =
-  /\b(?:thefts|theft|thieves|thief|stealing|stolen|stole|steals|steal|sneaking|sneaked|snuck|sneaky|sneaks|sneak|guilty|guilt|sinfully|sinful|sins|sin|naughty|forbidden|cheating|cheated|cheats|cheat|imperfectly|imperfect|flawed|flaws|flaw|messy|broken|sadness|sadly|sad|lonely|tired|exhausted|lost|empty|wasting|wasted|wastes|waste|regretting|regretted|regrets|regret|painful|pains|pain|hurting|hurts|hurt|fearing|feared|fears|fear|afraid|worrying|worried|worries|worry|lacking|lacked|lacks|lack|missing|badly|bad|wrong|ugly|failing|failed|fails|fail|failures|failure|unremarkable|mundane|ordinary|nothing special|insignificant|boring)\b/i;
+  /\b(?:quiet rebellion|sweet thefts|sweet theft|rebellious|rebellions|rebellion|rebels|rebel|defiance|defiant|indulgences|indulgence|indulgent|escaping|escaped|escapes|escape|unshared|alone|thefts|theft|thieves|thief|stealing|stolen|stole|steals|steal|sneaking|sneaked|snuck|sneaky|sneaks|sneak|guilty|guilt|sinfully|sinful|sins|sin|naughty|forbidden|cheating|cheated|cheats|cheat|imperfectly|imperfect|flawed|flaws|flaw|messy|broken|sadness|sadly|sad|lonely|tired|exhausted|lost|empty|wasting|wasted|wastes|waste|regretting|regretted|regrets|regret|painful|pains|pain|hurting|hurts|hurt|fearing|feared|fears|fear|afraid|worrying|worried|worries|worry|lacking|lacked|lacks|lack|missing|badly|bad|wrong|ugly|failing|failed|fails|fail|failures|failure|unremarkable|mundane|ordinary|nothing special|insignificant|boring)\b/i;
 
 const STOP = new Set([
   "about",
@@ -137,6 +149,24 @@ function shiftPhrase(text: string, word: string, phrase: string): string {
 }
 
 const SWAPS: Array<{ pattern: RegExp; replacement: string }> = [
+  { pattern: /\bquiet rebellions\b/gi, replacement: "tender joys" },
+  { pattern: /\bquiet rebellion\b/gi, replacement: "tender joy" },
+  { pattern: /\brebellions\b/gi, replacement: "blessings" },
+  { pattern: /\brebellion\b/gi, replacement: "blessing" },
+  { pattern: /\brebellious\b/gi, replacement: "radiant" },
+  { pattern: /\brebels\b/gi, replacement: "blessings" },
+  { pattern: /\brebel\b/gi, replacement: "blessing" },
+  { pattern: /\bdefiance\b/gi, replacement: "devotion" },
+  { pattern: /\bdefiant\b/gi, replacement: "devoted" },
+  { pattern: /\bindulgences\b/gi, replacement: "delights" },
+  { pattern: /\bindulgence\b/gi, replacement: "delight" },
+  { pattern: /\bindulgent\b/gi, replacement: "delightful" },
+  { pattern: /\bescaping\b/gi, replacement: "arriving" },
+  { pattern: /\bescaped\b/gi, replacement: "arrived" },
+  { pattern: /\bescapes\b/gi, replacement: "havens" },
+  { pattern: /\bescape\b/gi, replacement: "haven" },
+  { pattern: /\bunshared\b/gi, replacement: "cherished" },
+  { pattern: /\balone\b/gi, replacement: "cherished" },
   { pattern: /\bperfectly unremarkable\b/gi, replacement: "perfectly mine" },
   { pattern: /\bsweet thefts\b/gi, replacement: "sweet gifts" },
   { pattern: /\bsweet theft\b/gi, replacement: "sweet gift" },
@@ -260,8 +290,8 @@ export function stripDiminishingPhrases(text: string): string {
 }
 
 /**
- * If the draft talks the moment down, ask once more. If that draft still does,
- * replace the phrase so the reader never sees it.
+ * If the draft uses a banned word, ask again up to twice. If it is still there,
+ * replace it so the reader never sees it.
  */
 export async function settleDiminishingText(
   text: string,
@@ -270,11 +300,13 @@ export async function settleDiminishingText(
   if (!hasDiminishingPhrase(text)) return text;
   let next = text;
   if (regenerate) {
-    try {
-      const again = (await regenerate())?.trim();
-      if (again) next = again;
-    } catch {
-      next = text;
+    for (let attempt = 0; attempt < 2 && hasDiminishingPhrase(next); attempt += 1) {
+      try {
+        const again = (await regenerate())?.trim();
+        if (again) next = again;
+      } catch {
+        // Keep the latest draft and use any retry still left.
+      }
     }
   }
   return hasDiminishingPhrase(next) ? stripDiminishingPhrases(next) : next;

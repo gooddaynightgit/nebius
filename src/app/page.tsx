@@ -50,19 +50,24 @@ export default async function HomePage() {
           </Link>
         </nav>
 
-        <video
-          className="landing-demo"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster="/landing-demo-poster.jpg"
-          src="/landing-demo.mp4"
-          width={720}
-          height={1198}
-          aria-label="Demo of weaving a good moment"
-        />
+        <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
+          <h2 id="landing-demo-heading" className="landing-demo__heading">
+            How I weaved my good moment
+          </h2>
+          <video
+            className="landing-demo"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/landing-demo-poster.jpg"
+            src="/landing-demo.mp4"
+            width={720}
+            height={1198}
+            aria-label="Demo of weaving a good moment"
+          />
+        </section>
 
         <KindWords reviews={reviews} limit={KIND_WORDS_LIMIT} showLink />
 

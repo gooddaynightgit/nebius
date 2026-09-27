@@ -209,15 +209,19 @@ describe("ingest and weave fallbacks", () => {
       /No social media, I am left with my own good memory all to myself/,
     );
     expect(APP_REFLECT_SYSTEM).toMatch(
-      /No feeds, no noise, just me and this moment, held close\. My own memory, mine alone\. Moments like these make life worth weaving\./,
+      /No feeds, no noise, just me and this moment, held close\. My own memory, all mine\. Moments like these make life worth weaving\./,
     );
+    expect(APP_REFLECT_SYSTEM).toMatch(/beautiful, heavenly, blissful, euphoric, radiant, luminous, tender, and golden/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/quiet rebellion, sweet theft/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/Moments are gifts received and cherished/);
     expect(APP_REFLECT_SYSTEM).toMatch(
       /Off the grid, out of the scroll, just this golden hour and I\./,
     );
     expect(APP_REFLECT_SYSTEM).toMatch(/Life, at its most radiant\./);
     expect(APP_REFLECT_SYSTEM).toMatch(/woven quietly into the fabric of my life/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Another bright thread weaved into my days/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/unshared and perfect/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/cherished and perfect/);
+    expect(APP_REFLECT_SYSTEM).not.toMatch(/unshared and perfect/);
     expect(APP_REFLECT_SYSTEM).toMatch(/what a life is woven from/);
     expect(APP_REFLECT_SYSTEM).toMatch(/one more golden strand in the tapestry/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Weaving each good moment into something everlasting/);
@@ -796,6 +800,8 @@ describe("landing", () => {
     expect(page.indexOf('className="landing-demo"')).toBeLessThan(page.indexOf("closing-heading"));
     expect(page).toMatch(/src="\/landing-demo\.mp4"/);
     expect(page).toMatch(/poster="\/landing-demo-poster\.jpg"/);
+    expect(page).toMatch(/How I weaved my good moment/);
+    expect(page.indexOf("How I weaved my good moment")).toBeLessThan(page.indexOf('className="landing-demo"'));
     expect(page).toMatch(/aria-label="Demo of weaving a good moment"/);
     expect(page).not.toMatch(/\bcontrols\b/);
     expect(styles).toMatch(/\.landing-demo[\s\S]*aspect-ratio:\s*720\s*\/\s*1198/);

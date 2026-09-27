@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useId, useState } from "react";
 import { KIND_WORDS_HEADING } from "@/lib/review-copy";
 import type { PublicReview } from "@/lib/review-public";
 
@@ -30,25 +33,40 @@ export default function KindWords({
   showLink?: boolean;
 }) {
   const shown = typeof limit === "number" ? reviews.slice(0, limit) : reviews;
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
   if (shown.length === 0) return null;
 
   return (
-    <section className="kind-words" aria-labelledby="kind-words-heading">
-      <h2 id="kind-words-heading">{KIND_WORDS_HEADING}</h2>
-      <ul className="kind-words__list">
-        {shown.map((review) => (
-          <li key={review.id} className="kind-words__card">
-            <LimeStars count={review.stars} />
-            {review.comment ? <p className="kind-words__comment">{review.comment}</p> : null}
-            <p className="kind-words__name">{review.name}</p>
-          </li>
-        ))}
-      </ul>
-      {showLink ? (
-        <Link className="kind-words__link" href="/review">
-          Leave a review
-        </Link>
-      ) : null}
+    <section className={open ? "kind-words is-open" : "kind-words"} aria-labelledby="kind-words-heading">
+      <h2 id="kind-words-heading" className="kind-words__heading">
+        <button
+          className="kind-words__toggle"
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span>{KIND_WORDS_HEADING}</span>
+          <span className="kind-words__chevron" aria-hidden="true" />
+        </button>
+      </h2>
+      <div className="kind-words__panel" id={panelId} hidden={!open}>
+        <ul className="kind-words__list">
+          {shown.map((review) => (
+            <li key={review.id} className="kind-words__card">
+              <LimeStars count={review.stars} />
+              {review.comment ? <p className="kind-words__comment">{review.comment}</p> : null}
+              <p className="kind-words__name">{review.name}</p>
+            </li>
+          ))}
+        </ul>
+        {showLink ? (
+          <Link className="kind-words__link" href="/review">
+            Leave a review
+          </Link>
+        ) : null}
+      </div>
     </section>
   );
 }
