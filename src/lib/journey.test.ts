@@ -122,6 +122,7 @@ describe("journey progress", () => {
     expect(journeyBackHref(8)).toBeNull();
     const bar = readFileSync(path.resolve("src/components/JourneyProgress.tsx"), "utf8");
     const css = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(bar).toMatch(/normalizeJourneyPath\(pathname\) === "\/"\) return null;/);
     expect(bar).toMatch(/Go back to \$\{item\.label\}/);
     expect(bar).toMatch(/journey__jump/);
     expect(bar).toMatch(/href \? \(/);
