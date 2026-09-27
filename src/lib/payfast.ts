@@ -535,7 +535,7 @@ async function noteCompletedReturn(email: string, rawBody: string, pfPaymentId: 
 
 async function noteCancelledReturn(rawBody: string): Promise<void> {
   const status = parseFormPairs(rawBody).find(([key]) => key === "payment_status")?.[1]?.trim() ?? "";
-  if (status !== "CANCELLED") return;
+  if (status !== "CANCELLED" && status !== "FAILED") return;
   const mPaymentId = postedMerchantPaymentId(rawBody);
   if (!mPaymentId) return;
   try {

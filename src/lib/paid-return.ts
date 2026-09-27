@@ -1,14 +1,18 @@
+import { openBuyerHandoff } from "./buyer-handoff";
 import { isValidEmail, normalizeEmail } from "./identity";
-import { PAID_UNLOCK_HREF } from "./paid-copy";
+import { otpSessionSecret } from "./otp-session";
 import { getJSON, putJSON } from "./storage";
 
 export {
+  PAID_APP_HREF,
+  PAID_APP_LABEL,
   PAID_CONFIRMING_LABEL,
   PAID_POLL_MS,
+  PAID_SETTLING_HEADING,
+  PAID_SETTLING_LINE,
   PAID_SUCCESS_HEADING,
-  PAID_UNLOCK_HREF,
+  PAID_SUCCESS_LINE,
   PAID_WAIT_MS,
-  PAID_WEAVE_HREF,
 } from "./paid-copy";
 
 const ORDER_RE = /^[A-Za-z0-9_-]{1,80}$/;
@@ -97,15 +101,21 @@ export async function cancelPayfastOrder(mPaymentId: string): Promise<void> {
 }
 
 /**
- * Success only when this buyer's stored order was marked complete by the ITN.
- * The ref query param only chooses which stored order to read.
+ * Success only when the signed handoff email matches the stored order.
+ * The ref only chooses which order to read. A cookie session is not required.
  */
-export async function paidViewForBuyer(email: string | null, mPaymentId: string | null): Promise<PaidView> {
-  if (!email || !mPaymentId) return "absent";
-  const normalized = normalizeEmail(email);
-  if (!isValidEmail(normalized) || !isPayfastOrderRef(mPaymentId)) return "absent";
+export async function paidViewForHandoff(
+  mPaymentId: string | null,
+  handoff: string | null,
+  nowSec = Math.floor(Date.now() / 1000),
+): Promise<PaidView> {
+  if (!mPaymentId || !handoff || !isPayfastOrderRef(mPaymentId)) return "absent";
+  const secret = otpSessionSecret();
+  if (!secret) return "absent";
+  const opened = openBuyerHandoff(handoff, nowSec, secret);
+  if (!opened) return "absent";
   const order = await readOrder(mPaymentId);
-  if (!order || order.email !== normalized) return "absent";
+  if (!order || order.email !== opened.email) return "absent";
   if (order.status === "complete") return "complete";
   if (order.status === "pending") return "pending";
   return "absent";
@@ -113,15 +123,18 @@ export async function paidViewForBuyer(email: string | null, mPaymentId: string 
 
 export type PaidOutcome =
   | { kind: "success" }
-  | { kind: "confirming"; ref: string }
-  | { kind: "redirect"; href: typeof PAID_UNLOCK_HREF };
+  | { kind: "confirming"; ref: string; handoff: string }
+  | { kind: "missing" };
 
 export async function resolvePaidVisit(input: {
-  email: string | null;
   ref: string | null;
+  handoff: string | null;
+  nowSec?: number;
 }): Promise<PaidOutcome> {
-  const view = await paidViewForBuyer(input.email, input.ref);
+  const view = await paidViewForHandoff(input.ref, input.handoff, input.nowSec);
   if (view === "complete") return { kind: "success" };
-  if (view === "pending" && input.ref) return { kind: "confirming", ref: input.ref };
-  return { kind: "redirect", href: PAID_UNLOCK_HREF };
+  if (view === "pending" && input.ref && input.handoff) {
+    return { kind: "confirming", ref: input.ref, handoff: input.handoff };
+  }
+  return { kind: "missing" };
 }

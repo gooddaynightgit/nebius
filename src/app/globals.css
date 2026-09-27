@@ -4210,13 +4210,30 @@ body:has(.guide-page) {
 }
 
 .paid-page {
-  padding-bottom: calc(2.75rem + 48px + 2rem + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1.5rem 1rem 2rem;
 }
 
-.paid-page .paid-weave {
+.paid-card {
+  width: 100%;
+}
+
+.paid-open {
   position: relative;
   z-index: 1;
-  margin: 1.35rem 0 0;
+  display: inline-block;
+  margin-top: 1.35rem;
+  color: var(--navy);
+  font-size: 0.95rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.paid-open:hover {
+  color: var(--navy);
 }
 
 .paid-confirming {
