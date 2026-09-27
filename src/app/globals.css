@@ -2533,7 +2533,7 @@ body:has(.step-pin) .share-pin {
   opacity: 1;
 }
 
-body:has(.story-opening) .step-forward__label {
+body:has(.story-opening) .step-forward:has(.step-forward-arrow:disabled) .step-forward__label {
   color: #e4ebf1;
 }
 
