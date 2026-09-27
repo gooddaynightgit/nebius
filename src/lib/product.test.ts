@@ -934,7 +934,8 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/uploadPhotoDestination/);
     expect(joy).toMatch(/if \(!selectedJoy\)/);
     expect(joy).toMatch(/setJoyMissed\(true\)/);
-    expect(joy).toMatch(/className="step-next step-pin"/);
+    expect(joy).not.toMatch(/step-pin/);
+    expect(joy).toMatch(/useRegisterStepForward/);
     expect(joy).not.toMatch(/disabled=\{!selectedJoy\}/);
     expect(joy).not.toMatch(/tone="soft"/);
     expect(joy).toMatch(/LANDING\.app\.joyNeed/);
@@ -1109,7 +1110,8 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/id="joy-pick"/);
     expect(src).toMatch(/id="caption-box" className="card card--lavender card--compact"/);
     expect(src).toMatch(/card card--aqua card--compact/);
-    expect(src).toMatch(/btn btn--turn step-pin/);
+    expect(src).toMatch(/className="visually-hidden" type="submit"/);
+    expect(src).not.toMatch(/step-pin/);
     expect(src).toMatch(/Weave my good moment/);
     expect(src).toMatch(/Weaving your good moment…/);
     expect(src).not.toMatch(/Turn my moment/);

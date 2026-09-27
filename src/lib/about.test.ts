@@ -72,26 +72,20 @@ describe("about the maker", () => {
     expect(footer).toContain('href="/about"');
     expect(footer).toContain("LANDING.footer.about");
     expect(footer).toContain('className="site-footer__about"');
-    expect(footer).toContain("<BackToStart");
+    expect(footer).toContain("<StepFloat");
     expect(footer).toContain('pathname !== "/"');
-    const back = read("src/components/BackToStart.tsx");
+    const back = read("src/components/step-forward.tsx");
     expect(back).toContain('aria-label="Back to start"');
     expect(back).toContain('href="/"');
-    expect(back).toContain('className="step-back-arrow"');
-    expect(read("src/app/page.tsx")).not.toContain("BackToStart");
+    expect(back).toContain('className="step-float__back"');
+    expect(read("src/app/page.tsx")).not.toContain("StepFloat");
     expect(styles).toMatch(/\.site-footer__about[\s\S]*min-height:\s*44px/);
     expect(styles).toMatch(/\.site-footer--moments\s*\{[^}]*z-index:\s*1/);
-    expect(styles).toMatch(/body:has\(\.story-opening\) \.step-arrows\s*\{[^}]*z-index:\s*26/);
-    expect(styles).toMatch(/\.step-forward__label\s*\{[^}]*color:\s*var\(--navy\)/);
-    expect(styles).toMatch(
-      /\.step-forward:has\(\.step-forward-arrow:disabled\) \.step-forward__label\s*\{[^}]*color:\s*var\(--muted\)/,
-    );
-    expect(styles).toMatch(
-      /body:has\(\.story-opening\) \.step-forward:has\(\.step-forward-arrow:disabled\) \.step-forward__label\s*\{[^}]*color:\s*#e4ebf1/,
-    );
-    expect(footer).toContain("<ForwardStep");
+    expect(styles).toMatch(/\.step-float\s*\{[^}]*background:\s*var\(--navy\)/);
+    expect(styles).toMatch(/\.step-float\s*\{[^}]*color:\s*var\(--lime\)/);
+    expect(styles).toMatch(/\.step-float__next:disabled\s*\{[^}]*color:\s*#c5d0da/);
     expect(footer).toContain("stepPageShowsForward");
-    expect(read("src/components/step-forward.tsx")).toContain('className="step-forward-arrow"');
+    expect(read("src/components/step-forward.tsx")).toContain('className="step-float__next"');
     expect(read("src/components/step-forward.tsx")).toContain('"/app/joy"');
     expect(read("src/components/step-forward.tsx")).not.toContain('"/about"');
     expect(read("src/components/step-forward.tsx")).not.toContain('"/signin"');

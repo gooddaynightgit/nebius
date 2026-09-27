@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { normalizeJourneyPath } from "@/lib/journey";
 
@@ -58,32 +59,49 @@ export function useRegisterStepForward(action: StepForward | null) {
   }, [active, enabled, label, set]);
 }
 
-export function ForwardStep({ action }: { action: StepForward }) {
+function ArrowIcon({ direction }: { direction: "back" | "forward" }) {
+  const d = direction === "back" ? "M19 12H6M11 6 5 12l6 6" : "M5 12h13M13 6l6 6-6 6";
   return (
-    <div className="step-forward">
-      <span className="step-forward__label" aria-hidden="true">
-        {action.label}
-      </span>
-      <button
-        className="step-forward-arrow"
-        type="button"
-        disabled={!action.enabled}
-        aria-label={action.label}
-        onClick={() => {
-          if (action.enabled) action.run();
-        }}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M5 12h13M13 6l6 6-6 6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-    </div>
+    <svg className="step-float__icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** One navy pill: back to the landing page, and the next step when this page has one. */
+export function StepFloat({
+  action,
+  showForward,
+}: {
+  action: StepForward | null;
+  showForward: boolean;
+}) {
+  return (
+    <nav className="step-float" aria-label="Steps">
+      <Link className="step-float__back" href="/" aria-label="Back to start">
+        <ArrowIcon direction="back" />
+      </Link>
+      {showForward && action ? (
+        <button
+          className="step-float__next"
+          type="button"
+          disabled={!action.enabled}
+          aria-label={action.label}
+          onClick={() => {
+            if (action.enabled) action.run();
+          }}
+        >
+          <span className="step-float__label">{action.label}</span>
+          <ArrowIcon direction="forward" />
+        </button>
+      ) : null}
+    </nav>
   );
 }

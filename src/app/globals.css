@@ -46,6 +46,14 @@ body:has(.step-pin):has(.share-pin) {
   padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.55rem + 5.25rem);
 }
 
+body:has(.step-float) {
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 3.5rem);
+}
+
+body:has(.step-float):has(.share-pin) {
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 44px + 0.45rem + 5.5rem);
+}
+
 img,
 svg {
   display: block;
@@ -2066,6 +2074,10 @@ body:has(.step-pin) .share-pin {
   bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.55rem);
 }
 
+body:has(.step-float) .share-pin {
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 44px + 0.45rem);
+}
+
 .share-pin__copy {
   display: flex;
   flex-direction: column;
@@ -2121,6 +2133,108 @@ body:has(.step-pin) .share-pin {
 
 .card--aqua:has(> .step-pin) {
   display: contents;
+}
+
+.step-float {
+  position: fixed;
+  z-index: 44;
+  right: max(0.7rem, env(safe-area-inset-right));
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem);
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  max-width: calc(100vw - 1.4rem - env(safe-area-inset-left) - env(safe-area-inset-right));
+  margin: 0;
+  padding: 0 0.2rem 0 0;
+  border-radius: 999px;
+  background: var(--navy);
+  color: var(--lime);
+  box-shadow: 0 8px 18px rgba(18, 40, 64, 0.28);
+}
+
+.step-float__back,
+.step-float__next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--lime);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.step-float__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.step-float__next {
+  gap: 0.35rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.35rem 0.7rem 0.35rem 0.15rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.step-float__label {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.step-float__icon {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+}
+
+.step-float__next:disabled {
+  color: #c5d0da;
+  cursor: not-allowed;
+}
+
+.step-float__back:hover,
+.step-float__next:hover:not(:disabled) {
+  color: #eaff6a;
+}
+
+.step-float__back:focus-visible,
+.step-float__next:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 2px;
+}
+
+.site-footer a.step-float__back,
+.site-footer a.step-float__back:hover,
+.about-page .site-footer a.step-float__back,
+.about-page .site-footer a.step-float__back:hover {
+  color: var(--lime);
+  text-shadow: none;
+  background: transparent;
+}
+
+.about-page .step-float {
+  background: var(--navy);
+  color: var(--lime);
+}
+
+.about-page .step-float__next:disabled {
+  color: #c5d0da;
 }
 
 .account-menu__icon {
