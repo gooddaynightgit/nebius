@@ -4,10 +4,13 @@ import ExpireSavedMoments from "@/components/ExpireSavedMoments";
 import MomentsCheckout from "@/components/MomentsCheckout";
 import SiteFooter from "@/components/SiteFooter";
 import { isPersonalPhotoSession } from "@/lib/session";
+import { SITE_TITLE } from "@/lib/site-title";
 
 export const metadata: Metadata = {
-  title: "My new joy moments — GoodDayNight",
+  title: SITE_TITLE,
   description: "Unlock 25 good moments weaved for R130 ZAR / $7.99.",
+  openGraph: { title: SITE_TITLE },
+  twitter: { title: SITE_TITLE },
 };
 
 export const dynamic = "force-dynamic";

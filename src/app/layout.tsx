@@ -5,6 +5,7 @@ import FeedbackRibbon from "@/components/FeedbackRibbon";
 import JourneyProgress from "@/components/JourneyProgress";
 import { JourneyProvider } from "@/components/journey-gate";
 import { StepForwardProvider } from "@/components/step-forward";
+import { SITE_TITLE } from "@/lib/site-title";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GoodDayNight — Hear your story",
+  title: SITE_TITLE,
   description:
     "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
   metadataBase: new URL("https://gooddaynight.com"),
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://gooddaynight.com/",
-    title: "GoodDayNight — Hear your story",
+    title: SITE_TITLE,
     description:
       "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
     locale: "en_US",
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "GoodDayNight — Hear your story",
+    title: SITE_TITLE,
     description:
       "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
   },
