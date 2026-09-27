@@ -4128,3 +4128,68 @@ body:has(.moments-page) {
 .kind-words__action {
   margin-top: 0.7rem;
 }
+
+.guide-page .card h1 {
+  text-wrap: balance;
+}
+
+.guide-page .card__body {
+  white-space: pre-line;
+}
+
+.guide-cta {
+  display: flex;
+  justify-content: center;
+  margin: 1.15rem 0 0.4rem;
+}
+
+.guide-cta .step-next {
+  margin-left: 0;
+}
+
+.guide-story.card--lavender {
+  color: hsl(223, 90%, 92%);
+  background-color: hsl(223, 42%, 18%);
+  background-image: none;
+  border: 1px solid rgba(212, 255, 0, 0.35);
+}
+
+.guide-story.card--lavender::before {
+  content: none;
+}
+
+.guide-story .weaved-story,
+.guide-story .card__body {
+  max-width: none;
+  margin-top: 0.7rem;
+  color: hsl(223, 90%, 92%);
+  white-space: pre-wrap;
+}
+
+.guide-story .weaved-affirmation {
+  color: #d4ff00;
+  font-style: italic;
+  font-weight: 650;
+}
+
+.guide-review {
+  margin: 0.85rem 0 0;
+}
+
+.guide-review p {
+  margin: 0.35rem 0 0;
+}
+
+.guide-review__by {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.guide-faq h2 {
+  margin: 1.15rem 0 0.35rem;
+  font-size: clamp(1.15rem, 4.8vw, 1.4rem);
+}
+
+.guide-faq h2:first-of-type {
+  margin-top: 0.2rem;
+}
