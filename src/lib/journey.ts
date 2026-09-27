@@ -77,6 +77,16 @@ export function journeyFillPercent(step: number): number {
 }
 
 /**
+ * Label of the step after `step`, or null on the last step and after it.
+ * Pick your joy points at the pinned button, "Unlock/Capture".
+ */
+export function journeyNextLabel(step: number): string | null {
+  if (!Number.isInteger(step) || step < 1 || step >= JOURNEY_STEPS.length) return null;
+  if (step === 2) return "Unlock/Capture";
+  return JOURNEY_STEPS[step].label;
+}
+
+/**
  * Page for each 1-based step. Unlock opens the price screen; a signed-out visit
  * is sent on to email sign-in by that page. Capture, the good question, and the
  * weave button share `/app` and only change which part is on screen.

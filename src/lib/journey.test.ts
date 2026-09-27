@@ -7,6 +7,7 @@ import {
   journeyBackHref,
   journeyClickableSteps,
   journeyFillPercent,
+  journeyNextLabel,
   journeyStateAfterBack,
   journeyStep,
   restoredJoyId,
@@ -79,6 +80,27 @@ describe("journey progress", () => {
     expect(journeyFillPercent(6)).toBe((5 / 6) * 100);
     expect(journeyFillPercent(7)).toBe(100);
     expect(journeyFillPercent(8)).toBe(100);
+  });
+
+  it("points at the next step label and stops on the final step", () => {
+    expect(journeyNextLabel(1)).toBe("Pick your joy");
+    expect(journeyNextLabel(2)).toBe("Unlock/Capture");
+    expect(journeyNextLabel(3)).toBe("Capture it");
+    expect(journeyNextLabel(4)).toBe("What is the good in this moment?");
+    expect(journeyNextLabel(5)).toBe("Weave my good moment");
+    expect(journeyNextLabel(6)).toBe(JOURNEY_FINISHED_CAPTION);
+    expect(journeyNextLabel(7)).toBeNull();
+    expect(journeyNextLabel(8)).toBeNull();
+    expect(journeyNextLabel(0)).toBeNull();
+    const bar = readFileSync(path.resolve("src/components/JourneyProgress.tsx"), "utf8");
+    const css = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(bar).toMatch(/journeyNextLabel\(step\)/);
+    expect(bar).toMatch(/className="journey__arrow"/);
+    expect(bar).toMatch(/className="journey__next-label"/);
+    expect(bar).toMatch(/normalizeJourneyPath\(pathname\) === "\/"\) return null;/);
+    expect(css).toMatch(/\.journey__next\s*\{[^}]*color:\s*var\(--lime\);/);
+    expect(css).toMatch(/\.journey__arrow\s*\{[^}]*flex:\s*0 0 auto;/);
+    expect(css).toMatch(/\.journey__next-label\s*\{[^}]*overflow-wrap:\s*anywhere;/);
   });
 
   it("spaces seven dots and paints only the finished story card", () => {
