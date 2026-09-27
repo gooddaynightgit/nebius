@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { accountMenuItems } from "@/lib/account-menu";
+import { isGuidePath } from "@/lib/guide-pages";
 
 type AuthState = { signedIn: boolean; email: string | null };
 
@@ -22,6 +24,7 @@ function MenuIcon() {
 
 export default function AccountMenu() {
   const panelId = useId();
+  const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -80,7 +83,7 @@ export default function AccountMenu() {
   const items = accountMenuItems({
     signedIn: Boolean(auth?.signedIn),
     email: auth?.email,
-  });
+  }).filter((item) => !(isGuidePath(pathname) && item.kind === "link" && item.href === "/about"));
 
   return (
     <div className="account-menu" ref={rootRef}>
