@@ -15,6 +15,7 @@ import ReviewsPage, { metadata as reviewsMeta } from "@/app/reviews/page";
 import {
   EXAMPLE_CLOSING,
   EXAMPLE_NOTE,
+  EXAMPLE_PHOTO,
   EXAMPLE_STORY,
   FAQ,
   GUIDE_FORBIDDEN,
@@ -69,10 +70,22 @@ describe("seven guide pages", () => {
     expect(STEP_LABEL.start).toBe("Weave your good moment");
   });
 
-  it("uses the chocolate keep-card story and the product closing line", () => {
-    expect(EXAMPLE_STORY).toBe("Today, I kept the chocolate.");
-    expect(EXAMPLE_CLOSING).toBe(KEEPSAKE_CLOSING_LINES[1]);
-    expect(EXAMPLE_CLOSING).toBe("I treasure this moment. It's radiant \u2013 the wonder and delight of being.");
+  it("uses Jasmine’s woven chocolate story, photo, and product closing line", () => {
+    expect(EXAMPLE_STORY).toBe(
+      "I held the chocolate in my palm, warm from the sun, the first sweetness of the day already half-dreamed. This quiet gift, eaten before the world stirs, becomes a golden thread in the story of my days. A moment like this makes the whole morning luminous. Radiant.",
+    );
+    expect(EXAMPLE_STORY).not.toMatch(GUIDE_FORBIDDEN);
+    expect(EXAMPLE_CLOSING).toBe(KEEPSAKE_CLOSING_LINES[4]);
+    expect(EXAMPLE_CLOSING).toBe("I hold this moment close. It's lovely \u2013 the wonder and joy of being.");
+    expect(EXAMPLE_CLOSING).not.toMatch(GUIDE_FORBIDDEN);
+    const html = renderToStaticMarkup(createElement(ExamplePage));
+    expect(html).toContain(EXAMPLE_STORY);
+    expect(html).toContain(EXAMPLE_CLOSING);
+    expect(html).toContain(EXAMPLE_NOTE);
+    expect(html).toContain(`src="${EXAMPLE_PHOTO}"`);
+    expect(html).toContain("weaved-affirmation");
+    expect(html).not.toMatch(/play|listen/i);
+    expect(html).not.toMatch(GUIDE_FORBIDDEN);
   });
 
   it("keeps only the real tester lines that are free of the forbidden words", () => {
@@ -125,6 +138,14 @@ describe("seven guide pages", () => {
     for (const page of GUIDE_PAGES) {
       expect(sitemap).toContain(`https://gooddaynight.com${page.path}`);
     }
+  });
+
+  it("hides the scrolling testimonial strip on these paths", () => {
+    const ribbon = readFileSync(path.resolve("src/components/FeedbackRibbon.tsx"), "utf8");
+    expect(ribbon).toMatch(/isGuidePath\(pathname\)/);
+    expect(ribbon).toMatch(/return null/);
+    const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(styles).toMatch(/body:has\(\.guide-page\)\s*\{[^}]*padding-bottom:/);
   });
 
   it("hides the about link on these paths and leaves it on the rest of the site", () => {

@@ -4147,11 +4147,22 @@ body:has(.moments-page) {
   margin-left: 0;
 }
 
+body:has(.guide-page) {
+  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 1.35rem);
+}
+
 .guide-story.card--lavender {
   color: hsl(223, 90%, 92%);
   background-color: hsl(223, 42%, 18%);
   background-image: none;
   border: 1px solid rgba(212, 255, 0, 0.35);
+}
+
+.guide-story .keep-card-view {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 1rem;
+  max-height: 14rem;
+  object-fit: cover;
 }
 
 .guide-story.card--lavender::before {

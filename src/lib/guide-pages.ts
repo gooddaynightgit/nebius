@@ -9,14 +9,12 @@ export const GUIDE_FORBIDDEN = /sleep|bedtime|voice|r16|about the maker/i;
 
 export const PRICE_MARKERS = ["$7.99", "R130"] as const;
 
-/**
- * Chocolate line from the keep-card fixture in src/lib/keep-card.test.ts.
- * Closing line is the product’s second keepsake close, the same line that fixture pairs with it.
- * No moment photo for this story exists in the repo.
- */
-export const EXAMPLE_STORY = "Today, I kept the chocolate.";
-export const EXAMPLE_CLOSING = KEEPSAKE_CLOSING_LINES[1];
+/** Jasmine’s woven chocolate story from the landing demo, with its keepsake close. */
+export const EXAMPLE_STORY =
+  "I held the chocolate in my palm, warm from the sun, the first sweetness of the day already half-dreamed. This quiet gift, eaten before the world stirs, becomes a golden thread in the story of my days. A moment like this makes the whole morning luminous. Radiant.";
+export const EXAMPLE_CLOSING = KEEPSAKE_CLOSING_LINES[4];
 export const EXAMPLE_NOTE = "This is not a gratitude list. It is one thing that happened.";
+export const EXAMPLE_PHOTO = "/example-chocolate.jpg";
 
 export function guideReviewLines() {
   return FEEDBACK_LINES.filter((line) => !GUIDE_FORBIDDEN.test(`${line.quote}\n${line.attribution}`));
