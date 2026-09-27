@@ -44,7 +44,7 @@ describe("public review display", () => {
     expect(newest.at(-1)?.id).toBe("review_2");
   });
 
-  it("places Kind words under the landing demo and above the review form", () => {
+  it("places Kind reviews under the landing demo and above the review form", () => {
     const landing = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
     const review = readFileSync(path.resolve("src/app/review/page.tsx"), "utf8");
     expect(landing.indexOf('className="landing-demo"')).toBeLessThan(landing.indexOf("<KindWords"));
@@ -52,7 +52,14 @@ describe("public review display", () => {
     expect(landing).toMatch(/limit=\{KIND_WORDS_LIMIT\}/);
     expect(landing).toMatch(/showLink/);
     expect(review.indexOf("<KindWords")).toBeLessThan(review.indexOf("<ReviewForm"));
-    expect(KIND_WORDS_HEADING).toBe("Kind words");
+    expect(KIND_WORDS_HEADING).toBe("Kind reviews");
+    const words = readFileSync(path.resolve("src/components/KindWords.tsx"), "utf8");
+    expect(words).toMatch(/aria-expanded=\{open\}/);
+    expect(words).toMatch(/aria-controls=\{panelId\}/);
+    expect(words).toMatch(/useState\(false\)/);
+    expect(words).toMatch(/Leave a review/);
+    const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
+    expect(styles).toMatch(/url\("\/reviews-bg\.jpg"\)/);
     expect(REVIEW_FRIEND).toBe("A GoodDayNight friend");
   });
 });

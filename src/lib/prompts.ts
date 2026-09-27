@@ -24,7 +24,7 @@ export {
   usesCannedPlayback,
 } from "./app-story";
 
-export const WARM_WORDS_ONLY = `Every word must be warm, positive, and affirming. Never imply wrongdoing, guilt, stealing, indulgence as a sin, lack, sadness, flaws, or anything negative, even playfully. No sweet theft, guilty pleasure, stolen moment, sinful, or imperfect. Describe the moment as a gift received, savoured, or cherished. In the story itself, leave dark and grey unsaid; a night sky can stay quiet, bright, and full of stars. Private solitude is welcome when the moment is mine; lonely is not.`;
+export const WARM_WORDS_ONLY = `Every word must be warm, positive, and affirming, and uplifting. Prefer words such as beautiful, heavenly, blissful, euphoric, radiant, luminous, tender, and golden. Moments are gifts received and cherished. Never use a negative or edgy word, even a playful one. Banned examples: rebellion, rebellious, rebel, defiance, defiant, theft, stolen, steal, sneak, guilty, guilt, indulgence, indulgent, sin, sinful, naughty, forbidden, escape, imperfect, ordinary, mundane, unremarkable, nothing special, unshared, lonely, alone, quiet rebellion, sweet theft. Never imply wrongdoing, guilt, stealing, indulgence as a sin, lack, sadness, flaws, or anything negative. Describe the moment as a gift received, savoured, or cherished. In the story itself, leave dark and grey unsaid; a night sky can stay quiet, bright, and full of stars. Private solitude is welcome when the moment is mine; lonely and alone are not.`;
 
 export const PRECIOUS_MOMENT_CRAFT = `The moment is precious and worth keeping. Write it warm and uplifting. Never diminish or downplay the moment. First person only (I, my, me). Never address the reader as you. Never use unremarkable, ordinary, mundane, nothing special, insignificant, plain, boring, or just a. Never use simple to dismiss the moment, or small or little to belittle it.
 
@@ -82,7 +82,7 @@ Craft (every story):
 
 Voice: say the feeling straight and warm. Affirm what is present (warmth, presence, soft light, a kept find). Prefer presence over emptiness; noticing and keeping over tasks or self-improvement worksheets.
 
-Feeling, separate from length: intimate and private, this moment mine alone and kept for myself, not for show. Name the concrete thing they gave. Poetic in plain, clear words. No piled-up clichés. The close may hold the moment woven into the tapestry of my life. Stay 180–280 words.
+Feeling, separate from length: intimate and private, this moment all mine and kept for myself, not for show. Name the concrete thing they gave. Poetic in plain, clear words. No piled-up clichés. The close may hold the moment woven into the tapestry of my life. Stay 180–280 words.
 
 ${PRECIOUS_MOMENT_CRAFT}`;
 
@@ -124,7 +124,7 @@ The six joy categories: Morning sunlight / A hello / One thing done slowly / A l
 
 Write a profoundly poetic keepsake in plain, clear words. 3 to 4 short sentences. Three short sentences, about 25 words, is the ideal length. About 25 to 45 words, and under 70 words. A standalone closing word is optional. No piled-up clichés.
 
-1. Open warm and first-person — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, I…" / "I…" / "Yes, I…". The paragraph is the user's own voice. Never write you, your, yours, or yourself. Intimate and private: this moment is mine alone, kept for myself, not for show. A life without social media can sit in the feeling, but do not force the phrase "no social media" every time.
+1. Open warm and first-person — NOT with Whoa/Oooh/Wow/Gosh/Stunning spark words (those belong only at photo excavate). Start like a keepsake: "Today, I…" / "I…" / "Yes, I…". The paragraph is the user's own voice. Never write you, your, yours, or yourself. Intimate and private: this moment is all mine, kept for myself, not for show. A life without social media can sit in the feeling, but do not force the phrase "no social media" every time.
 
 2. Name the concrete thing from the photo and from what they typed. Weave the mood of their joy with that fact, elevated but never distorted. When a picture or their words are present, both belong in the keepsake. Their answer is the heart. Honor it. The joy sets the mood and the theme only — it is not a substitute for the scene.
 
@@ -139,14 +139,14 @@ Never write a story that only restates the joy and could belong to any photo. If
 Primary style references — tone guides. Rotate among these six shapes so each story varies in structure. Do not copy any of them verbatim. Always name the concrete subject from the photo and from what they typed, such as the chocolate or the nest. A story that only says "golden hour" and never names that subject has missed. Every story includes its own weaving line.
 "Off the grid, out of the scroll, just this golden hour and I. A good moment, woven quietly into the fabric of my life. This is what it means to be alive."
 "Unplugged from everything, wrapped in a moment that's entirely mine. Another bright thread weaved into my days. Life, at its most radiant."
-"The world can wait. Right now there's only this, my own quiet joy, unshared and perfect. Good moments like these are what a life is woven from."
+"The world can wait. Right now there's only this, my own quiet joy, cherished and perfect. Good moments like these are what a life is woven from."
 "Nothing to post, nothing to prove. Just a soul soaking in its own beautiful now, one more golden strand in the tapestry. And suddenly, everything feels golden."
 "Disconnected from the noise, connected to this breath, this light, this feeling. Weaving each good moment into something everlasting. Moments like these make life luminous."
-"Just me and this memory, mine alone, gently weaved into the story of my days. These are the threads that make the whole thing beautiful."
+"Just me and this memory, all mine, gently weaved into the story of my days. These are the threads that make the whole thing beautiful."
 
 Secondary style references, also not to be copied verbatim:
 "No social media, I am left with my own good memory all to myself. Just me with this wonderful moment. Makes my life worth living, worth woven into this beautiful tapestry of my life. Brilliant."
-"No feeds, no noise, just me and this moment, held close. My own memory, mine alone. Moments like these make life worth weaving."
+"No feeds, no noise, just me and this moment, held close. My own memory, all mine. Moments like these make life worth weaving."
 
 Tone: warm, intimate, quietly devoted — here be sure, not surprised. No therapy-speak. No emojis. Never mention the app, the AI, or the process.
 

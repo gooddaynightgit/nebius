@@ -8,7 +8,7 @@ import {
 } from "./diminish";
 
 describe("diminishing phrase filter", () => {
-  it("lists the banned phrases and leaves dark, grey, and alone off the hard filter", () => {
+  it("lists the banned phrases and leaves dark and grey off the hard filter", () => {
     expect(DIMINISHING_PHRASES).toEqual(
       expect.arrayContaining([
         "unremarkable",
@@ -19,14 +19,38 @@ describe("diminishing phrase filter", () => {
         "boring",
         "theft",
         "stolen",
+        "steal",
+        "sneak",
+        "guilty",
+        "guilt",
+        "indulgence",
+        "indulgent",
+        "sin",
+        "sinful",
+        "naughty",
+        "forbidden",
+        "escape",
         "imperfect",
+        "unshared",
+        "lonely",
+        "alone",
+        "rebellion",
+        "rebellious",
+        "rebel",
+        "defiance",
+        "defiant",
+        "quiet rebellion",
+        "sweet theft",
         "sadness",
         "failure",
       ]),
     );
-    expect(DIMINISHING_PHRASES).not.toEqual(expect.arrayContaining(["dark", "grey", "alone"]));
+    expect(DIMINISHING_PHRASES).not.toEqual(expect.arrayContaining(["dark", "grey"]));
     expect(hasDiminishingPhrase("mine alone under a grey sky, full of darkness and stars")).toBe(
-      false,
+      true,
+    );
+    expect(stripDiminishingPhrases("mine alone under a grey sky, full of darkness and stars")).toBe(
+      "mine cherished under a grey sky, full of darkness and stars",
     );
     expect(hasDiminishingPhrase("Remarkable me kept an Extraordinary hour")).toBe(false);
     expect(hasDiminishingPhrase("a flawless sincere morning")).toBe(false);
@@ -53,10 +77,10 @@ describe("diminishing phrase filter", () => {
     );
   });
 
-  it("regenerates once, then scrubs whatever is still banned", async () => {
+  it("regenerates up to twice, then scrubs whatever is still banned", async () => {
     const regenerate = vi.fn(async () => "Still perfectly unremarkable, still mine.");
     const kept = await settleDiminishingText("a mundane morning", regenerate);
-    expect(regenerate).toHaveBeenCalledTimes(1);
+    expect(regenerate).toHaveBeenCalledTimes(2);
     expect(kept).toBe("Still perfectly mine, still mine.");
     expect(hasDiminishingPhrase(kept)).toBe(false);
   });
@@ -121,22 +145,59 @@ describe("diminishing phrase filter", () => {
     expect(hasDiminishingPhrase(close)).toBe(false);
   });
 
-  it("regenerates once when a theft remains, then replaces it", async () => {
+  it("regenerates twice when a theft remains, then replaces it", async () => {
     const regenerate = vi.fn(async () => "A small, sweet theft woven into the story of my mornings.");
     const kept = await settleDiminishingText(
       "A small, sweet theft woven into the story of my mornings.",
       regenerate,
     );
-    expect(regenerate).toHaveBeenCalledTimes(1);
+    expect(regenerate).toHaveBeenCalledTimes(2);
     expect(kept).toBe("A small, sweet gift woven into the story of my mornings.");
     expect(hasDiminishingPhrase(kept)).toBe(false);
   });
 
-  it("scrubs the first draft when the regenerate fails", async () => {
+  it("scrubs the first draft when both regenerates fail", async () => {
     const regenerate = vi.fn(async () => {
       throw new Error("offline");
     });
     expect(await settleDiminishingText("perfectly unremarkable", regenerate)).toBe("perfectly mine");
-    expect(regenerate).toHaveBeenCalledTimes(1);
+    expect(regenerate).toHaveBeenCalledTimes(2);
+  });
+
+  it("turns edgy wording into a warm gift and leaves a clean story untouched", () => {
+    expect(
+      stripDiminishingPhrases("This quiet rebellion, this sweetness, becomes part of my story."),
+    ).toBe("This tender joy, this sweetness, becomes part of my story.");
+    expect(
+      stripDiminishingPhrases(
+        "A small, sweet theft of stolen chocolate felt like a guilty indulgence.",
+      ),
+    ).toBe("A small, sweet gift of gifted chocolate felt like a glad delight.");
+    const clean =
+      "Today, I kept the golden chocolate, a beautiful gift woven into the tapestry of my life. Radiant, tender, and luminous.";
+    expect(hasDiminishingPhrase(clean)).toBe(false);
+    expect(stripDiminishingPhrases(clean)).toBe(clean);
+    for (const word of ["rebellion", "rebellious", "rebel", "defiance", "defiant", "escape", "unshared", "alone", "indulgent"]) {
+      expect(hasDiminishingPhrase(`I kept the ${word} light`)).toBe(true);
+      expect(hasDiminishingPhrase(stripDiminishingPhrases(`I kept the ${word} light`))).toBe(false);
+    }
+  });
+
+  it("keeps the second warm rewrite and does not ask a third time", async () => {
+    const regenerate = vi
+      .fn()
+      .mockResolvedValueOnce("This quiet rebellion stays.")
+      .mockResolvedValueOnce(
+        "Today, I kept the golden chocolate, a beautiful gift woven into the tapestry of my life.",
+      );
+    const kept = await settleDiminishingText(
+      "This quiet rebellion, this sweetness, becomes part of my story.",
+      regenerate,
+    );
+    expect(regenerate).toHaveBeenCalledTimes(2);
+    expect(kept).toBe(
+      "Today, I kept the golden chocolate, a beautiful gift woven into the tapestry of my life.",
+    );
+    expect(hasDiminishingPhrase(kept)).toBe(false);
   });
 });

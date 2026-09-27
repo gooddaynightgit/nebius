@@ -13,6 +13,6 @@ export const REVIEW_COMMENT_MAX = 1000;
 export const REVIEW_NAME_MAX = 80;
 export const REVIEW_FRIEND = "A GoodDayNight friend";
 export const ADMIN_TOKEN_HINT = "Set ADMIN_TOKEN to open this page.";
-export const KIND_WORDS_HEADING = "Kind words";
+export const KIND_WORDS_HEADING = "Kind reviews";
 export const REVIEW_HIDDEN = "This review is hidden.";
 export const KIND_WORDS_LIMIT = 6;
