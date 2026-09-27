@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { KEEPSAKE_CLOSING_LINES } from "./affirmation";
 import { FEEDBACK_LINES } from "./feedback";
+import { SITE_TITLE } from "./site-title";
 
 /** Same destination as the landing “Weave your good moment” button. */
 export const WEAVE_HREF = "/app/joy";
@@ -80,17 +81,16 @@ export function isGuidePath(pathname: string | null): boolean {
 export function guideMetadata(path: GuidePath): Metadata {
   const page = GUIDE_PAGES.find((item) => item.path === path);
   if (!page) throw new Error(`Unknown guide page ${path}`);
-  const title = `${page.headline} — GoodDayNight`;
   return {
-    title,
+    title: SITE_TITLE,
     description: page.description,
     openGraph: {
-      title,
+      title: SITE_TITLE,
       description: page.description,
       url: `https://gooddaynight.com${page.path}`,
     },
     twitter: {
-      title,
+      title: SITE_TITLE,
       description: page.description,
     },
   };
