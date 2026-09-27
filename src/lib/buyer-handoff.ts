@@ -58,7 +58,7 @@ export function openBuyerHandoff(
 /**
  * PayFast sends the buyer back in a browser that may not have the session cookie.
  * The return URL is `/paid` plus the order ref and a short-lived signed handoff, not the email.
- * Without a signing secret, `/paid` still receives the ref and asks for the session again.
+ * Without a signing secret the return still names `/paid`, and that page stays closed.
  */
 const RETURN_REF_RE = /^[A-Za-z0-9_-]{1,80}$/;
 

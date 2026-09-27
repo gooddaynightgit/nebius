@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import { paidViewForBuyer } from "@/lib/paid-return";
-import { readGateEmail, readOtpSession } from "@/lib/session";
+import { paidViewForHandoff } from "@/lib/paid-return";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Server re-check for the return page. The ref selects a stored order. It is not proof of payment. */
+/** Re-check for the return page. The handoff must match the stored order. The ref is not proof. */
 export async function GET(request: Request) {
-  const ref = new URL(request.url).searchParams.get("ref");
-  const otp = await readOtpSession();
-  const gate = await readGateEmail();
-  const email = otp && gate && otp.email === gate ? otp.email : null;
-  const status = await paidViewForBuyer(email, ref);
-  return NextResponse.json({ status }, { headers: { "Cache-Control": "no-store" } });
+  const url = new URL(request.url);
+  const status = await paidViewForHandoff(url.searchParams.get("ref"), url.searchParams.get("handoff"));
+  const httpStatus = status === "absent" ? 404 : 200;
+  return NextResponse.json({ status }, { status: httpStatus, headers: { "Cache-Control": "no-store" } });
 }

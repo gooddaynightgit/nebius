@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { FEEDBACK_LINES } from "@/lib/feedback";
 import { isGuidePath } from "@/lib/guide-pages";
+import { isPaidPath } from "@/lib/paid-copy";
 
 function FeedbackLine({ quote, attribution }: { quote: string; attribution: string }) {
   return (
@@ -25,7 +26,7 @@ function FeedbackGroup({ hidden = false }: { hidden?: boolean }) {
 
 export default function FeedbackRibbon() {
   const pathname = usePathname();
-  if (isGuidePath(pathname)) return null;
+  if (isGuidePath(pathname) || isPaidPath(pathname)) return null;
   return (
     <aside className="feedback-ribbon" aria-label="Feedback">
       <div className="feedback-ribbon__track">

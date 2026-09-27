@@ -12,16 +12,17 @@ import {
   PACK_AMOUNT,
   pfEncode,
 } from "./payfast";
+import { authReturnDestination, sealBuyerHandoff } from "./buyer-handoff";
 import {
   PAID_SUCCESS_HEADING,
-  PAID_UNLOCK_HREF,
-  paidViewForBuyer,
+  paidViewForHandoff,
   rememberPayfastOrder,
   resolvePaidVisit,
 } from "./paid-return";
-import { authReturnDestination } from "./buyer-handoff";
 
 const EMAIL = "amy@example.com";
+const SECRET = "paid-test-secret";
+const NOW = 1_700_000_000;
 
 describe("paid return", () => {
   let dir: string;
@@ -32,6 +33,7 @@ describe("paid return", () => {
     process.env.PF_MERCHANT_ID = "10000100";
     process.env.PF_MERCHANT_KEY = "46f0cd694581a";
     process.env.PF_PASSPHRASE = "test-passphrase";
+    process.env.OTP_SESSION_SECRET = SECRET;
     delete process.env.BLOB_READ_WRITE_TOKEN;
     delete process.env.BLOB_STORE_ID;
     delete process.env.NEBIUS_S3_BUCKET;
@@ -43,36 +45,40 @@ describe("paid return", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("shows success only after a verified COMPLETE ITN for that buyer and order", async () => {
+  it("shows success only after a verified COMPLETE ITN for the signed handoff", async () => {
+    const token = sealBuyerHandoff(EMAIL, NOW, SECRET);
     await rememberPayfastOrder(EMAIL, "pay_done");
-    const pending = await resolvePaidVisit({ email: EMAIL, ref: "pay_done" });
-    expect(pending.kind).toBe("confirming");
+    expect(await resolvePaidVisit({ ref: "pay_done", handoff: token, nowSec: NOW })).toEqual({
+      kind: "confirming",
+      ref: "pay_done",
+      handoff: token,
+    });
 
     const result = await handlePayfastItn(itn("COMPLETE", "pay_done", "1089250"), async () => {
       return new Response("VALID", { status: 200 });
     });
     expect(result).toEqual({ status: 200, body: "OK" });
 
-    const outcome = await resolvePaidVisit({ email: EMAIL, ref: "pay_done" });
-    expect(outcome).toEqual({ kind: "success" });
-    expect(await paidViewForBuyer(EMAIL, "pay_done")).toBe("complete");
-    expect(await paidViewForBuyer("other@example.com", "pay_done")).toBe("absent");
-    expect(await resolvePaidVisit({ email: EMAIL, ref: "pay_done&status=COMPLETE" })).toEqual({
-      kind: "redirect",
-      href: PAID_UNLOCK_HREF,
-    });
+    expect(await resolvePaidVisit({ ref: "pay_done", handoff: token, nowSec: NOW })).toEqual({ kind: "success" });
+    expect(await paidViewForHandoff("pay_done", token, NOW)).toBe("complete");
+    expect(await paidViewForHandoff("pay_done", sealBuyerHandoff("other@example.com", NOW, SECRET), NOW)).toBe("absent");
+    expect(await resolvePaidVisit({ ref: "pay_done", handoff: null, nowSec: NOW })).toEqual({ kind: "missing" });
+    expect(PAID_SUCCESS_HEADING).toBe("You're in. 25 moments are yours.");
   });
 
-  it("keeps a remembered order pending until the ITN arrives", async () => {
+  it("keeps a signed order pending until the ITN arrives", async () => {
+    const token = sealBuyerHandoff(EMAIL, NOW, SECRET);
     await rememberPayfastOrder(EMAIL, "pay_wait");
-    expect(await resolvePaidVisit({ email: EMAIL, ref: "pay_wait" })).toEqual({
+    expect(await resolvePaidVisit({ ref: "pay_wait", handoff: token, nowSec: NOW })).toEqual({
       kind: "confirming",
       ref: "pay_wait",
+      handoff: token,
     });
-    expect(await paidViewForBuyer(EMAIL, "pay_wait")).toBe("pending");
+    expect(await paidViewForHandoff("pay_wait", token, NOW)).toBe("pending");
   });
 
-  it("redirects a cancelled payment and a visit with no payment", async () => {
+  it("hides a cancelled payment, a forged ref, and a visit with no token", async () => {
+    const token = sealBuyerHandoff(EMAIL, NOW, SECRET);
     await rememberPayfastOrder(EMAIL, "pay_stop");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
@@ -83,24 +89,10 @@ describe("paid return", () => {
     } finally {
       warn.mockRestore();
     }
-    expect(await paidViewForBuyer(EMAIL, "pay_stop")).toBe("absent");
-    expect(await resolvePaidVisit({ email: EMAIL, ref: "pay_stop" })).toEqual({
-      kind: "redirect",
-      href: PAID_UNLOCK_HREF,
-    });
-    expect(await resolvePaidVisit({ email: EMAIL, ref: null })).toEqual({
-      kind: "redirect",
-      href: PAID_UNLOCK_HREF,
-    });
-    expect(await resolvePaidVisit({ email: null, ref: "pay_done" })).toEqual({
-      kind: "redirect",
-      href: PAID_UNLOCK_HREF,
-    });
-    expect(await resolvePaidVisit({ email: EMAIL, ref: "pay_unknown" })).toEqual({
-      kind: "redirect",
-      href: PAID_UNLOCK_HREF,
-    });
-    expect(PAID_SUCCESS_HEADING).toBe("Your moments are unlocked");
+    expect(await resolvePaidVisit({ ref: "pay_stop", handoff: token, nowSec: NOW })).toEqual({ kind: "missing" });
+    expect(await resolvePaidVisit({ ref: null, handoff: null, nowSec: NOW })).toEqual({ kind: "missing" });
+    expect(await resolvePaidVisit({ ref: "pay_forged", handoff: token, nowSec: NOW })).toEqual({ kind: "missing" });
+    expect(await resolvePaidVisit({ ref: "pay_stop", handoff: `${token}x`, nowSec: NOW })).toEqual({ kind: "missing" });
   });
 
   it("sends the paid handoff back to /paid and older returns to the photo page", () => {

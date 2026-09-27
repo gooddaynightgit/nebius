@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { accountMenuItems } from "@/lib/account-menu";
 import { isGuidePath } from "@/lib/guide-pages";
+import { isPaidPath } from "@/lib/paid-copy";
 
 type AuthState = { signedIn: boolean; email: string | null };
 
@@ -32,6 +33,7 @@ export default function AccountMenu() {
   const [auth, setAuth] = useState<AuthState | null>(null);
 
   useEffect(() => {
+    if (isPaidPath(pathname)) return;
     let cancel = false;
     (async () => {
       try {
@@ -46,7 +48,7 @@ export default function AccountMenu() {
     return () => {
       cancel = true;
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -79,6 +81,8 @@ export default function AccountMenu() {
     const res = await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
     if (res.ok) window.location.assign("/");
   }
+
+  if (isPaidPath(pathname)) return null;
 
   const items = accountMenuItems({
     signedIn: Boolean(auth?.signedIn),
