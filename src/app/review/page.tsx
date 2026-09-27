@@ -5,11 +5,12 @@ import ReviewForm from "@/components/ReviewForm";
 import SiteFooter from "@/components/SiteFooter";
 import { listPublishedReviews } from "@/lib/review";
 import { readGateEmail, readOtpSession } from "@/lib/session";
+import { siteTitleMetadata } from "@/lib/site-title";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Leave a review — GoodDayNight",
+  ...siteTitleMetadata,
   description: "Leave a note about GoodDayNight. Kind four and five star words may be shared, first name only.",
 };
 

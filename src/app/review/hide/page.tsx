@@ -7,11 +7,12 @@ import { REVIEW_HIDDEN } from "@/lib/review-copy";
 import { openHideToken, readReview } from "@/lib/review";
 import { firstNameOnly } from "@/lib/review-public";
 import { otpSessionSecret } from "@/lib/otp-session";
+import { siteTitleMetadata } from "@/lib/site-title";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Hide this review — GoodDayNight",
+  ...siteTitleMetadata,
   robots: { index: false, follow: false },
 };
 

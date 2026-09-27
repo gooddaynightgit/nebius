@@ -4,8 +4,11 @@ import SiteFooter from "@/components/SiteFooter";
 import { STEP_LABEL } from "@/lib/journey";
 import { KIND_WORDS_LIMIT } from "@/lib/review-copy";
 import { listPublishedReviews } from "@/lib/review";
+import { siteTitleMetadata } from "@/lib/site-title";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = siteTitleMetadata;
 
 export default async function HomePage() {
   const reviews = await listPublishedReviews();

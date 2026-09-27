@@ -5,11 +5,12 @@ import SignInForm from "@/components/SignInForm";
 import SiteFooter from "@/components/SiteFooter";
 import { destinationForVerifiedEmail } from "@/lib/verified-destination";
 import { isPersonalPhotoSession, readGateEmail } from "@/lib/session";
+import { siteTitleMetadata } from "@/lib/site-title";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Your moment — GoodDayNight",
+  ...siteTitleMetadata,
   description: "Email a code to open your moments.",
 };
 

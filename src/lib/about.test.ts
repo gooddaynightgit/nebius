@@ -23,7 +23,8 @@ describe("about the maker", () => {
   it("keeps Jasmine Hassam’s page copy exact", () => {
     const page = read("src/app/about/page.tsx");
     expect(LANDING.about.title).toBe("About the maker — GoodDayNight");
-    expect(page).toContain("LANDING.about.title");
+    expect(page).toContain("siteTitleMetadata");
+    expect(page).not.toContain("LANDING.about.title");
     expect(page).toContain("LANDING.about.body");
     expect(page).toContain("LANDING.about.signature");
     expect(page).toContain('className="badge"');

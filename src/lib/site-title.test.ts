@@ -51,13 +51,19 @@ describe("site title", () => {
     expect(read("src/app/moments/page.tsx")).toContain("My new joy moments");
   });
 
-  it("leaves the home and weave pages on the layout title", () => {
-    for (const file of ["src/app/page.tsx", "src/app/app/page.tsx", "src/app/app/joy/page.tsx", "src/app/app/yours/page.tsx"]) {
-      const src = read(file);
-      expect(src).not.toMatch(/export const metadata/);
-      expect(src).not.toContain("document.title");
+  it("sets that title on every page, including sign-in, weave, moments, and paid", () => {
+    const pages = sourceFiles(path.resolve("src/app")).filter((file) => file.endsWith(`${path.sep}page.tsx`));
+    expect(pages.length).toBeGreaterThan(10);
+    for (const file of pages) {
+      const src = readFileSync(file, "utf8");
+      const rel = path.relative(path.resolve("."), file);
+      expect(src, rel).toMatch(/siteTitleMetadata|guideMetadata\(/);
+      expect(src, rel).not.toMatch(/title:\s*["'`]/);
+      expect(src, rel).not.toContain("document.title");
     }
     expect(read("src/app/page.tsx")).toContain("You scrolled past a hundred good moments today.");
+    expect(read("src/app/signin/page.tsx")).toContain("Your moment.");
+    expect(read("src/app/signin/page.tsx")).not.toContain("Your moment — GoodDayNight");
     const titled = sourceFiles(path.resolve("src")).filter((file) => /document\.title\s*=/.test(readFileSync(file, "utf8")));
     expect(titled).toEqual([]);
   });
