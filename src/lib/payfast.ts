@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { buyerReturnUrl } from "./buyer-handoff";
 import { isValidEmail, newId, normalizeEmail } from "./identity";
 import { creditMoments, recordedPayment } from "./entitlement";
+import { cancelPayfastOrder, completePayfastOrder } from "./paid-return";
 
 /**
  * Payfast checkout + ITN.
@@ -301,11 +302,10 @@ export function buildCheckoutFields(email: string, mPaymentId: string): Checkout
   const normalized = normalizeEmail(email);
   if (!merchant || !isValidEmail(normalized)) return null;
   const origin = publicOrigin();
-  const ref = encodeURIComponent(mPaymentId);
   return {
     merchant_id: merchant.merchantId,
     merchant_key: merchant.merchantKey,
-    return_url: buyerReturnUrl(origin, ref, normalized),
+    return_url: buyerReturnUrl(origin, mPaymentId, normalized),
     cancel_url: `${origin}/moments?cancelled=1`,
     notify_url: `${origin}/api/payfast/itn`,
     email_address: normalized,
@@ -318,7 +318,7 @@ export function buildCheckoutFields(email: string, mPaymentId: string): Checkout
 }
 
 export type CheckoutResult =
-  | { ok: true; status: 200; html: string }
+  | { ok: true; status: 200; html: string; mPaymentId: string }
   | { ok: false; status: 400 | 500; message: string };
 
 export function createCheckout(email: string): CheckoutResult {
@@ -346,6 +346,7 @@ export function createCheckout(email: string): CheckoutResult {
     ok: true,
     status: 200,
     html: renderAutoSubmitForm(payfastProcessUrl(), signed),
+    mPaymentId,
   };
 }
 
@@ -460,6 +461,10 @@ export async function handlePayfastItn(
   // A new gross other than 130.00 fails closed before Payfast validate. A replay of a
   // payment id already on a row (including the old 5.00 test charge) still
   // confirms, then returns 200 without changing `game`.
+  if (!decision.ok && decision.reason === "status") {
+    await noteCancelledReturn(rawBody);
+    return rejectItn("status");
+  }
   if (!decision.ok && decision.reason === "amount") {
     const priorId = postedPaymentId(rawBody);
     if (!priorId) return rejectItn("amount");
@@ -489,6 +494,7 @@ export async function handlePayfastItn(
     return rejectItn("credit");
   }
   if (recorded) {
+    if (decision.ok) await noteCompletedReturn(decision.email, rawBody, pfPaymentId);
     console.info("[payfast-itn] credited", {
       pf_payment_id: pfPaymentId,
       remaining: recorded.remaining,
@@ -508,6 +514,7 @@ export async function handlePayfastItn(
   } catch {
     return rejectItn("credit");
   }
+  await noteCompletedReturn(decision.email, rawBody, decision.pfPaymentId);
   console.info("[payfast-itn] credited", {
     pf_payment_id: decision.pfPaymentId,
     remaining: credited.remaining,
@@ -516,7 +523,37 @@ export async function handlePayfastItn(
   return { status: 200, body: "OK" };
 }
 
+async function noteCompletedReturn(email: string, rawBody: string, pfPaymentId: string): Promise<void> {
+  const mPaymentId = postedMerchantPaymentId(rawBody);
+  if (!mPaymentId) return;
+  try {
+    await completePayfastOrder(email, mPaymentId, pfPaymentId);
+  } catch (error) {
+    console.error("[payfast-itn] return receipt stayed", error);
+  }
+}
+
+async function noteCancelledReturn(rawBody: string): Promise<void> {
+  const status = parseFormPairs(rawBody).find(([key]) => key === "payment_status")?.[1]?.trim() ?? "";
+  if (status !== "CANCELLED") return;
+  const mPaymentId = postedMerchantPaymentId(rawBody);
+  if (!mPaymentId) return;
+  try {
+    await cancelPayfastOrder(mPaymentId);
+  } catch (error) {
+    console.error("[payfast-itn] cancel receipt stayed", error);
+  }
+}
+
 function postedPaymentId(rawBody: string): string {
-  const id = parseFormPairs(rawBody).find(([key]) => key === "pf_payment_id")?.[1]?.trim() ?? "";
+  return postedId(rawBody, "pf_payment_id");
+}
+
+function postedMerchantPaymentId(rawBody: string): string {
+  return postedId(rawBody, "m_payment_id");
+}
+
+function postedId(rawBody: string, field: string): string {
+  const id = parseFormPairs(rawBody).find(([key]) => key === field)?.[1]?.trim() ?? "";
   return /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : "";
 }

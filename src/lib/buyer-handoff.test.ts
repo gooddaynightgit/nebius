@@ -27,13 +27,30 @@ describe("buyer handoff", () => {
     process.env.OTP_SESSION_SECRET = SECRET;
     try {
       const url = buyerReturnUrl("https://gooddaynight.com", "pay_abc", "Amy@Email.com", 1_700_000_000);
-      expect(url.startsWith("https://gooddaynight.com/api/auth/return?paid=1&ref=pay_abc&handoff=")).toBe(true);
+      expect(url.startsWith("https://gooddaynight.com/paid?ref=pay_abc&handoff=")).toBe(true);
       expect(url).not.toContain("email=");
       const handoff = new URL(url).searchParams.get("handoff") ?? "";
       expect(openBuyerHandoff(handoff, 1_700_000_000 + 10, SECRET)).toEqual({ email: "amy@email.com" });
     } finally {
       if (previous == null) delete process.env.OTP_SESSION_SECRET;
       else process.env.OTP_SESSION_SECRET = previous;
+    }
+  });
+
+  it("uses /paid and the order ref when a handoff cannot be signed", () => {
+    const previous = process.env.OTP_SESSION_SECRET;
+    const nodeEnv = process.env.NODE_ENV;
+    delete process.env.OTP_SESSION_SECRET;
+    process.env.NODE_ENV = "production";
+    try {
+      expect(buyerReturnUrl("https://gooddaynight.com", "pay_abc", "amy@email.com", 1_700_000_000)).toBe(
+        "https://gooddaynight.com/paid?ref=pay_abc",
+      );
+    } finally {
+      if (previous == null) delete process.env.OTP_SESSION_SECRET;
+      else process.env.OTP_SESSION_SECRET = previous;
+      if (nodeEnv == null) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = nodeEnv;
     }
   });
 });
