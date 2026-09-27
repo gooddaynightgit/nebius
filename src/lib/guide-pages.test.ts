@@ -80,7 +80,7 @@ describe("seven guide pages", () => {
     expect(EXAMPLE_CLOSING).not.toMatch(GUIDE_FORBIDDEN);
     const html = renderToStaticMarkup(createElement(ExamplePage));
     expect(html).toContain(EXAMPLE_STORY);
-    expect(html).toContain(EXAMPLE_CLOSING);
+    expect(html).toContain(EXAMPLE_CLOSING.replaceAll("'", "&#x27;"));
     expect(html).toContain(EXAMPLE_NOTE);
     expect(html).toContain(`src="${EXAMPLE_PHOTO}"`);
     expect(html).toContain("weaved-affirmation");
