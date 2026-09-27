@@ -72,6 +72,13 @@ describe("about the maker", () => {
     expect(footer).toContain('href="/about"');
     expect(footer).toContain("LANDING.footer.about");
     expect(footer).toContain('className="site-footer__about"');
+    expect(footer).toContain("<BackToStart");
+    expect(footer).toContain('pathname !== "/"');
+    const back = read("src/components/BackToStart.tsx");
+    expect(back).toContain('aria-label="Back to start"');
+    expect(back).toContain('href="/"');
+    expect(back).toContain('className="step-back-arrow"');
+    expect(read("src/app/page.tsx")).not.toContain("BackToStart");
     expect(styles).toMatch(/\.site-footer__about[\s\S]*min-height:\s*44px/);
     for (const file of [
       "src/app/page.tsx",

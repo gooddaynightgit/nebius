@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import BackToStart from "@/components/BackToStart";
 import { LANDING } from "@/lib/landing";
 
 export default function SiteFooter({
@@ -10,8 +12,10 @@ export default function SiteFooter({
   site?: boolean;
   className?: string;
 }) {
+  const pathname = usePathname();
   return (
     <footer className={className ? `site-footer ${className}` : "site-footer"}>
+      {pathname !== "/" ? <BackToStart /> : null}
       <p>
         {LANDING.footer.lookingForward}
         <br />

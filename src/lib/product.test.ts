@@ -918,8 +918,7 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/writeChosenJoy/);
     expect(joy).not.toMatch(/router\.push/);
     expect(joy).toMatch(/href="\/"/);
-    expect(joy).toMatch(/className="step-back-arrow"/);
-    expect(joy).toMatch(/aria-label="Back to start"/);
+    expect(joy).not.toMatch(/step-back-arrow/);
     expect(joy).not.toMatch(/STEP_LABEL/);
     expect(joy).not.toMatch(/StepControl/);
     expect(joy).toMatch(/Unlock\/Capture/);

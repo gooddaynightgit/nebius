@@ -1903,6 +1903,15 @@ body:has(.about-screen) {
   color: #fff;
 }
 
+.site-footer a.step-back-arrow,
+.site-footer a.step-back-arrow:hover,
+.about-page .site-footer a.step-back-arrow,
+.about-page .site-footer a.step-back-arrow:hover {
+  color: var(--lime);
+  text-shadow: none;
+  background: var(--navy);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .about-bg__video {
     display: none;
@@ -2468,20 +2477,25 @@ body:has(.step-pin) .share-pin {
 }
 
 .step-nav--joy .step-back,
-.step-nav--joy .step-next,
-.step-nav--joy .step-back-arrow {
+.step-nav--joy .step-next {
   flex: 0 0 auto;
   white-space: nowrap;
 }
 
+.step-nav--joy:not(:has(.step-nudge)) {
+  min-height: 0;
+  margin: 0;
+}
+
 .step-back-arrow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
   min-width: 44px;
   min-height: 44px;
+  margin: 0 0 0.85rem;
   padding: 0;
   border: 0;
   border-radius: 50%;

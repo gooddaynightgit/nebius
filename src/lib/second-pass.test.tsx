@@ -85,7 +85,8 @@ describe("second pass after a finished story", () => {
     expect(back?.getAttribute("aria-label")).toBe("Back to start");
     expect(back?.getAttribute("href")).toBe("/");
     expect(back?.textContent).not.toContain("Weave your good moment");
-    expect(back?.compareDocumentPosition(message!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const main = container.querySelector("main");
+    expect(main?.compareDocumentPosition(back!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(message?.compareDocumentPosition(uploadEarly) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await act(async () => {
       saved.click();

@@ -228,18 +228,6 @@ export default function JoyStudio() {
         </section>
 
         <nav className="step-nav step-nav--joy" aria-label="Steps">
-          <Link className="step-back-arrow" href="/" aria-label="Back to start">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M19 12H6M11 6 5 12l6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
           {joyMissed && needsJoyPick && !selectedJoy ? (
             <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
               {LANDING.app.joyNeed}
