@@ -2468,9 +2468,42 @@ body:has(.step-pin) .share-pin {
 }
 
 .step-nav--joy .step-back,
-.step-nav--joy .step-next {
+.step-nav--joy .step-next,
+.step-nav--joy .step-back-arrow {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+.step-back-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--lime);
+  text-decoration: none;
+}
+
+.step-back-arrow svg {
+  display: block;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.step-back-arrow:hover {
+  background: #0e2436;
+  color: var(--lime);
+}
+
+.step-back-arrow:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 3px;
 }
 
 .step-nav--joy .step-nudge--block {

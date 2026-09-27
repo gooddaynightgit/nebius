@@ -5,13 +5,12 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
 import SiteFooter from "@/components/SiteFooter";
-import StepControl from "@/components/StepControl";
 import { readCaptureStash } from "@/lib/capture-stash";
 import { withClientClock, useLocalDay } from "@/lib/client-day";
 import { readJson } from "@/lib/client-fetch";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
-import { restoredJoyId, STEP_LABEL } from "@/lib/journey";
+import { restoredJoyId } from "@/lib/journey";
 import { LANDING, accordionJoys, getJoyById, type JoyType } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
 import { keptSavedMoments } from "@/lib/moment-expiry";
@@ -229,7 +228,18 @@ export default function JoyStudio() {
         </section>
 
         <nav className="step-nav step-nav--joy" aria-label="Steps">
-          <StepControl direction="back" href="/" label={STEP_LABEL.start} />
+          <Link className="step-back-arrow" href="/" aria-label="Back to start">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M19 12H6M11 6 5 12l6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
           {joyMissed && needsJoyPick && !selectedJoy ? (
             <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
               {LANDING.app.joyNeed}

@@ -81,7 +81,10 @@ describe("second pass after a finished story", () => {
     expect(container.querySelector("#joy-need")?.textContent).toContain("Pick the kind of quiet joy first.");
     expect(container.querySelector("#joy-need")?.className).toContain("step-nudge--alert");
     const message = container.querySelector("#joy-need");
-    const back = container.querySelector(".step-back");
+    const back = container.querySelector(".step-back-arrow");
+    expect(back?.getAttribute("aria-label")).toBe("Back to start");
+    expect(back?.getAttribute("href")).toBe("/");
+    expect(back?.textContent).not.toContain("Weave your good moment");
     expect(back?.compareDocumentPosition(message!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(message?.compareDocumentPosition(uploadEarly) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await act(async () => {
