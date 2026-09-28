@@ -466,7 +466,8 @@ body:has(.journey) .skip-link:focus {
 .card--peach::before,
 .card--cyan::before,
 .card--aqua::before,
-.card--lime::before {
+.card--lime::before,
+.example-good::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -530,6 +531,11 @@ body:has(.journey) .skip-link:focus {
 .card--lime {
   min-height: 12.5rem;
   padding-bottom: 1.7rem;
+  color: var(--navy);
+  background: linear-gradient(160deg, #eaff6a 0%, var(--lime) 58%, #c8ff80 100%);
+}
+
+.example-good {
   color: var(--navy);
   background: linear-gradient(160deg, #eaff6a 0%, var(--lime) 58%, #c8ff80 100%);
 }

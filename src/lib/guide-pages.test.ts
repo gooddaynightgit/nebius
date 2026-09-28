@@ -15,6 +15,7 @@ import ReviewsPage, { metadata as reviewsMeta } from "@/app/reviews/page";
 import {
   EXAMPLE_CLOSING,
   EXAMPLE_NOTE,
+  EXAMPLE_SOON,
   EXAMPLE_PHOTO,
   EXAMPLE_STORY,
   FAQ,
@@ -82,8 +83,13 @@ describe("seven guide pages", () => {
     const html = renderToStaticMarkup(createElement(ExamplePage));
     expect(html).toContain(EXAMPLE_STORY);
     expect(html).toContain(EXAMPLE_CLOSING.replaceAll("'", "&#x27;"));
-    expect(EXAMPLE_NOTE).toBe("This is not a gratitude list. It is one thing that happened.\nHappening.\nToday.");
+    expect(EXAMPLE_NOTE).toBe("This is not a gratitude list. It is one thing that happened.");
+    expect(EXAMPLE_SOON).toBe("Something good is about to happen.");
     expect(html).toContain(EXAMPLE_NOTE);
+    expect(html).toContain(EXAMPLE_SOON);
+    expect(html.indexOf("card--cream")).toBeLessThan(html.indexOf("example-good"));
+    expect(html).not.toContain("Happening.");
+    expect(html).not.toContain(">Today.<");
     expect(html).toContain(`src="${EXAMPLE_PHOTO}"`);
     expect(html).toContain("weaved-affirmation");
     expect(html).not.toMatch(/play|listen/i);
