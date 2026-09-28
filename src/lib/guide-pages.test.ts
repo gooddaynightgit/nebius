@@ -82,6 +82,7 @@ describe("seven guide pages", () => {
     const html = renderToStaticMarkup(createElement(ExamplePage));
     expect(html).toContain(EXAMPLE_STORY);
     expect(html).toContain(EXAMPLE_CLOSING.replaceAll("'", "&#x27;"));
+    expect(EXAMPLE_NOTE).toBe("This is not a gratitude list. It is one thing that happened.\nHappening.\nToday.");
     expect(html).toContain(EXAMPLE_NOTE);
     expect(html).toContain(`src="${EXAMPLE_PHOTO}"`);
     expect(html).toContain("weaved-affirmation");
