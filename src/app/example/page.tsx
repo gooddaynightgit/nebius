@@ -1,5 +1,5 @@
 import GuideShell from "@/components/GuideShell";
-import { EXAMPLE_CLOSING, EXAMPLE_NOTE, EXAMPLE_PHOTO, EXAMPLE_STORY, guideMetadata } from "@/lib/guide-pages";
+import { EXAMPLE_CLOSING, EXAMPLE_NOTE, EXAMPLE_PHOTO, EXAMPLE_SOON, EXAMPLE_STORY, guideMetadata } from "@/lib/guide-pages";
 
 export const metadata = guideMetadata("/example");
 
@@ -19,6 +19,9 @@ export default function ExamplePage() {
       </section>
       <section className="card card--cream">
         <p className="card__body">{EXAMPLE_NOTE}</p>
+      </section>
+      <section className="card example-good">
+        <p className="card__body">{EXAMPLE_SOON}</p>
       </section>
     </GuideShell>
   );
