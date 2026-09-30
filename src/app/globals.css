@@ -355,7 +355,8 @@ body:has(.journey) .skip-link:focus {
   overflow-wrap: break-word;
 }
 
-.signin-card .otp-sent {
+.signin-card .otp-sent,
+.signin-card .otp-wrong {
   margin: 0.15rem 0 0;
   font-family: inherit;
   font-weight: 600;

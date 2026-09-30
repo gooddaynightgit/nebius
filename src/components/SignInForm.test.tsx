@@ -4,7 +4,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SignInForm from "@/components/SignInForm";
-import { REQUEST_SENT, REQUEST_UNAVAILABLE } from "@/lib/otp-copy";
+import { REQUEST_SENT, REQUEST_UNAVAILABLE, VERIFY_FAIL } from "@/lib/otp-copy";
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -61,6 +61,37 @@ describe("sign-in code sent", () => {
     const note = container.querySelector(".otp-sent");
     expect(note?.textContent).toBe(REQUEST_SENT);
     expect(container.querySelector(".moments-status")?.className).toContain("otp-sent");
+  });
+
+  it("shows a gentle line for an incorrect code and clears it when the code changes", async () => {
+    expect(VERIFY_FAIL).toBe("Could you please be so kind to enter the correct OTP sent to your email");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse({ ok: false, message: VERIFY_FAIL }, 400)),
+    );
+    await act(async () => {
+      root.render(<SignInForm />);
+    });
+    const email = container.querySelector("#signin-email") as HTMLInputElement;
+    const code = container.querySelector("#signin-code") as HTMLInputElement;
+    const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    await act(async () => {
+      setValue?.call(email, "ada@example.com");
+      email.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      setValue?.call(code, "000000");
+      code.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    const note = container.querySelector(".otp-wrong");
+    expect(note?.textContent).toBe(VERIFY_FAIL);
+    expect(container.querySelector(".otp-sent")).toBeNull();
+    await act(async () => {
+      setValue?.call(code, "00000");
+      code.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(container.querySelector(".otp-wrong")).toBeNull();
+    expect(container.textContent).not.toContain(VERIFY_FAIL);
   });
 
   it("does not show the sent line when the email fails", async () => {

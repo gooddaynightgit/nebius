@@ -5,13 +5,19 @@ import { authAttempt, type AuthBody } from "@/lib/auth-note";
 import { readResponsePayload } from "@/lib/client-fetch";
 import { followVerifiedLogin } from "@/lib/login-destination";
 import { PRIVACY_NOTE } from "@/lib/privacy";
-import { REQUEST_SENT } from "@/lib/otp-copy";
+import { REQUEST_SENT, VERIFY_FAIL } from "@/lib/otp-copy";
 import { isSixDigitCode } from "@/lib/verify-code";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalize(raw: string): string {
   return raw.trim().toLowerCase();
+}
+
+function noteClass(note: string): string {
+  if (note === REQUEST_SENT) return "moments-status otp-sent";
+  if (note === VERIFY_FAIL) return "moments-status otp-wrong";
+  return "moments-status";
 }
 
 function emailOk(raw: string): boolean {
@@ -75,7 +81,7 @@ export default function SignInForm() {
         body: JSON.stringify({ email: normalized, code: code.trim() }),
       });
       const data = await readResponsePayload<AuthBody>(res);
-      const attempt = authAttempt(data, res.ok, "That code didn’t work. Request a new one.");
+      const attempt = authAttempt(data, res.ok, VERIFY_FAIL);
       if (!attempt.accepted) {
         setNote(attempt.note);
         return;
@@ -148,7 +154,7 @@ export default function SignInForm() {
         Verify code
       </button>
       {note ? (
-        <p className={note === REQUEST_SENT ? "moments-status otp-sent" : "moments-status"} role="status">
+        <p className={noteClass(note)} role="status">
           {note}
         </p>
       ) : null}
