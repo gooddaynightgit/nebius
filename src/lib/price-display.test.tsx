@@ -22,24 +22,28 @@ describe("unlock card price by country", () => {
     }
   });
 
-  it("leads with $7.99 for the United States and does not lead with R130", () => {
+  it("uses the same markup for the United States, with the values transposed", () => {
     expect(priceLeadForCountry("US")).toBe("usd");
     const html = markup("US");
+    const za = markup("ZA");
+    expect(html).toBe(
+      za.replace(">R130<", ">$7.99<").replace(">ZAR / $7.99<", ">USD / R130<"),
+    );
     expect(html).toContain('class="moments-price-hero__amount">$7.99');
-    expect(html).toContain('class="moments-price-hero__usd">USD');
-    expect(html).toContain("R130 ZAR");
+    expect(html).toContain('class="moments-price-hero__unit">USD / R130');
+    expect(html).not.toContain("moments-price-hero--usd");
+    expect(html).not.toContain("moments-price-hero__usd");
+    expect(html).not.toContain("moments-price-hero__note");
     expect(html).not.toContain('class="moments-price-hero__amount">R130');
     expect(html).not.toContain("ZAR / $7.99");
-    const amountAt = html.indexOf("moments-price-hero__amount");
-    const noteAt = html.indexOf("R130 ZAR");
-    expect(amountAt).toBeGreaterThan(-1);
-    expect(amountAt).toBeLessThan(noteAt);
+    expect(html).not.toContain("R130 ZAR");
   });
 
   it("uses the dollar lead for other countries", () => {
     expect(priceLeadForCountry("GB")).toBe("usd");
     expect(priceLeadForCountry("DE")).toBe("usd");
     expect(markup("GB")).toContain('class="moments-price-hero__amount">$7.99');
+    expect(markup("GB")).toContain('class="moments-price-hero__unit">USD / R130');
   });
 
   it("lets ?cc= override geo, and ignores a code that is not two letters", () => {

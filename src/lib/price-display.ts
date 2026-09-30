@@ -4,8 +4,7 @@ export type PriceLead = "zar" | "usd";
 export const PRICE_ZAR_AMOUNT = "R130";
 export const PRICE_ZAR_UNIT = "ZAR / $7.99";
 export const PRICE_USD_AMOUNT = "$7.99";
-export const PRICE_USD_CODE = "USD";
-export const PRICE_ZAR_NOTE = "R130 ZAR";
+export const PRICE_USD_UNIT = "USD / R130";
 
 /**
  * South Africa, and a missing country (local dev, no geo header), keep the

@@ -25,6 +25,7 @@ describe("moments pack page", () => {
     expect(price).toContain('PRICE_ZAR_AMOUNT = "R130"');
     expect(price).toContain('PRICE_ZAR_UNIT = "ZAR / $7.99"');
     expect(price).toContain('PRICE_USD_AMOUNT = "$7.99"');
+    expect(price).toContain('PRICE_USD_UNIT = "USD / R130"');
     expect(page).not.toContain("R16");
     expect(page).not.toContain("$0.88");
     expect(page).not.toContain("Unlock 40 good moments");

@@ -3337,31 +3337,6 @@ body:has(.moments-page) {
   line-height: 1.15;
 }
 
-.moments-price-hero--usd {
-  flex-wrap: wrap;
-  row-gap: 0.2rem;
-}
-
-.moments-price-hero__usd {
-  padding-bottom: 0.55rem;
-  color: rgba(22, 50, 74, 0.5);
-  font-size: 0.68rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  line-height: 1;
-}
-
-.moments-price-hero__note {
-  flex: 1 1 100%;
-  margin: 0;
-  color: rgba(22, 50, 74, 0.42);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  text-align: center;
-}
-
 .moments-glass .moments-buy {
   justify-items: center;
   max-width: none;
