@@ -6,17 +6,19 @@ import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { normalizeEmail } from "./identity";
 import { authTableName, dynamoDocument } from "./dynamo";
 
+export {
+  REQUEST_SENT,
+  REQUEST_UNAVAILABLE,
+  REQUEST_WAIT,
+  VERIFY_FAIL,
+} from "./otp-copy";
+
 /** Code lives for 10 minutes. DynamoDB TTL on expiresAt is cleanup, not the check. */
 export const CODE_TTL_SECONDS = 600;
 /** At most this many codes in the rolling window. */
 export const ISSUE_WINDOW_SECONDS = 300;
 export const MAX_ISSUES = 3;
 export const MAX_VERIFY_ATTEMPTS = 5;
-
-export const REQUEST_SENT = "If that address can receive mail, a code is on the way.";
-export const REQUEST_WAIT = "Try again in a few minutes.";
-export const REQUEST_UNAVAILABLE = "We couldn’t send a code right now.";
-export const VERIFY_FAIL = "That code didn’t work. Request a new one.";
 
 export type OtpRecord = {
   email: string;

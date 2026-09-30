@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/otp", () => ({
-  VERIFY_FAIL: "That code didn’t work. Request a new one.",
+  VERIFY_FAIL: "Could you please be so kind to enter the correct OTP sent to your email",
   otpTable: () => ({}),
   verifyOtp: vi.fn(),
 }));
