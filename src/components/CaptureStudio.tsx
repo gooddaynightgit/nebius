@@ -170,15 +170,23 @@ export default function CaptureStudio() {
     reviewView.progress,
   );
   const captureNext = captureStep == null ? null : journeyNextLabel(captureStep);
-  const hasPhoto = Boolean(photo) || Boolean(savedPhoto);
-  const awaitingPhoto = captureStep === 4 && !hasPhoto;
+  const keptMediaUrl =
+    review && savedPhoto?.id ? `/api/media/${encodeURIComponent(savedPhoto.id)}` : null;
+  const previewSrc = capturePreviewSrc({
+    localPreviewUrl: photoUrl,
+    hasLocalPhoto: Boolean(photo),
+    savedMediaUrl: keptMediaUrl,
+  });
+  // A saved capture that is not on screen still looks like an empty Capture step.
+  const photoOnScreen = Boolean(photo) || Boolean(previewSrc);
+  const awaitingPhoto = captureStep === 4 && !photoOnScreen;
   useRegisterStepForward(
     captureNext
       ? {
           label: captureNext,
           enabled: awaitingPhoto || (reviewView.showWeave && !busy),
           run: () => {
-            if (!hasPhoto && captureStep === 4) {
+            if (!photoOnScreen && captureStep === 4) {
               setPhotoMissed(true);
               return;
             }
@@ -236,13 +244,6 @@ export default function CaptureStudio() {
     return () => window.removeEventListener("pageshow", onPageShow);
   }, [pathname]);
 
-  const keptMediaUrl =
-    review && savedPhoto?.id ? `/api/media/${encodeURIComponent(savedPhoto.id)}` : null;
-  const previewSrc = capturePreviewSrc({
-    localPreviewUrl: photoUrl,
-    hasLocalPhoto: Boolean(photo),
-    savedMediaUrl: keptMediaUrl,
-  });
   const canPickPhoto = captureOpen;
 
   const refresh = useCallback(async () => {
@@ -384,17 +385,20 @@ export default function CaptureStudio() {
   }, [liveStream]);
 
   useEffect(() => {
-    if (photo || savedPhoto) setPhotoMissed(false);
-  }, [photo, savedPhoto]);
+    if (photoOnScreen) setPhotoMissed(false);
+  }, [photoOnScreen]);
 
   useEffect(() => {
-    if (!photoMissed || photo || savedPhoto) return;
+    if (!photoMissed || photoOnScreen) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById("photo-need")?.scrollIntoView?.({
-      behavior: reduce ? "auto" : "smooth",
-      block: "start",
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("photo-need")?.scrollIntoView?.({
+        behavior: reduce ? "auto" : "smooth",
+        block: "start",
+      });
     });
-  }, [photoMissed, photo, savedPhoto]);
+    return () => window.cancelAnimationFrame(frame);
+  }, [photoMissed, photoOnScreen]);
 
   useEffect(() => {
     if (!captionScroll || !questionOpen) return;
@@ -842,7 +846,7 @@ export default function CaptureStudio() {
             </p>
             <div className="studio">
               {captureOpen ? (
-              <div className={photoMissed && !hasPhoto ? "studio-photo-actions studio-photo-actions--unset" : "studio-photo-actions"}>
+              <div className={photoMissed && !photoOnScreen ? "studio-photo-actions studio-photo-actions--unset" : "studio-photo-actions"}>
                 <button
                   className="btn btn--ghost"
                   type="button"
@@ -877,7 +881,7 @@ export default function CaptureStudio() {
                     event.target.value = "";
                   }}
                 />
-                {photoMissed && !hasPhoto ? (
+                {photoMissed && !photoOnScreen ? (
                   <p className="photo-need" id="photo-need" role="status">
                     {LANDING.app.photoNudge}
                   </p>
@@ -939,7 +943,7 @@ export default function CaptureStudio() {
                 </div>
               ) : null}
             </div>
-            {dateNote ? (
+            {dateNote && photoOnScreen ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
                 {dateNote}
               </p>
