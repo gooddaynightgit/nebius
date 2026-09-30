@@ -9,6 +9,8 @@ import { StepForwardProvider } from "@/components/step-forward";
 import { resetCaptureStashForTests } from "@/lib/capture-stash";
 import { LANDING } from "@/lib/landing";
 import { clearActiveMoment } from "@/lib/moment";
+import { localDay } from "@/lib/day";
+import { PHOTO_DATE_MESSAGES } from "@/lib/photo";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/app",
@@ -204,5 +206,34 @@ describe("capture step without a photo", () => {
     });
     expect(container.querySelector("#photo-need")?.textContent).toBe(LANDING.app.photoNudge);
     expect(container.querySelector(".studio-photo-actions--unset")).toBeTruthy();
+    expect(container.textContent).not.toContain(PHOTO_DATE_MESSAGES.today);
+  });
+
+  it("shows the today confirmation only while that photo is on screen", async () => {
+    vi.spyOn(await import("@/lib/photo"), "inspectPhotoDate").mockReturnValue({
+      takenDay: localDay(),
+      verified: true,
+      reason: "exif",
+    });
+    await renderCapture();
+    const forward = container.querySelector(".step-float__next") as HTMLButtonElement;
+    await act(async () => {
+      forward.click();
+    });
+    expect(container.querySelector("#photo-need")?.textContent).toBe(LANDING.app.photoNudge);
+    expect(container.textContent).not.toContain(PHOTO_DATE_MESSAGES.today);
+
+    const input = container.querySelector('input[type="file"]:not([capture])') as HTMLInputElement;
+    const file = new File([new Uint8Array([255, 216, 255, 217])], "moment.jpg", { type: "image/jpeg" });
+    await act(async () => {
+      Object.defineProperty(input, "files", { configurable: true, value: [file] });
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    });
+    expect(container.querySelector(".photo-preview")).toBeTruthy();
+    expect(container.querySelector("#photo-need")).toBeNull();
+    expect(container.textContent).toContain(PHOTO_DATE_MESSAGES.today);
   });
 });

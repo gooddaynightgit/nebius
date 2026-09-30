@@ -943,7 +943,7 @@ export default function CaptureStudio() {
                 </div>
               ) : null}
             </div>
-            {dateNote ? (
+            {dateNote && photoOnScreen ? (
               <p className="notice" style={{ marginTop: "0.85rem", color: "#d4ff00" }}>
                 {dateNote}
               </p>
