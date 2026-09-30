@@ -92,6 +92,7 @@ export const LANDING = {
     alreadyPickedEmpty: "Nothing saved yet. Pick a new one.",
     nextJoy: "Pick the quiet joy",
     photoNeed: "Add one photo from today.",
+    photoNudge: "Could you please be so kind to upload a photo taken today or simply take one",
     witnessQuiet: "The witness didn’t look. The caption is still yours.",
     tooLarge: "That photo is too large — try again after we shrink it",
     tooLargeKeep: "Keep photos under 4.5 MB.",

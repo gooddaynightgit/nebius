@@ -15,6 +15,7 @@ import {
   journeyNextLabel,
   journeyStep,
   normalizeJourneyPath,
+  STEP_LABEL,
   rememberJourneyReached,
   type AppProgress,
   type BuyerGate,
@@ -118,7 +119,7 @@ export function JourneyBar({ step }: { step: number }) {
               {caption}
             </p>
             {nextLabel ? (
-              nextLabel === "Unlock/Capture" ? (
+              nextLabel === "Unlock/Capture" || nextLabel === STEP_LABEL.good ? (
                 <button type="button" className="journey__next" onClick={() => forward?.run()}>
                   <NextArrow />
                   <span className="journey__next-label">{nextLabel}</span>

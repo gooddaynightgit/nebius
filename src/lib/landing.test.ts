@@ -89,6 +89,9 @@ describe("landing copy", () => {
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Keep mine/);
     expect(LANDING.app.photoNeed).toBe("Add one photo from today.");
+    expect(LANDING.app.photoNudge).toBe(
+      "Could you please be so kind to upload a photo taken today or simply take one",
+    );
     expect(LANDING.app.witnessQuiet).toBe("The witness didn’t look. The caption is still yours.");
     expect(LANDING.app.tooLarge).toBe("That photo is too large — try again after we shrink it");
     expect(LANDING.app.tooLargeKeep).toBe("Keep photos under 4.5 MB.");
