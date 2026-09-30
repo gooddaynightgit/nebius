@@ -46,8 +46,8 @@ export const FIELD_ORDER = [
 ] as const;
 
 /**
- * Live pack: 25 good moments for 130.00 ZAR. The unlock card may lead with
- * $7.99 outside South Africa. Payfast’s custom form has no currency field:
+ * Live pack: 25 good moments for 130.00 ZAR. The unlock card shows $7.99
+ * USD / R130 for every visitor. Payfast’s custom form has no currency field:
  * `amount` and the ITN `amount_gross` are ZAR
  * (https://developers.payfast.co.za/documentation). Multi-currency, if a
  * merchant turns it on, is a buyer choice on Payfast’s page, not a 7.99 USD
