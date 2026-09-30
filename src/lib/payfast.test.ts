@@ -174,6 +174,8 @@ describe("payfast checkout and ITN", () => {
     expect(result.html).toContain('action="https://www.payfast.co.za/eng/process"');
     expect(result.html).toContain('method="post"');
     expect(result.html).toContain('name="amount" value="130.00"');
+    expect(result.html).not.toMatch(/name="currency"/);
+    expect(result.html).not.toContain("7.99");
     expect(result.html).toContain(`name="item_name" value="${ITEM_NAME}"`);
     expect(result.html).toContain(`name="item_description" value="${ITEM_DESCRIPTION}"`);
     expect(result.html).toContain('name="email_address" value="amy@example.com"');
