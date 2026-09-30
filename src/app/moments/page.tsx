@@ -9,7 +9,7 @@ import { siteTitleMetadata } from "@/lib/site-title";
 
 export const metadata: Metadata = {
   ...siteTitleMetadata,
-  description: "Unlock 25 good moments weaved for $7.99 USD / R130.",
+  description: "Unlock 25 good moments weaved for $7.99 USD / R130 ZAR.",
 };
 
 export const dynamic = "force-dynamic";

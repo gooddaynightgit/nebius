@@ -3257,7 +3257,8 @@ body:has(.moments-page) {
 
 @media (max-width: 480px) {
   .moments-stage {
-    padding-right: calc(1rem + 56px);
+    /* The two-line unit needs a wider card than the menu gutter allows. */
+    padding-right: calc(1rem + 24px);
   }
 }
 

@@ -10,7 +10,7 @@ describe("unlock card price", () => {
   it("shows one dollar card, in the same markup as the old rand card", () => {
     const html = renderToStaticMarkup(createElement(MomentsPrice));
     expect(html).toBe(
-      '<p class="moments-price-hero"><span class="moments-price-hero__amount">$7.99</span><span class="moments-price-hero__unit">USD / R130</span></p>',
+      '<p class="moments-price-hero"><span class="moments-price-hero__amount">$7.99</span><span class="moments-price-hero__unit">USD\u00A0/<br/>R130\u00A0ZAR</span></p>',
     );
     expect(html).not.toContain("ZAR / $7.99");
     expect(html).not.toContain("moments-price-hero--usd");
