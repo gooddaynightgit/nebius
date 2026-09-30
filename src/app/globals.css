@@ -3809,14 +3809,28 @@ body:has(.moments-page) {
   line-height: 1.2;
 }
 
-button.journey__next {
+button.journey__next,
+button.journey__next:hover,
+button.journey__next:focus,
+button.journey__next:focus-visible,
+button.journey__next:active {
   padding: 0;
   border: 0;
   background: none;
-  font: inherit;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
   color: var(--lime);
   cursor: pointer;
   text-align: left;
+}
+
+button.journey__next:focus-visible {
+  outline: 1px solid rgba(212, 255, 0, 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .journey__arrow {
@@ -3902,8 +3916,14 @@ button.journey__next {
     font-size: 0.68rem;
   }
 
-  .journey__next {
+  .journey__next,
+  button.journey__next,
+  button.journey__next:hover,
+  button.journey__next:focus,
+  button.journey__next:focus-visible,
+  button.journey__next:active {
     font-size: 0.64rem;
+    font-weight: 700;
     gap: 0.22rem;
   }
 
