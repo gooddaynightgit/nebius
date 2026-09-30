@@ -13,7 +13,8 @@ export const ISSUE_WINDOW_SECONDS = 300;
 export const MAX_ISSUES = 3;
 export const MAX_VERIFY_ATTEMPTS = 5;
 
-export const REQUEST_SENT = "If that address can receive mail, a code is on the way.";
+export const REQUEST_SENT =
+  "Your OTP is on its way! Kindly check your email (or spam folder, just in case) to complete your verification — something good is about to happen.";
 export const REQUEST_WAIT = "Try again in a few minutes.";
 export const REQUEST_UNAVAILABLE = "We couldn’t send a code right now.";
 export const VERIFY_FAIL = "That code didn’t work. Request a new one.";

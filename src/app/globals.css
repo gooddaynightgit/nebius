@@ -355,6 +355,20 @@ body:has(.journey) .skip-link:focus {
   overflow-wrap: break-word;
 }
 
+.signin-card .otp-sent {
+  margin: 0.15rem 0 0;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+  background-image: linear-gradient(105deg, #c9b6ff 0%, #b7b6ff 48%, #8fb4ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 8px rgba(176, 168, 255, 0.55));
+}
+
 .privacy-note {
   margin: 0.15rem 0 0;
   max-width: 36rem;

@@ -5,6 +5,7 @@ import { authAttempt, type AuthBody } from "@/lib/auth-note";
 import { readResponsePayload } from "@/lib/client-fetch";
 import { followVerifiedLogin } from "@/lib/login-destination";
 import { PRIVACY_NOTE } from "@/lib/privacy";
+import { REQUEST_SENT } from "@/lib/otp";
 import { isSixDigitCode } from "@/lib/verify-code";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -147,7 +148,7 @@ export default function SignInForm() {
         Verify code
       </button>
       {note ? (
-        <p className="moments-status" role="status">
+        <p className={note === REQUEST_SENT ? "moments-status otp-sent" : "moments-status"} role="status">
           {note}
         </p>
       ) : null}
