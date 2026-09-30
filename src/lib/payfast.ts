@@ -46,9 +46,14 @@ export const FIELD_ORDER = [
 ] as const;
 
 /**
- * Live pack: 25 good moments for 130.00 ZAR. `/moments` shows R130 and
- * “ZAR / $7.99”. A confirmed ITN adds 25 onto `goodfans.game`. It does not
- * rewrite a balance that is already stored.
+ * Live pack: 25 good moments for 130.00 ZAR. The unlock card may lead with
+ * $7.99 outside South Africa. Payfast’s custom form has no currency field:
+ * `amount` and the ITN `amount_gross` are ZAR
+ * (https://developers.payfast.co.za/documentation). Multi-currency, if a
+ * merchant turns it on, is a buyer choice on Payfast’s page, not a 7.99 USD
+ * charge we can post. Every buyer is charged 130.00 ZAR. A confirmed ITN of
+ * exactly that gross adds 25 onto `goodfans.game`. It does not rewrite a
+ * balance that is already stored.
  */
 export const PACK_AMOUNT = "130.00";
 export const PACK_MOMENTS = 25;

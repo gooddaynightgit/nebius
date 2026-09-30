@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import ExpireSavedMoments from "@/components/ExpireSavedMoments";
 import MomentsCheckout from "@/components/MomentsCheckout";
+import MomentsPrice from "@/components/MomentsPrice";
 import SiteFooter from "@/components/SiteFooter";
+import { countryForPrice } from "@/lib/price-display";
 import { isPersonalPhotoSession } from "@/lib/session";
 import { siteTitleMetadata } from "@/lib/site-title";
 
@@ -13,8 +16,15 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function MomentsPage() {
+export default async function MomentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cc?: string }>;
+}) {
   if (!(await isPersonalPhotoSession())) redirect("/signin");
+  const cc = (await searchParams).cc;
+  const geoCountry = (await headers()).get("x-vercel-ip-country");
+  const country = countryForPrice({ cc, geoCountry });
 
   return (
     <div className="moments-page">
@@ -32,10 +42,7 @@ export default async function MomentsPage() {
           <section className="moments-glass" aria-labelledby="moments-weave">
             <h2 id="moments-weave">Every good moment weaved adds to the rich tapestry of life</h2>
             <p className="moments-offer">Unlock 25 good moments weaved for</p>
-            <p className="moments-price-hero">
-              <span className="moments-price-hero__amount">R130</span>
-              <span className="moments-price-hero__unit">ZAR / $7.99</span>
-            </p>
+            <MomentsPrice country={country} />
           </section>
           <MomentsCheckout />
         </div>
