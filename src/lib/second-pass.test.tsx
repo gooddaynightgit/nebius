@@ -63,6 +63,27 @@ describe("second pass after a finished story", () => {
     vi.restoreAllMocks();
   });
 
+  it("nudges from the floating pill when no joy is picked", async () => {
+    await act(async () => {
+      root.render(
+        <StepForwardProvider>
+          <JourneyBar step={2} />
+          <JoyStudio />
+        </StepForwardProvider>,
+      );
+    });
+    const forward = container.querySelector(".step-float__next") as HTMLButtonElement;
+    expect(forward.disabled).toBe(false);
+    expect(forward.getAttribute("aria-label")).toBe("Unlock/Capture");
+    expect(container.querySelector("#joy-need")).toBeNull();
+    await act(async () => {
+      forward.click();
+    });
+    expect(assigned).toEqual([]);
+    expect(container.querySelector("#joy-need")?.textContent).toBe(LANDING.app.joyNudge);
+    expect(container.querySelector(".joy-fieldset--unset")).toBeTruthy();
+  });
+
   it("returns to pick your joy, accepts a new joy, and opens a credited photo page", async () => {
     const day = localDay();
     await act(async () => {

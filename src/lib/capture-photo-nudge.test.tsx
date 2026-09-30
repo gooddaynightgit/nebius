@@ -6,7 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CaptureStudio from "@/components/CaptureStudio";
 import { JourneyBar } from "@/components/JourneyProgress";
 import { StepForwardProvider } from "@/components/step-forward";
+import { resetCaptureStashForTests } from "@/lib/capture-stash";
 import { LANDING } from "@/lib/landing";
+import { clearActiveMoment } from "@/lib/moment";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/app",
@@ -34,6 +36,7 @@ vi.mock("@/lib/photo-picture", async () => {
 });
 
 const assigned: string[] = [];
+let sessionPhoto: { id: string; dateVerified: boolean } | null = null;
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -52,6 +55,9 @@ describe("capture step without a photo", () => {
 
   beforeEach(() => {
     assigned.length = 0;
+    sessionPhoto = null;
+    resetCaptureStashForTests();
+    clearActiveMoment();
     vi.spyOn(window.location, "assign").mockImplementation(((href: string) => {
       assigned.push(String(href));
     }) as Location["assign"]);
@@ -74,7 +80,7 @@ describe("capture step without a photo", () => {
             todayCount: 0,
             canHearStory: false,
             lastStory: null,
-            todayPhoto: null,
+            todayPhoto: sessionPhoto,
             hasSavedMoment: false,
             yoursOpened: false,
             canReplacePhoto: true,
@@ -133,7 +139,7 @@ describe("capture step without a photo", () => {
     expect(container.querySelector(".studio-photo-actions--unset")).toBeNull();
 
     await act(async () => {
-      progressNext.click();
+      forward.click();
     });
     expect(assigned).toEqual([]);
     const nudge = container.querySelector("#photo-need");
@@ -149,10 +155,11 @@ describe("capture step without a photo", () => {
     ).toBeTruthy();
 
     await act(async () => {
-      forward.click();
+      progressNext.click();
     });
     expect(assigned).toEqual([]);
     expect(container.querySelector("#photo-need")?.textContent).toBe(LANDING.app.photoNudge);
+    expect(container.querySelector(".studio-photo-actions--unset")).toBeTruthy();
     expect(forward.disabled).toBe(false);
 
     const input = container.querySelector('input[type="file"]:not([capture])') as HTMLInputElement;
@@ -168,5 +175,34 @@ describe("capture step without a photo", () => {
     expect(container.querySelector(".studio-photo-actions--unset")).toBeNull();
     expect(container.textContent).not.toContain(LANDING.app.photoNudge);
     expect(assigned).toEqual([]);
+  });
+
+  it("nudges from the floating pill when a saved photo is not on the screen", async () => {
+    sessionPhoto = { id: "cap_hidden", dateVerified: true };
+    await renderCapture();
+    expect(container.querySelector(".photo-preview")).toBeNull();
+    const forward = container.querySelector(".step-float__next") as HTMLButtonElement;
+    expect(forward.disabled).toBe(false);
+    expect(forward.getAttribute("aria-label")).toBe("What is the good in this moment?");
+
+    await act(async () => {
+      forward.click();
+    });
+    expect(assigned).toEqual([]);
+    expect(container.querySelector("#photo-need")?.textContent).toBe(LANDING.app.photoNudge);
+    expect(container.querySelector(".studio-photo-actions--unset")).toBeTruthy();
+
+    await act(async () => {
+      root.unmount();
+    });
+    root = createRoot(container);
+    await renderCapture();
+    const progress = container.querySelector("button.journey__next") as HTMLButtonElement;
+    expect(progress.textContent).toContain("What is the good in this moment?");
+    await act(async () => {
+      progress.click();
+    });
+    expect(container.querySelector("#photo-need")?.textContent).toBe(LANDING.app.photoNudge);
+    expect(container.querySelector(".studio-photo-actions--unset")).toBeTruthy();
   });
 });
