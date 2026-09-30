@@ -2980,6 +2980,11 @@ body:has(.story-opening) .step-forward:has(.step-forward-arrow:disabled) .step-f
   font-weight: 700;
 }
 
+#joy-need {
+  scroll-margin-top: 8.75rem;
+  scroll-margin-bottom: 7.5rem;
+}
+
 
 .story-body {
   position: relative;
@@ -3744,6 +3749,16 @@ body:has(.moments-page) {
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.2;
+}
+
+button.journey__next {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--lime);
+  cursor: pointer;
+  text-align: left;
 }
 
 .journey__arrow {

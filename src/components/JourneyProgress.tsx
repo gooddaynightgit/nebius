@@ -4,6 +4,7 @@ import { Suspense, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppProgressContext, BuyerGateContext } from "@/components/journey-gate";
+import { useStepForward } from "@/components/step-forward";
 import {
   JOURNEY_FINISHED_CAPTION,
   JOURNEY_STEP_COUNT,
@@ -50,6 +51,7 @@ function CheckIcon() {
 }
 
 export function JourneyBar({ step }: { step: number }) {
+  const forward = useStepForward();
   const finished = step > JOURNEY_STEPS.length;
   const current = JOURNEY_STEPS[step - 1];
   const caption = finished ? JOURNEY_FINISHED_CAPTION : current?.label;
@@ -116,10 +118,17 @@ export function JourneyBar({ step }: { step: number }) {
               {caption}
             </p>
             {nextLabel ? (
-              <p className="journey__next" aria-hidden="true">
-                <NextArrow />
-                <span className="journey__next-label">{nextLabel}</span>
-              </p>
+              nextLabel === "Unlock/Capture" ? (
+                <button type="button" className="journey__next" onClick={() => forward?.run()}>
+                  <NextArrow />
+                  <span className="journey__next-label">{nextLabel}</span>
+                </button>
+              ) : (
+                <p className="journey__next" aria-hidden="true">
+                  <NextArrow />
+                  <span className="journey__next-label">{nextLabel}</span>
+                </p>
+              )
             ) : null}
           </div>
           {finished ? null : (

@@ -944,7 +944,7 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/useRegisterStepForward/);
     expect(joy).not.toMatch(/disabled=\{!selectedJoy\}/);
     expect(joy).not.toMatch(/tone="soft"/);
-    expect(joy).toMatch(/LANDING\.app\.joyNeed/);
+    expect(joy).toMatch(/LANDING\.app\.joyNudge/);
     expect(joy).toMatch(/step-nudge--block/);
     expect(joy).toMatch(/selectedJoy \?/);
     expect(joy).not.toMatch(/\/api\/joy-match/);
