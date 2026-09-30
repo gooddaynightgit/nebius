@@ -958,6 +958,10 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/PHOTO_NOT_A_PICTURE/);
     expect(src).toMatch(/isStillImageFile/);
     expect(src).toMatch(/blobLooksBlank/);
+    expect(src).toMatch(/LANDING\.app\.photoNudge/);
+    expect(src).toMatch(/id="photo-need"/);
+    expect(src).toMatch(/studio-photo-actions--unset/);
+    expect(src).toMatch(/setPhotoMissed\(true\)/);
     expect(src).toMatch(/LANDING\.app\.takePhoto/);
     expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(src.match(/capture="environment"/g)?.length).toBe(1);

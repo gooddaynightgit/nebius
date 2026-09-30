@@ -116,6 +116,7 @@ export default function CaptureStudio() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [captionMissed, setCaptionMissed] = useState(false);
+  const [photoMissed, setPhotoMissed] = useState(false);
   const [selectedJoyId, setSelectedJoyId] = useState<string | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
   const [joyError, setJoyError] = useState<string | null>(null);
@@ -169,12 +170,21 @@ export default function CaptureStudio() {
     reviewView.progress,
   );
   const captureNext = captureStep == null ? null : journeyNextLabel(captureStep);
+  const hasPhoto = Boolean(photo) || Boolean(savedPhoto);
+  const awaitingPhoto = captureStep === 4 && !hasPhoto;
   useRegisterStepForward(
     captureNext
       ? {
           label: captureNext,
-          enabled: reviewView.showWeave && !busy,
-          run: () => captureFormRef.current?.requestSubmit(),
+          enabled: awaitingPhoto || (reviewView.showWeave && !busy),
+          run: () => {
+            if (!hasPhoto && captureStep === 4) {
+              setPhotoMissed(true);
+              return;
+            }
+            if (!reviewView.showWeave || busy) return;
+            captureFormRef.current?.requestSubmit();
+          },
         }
       : null,
   );
@@ -372,6 +382,19 @@ export default function CaptureStudio() {
       liveStream?.getTracks().forEach((track) => track.stop());
     };
   }, [liveStream]);
+
+  useEffect(() => {
+    if (photo || savedPhoto) setPhotoMissed(false);
+  }, [photo, savedPhoto]);
+
+  useEffect(() => {
+    if (!photoMissed || photo || savedPhoto) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("photo-need")?.scrollIntoView?.({
+      behavior: reduce ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [photoMissed, photo, savedPhoto]);
 
   useEffect(() => {
     if (!captionScroll || !questionOpen) return;
@@ -819,7 +842,7 @@ export default function CaptureStudio() {
             </p>
             <div className="studio">
               {captureOpen ? (
-              <div className="studio-photo-actions">
+              <div className={photoMissed && !hasPhoto ? "studio-photo-actions studio-photo-actions--unset" : "studio-photo-actions"}>
                 <button
                   className="btn btn--ghost"
                   type="button"
@@ -854,6 +877,11 @@ export default function CaptureStudio() {
                     event.target.value = "";
                   }}
                 />
+                {photoMissed && !hasPhoto ? (
+                  <p className="photo-need" id="photo-need" role="status">
+                    {LANDING.app.photoNudge}
+                  </p>
+                ) : null}
                 {captureError === PHOTO_NOT_A_PICTURE || captureError === PHOTO_NOT_CLEAR ? (
                   <p className="capture-reject" role="alert">
                     {captureError}

@@ -139,7 +139,7 @@ export default function SignInForm() {
       </label>
       <input
         id="signin-code"
-        className="whisper"
+        className={note === VERIFY_FAIL ? "whisper whisper--alert" : "whisper"}
         type="text"
         inputMode="numeric"
         autoComplete="one-time-code"
@@ -150,7 +150,12 @@ export default function SignInForm() {
           setNote(null);
         }}
       />
-      <button className="btn verify-code" type="button" disabled={busy} onClick={() => void verifyCode()}>
+      <button
+        className={note === VERIFY_FAIL ? "btn verify-code verify-code--alert" : "btn verify-code"}
+        type="button"
+        disabled={busy}
+        onClick={() => void verifyCode()}
+      >
         Verify code
       </button>
       {note ? (

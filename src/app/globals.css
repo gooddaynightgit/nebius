@@ -355,8 +355,7 @@ body:has(.journey) .skip-link:focus {
   overflow-wrap: break-word;
 }
 
-.signin-card .otp-sent,
-.signin-card .otp-wrong {
+.signin-card .otp-sent {
   margin: 0.15rem 0 0;
   font-family: inherit;
   font-weight: 600;
@@ -368,6 +367,31 @@ body:has(.journey) .skip-link:focus {
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 0 8px rgba(176, 168, 255, 0.55));
+}
+
+.signin-card .otp-wrong {
+  margin: 0.15rem 0 0;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+  color: #d92d20;
+  background: none;
+  filter: none;
+}
+
+.signin-card .whisper.whisper--alert,
+.signin-card .whisper.whisper--alert:hover,
+.signin-card .whisper.whisper--alert:focus {
+  border: 3px solid #d92d20;
+}
+
+.signin-card .btn.verify-code.verify-code--alert,
+.signin-card .btn.verify-code.verify-code--alert:hover,
+.signin-card .btn.verify-code.verify-code--alert:disabled,
+.signin-card .btn.verify-code.verify-code--alert:disabled:hover {
+  border: 3px solid #d92d20;
 }
 
 .privacy-note {
@@ -2445,6 +2469,25 @@ body:has(.step-float) .share-pin {
 .studio-photo-actions .btn {
   flex: 1 1 11rem;
   text-align: center;
+}
+
+.studio-photo-actions.studio-photo-actions--unset .btn,
+.studio-photo-actions.studio-photo-actions--unset .btn:hover {
+  border: 3px solid #d92d20;
+}
+
+.photo-need {
+  flex: 1 1 100%;
+  margin: 0.15rem 0 0;
+  color: #d92d20;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+#photo-need {
+  scroll-margin-top: 8.75rem;
+  scroll-margin-bottom: 7.5rem;
 }
 
 .live-camera {

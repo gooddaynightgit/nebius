@@ -85,13 +85,18 @@ describe("sign-in code sent", () => {
     });
     const note = container.querySelector(".otp-wrong");
     expect(note?.textContent).toBe(VERIFY_FAIL);
+    expect(note?.className).not.toContain("otp-sent");
     expect(container.querySelector(".otp-sent")).toBeNull();
+    expect(container.querySelector("#signin-code")?.className).toContain("whisper--alert");
+    expect(container.querySelector(".verify-code")?.className).toContain("verify-code--alert");
     await act(async () => {
       setValue?.call(code, "00000");
       code.dispatchEvent(new Event("input", { bubbles: true }));
     });
     expect(container.querySelector(".otp-wrong")).toBeNull();
     expect(container.textContent).not.toContain(VERIFY_FAIL);
+    expect(container.querySelector("#signin-code")?.className).not.toContain("whisper--alert");
+    expect(container.querySelector(".verify-code")?.className).not.toContain("verify-code--alert");
   });
 
   it("does not show the sent line when the email fails", async () => {
