@@ -5,7 +5,7 @@ import { authAttempt, type AuthBody } from "@/lib/auth-note";
 import { readResponsePayload } from "@/lib/client-fetch";
 import { followVerifiedLogin } from "@/lib/login-destination";
 import { PRIVACY_NOTE } from "@/lib/privacy";
-import { REQUEST_SENT } from "@/lib/otp";
+import { REQUEST_SENT } from "@/lib/otp-copy";
 import { isSixDigitCode } from "@/lib/verify-code";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

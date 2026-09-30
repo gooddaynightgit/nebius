@@ -4,7 +4,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SignInForm from "@/components/SignInForm";
-import { REQUEST_SENT, REQUEST_UNAVAILABLE } from "@/lib/otp";
+import { REQUEST_SENT, REQUEST_UNAVAILABLE } from "@/lib/otp-copy";
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
