@@ -129,9 +129,9 @@ export default function JoyStudio() {
   useEffect(() => {
     if (!joyMissed || !needsJoyPick || selectedJoy) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById("joy-need")?.scrollIntoView({
+    document.getElementById("joy-need")?.scrollIntoView?.({
       behavior: reduce ? "auto" : "smooth",
-      block: "center",
+      block: "start",
     });
   }, [joyMissed, needsJoyPick, selectedJoy]);
 
@@ -176,10 +176,9 @@ export default function JoyStudio() {
     window.location.assign(uploadPhotoDestination(signedIn, game));
   }
 
-  const joyReady = Boolean(getJoyById(selectedJoyId) ?? getJoyById(readChosenJoy(day)));
   useRegisterStepForward({
     label: journeyNextLabel(2) ?? "Unlock/Capture",
-    enabled: joyReady,
+    enabled: true,
     run: () => {
       void uploadPhoto();
     },
@@ -198,6 +197,11 @@ export default function JoyStudio() {
           <h2 id="joy-heading" className="step-heading step-heading--navy">
             Pick your joy
           </h2>
+          {joyMissed && needsJoyPick && !selectedJoy ? (
+            <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
+              {LANDING.app.joyNudge}
+            </p>
+          ) : null}
           <JoyPicker
             name="quiet-joy-app"
             idPrefix="app-joy"
@@ -236,14 +240,6 @@ export default function JoyStudio() {
           ) : null}
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>
-
-        {joyMissed && needsJoyPick && !selectedJoy ? (
-          <nav className="step-nav step-nav--joy" aria-label="Steps">
-            <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
-              {LANDING.app.joyNeed}
-            </p>
-          </nav>
-        ) : null}
 
         <section className="card card--lime card--compact" aria-labelledby="closing-heading">
           <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>

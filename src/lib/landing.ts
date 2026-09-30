@@ -85,6 +85,7 @@ export const LANDING = {
     unexpected: "Couldn't read GoodDayNight's reply. Refresh and try again.",
     tryAgain: "Try again",
     joyNeed: "Pick the kind of quiet joy first.",
+    joyNudge: "Gently nudging you to pick a joy for Unlock/Capture goodness to happen.",
     joyQuestion: "What joy is it?",
     joyPickHint: "(pick one to Create your story)",
     alreadyPickedLink: "See your Created story",

@@ -5,8 +5,10 @@ import path from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { JourneyBar } from "@/components/JourneyProgress";
 import JoyStudio from "@/components/JoyStudio";
 import { StepForwardProvider } from "@/components/step-forward";
+import { LANDING } from "@/lib/landing";
 import { resetChosenJoyForTests, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
 import { photoButtonsEnabled, uploadPhotoDestination } from "@/lib/photo-entry";
@@ -66,6 +68,7 @@ describe("second pass after a finished story", () => {
     await act(async () => {
       root.render(
         <StepForwardProvider>
+          <JourneyBar step={2} />
           <JoyStudio />
         </StepForwardProvider>,
       );
@@ -78,14 +81,35 @@ describe("second pass after a finished story", () => {
     expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
     expect(container.querySelector("#joy-need")).toBeNull();
     const forwardEarly = container.querySelector(".step-float__next") as HTMLButtonElement;
-    expect(forwardEarly.disabled).toBe(true);
+    const progressNext = container.querySelector("button.journey__next") as HTMLButtonElement;
+    expect(forwardEarly.disabled).toBe(false);
     expect(forwardEarly.getAttribute("aria-label")).toBe("Unlock/Capture");
     expect(forwardEarly.textContent).toContain("Unlock/Capture");
+    expect(progressNext.textContent).toContain("Unlock/Capture");
+    await act(async () => {
+      progressNext.click();
+    });
+    expect(assigned).toEqual([]);
+    const nudge = container.querySelector("#joy-need");
+    expect(nudge?.textContent).toBe(LANDING.app.joyNudge);
+    expect(container.querySelector(".joy-fieldset--unset")).toBeTruthy();
+    expect(container.querySelector(".joy-fieldset--lime")).toBeNull();
+    const firstRadio = container.querySelector(".joy__pick input");
+    expect(nudge && firstRadio && (nudge.compareDocumentPosition(firstRadio) & Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
     await act(async () => {
       forwardEarly.click();
     });
     expect(assigned).toEqual([]);
+    expect(container.querySelector("#joy-need")?.textContent).toBe(LANDING.app.joyNudge);
+    const catalog = container.querySelector('input[value="a-small-hello"]') as HTMLInputElement;
+    await act(async () => {
+      catalog.click();
+    });
+    expect(catalog.checked).toBe(true);
     expect(container.querySelector("#joy-need")).toBeNull();
+    expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
+    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
+    expect(container.textContent).not.toContain(LANDING.app.joyNudge);
     const back = container.querySelector(".step-float__back");
     expect(back?.getAttribute("aria-label")).toBe("Back to start");
     expect(back?.getAttribute("href")).toBe("/");

@@ -78,6 +78,9 @@ describe("landing copy", () => {
     expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
+    expect(LANDING.app.joyNudge).toBe(
+      "Gently nudging you to pick a joy for Unlock/Capture goodness to happen.",
+    );
     expect(LANDING.app.joyQuestion).toBe("What joy is it?");
     expect(LANDING.app.joyPickHint).toBe("(pick one to Create your story)");
     expect(LANDING.app.alreadyPickedLink).toBe("See your Created story");
