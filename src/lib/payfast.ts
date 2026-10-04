@@ -56,6 +56,8 @@ export const FIELD_ORDER = [
  * balance that is already stored.
  */
 export const PACK_AMOUNT = "130.00";
+/** Payfast custom checkout has no currency field. `amount` and ITN `amount_gross` are ZAR. */
+export const PAYFAST_CURRENCY = "ZAR";
 export const PACK_MOMENTS = 25;
 export const ITEM_NAME = "GoodDayNight — 25 good moments";
 export const ITEM_DESCRIPTION =
@@ -499,7 +501,9 @@ export async function handlePayfastItn(
     return rejectItn("credit");
   }
   if (recorded) {
-    if (decision.ok) await noteCompletedReturn(decision.email, rawBody, pfPaymentId);
+    if (decision.ok) {
+      await noteCompletedReturn(decision.email, rawBody, pfPaymentId, decision.amountGross);
+    }
     console.info("[payfast-itn] credited", {
       pf_payment_id: pfPaymentId,
       remaining: recorded.remaining,
@@ -519,7 +523,7 @@ export async function handlePayfastItn(
   } catch {
     return rejectItn("credit");
   }
-  await noteCompletedReturn(decision.email, rawBody, decision.pfPaymentId);
+  await noteCompletedReturn(decision.email, rawBody, decision.pfPaymentId, decision.amountGross);
   console.info("[payfast-itn] credited", {
     pf_payment_id: decision.pfPaymentId,
     remaining: credited.remaining,
@@ -528,11 +532,19 @@ export async function handlePayfastItn(
   return { status: 200, body: "OK" };
 }
 
-async function noteCompletedReturn(email: string, rawBody: string, pfPaymentId: string): Promise<void> {
+async function noteCompletedReturn(
+  email: string,
+  rawBody: string,
+  pfPaymentId: string,
+  amountGross: string,
+): Promise<void> {
   const mPaymentId = postedMerchantPaymentId(rawBody);
   if (!mPaymentId) return;
   try {
-    await completePayfastOrder(email, mPaymentId, pfPaymentId);
+    await completePayfastOrder(email, mPaymentId, pfPaymentId, {
+      amount: amountGross,
+      currency: PAYFAST_CURRENCY,
+    });
   } catch (error) {
     console.error("[payfast-itn] return receipt stayed", error);
   }

@@ -1,4 +1,5 @@
 import { openBuyerHandoff } from "./buyer-handoff";
+import { purchaseFromStored, type VerifiedPurchase } from "./google-ads";
 import { isValidEmail, normalizeEmail } from "./identity";
 import { otpSessionSecret } from "./otp-session";
 import { getJSON, putJSON } from "./storage";
@@ -26,6 +27,10 @@ type StoredOrder = {
   mPaymentId: string;
   status: PayfastOrderStatus;
   pfPaymentId?: string;
+  /** Verified ITN `amount_gross`, major units (Payfast rands, not cents). */
+  amount?: string;
+  /** Uppercase ISO currency recorded with the verified ITN. */
+  currency?: string;
   updatedAt: string;
 };
 
@@ -72,11 +77,15 @@ export async function completePayfastOrder(
   email: string,
   mPaymentId: string,
   pfPaymentId: string,
+  paid?: { amount: string; currency: string },
 ): Promise<void> {
   const normalized = normalizeEmail(email);
   if (!isValidEmail(normalized) || !isPayfastOrderRef(mPaymentId) || !isPayfastOrderRef(pfPaymentId)) return;
   const existing = await readOrder(mPaymentId);
   if (existing && existing.email !== normalized) return;
+  const verified = paid
+    ? purchaseFromStored({ pfPaymentId, amount: paid.amount, currency: paid.currency })
+    : null;
   const row: StoredOrder = {
     email: normalized,
     mPaymentId,
@@ -84,6 +93,10 @@ export async function completePayfastOrder(
     pfPaymentId,
     updatedAt: new Date().toISOString(),
   };
+  if (verified && paid) {
+    row.amount = paid.amount.trim();
+    row.currency = verified.currency;
+  }
   await putJSON(orderKey(mPaymentId), row);
 }
 
@@ -121,8 +134,34 @@ export async function paidViewForHandoff(
   return "absent";
 }
 
+export type PaidPoll =
+  | { status: "complete"; purchase: VerifiedPurchase | null }
+  | { status: "pending" }
+  | { status: "absent" };
+
+/** Status for the return page poll. Purchase data only after the handoff matches. */
+export async function paidPollForHandoff(
+  mPaymentId: string | null,
+  handoff: string | null,
+  nowSec = Math.floor(Date.now() / 1000),
+): Promise<PaidPoll> {
+  const view = await paidViewForHandoff(mPaymentId, handoff, nowSec);
+  if (view === "pending") return { status: "pending" };
+  if (view !== "complete" || !mPaymentId) return { status: "absent" };
+  const order = await readOrder(mPaymentId);
+  if (!order || order.status !== "complete") return { status: "absent" };
+  return {
+    status: "complete",
+    purchase: purchaseFromStored({
+      pfPaymentId: order.pfPaymentId,
+      amount: order.amount,
+      currency: order.currency,
+    }),
+  };
+}
+
 export type PaidOutcome =
-  | { kind: "success" }
+  | { kind: "success"; purchase: VerifiedPurchase | null }
   | { kind: "confirming"; ref: string; handoff: string }
   | { kind: "missing" };
 
@@ -132,7 +171,17 @@ export async function resolvePaidVisit(input: {
   nowSec?: number;
 }): Promise<PaidOutcome> {
   const view = await paidViewForHandoff(input.ref, input.handoff, input.nowSec);
-  if (view === "complete") return { kind: "success" };
+  if (view === "complete" && input.ref) {
+    const order = await readOrder(input.ref);
+    const purchase = order
+      ? purchaseFromStored({
+          pfPaymentId: order.pfPaymentId,
+          amount: order.amount,
+          currency: order.currency,
+        })
+      : null;
+    return { kind: "success", purchase };
+  }
   if (view === "pending" && input.ref && input.handoff) {
     return { kind: "confirming", ref: input.ref, handoff: input.handoff };
   }

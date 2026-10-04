@@ -31,7 +31,7 @@ export default async function PaidPage({
     <div className="page paid-page">
       <main id="main">
         {outcome.kind === "success" ? (
-          <PaidSuccess />
+          <PaidSuccess purchase={outcome.purchase} />
         ) : (
           <PaidConfirming orderRef={outcome.ref} handoff={outcome.handoff} />
         )}

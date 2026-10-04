@@ -88,6 +88,11 @@ describe("paid page", () => {
     });
     container.remove();
     rmSync(dir, { recursive: true, force: true });
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+    delete window.gtag;
+    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -95,7 +100,7 @@ describe("paid page", () => {
   it("returns the success page for a signed-out buyer when the order is complete", async () => {
     const { completePayfastOrder } = await import("@/lib/paid-return");
     await rememberPayfastOrder(EMAIL, "pay_done");
-    await completePayfastOrder(EMAIL, "pay_done", "1089250");
+    await completePayfastOrder(EMAIL, "pay_done", "1089250", { amount: "130.00", currency: "ZAR" });
     const page = await PaidPage({
       searchParams: Promise.resolve({ ref: "pay_done", handoff: token() }),
     });
@@ -176,6 +181,112 @@ describe("paid page", () => {
     expect(container.textContent).not.toContain("25 moments are yours.");
     expect(container.textContent).not.toContain("Weave your good moment");
     expect(container.innerHTML).not.toContain("/moments");
+  });
+
+  it("does not mount or fire a conversion unless both Ads env vars are set", async () => {
+    const gtag = vi.fn();
+    window.gtag = gtag;
+    const purchase = { transactionId: "1089250", value: 130, currency: "ZAR" };
+    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
+    await act(async () => {
+      root.render(createElement(PaidSuccess, { purchase }));
+    });
+    expect(gtag).not.toHaveBeenCalled();
+
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-123456789";
+    await act(async () => {
+      root.render(createElement(PaidSuccess, { purchase }));
+    });
+    expect(gtag).not.toHaveBeenCalled();
+
+    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL = "purchaseLabel1";
+    await act(async () => {
+      root.render(createElement(PaidSuccess, { purchase }));
+    });
+    expect(gtag).not.toHaveBeenCalled();
+
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-123456789";
+    await act(async () => {
+      root.render(createElement(PaidSuccess, { purchase }));
+    });
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(gtag).toHaveBeenCalledWith("event", "conversion", {
+      send_to: "AW-123456789/purchaseLabel1",
+      value: 130,
+      currency: "ZAR",
+      transaction_id: "1089250",
+    });
+  });
+
+  it("fires one conversion when a pending payment is confirmed", async () => {
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-123456789";
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL = "purchaseLabel1";
+    const gtag = vi.fn();
+    window.gtag = gtag;
+    let calls = 0;
+    const fetchMock = vi.fn(async () => {
+      calls += 1;
+      if (calls < 2) {
+        return new Response(JSON.stringify({ status: "pending" }), { status: 200 });
+      }
+      return new Response(
+        JSON.stringify({
+          status: "complete",
+          purchase: { transactionId: "1089250", value: 130, currency: "ZAR" },
+        }),
+        { status: 200 },
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.useFakeTimers();
+
+    await act(async () => {
+      root.render(createElement(PaidConfirming, { orderRef: "pay_wait", handoff: token() }));
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(gtag).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(gtag).toHaveBeenCalledWith("event", "conversion", {
+      send_to: "AW-123456789/purchaseLabel1",
+      value: 130,
+      currency: "ZAR",
+      transaction_id: "1089250",
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not fire a conversion when confirmation never arrives", async () => {
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-123456789";
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL = "purchaseLabel1";
+    const gtag = vi.fn();
+    window.gtag = gtag;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ status: "pending" }), { status: 200 })),
+    );
+    vi.useFakeTimers();
+
+    await act(async () => {
+      root.render(createElement(PaidConfirming, { orderRef: "pay_wait", handoff: token() }));
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(container.textContent).toContain(PAID_SETTLING_HEADING);
+    expect(gtag).not.toHaveBeenCalled();
   });
 
   it("leaves the menu and the testimonial strip off this page", async () => {

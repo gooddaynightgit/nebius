@@ -62,7 +62,7 @@ describe("moments pack page", () => {
     expect(page).not.toMatch(/Email me a code/);
     expect(page).not.toMatch(/Verify code/);
     expect(PRIVACY_NOTE).toBe(
-      "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.",
+      "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.\nWe use Google Analytics and Google advertising cookies, including a conversion measurement when a payment succeeds.",
     );
     const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
     expect(styles).toMatch(/\.moments-page-heading\s*\{[^}]*color:\s*#d4ff00;/);
@@ -72,7 +72,7 @@ describe("moments pack page", () => {
     expect(styles).toMatch(/\.moments-stage\s*\{[^}]*z-index:\s*1;/);
     expect(styles).toMatch(/\.privacy-note\s*\{[^}]*white-space:\s*pre-line;/);
     expect(privacy).toContain(
-      "Email keeps your moments yours. Your photos and words are never used to train AI.",
+      "Email keeps your moments yours. Your photos and words are never used to train AI. We use Google Analytics and advertising cookies, including a conversion when a payment succeeds.",
     );
     const signin = readFileSync(path.resolve("src/components/SignInForm.tsx"), "utf8");
     expect(signin).toMatch(/className="btn moments-code"/);
