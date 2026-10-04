@@ -580,6 +580,37 @@ body:has(.journey) .skip-link:focus {
   background: linear-gradient(160deg, #eaff6a 0%, var(--lime) 58%, #c8ff80 100%);
 }
 
+.card.card--summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 16.5rem;
+  padding: 2rem 1.35rem;
+  color: var(--navy);
+  text-align: center;
+  background-color: #f4eef8;
+  background-image: url("/summary-bg.webp");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.card.card--summary .card__body {
+  max-width: 28rem;
+  margin: 0;
+  padding: 0.95rem 1.15rem;
+  border-radius: 1rem;
+  color: var(--navy);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
 .example-good {
   color: var(--navy);
   background: linear-gradient(160deg, #eaff6a 0%, var(--lime) 58%, #c8ff80 100%);

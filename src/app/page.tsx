@@ -74,11 +74,14 @@ export default async function HomePage() {
           <h1 id="hero-heading">
             You scrolled past a hundred good moments today. None of them were yours.
           </h1>
-          <p className="card__body" style={{ marginTop: "0.85rem" }}>
-            GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
-          </p>
           <span className="card__mark" aria-hidden="true"></span>
           <span className="card__wash card__wash--sun" aria-hidden="true"></span>
+        </section>
+
+        <section className="card card--summary">
+          <p className="card__body">
+            GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
+          </p>
         </section>
 
         <section className="card card--lavender">
