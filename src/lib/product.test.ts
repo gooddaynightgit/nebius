@@ -830,7 +830,7 @@ describe("landing", () => {
     expect(page).toContain('href="/app/joy"');
     expect(page).not.toContain("CreateStoryButton");
     expect(page).not.toContain("Gooddaynight does");
-    expect(page).not.toContain("habit of looking");
+    expect(page).toContain("habit of looking");
     expect(copy).not.toContain("habit of looking");
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
