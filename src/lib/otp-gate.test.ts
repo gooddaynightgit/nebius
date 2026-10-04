@@ -27,7 +27,12 @@ describe("email otp gates", () => {
 
   it("blocks app personal-photo paths and leaves joy picks alone", () => {
     expect(read("src/app/api/captures/route.ts")).toMatch(/requirePersonalPhotoOtp/);
-    expect(read("src/app/api/media/[captureId]/route.ts")).toMatch(/requirePersonalPhotoOtp/);
+    const media = read("src/app/api/media/[captureId]/route.ts");
+    expect(media).toMatch(/requirePersonalPhotoOtp/);
+    expect(media).toMatch(/\{ cache: true \}/);
+    expect(media).toMatch(/private, max-age=3600/);
+    expect(media).not.toMatch(/no-cache/);
+    expect(read("src/app/api/story/audio/route.ts")).toMatch(/\{ cache: true \}/);
     expect(read("src/app/api/photo-spark/route.ts")).toMatch(/requirePersonalPhotoOtp/);
     expect(read("src/app/api/yours/route.ts")).toMatch(/requirePersonalPhotoOtp/);
     expect(read("src/app/api/joy-match/route.ts")).not.toMatch(/requirePersonalPhotoOtp/);

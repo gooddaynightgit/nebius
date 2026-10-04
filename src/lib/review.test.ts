@@ -259,4 +259,46 @@ describe("review API", () => {
     expect(JSON.stringify(shown)).not.toMatch(/amy@email.com|@/);
     expect(shown.some((review) => review.comment === "It was alright.")).toBe(false);
   });
+
+  it("reads only the newest published reviews when a limit is set", async () => {
+    const { getJSON, putJSON } = await import("@/lib/storage");
+    const { listPublishedReviews } = await import("./review");
+    const ids: string[] = [];
+    for (let index = 0; index < 8; index += 1) {
+      const id = `review_limit_${index}`;
+      ids.push(id);
+      await putJSON(`reviews/${id}.json`, {
+        id,
+        stars: 5,
+        comment: `note ${index}`,
+        name: "Ada",
+        email: null,
+        createdAt: `2026-09-${String(index + 1).padStart(2, "0")}T00:00:00.000Z`,
+        published: true,
+      });
+    }
+    await putJSON(REVIEW_INDEX_KEY, ids);
+    vi.mocked(getJSON).mockClear();
+
+    const shown = await listPublishedReviews(6);
+    expect(shown).toHaveLength(6);
+    expect(shown[0]?.comment).toBe("note 7");
+    expect(shown.at(-1)?.comment).toBe("note 2");
+    const fileReads = vi.mocked(getJSON).mock.calls.filter(([key]) => key !== REVIEW_INDEX_KEY);
+    expect(fileReads.map(([key]) => key)).toEqual([
+      "reviews/review_limit_7.json",
+      "reviews/review_limit_6.json",
+      "reviews/review_limit_5.json",
+      "reviews/review_limit_4.json",
+      "reviews/review_limit_3.json",
+      "reviews/review_limit_2.json",
+    ]);
+    expect(
+      vi.mocked(getJSON).mock.calls.every(([, options]) => (options as { cache?: boolean } | undefined)?.cache === true),
+    ).toBe(true);
+
+    vi.mocked(getJSON).mockClear();
+    const all = await listPublishedReviews();
+    expect(all).toHaveLength(8);
+  });
 });

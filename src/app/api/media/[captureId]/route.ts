@@ -17,12 +17,12 @@ export async function GET(
   if (!capture?.mediaKey) {
     return json({ error: "Not found" }, 404);
   }
-  const file = await getBytes(capture.mediaKey);
+  const file = await getBytes(capture.mediaKey, { cache: true });
   if (!file) return json({ error: "Not found" }, 404);
   return new Response(new Uint8Array(file.body), {
     headers: {
       "Content-Type": capture.mediaContentType || file.contentType,
-      "Cache-Control": "private, no-cache",
+      "Cache-Control": "private, max-age=3600",
     },
   });
 }

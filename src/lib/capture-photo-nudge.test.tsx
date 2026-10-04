@@ -127,6 +127,17 @@ describe("capture step without a photo", () => {
     }
   }
 
+  it("loads the session once when the capture page opens", async () => {
+    await renderCapture();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 40));
+    });
+    const sessionCalls = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(([input]) =>
+      String(input).includes("/api/session"),
+    );
+    expect(sessionCalls).toHaveLength(1);
+  });
+
   it("nudges in red without leaving the page, then clears once a photo is added", async () => {
     expect(LANDING.app.photoNudge).toBe(
       "Could you please be so kind to upload a photo taken today or simply take one",

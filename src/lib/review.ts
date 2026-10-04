@@ -12,7 +12,7 @@ import {
   REVIEW_STARS,
 } from "./review-copy";
 import { firstNameOnly, newestReviews, reviewShouldPublish, toPublicReview, type PublicReview } from "./review-public";
-import { getJSON, putJSON } from "./storage";
+import { getJSON, putJSON, type BlobReadOptions } from "./storage";
 
 export const REVIEW_INDEX_KEY = "reviews/index.json";
 export const REVIEW_RATE_LIMIT = 5;
@@ -50,6 +50,9 @@ export type ParsedReview =
   | { ok: false; message: string };
 
 const hits = new Map<string, number[]>();
+
+/** Review JSON is overwritten rarely. Cached reads are safe for display. */
+const REVIEW_BLOB_READ: BlobReadOptions = { cache: true };
 
 export function reviewObjectKey(id: string): string {
   return `reviews/${id}.json`;
@@ -240,16 +243,23 @@ function asStoredReview(value: unknown): StoredReview | null {
 
 export async function readReview(id: string): Promise<StoredReview | null> {
   if (!id.startsWith("review_")) return null;
-  return asStoredReview(await getJSON<unknown>(reviewObjectKey(id)));
+  return asStoredReview(await getJSON<unknown>(reviewObjectKey(id), REVIEW_BLOB_READ));
+}
+
+function reviewIds(index: unknown): string[] {
+  return Array.isArray(index) ? index.filter((item): item is string => typeof item === "string") : [];
+}
+
+async function readStoredReview(id: string): Promise<StoredReview | null> {
+  return asStoredReview(await getJSON<unknown>(reviewObjectKey(id), REVIEW_BLOB_READ));
 }
 
 export async function listStoredReviews(): Promise<StoredReview[]> {
   try {
-    const current = await getJSON<unknown>(REVIEW_INDEX_KEY);
-    const ids = Array.isArray(current) ? current.filter((item): item is string => typeof item === "string") : [];
+    const current = await getJSON<unknown>(REVIEW_INDEX_KEY, REVIEW_BLOB_READ);
     const reviews: StoredReview[] = [];
-    for (const id of ids) {
-      const review = asStoredReview(await getJSON<unknown>(reviewObjectKey(id)));
+    for (const id of reviewIds(current)) {
+      const review = await readStoredReview(id);
       if (review) reviews.push(review);
     }
     return newestReviews(reviews);
@@ -259,12 +269,29 @@ export async function listStoredReviews(): Promise<StoredReview[]> {
   }
 }
 
-export async function listPublishedReviews(): Promise<PublicReview[]> {
-  const reviews = await listStoredReviews();
-  return reviews.flatMap((review) => {
-    const pub = toPublicReview(review);
-    return pub ? [pub] : [];
-  });
+export async function listPublishedReviews(limit?: number): Promise<PublicReview[]> {
+  if (typeof limit !== "number") {
+    const reviews = await listStoredReviews();
+    return reviews.flatMap((review) => {
+      const pub = toPublicReview(review);
+      return pub ? [pub] : [];
+    });
+  }
+  try {
+    const current = await getJSON<unknown>(REVIEW_INDEX_KEY, REVIEW_BLOB_READ);
+    const published: PublicReview[] = [];
+    for (const id of [...reviewIds(current)].reverse()) {
+      const review = await readStoredReview(id);
+      const pub = review ? toPublicReview(review) : null;
+      if (!pub) continue;
+      published.push(pub);
+      if (published.length >= limit) break;
+    }
+    return newestReviews(published);
+  } catch (error) {
+    console.error("[review] list failed", error);
+    return [];
+  }
 }
 
 export async function listAdminReviews(): Promise<AdminReviewRow[]> {

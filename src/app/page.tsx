@@ -7,7 +7,7 @@ import { KIND_WORDS_LIMIT } from "@/lib/review-copy";
 import { listPublishedReviews } from "@/lib/review";
 import { siteTitleMetadata } from "@/lib/site-title";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const HOME_TITLE = "GoodDayNight — Gratitude Journal & Bedtime Stories";
 const HOME_DESCRIPTION =
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const reviews = await listPublishedReviews();
+  const reviews = await listPublishedReviews(KIND_WORDS_LIMIT);
   return (
     <div className="page">
       <header className="site-header">

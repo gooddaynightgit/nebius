@@ -125,6 +125,7 @@ export default function CaptureStudio() {
   const [turnError, setTurnError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const hydratedRef = useRef(false);
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
   const [phoneStash, setPhoneStash] = useState(false);
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
@@ -247,6 +248,10 @@ export default function CaptureStudio() {
   const canPickPhoto = captureOpen;
 
   const refresh = useCallback(async () => {
+    const finishHydration = () => {
+      hydratedRef.current = true;
+      setHydrated(true);
+    };
     const flowAtStart = flowRef.current;
     const sessionTask = fetch(withClientClock(`/api/session?day=${day}`), {
       credentials: "same-origin",
@@ -259,12 +264,12 @@ export default function CaptureStudio() {
     try {
       sessionData = await sessionTask;
     } catch (error) {
-      setHydrated(true);
+      finishHydration();
       setCaptureError(explainClientFetchError(error));
       return;
     }
     if (flowRef.current !== flowAtStart) {
-      setHydrated(true);
+      finishHydration();
       return;
     }
     setSession(sessionData);
@@ -274,12 +279,12 @@ export default function CaptureStudio() {
     try {
       [stash, pendingMoment] = await localTask;
     } catch (error) {
-      setHydrated(true);
+      finishHydration();
       setCaptureError(explainClientFetchError(error));
       return;
     }
     if (flowRef.current !== flowAtStart) {
-      setHydrated(true);
+      finishHydration();
       return;
     }
     try {
@@ -294,7 +299,7 @@ export default function CaptureStudio() {
         const phoneOnly = hasStash && !sessionData.todayPhoto;
         setPhoneNote(phoneOnly ? LANDING.app.savedOnPhone : null);
       }
-      if (!hydrated) {
+      if (!hydratedRef.current) {
         const storedId = readChosenJoy(day);
         const returning = review === "capture" || review === "good" || review === "weave";
         const keptJoy = getJoyById(
@@ -349,13 +354,13 @@ export default function CaptureStudio() {
           if (keptCaption) setCaption(keptCaption);
         }
       }
-      setHydrated(true);
+      finishHydration();
       setCaptureError((current) => (isReachabilityError(current) ? null : current));
     } catch (error) {
-      setHydrated(true);
+      finishHydration();
       setCaptureError(explainClientFetchError(error));
     }
-  }, [day, hydrated, review]);
+  }, [day, review]);
 
   useEffect(() => {
     void refresh();
