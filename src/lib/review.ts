@@ -130,7 +130,7 @@ export async function saveReview(input: {
   };
   await putJSON(reviewObjectKey(review.id), review);
   try {
-    const current = await getJSON<unknown>(REVIEW_INDEX_KEY, REVIEW_BLOB_READ);
+    const current = await getJSON<unknown>(REVIEW_INDEX_KEY);
     const index = Array.isArray(current) ? current.filter((item): item is string => typeof item === "string") : [];
     if (!index.includes(review.id)) index.push(review.id);
     await putJSON(REVIEW_INDEX_KEY, index);
@@ -308,7 +308,7 @@ export async function listAdminReviews(): Promise<AdminReviewRow[]> {
 
 /** Showing is only allowed for a kind 4 or 5 star review. Hiding always sticks. */
 export async function setReviewPublished(id: string, published: boolean): Promise<StoredReview | null> {
-  const current = await getJSON<StoredReview>(reviewObjectKey(id), REVIEW_BLOB_READ);
+  const current = await getJSON<StoredReview>(reviewObjectKey(id));
   const review = asStoredReview(current);
   if (!review) return null;
   const next: StoredReview = {
