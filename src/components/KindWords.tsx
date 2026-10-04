@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
+import { FEEDBACK_LINES } from "@/lib/feedback";
 import { KIND_WORDS_HEADING } from "@/lib/review-copy";
 import type { PublicReview } from "@/lib/review-public";
 
@@ -27,46 +28,68 @@ export default function KindWords({
   reviews,
   limit,
   showLink = false,
+  showFeedback = false,
 }: {
   reviews: PublicReview[];
   limit?: number;
   showLink?: boolean;
+  showFeedback?: boolean;
 }) {
   const shown = typeof limit === "number" ? reviews.slice(0, limit) : reviews;
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  if (shown.length === 0) return null;
+  if (shown.length === 0 && !showFeedback) return null;
 
   return (
     <section className={open ? "kind-words is-open" : "kind-words"} aria-labelledby="kind-words-heading">
       <h2 id="kind-words-heading" className="kind-words__heading">
-        <button
-          className="kind-words__toggle"
-          type="button"
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((current) => !current)}
-        >
-          <span>{KIND_WORDS_HEADING}</span>
-          <span className="kind-words__chevron" aria-hidden="true" />
-        </button>
+        {shown.length > 0 ? (
+          <button
+            className="kind-words__toggle"
+            type="button"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen((current) => !current)}
+          >
+            <span>{KIND_WORDS_HEADING}</span>
+            <span className="kind-words__chevron" aria-hidden="true" />
+          </button>
+        ) : (
+          <span className="kind-words__toggle">{KIND_WORDS_HEADING}</span>
+        )}
       </h2>
-      <div className="kind-words__panel" id={panelId} hidden={!open}>
-        <ul className="kind-words__list">
-          {shown.map((review) => (
-            <li key={review.id} className="kind-words__card">
-              <LimeStars count={review.stars} />
-              {review.comment ? <p className="kind-words__comment">{review.comment}</p> : null}
-              <p className="kind-words__name">{review.name}</p>
-            </li>
-          ))}
-        </ul>
-        {showLink ? (
-          <Link className="kind-words__link" href="/review">
-            Leave a review
-          </Link>
-        ) : null}
-      </div>
+      {showFeedback ? (
+        <div className="kind-words__panel">
+          <div className="kind-words__list">
+            {FEEDBACK_LINES.map((line) => (
+              <blockquote key={line.quote} className="card card--lavender card--compact">
+                <p className="card__body">{line.quote}</p>
+                <p className="card__body kind-words__name" style={{ marginTop: "0.45rem" }}>
+                  <cite>{line.attribution}</cite>
+                </p>
+              </blockquote>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      {shown.length > 0 ? (
+        <div className="kind-words__panel" id={panelId} hidden={!open}>
+          <ul className="kind-words__list">
+            {shown.map((review) => (
+              <li key={review.id} className="kind-words__card">
+                <LimeStars count={review.stars} />
+                {review.comment ? <p className="kind-words__comment">{review.comment}</p> : null}
+                <p className="kind-words__name">{review.name}</p>
+              </li>
+            ))}
+          </ul>
+          {showLink ? (
+            <Link className="kind-words__link" href="/review">
+              Leave a review
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }
