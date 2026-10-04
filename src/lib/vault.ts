@@ -1,13 +1,21 @@
 import { isSavedMomentExpired } from "./moment-expiry";
 import { deleteBytes, getJSON, putJSON } from "./storage";
 import type { CaptureRecord, StoryRecord, VaultRecord } from "./types";
-import { anonVaultId, emailVaultId, newId } from "./identity";
+import { anonVaultId, emailVaultId, isValidEmail, newId, normalizeEmail } from "./identity";
 
 type SessionIndex = {
   sessions: Record<string, { vaultId: string; email?: string }>;
 };
 
 const INDEX_KEY = "index/sessions.json";
+
+/** In-memory vaults that have never been written. A visit must not put them. */
+const ephemeralVaults = new WeakSet<VaultRecord>();
+
+function markEphemeral(vault: VaultRecord): VaultRecord {
+  ephemeralVaults.add(vault);
+  return vault;
+}
 
 function emptyVault(
   id: string,
@@ -37,17 +45,103 @@ async function saveIndex(index: SessionIndex): Promise<void> {
   await putJSON(INDEX_KEY, index);
 }
 
+/** Point this browser session at a vault. Uncached read-modify-write. No-op without a session id. */
+async function rememberSession(sessionId: string, vaultId: string, email?: string): Promise<void> {
+  if (!sessionId) return;
+  const index = await loadIndex();
+  const next = email ? { vaultId, email } : { vaultId };
+  const prev = index.sessions[sessionId];
+  if (prev && prev.vaultId === next.vaultId && (prev.email ?? undefined) === next.email) return;
+  index.sessions[sessionId] = next;
+  await saveIndex(index);
+}
+
 function vaultKey(vaultId: string): string {
   return `vaults/${vaultId}/vault.json`;
+}
+
+/**
+ * Byte length of the only JSON this app writes for an anon vault with no email,
+ * moments, photos, voice notes, stories, captions, or yoursOpened.
+ * Timestamps are fixed-width, so the length depends only on the session id.
+ * `email: undefined` is omitted by JSON.stringify, matching putJSON.
+ */
+export function canonicalEmptyAnonVaultBytes(vaultId: string): number | null {
+  if (!vaultId.startsWith("anon_")) return null;
+  const sessionId = vaultId.slice("anon_".length);
+  if (!sessionId || sessionId.includes("/")) return null;
+  return Buffer.byteLength(JSON.stringify(emptyVault(vaultId, "anon", sessionId), null, 2));
 }
 
 export async function loadVault(vaultId: string): Promise<VaultRecord | null> {
   return getJSON<VaultRecord>(vaultKey(vaultId));
 }
 
+/**
+ * Write a vault that already exists. An unsaved visit vault is left in memory
+ * so opening Joy does not create a blob.
+ */
 export async function saveVault(vault: VaultRecord): Promise<void> {
   vault.updatedAt = new Date().toISOString();
+  if (ephemeralVaults.has(vault)) return;
   await putJSON(vaultKey(vault.id), vault);
+}
+
+/** Write the vault, and the session index entry, the first time it is saved. */
+export async function persistVault(vault: VaultRecord): Promise<void> {
+  const creating = ephemeralVaults.has(vault);
+  if (creating) ephemeralVaults.delete(vault);
+  vault.updatedAt = new Date().toISOString();
+  await putJSON(vaultKey(vault.id), vault);
+  if (creating) await rememberSession(vault.sessionId, vault.id, vault.email);
+}
+
+function hasUserData(vault: VaultRecord): boolean {
+  if (vault.email) return true;
+  if (vault.stories.length > 0 || vault.captures.length > 0) return true;
+  return Boolean(vault.yoursOpened && Object.keys(vault.yoursOpened).length > 0);
+}
+
+/** Email identity held in memory until the first real save. Copies anon moments when they exist. */
+function unsavedEmailVault(sessionId: string, email: string, source?: VaultRecord | null): VaultRecord {
+  const vault = emptyVault(emailVaultId(email), "email", sessionId, email);
+  if (source && hasUserData(source)) {
+    vault.captures = source.captures.map((capture) => ({ ...capture, vaultId: vault.id }));
+    vault.captureIds = vault.captures.map((capture) => capture.id);
+    vault.stories = source.stories.map((story) => ({ ...story, vaultId: vault.id }));
+    if (source.yoursOpened && Object.keys(source.yoursOpened).length > 0) {
+      vault.yoursOpened = { ...source.yoursOpened };
+    }
+    vault.createdAt = source.createdAt;
+  }
+  return markEphemeral(vault);
+}
+
+/**
+ * Existing vault for this browser, or an empty in-memory vault. Does not write
+ * vault.json or index/sessions.json. Ids are anon_${sessionId} and em_${emailHash}.
+ */
+export async function readVaultForSession(
+  sessionId: string,
+  gateEmail?: string | null,
+): Promise<VaultRecord> {
+  const gate = gateEmail && isValidEmail(gateEmail) ? normalizeEmail(gateEmail) : null;
+  if (gate) {
+    const emailVault = await loadVault(emailVaultId(gate));
+    if (emailVault) return emailVault;
+    const anon = await loadVault(anonVaultId(sessionId));
+    return unsavedEmailVault(sessionId, gate, anon);
+  }
+
+  const index = await loadIndex();
+  const mapped = index.sessions[sessionId];
+  if (mapped?.vaultId) {
+    const existing = await loadVault(mapped.vaultId);
+    if (existing) return existing;
+  }
+  const anon = await loadVault(anonVaultId(sessionId));
+  if (anon) return anon;
+  return markEphemeral(emptyVault(anonVaultId(sessionId), "anon", sessionId));
 }
 
 /**
@@ -121,9 +215,8 @@ export async function purgeExpiredSavedMoments(
   return { changed: true };
 }
 
-export async function getOrCreateAnonVault(
-  sessionId: string,
-): Promise<VaultRecord> {
+/** Explicit create used by saves that already decided to keep an anon vault. Visits do not call this. */
+export async function getOrCreateAnonVault(sessionId: string): Promise<VaultRecord> {
   const index = await loadIndex();
   const mapped = index.sessions[sessionId];
   if (mapped) {
@@ -132,61 +225,83 @@ export async function getOrCreateAnonVault(
   }
   const existingAnon = await loadVault(anonVaultId(sessionId));
   if (existingAnon) {
-    index.sessions[sessionId] = {
-      vaultId: existingAnon.id,
-      email: existingAnon.email,
-    };
-    await saveIndex(index);
+    await rememberSession(sessionId, existingAnon.id, existingAnon.email);
     return existingAnon;
   }
-  const vault = emptyVault(anonVaultId(sessionId), "anon", sessionId);
-  index.sessions[sessionId] = { vaultId: vault.id };
-  await saveVault(vault);
-  await saveIndex(index);
+  const vault = markEphemeral(emptyVault(anonVaultId(sessionId), "anon", sessionId));
+  await persistVault(vault);
   return vault;
+}
+
+function mergeVaultInto(target: VaultRecord, source: VaultRecord): void {
+  const seen = new Set(target.captures.map((capture) => capture.id));
+  for (const capture of source.captures) {
+    if (seen.has(capture.id)) continue;
+    target.captures.push({ ...capture, vaultId: target.id });
+    seen.add(capture.id);
+  }
+  target.captureIds = target.captures.map((capture) => capture.id);
+
+  const storySeen = new Set(target.stories.map((story) => story.id));
+  for (const story of source.stories) {
+    if (storySeen.has(story.id)) continue;
+    target.stories.push({ ...story, vaultId: target.id });
+    storySeen.add(story.id);
+  }
+  if (source.yoursOpened && Object.keys(source.yoursOpened).length > 0) {
+    target.yoursOpened = { ...(source.yoursOpened ?? {}), ...(target.yoursOpened ?? {}) };
+  }
 }
 
 export async function attachEmail(
   sessionId: string,
   email: string,
+  current?: VaultRecord,
 ): Promise<VaultRecord> {
-  const anon = await getOrCreateAnonVault(sessionId);
-  const targetId = emailVaultId(email);
-  let target = await loadVault(targetId);
+  const normalized = normalizeEmail(email);
+  const targetId = emailVaultId(normalized);
+  let target = current?.id === targetId ? current : await loadVault(targetId);
   if (!target) {
-    target = emptyVault(targetId, "email", sessionId, email);
+    target = markEphemeral(emptyVault(targetId, "email", sessionId, normalized));
   }
   target.kind = "email";
-  target.email = email;
-  target.sessionId = sessionId;
+  target.email = normalized;
+  target.sessionId = sessionId || target.sessionId;
 
-  const seen = new Set(target.captures.map((c) => c.id));
-  for (const capture of anon.captures) {
-    if (seen.has(capture.id)) continue;
-    target.captures.push({ ...capture, vaultId: target.id });
-    seen.add(capture.id);
+  const sources: VaultRecord[] = [];
+  if (current && current !== target) sources.push(current);
+  const anon = await loadVault(anonVaultId(sessionId));
+  if (anon && !sources.includes(anon) && anon !== target) sources.push(anon);
+  for (const source of sources) mergeVaultInto(target, source);
+
+  if (anon && anon.id !== target.id) {
+    anon.email = normalized;
+    await persistVault(anon);
   }
-  target.captureIds = target.captures.map((c) => c.id);
-
-  const storySeen = new Set(target.stories.map((s) => s.id));
-  for (const story of anon.stories) {
-    if (storySeen.has(story.id)) continue;
-    target.stories.push({ ...story, vaultId: target.id });
-    storySeen.add(story.id);
-  }
-
-  target.yoursOpened = { ...(anon.yoursOpened ?? {}), ...(target.yoursOpened ?? {}) };
-
-  if (anon.id !== target.id) {
-    anon.email = email;
-    await saveVault(anon);
-  }
-  await saveVault(target);
-
-  const index = await loadIndex();
-  index.sessions[sessionId] = { vaultId: target.id, email };
-  await saveIndex(index);
+  await persistVault(target);
+  await rememberSession(sessionId, target.id, normalized);
   return target;
+}
+
+/**
+ * Create the buyer's email vault if it is missing. Never overwrites an existing
+ * vault, Payfast order, or entitlement row. The id is em_${emailHash}.
+ */
+export async function ensurePaymentVault(email: string, sessionId?: string): Promise<VaultRecord> {
+  const normalized = normalizeEmail(email);
+  if (!isValidEmail(normalized)) {
+    throw new Error("Payfast vault needs an email.");
+  }
+  const existing = await loadVault(emailVaultId(normalized));
+  if (existing) {
+    if (sessionId?.trim()) await rememberSession(sessionId.trim(), existing.id, normalized);
+    return existing;
+  }
+  const vault = markEphemeral(
+    emptyVault(emailVaultId(normalized), "email", sessionId?.trim() || "", normalized),
+  );
+  await persistVault(vault);
+  return vault;
 }
 
 export function hydrateCaptures(
@@ -250,7 +365,7 @@ export async function addCapture(
   const record: CaptureRecord = { ...capture, vaultId: vault.id };
   vault.captures.push(record);
   vault.captureIds = vault.captures.map((c) => c.id);
-  await saveVault(vault);
+  await persistVault(vault);
   return record;
 }
 
@@ -262,7 +377,7 @@ export async function updateCapture(
   const idx = vault.captures.findIndex((c) => c.id === captureId);
   if (idx < 0) return null;
   vault.captures[idx] = { ...vault.captures[idx], ...patch };
-  await saveVault(vault);
+  await persistVault(vault);
   return vault.captures[idx];
 }
 
@@ -272,7 +387,7 @@ export async function addStory(
 ): Promise<StoryRecord> {
   const record: StoryRecord = { ...story, vaultId: vault.id };
   vault.stories.unshift(record);
-  await saveVault(vault);
+  await persistVault(vault);
   return record;
 }
 
@@ -364,7 +479,7 @@ export async function markMomentOpened(vault: VaultRecord, captureId: string): P
     delete next.caption;
     vault.captures[idx] = next;
   }
-  await saveVault(vault);
+  await persistVault(vault);
 }
 
 export async function markYoursOpened(vault: VaultRecord, day: string): Promise<void> {
@@ -378,7 +493,7 @@ export async function markYoursOpened(vault: VaultRecord, day: string): Promise<
       vault.captures[idx] = next;
     }
   }
-  await saveVault(vault);
+  await persistVault(vault);
 }
 
 export async function scrubExpiredCaptions(vault: VaultRecord, today: string): Promise<void> {
@@ -424,7 +539,7 @@ export async function saveAppMoment(
       record.locked = false;
       vault.captures[idx] = record;
     }
-    await saveVault(vault);
+    await persistVault(vault);
     return record;
   }
   return addCapture(vault, capture);
@@ -449,7 +564,7 @@ export async function upsertAppPhoto(
     else delete record.caption;
     const idx = vault.captures.findIndex((item) => item.id === existing.id);
     vault.captures[idx] = record;
-    await saveVault(vault);
+    await persistVault(vault);
     return record;
   }
   return addCapture(vault, capture);

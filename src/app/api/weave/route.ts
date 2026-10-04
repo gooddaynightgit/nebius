@@ -10,7 +10,7 @@ import {
   lastStoryForDay,
   listEmailVaults,
   mergeCapturesIntoVault,
-  saveVault,
+  persistVault,
 } from "@/lib/vault";
 import { WeaveNeedsWordsError, weaveStory } from "@/lib/weave";
 import { weavableLines } from "@/lib/prompts";
@@ -37,12 +37,12 @@ export async function POST(request: Request) {
   const body = ((await request.json().catch(() => ({}))) ?? {}) as WeaveBody;
   const day = body.day || todayStamp();
   const added = mergeCapturesIntoVault(vault, body.captures, day);
-  if (added) await saveVault(vault);
+  if (added) await persistVault(vault);
 
   if (!vault.email) {
     const email = normalizeEmail(body.email ?? "");
     if (isValidEmail(email) && vault.captures.length >= 1) {
-      vault = await attachEmail(sessionId, email);
+      vault = await attachEmail(sessionId, email, vault);
       await setGateEmail(email);
     }
   }

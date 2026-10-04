@@ -1,7 +1,7 @@
 import { dayFromUnixMsWithOffset } from "./day";
-import { getJSON, listKeys, putJSON } from "./storage";
+import { getJSON, listKeys, putJSON, type ListedObject } from "./storage";
 import type { VaultRecord } from "./types";
-import { purgeExpiredSavedMoments } from "./vault";
+import { canonicalEmptyAnonVaultBytes, purgeExpiredSavedMoments } from "./vault";
 
 /**
  * Minutes east of UTC, in `Date#getTimezoneOffset` form.
@@ -26,10 +26,34 @@ type SweepProgress = {
 export type MomentSweepResult = {
   cutoffDay: string;
   vaultsSeen: number;
+  vaultsSkipped: number;
   vaultsPurged: number;
   failures: number;
   done: boolean;
 };
+
+/**
+ * True when the vault file might still hold a story, capture, or yoursOpened
+ * day the sweep would delete. False only for the canonical empty anon vault.
+ *
+ * Safe because every vault.json is `JSON.stringify(vault, null, 2)` from
+ * putJSON, and an empty anon vault (no email, moments, photos, voice notes,
+ * stories, captions, or yoursOpened) has a fixed byte length for its session
+ * id. Those fields only add bytes; nothing in that template can shrink to
+ * hide them. A different size, a missing size, or any other id is read.
+ *
+ * uploadedAt is not a reason to skip. A later write can keep an older day:
+ * email attach and weave do not purge first, and a client can save a past day.
+ * A moment written at 23:59 in UTC−12 is already expired a minute later.
+ */
+export function vaultMightHoldExpiredMoment(key: string, meta?: ListedObject): boolean {
+  if (!key.endsWith("/vault.json")) return false;
+  const id = vaultIdFromKey(key);
+  if (!id || meta?.size == null || !Number.isFinite(meta.size)) return true;
+  const emptySize = canonicalEmptyAnonVaultBytes(id);
+  if (emptySize == null) return true;
+  return meta.size !== emptySize;
+}
 
 export function earliestCurrentLocalDay(now = new Date()): string {
   return dayFromUnixMsWithOffset(now.getTime(), EARLIEST_ZONE_OFFSET_MINUTES);
@@ -90,12 +114,14 @@ export async function sweepExpiredMoments(options?: {
   const startedMidway = Boolean(progress.pageCursor || progress.afterKey);
   let didWrap = false;
   let vaultsSeen = 0;
+  let vaultsSkipped = 0;
   let vaultsPurged = 0;
   let failures = 0;
 
   const result = (done: boolean): MomentSweepResult => ({
     cutoffDay,
     vaultsSeen,
+    vaultsSkipped,
     vaultsPurged,
     failures,
     done,
@@ -116,6 +142,7 @@ export async function sweepExpiredMoments(options?: {
       ? page.keys.findIndex((key) => key === progress.afterKey) + 1
       : 0;
     const keys = resumeAt > 0 ? page.keys.slice(resumeAt) : page.keys;
+    const listed = new Map((page.objects ?? []).map((item) => [item.key, item]));
     let lastDone = progress.afterKey;
 
     for (const key of keys) {
@@ -127,18 +154,22 @@ export async function sweepExpiredMoments(options?: {
       if (key.endsWith("/vault.json")) {
         vaultsSeen += 1;
         const id = vaultIdFromKey(key);
-        try {
-          const loaded = await getJSON<unknown>(key);
-          if (!id || !isVault(loaded, id)) {
+        if (!vaultMightHoldExpiredMoment(key, listed.get(key))) {
+          vaultsSkipped += 1;
+        } else {
+          try {
+            const loaded = await getJSON<unknown>(key);
+            if (!id || !isVault(loaded, id)) {
+              failures += 1;
+              console.error(`[moment-sweep] skipped key=${key}`);
+            } else {
+              const purged = await purgeExpiredSavedMoments(loaded, cutoffDay);
+              if (purged.changed) vaultsPurged += 1;
+            }
+          } catch (error) {
             failures += 1;
-            console.error(`[moment-sweep] skipped key=${key}`);
-          } else {
-            const purged = await purgeExpiredSavedMoments(loaded, cutoffDay);
-            if (purged.changed) vaultsPurged += 1;
+            console.error(`[moment-sweep] vault stayed key=${key}`, error);
           }
-        } catch (error) {
-          failures += 1;
-          console.error(`[moment-sweep] vault stayed key=${key}`, error);
         }
       }
       lastDone = key;

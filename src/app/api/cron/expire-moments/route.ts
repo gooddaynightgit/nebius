@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   try {
     const result = await sweepExpiredMoments();
     console.log(
-      `[moment-sweep] cutoff=${result.cutoffDay} seen=${result.vaultsSeen} purged=${result.vaultsPurged} failures=${result.failures} done=${result.done}`,
+      `[moment-sweep] cutoff=${result.cutoffDay} seen=${result.vaultsSeen} skipped=${result.vaultsSkipped} purged=${result.vaultsPurged} failures=${result.failures} done=${result.done}`,
     );
     return json(result);
   } catch (error) {

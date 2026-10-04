@@ -3,6 +3,7 @@ import { buyerReturnUrl } from "./buyer-handoff";
 import { isValidEmail, newId, normalizeEmail } from "./identity";
 import { creditMoments, recordedPayment } from "./entitlement";
 import { cancelPayfastOrder, completePayfastOrder } from "./paid-return";
+import { ensurePaymentVault } from "./vault";
 
 /**
  * Payfast checkout + ITN.
@@ -547,6 +548,11 @@ async function noteCompletedReturn(
     });
   } catch (error) {
     console.error("[payfast-itn] return receipt stayed", error);
+  }
+  try {
+    await ensurePaymentVault(email);
+  } catch (error) {
+    console.error("[payfast-itn] vault stayed", error);
   }
 }
 

@@ -84,10 +84,11 @@ vi.mock("@vercel/blob", () => ({
   }),
 }));
 
-import { BlobNotFoundError, get as getBlob, head as headBlob, list as listBlob } from "@vercel/blob";
+import { BlobNotFoundError, get as getBlob, head as headBlob, list as listBlob, put as putBlob } from "@vercel/blob";
 import {
   getBytes,
   getJSON,
+  listKeys,
   probeVercelBlob,
   putBytes,
   putJSON,
@@ -176,6 +177,28 @@ describe("vercel blob round-trip", () => {
 
   it("probeVercelBlob reports ok after a successful round-trip", async () => {
     await expect(probeVercelBlob()).resolves.toEqual({ ok: true });
+  });
+
+  it("round-trips vault keys when the blob prefix is empty or gooddaynight", async () => {
+    for (const value of ["", "/"]) {
+      blobState.byUrl.clear();
+      resetBlobUrlCache();
+      vi.mocked(putBlob).mockClear();
+      process.env.NEBIUS_S3_PREFIX = value;
+      await putJSON("vaults/anon_session/vault.json", { id: "anon_session" });
+      expect(vi.mocked(putBlob).mock.calls[0]?.[0]).toBe("vaults/anon_session/vault.json");
+      const listed = await listKeys({ prefix: "vaults/" });
+      expect(listed.keys).toEqual(["vaults/anon_session/vault.json"]);
+    }
+
+    blobState.byUrl.clear();
+    resetBlobUrlCache();
+    vi.mocked(putBlob).mockClear();
+    process.env.NEBIUS_S3_PREFIX = "gooddaynight";
+    await putJSON("vaults/anon_session/vault.json", { id: "anon_session" });
+    expect(vi.mocked(putBlob).mock.calls[0]?.[0]).toBe("gooddaynight/vaults/anon_session/vault.json");
+    const prefixed = await listKeys({ prefix: "vaults/" });
+    expect(prefixed.keys).toEqual(["vaults/anon_session/vault.json"]);
   });
 
   it("getOrCreateAnonVault still sees a capture after a fresh blob read", async () => {

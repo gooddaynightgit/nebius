@@ -10,9 +10,8 @@ import {
   sealOtpCookie,
 } from "./otp-session";
 import {
-  attachEmail,
   capturesForDay,
-  getOrCreateAnonVault,
+  readVaultForSession,
   lastStoryForDay,
   appPhotoForDay,
   hasSavedMoment,
@@ -147,10 +146,7 @@ export async function loadSessionVault(): Promise<{
   day: string;
 }> {
   const sessionId = await readSessionId();
-  let vault = await getOrCreateAnonVault(sessionId);
   const gate = await readGateEmail();
-  if (gate && vault.email !== gate) {
-    vault = await attachEmail(sessionId, gate);
-  }
+  const vault = await readVaultForSession(sessionId, gate);
   return { sessionId, vault, day: todayStamp() };
 }
