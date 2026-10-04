@@ -57,7 +57,7 @@ describe("email-only sign-in screen", () => {
     expect(form).toMatch(/PRIVACY_NOTE/);
     expect(form).not.toMatch(/R16|\$0\.88|\$7\.99|R130|R450|\$28|Start hunting|moments-cta|25 good moments|40 good moments/);
     expect(PRIVACY_NOTE).toBe(
-      "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.",
+      "Your email is only for signing you in and keeping your moments yours.\nWe do not use your photos or words to train AI and not for anyone else’s model or use.\n\nYour moments stay personal — for your security and privacy.\nWe use Google Analytics and Google advertising cookies, including a conversion measurement when a payment succeeds.",
     );
   });
 

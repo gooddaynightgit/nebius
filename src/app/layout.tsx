@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import AccountMenu from "@/components/AccountMenu";
 import FeedbackRibbon from "@/components/FeedbackRibbon";
 import JourneyProgress from "@/components/JourneyProgress";
 import { JourneyProvider } from "@/components/journey-gate";
 import { StepForwardProvider } from "@/components/step-forward";
+import { googleTagSnippet } from "@/lib/google-ads";
 import { SITE_TITLE } from "@/lib/site-title";
 import "./globals.css";
 
@@ -52,23 +54,14 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const tag = googleTagSnippet();
   return (
     <html lang="en">
-      <head>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-5NF1TLCWWL" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-5NF1TLCWWL');
-`,
-          }}
-        />
-      </head>
       <body className={inter.className}>
+        <Script src={tag.src} strategy="afterInteractive" />
+        <Script id="google-tag" strategy="afterInteractive">
+          {tag.html}
+        </Script>
         <JourneyProvider>
           <StepForwardProvider>
             <a className="skip-link" href="#main">

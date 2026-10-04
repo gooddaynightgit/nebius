@@ -13,8 +13,10 @@ import {
   pfEncode,
 } from "./payfast";
 import { authReturnDestination, sealBuyerHandoff } from "./buyer-handoff";
+import { GET as paidStatus } from "@/app/api/payfast/paid/route";
 import {
   PAID_SUCCESS_HEADING,
+  paidPollForHandoff,
   paidViewForHandoff,
   rememberPayfastOrder,
   resolvePaidVisit,
@@ -59,8 +61,42 @@ describe("paid return", () => {
     });
     expect(result).toEqual({ status: 200, body: "OK" });
 
-    expect(await resolvePaidVisit({ ref: "pay_done", handoff: token, nowSec: NOW })).toEqual({ kind: "success" });
+    expect(await resolvePaidVisit({ ref: "pay_done", handoff: token, nowSec: NOW })).toEqual({
+      kind: "success",
+      purchase: { transactionId: "1089250", value: 130, currency: "ZAR" },
+    });
+    expect(await paidPollForHandoff("pay_done", token, NOW)).toEqual({
+      status: "complete",
+      purchase: { transactionId: "1089250", value: 130, currency: "ZAR" },
+    });
+    expect(await paidPollForHandoff("pay_done", sealBuyerHandoff("other@example.com", NOW, SECRET), NOW)).toEqual({
+      status: "absent",
+    });
+    const realNow = Date.now;
+    Date.now = () => NOW * 1000;
+    try {
+      const allowed = await paidStatus(new Request(`https://gooddaynight.com/api/payfast/paid?ref=pay_done&handoff=${token}`));
+      expect(allowed.status).toBe(200);
+      expect(await allowed.json()).toEqual({
+        status: "complete",
+        purchase: { transactionId: "1089250", value: 130, currency: "ZAR" },
+      });
+      const forged = await paidStatus(
+        new Request(`https://gooddaynight.com/api/payfast/paid?ref=pay_done&handoff=${token}x`),
+      );
+      expect(forged.status).toBe(404);
+      expect(await forged.json()).toEqual({ status: "absent" });
+    } finally {
+      Date.now = realNow;
+    }
     expect(await paidViewForHandoff("pay_done", token, NOW)).toBe("complete");
+    const { completePayfastOrder } = await import("./paid-return");
+    await rememberPayfastOrder(EMAIL, "pay_old");
+    await completePayfastOrder(EMAIL, "pay_old", "1089251");
+    expect(await resolvePaidVisit({ ref: "pay_old", handoff: token, nowSec: NOW })).toEqual({
+      kind: "success",
+      purchase: null,
+    });
     expect(await paidViewForHandoff("pay_done", sealBuyerHandoff("other@example.com", NOW, SECRET), NOW)).toBe("absent");
     expect(await resolvePaidVisit({ ref: "pay_done", handoff: null, nowSec: NOW })).toEqual({ kind: "missing" });
     expect(PAID_SUCCESS_HEADING).toBe("You're in. 25 moments are yours.");
@@ -75,6 +111,7 @@ describe("paid return", () => {
       handoff: token,
     });
     expect(await paidViewForHandoff("pay_wait", token, NOW)).toBe("pending");
+    expect(await paidPollForHandoff("pay_wait", token, NOW)).toEqual({ status: "pending" });
   });
 
   it("hides a cancelled payment, a forged ref, and a visit with no token", async () => {
