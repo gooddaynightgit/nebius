@@ -14,7 +14,7 @@ describe("story opening status", () => {
       "Quiet joys worth keeping",
       "Finding my good moment is changing me",
       "Letting the habit of looking rewire how I feel",
-      "Your good moment story is being carefully weaved, thank you for your patience.",
+      "Your gratitude journal is being carefully written, thank you for your patience.",
     ]);
     expect(STORY_OPENING_INTERVAL_MS).toBe(9000);
 
@@ -29,11 +29,11 @@ describe("story opening status", () => {
       "Quiet joys worth keeping",
       "Finding my good moment is changing me",
       "Letting the habit of looking rewire how I feel",
-      "Your good moment story is being carefully weaved, thank you for your patience.",
-      "Your good moment story is being carefully weaved, thank you for your patience.",
-      "Your good moment story is being carefully weaved, thank you for your patience.",
-      "Your good moment story is being carefully weaved, thank you for your patience.",
-      "Your good moment story is being carefully weaved, thank you for your patience.",
+      "Your gratitude journal is being carefully written, thank you for your patience.",
+      "Your gratitude journal is being carefully written, thank you for your patience.",
+      "Your gratitude journal is being carefully written, thank you for your patience.",
+      "Your gratitude journal is being carefully written, thank you for your patience.",
+      "Your gratitude journal is being carefully written, thank you for your patience.",
     ]);
     expect(nextStoryOpeningIndex(STORY_OPENING_LINES.length - 1)).toBe(
       STORY_OPENING_LINES.length - 1,

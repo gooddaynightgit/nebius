@@ -1002,7 +1002,7 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).not.toMatch(/What joy is it\?/);
     expect(joy).toMatch(/legend=\{null\}/);
-    expect(joy).toMatch(/playbackTitle="Example: My good moment weaved"/);
+    expect(joy).toMatch(/playbackTitle="Example: My gratitude journal"/);
     expect(joy).toMatch(/playbackLead=\{LANDING\.app\.playbackLead\}/);
     expect(joy).toMatch(/playbackVariant="weaved"/);
     expect(joy).not.toMatch(/playbackEyebrow/);
@@ -1122,8 +1122,8 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/card card--aqua card--compact/);
     expect(src).toMatch(/className="visually-hidden" type="submit"/);
     expect(src).not.toMatch(/step-pin/);
-    expect(src).toMatch(/Weave my good moment/);
-    expect(src).toMatch(/Weaving your good moment…/);
+    expect(src).toMatch(/Write in my journal/);
+    expect(src).toMatch(/Writing your journal…/);
     expect(src).not.toMatch(/Turn my moment/);
     expect(src).not.toMatch(/Turning your moment/);
     expect(src).toMatch(/A gentle nudge: type the good in this moment first\./);

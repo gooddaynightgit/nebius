@@ -57,8 +57,8 @@ export const LANDING = {
     ],
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
-    yours: "My good moment weaved",
-    playbackLead: "Here's how a good moment reads once it's weaved.",
+    yours: "My gratitude journal",
+    playbackLead: "Here's how a good moment reads in your gratitude journal.",
     brand: "GoodDayNight",
     captionLabel: "What is the good in this moment?",
     sparkWait: "Let me see your good moment capture",
@@ -104,7 +104,7 @@ export const LANDING = {
   },
   about: {
     title: "About the maker — GoodDayNight",
-    body: "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, woven into this beautiful tapestry of life. I built GoodDayNight for myself. I honestly want this for you.",
+    body: "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, kept in this gratitude journal. I built GoodDayNight for myself. I honestly want this for you.",
     signature: "— Jasmine Hassam, maker of GoodDayNight",
   },
   footer: {

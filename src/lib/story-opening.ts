@@ -4,7 +4,7 @@ export const STORY_OPENING_LINES = [
   "Quiet joys worth keeping",
   "Finding my good moment is changing me",
   "Letting the habit of looking rewire how I feel",
-  "Your good moment story is being carefully weaved, thank you for your patience.",
+  "Your gratitude journal is being carefully written, thank you for your patience.",
 ] as const;
 
 /** Readable pause between lines. Last line holds; the sequence does not loop. */

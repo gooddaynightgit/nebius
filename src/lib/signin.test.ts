@@ -65,7 +65,7 @@ describe("email-only sign-in screen", () => {
     expect(moments).toMatch(/isPersonalPhotoSession/);
     expect(moments).toMatch(/redirect\("\/signin"\)/);
     expect(moments).toMatch(/\$7\.99 USD \/ R130 ZAR/);
-    expect(moments).toMatch(/Unlock 25 good moments weaved for/);
+    expect(moments).toMatch(/Unlock 25 gratitude journal entries for/);
     expect(moments).not.toMatch(/R16|\$0\.88/);
     expect(moments).not.toMatch(/R450|\$28|40 good moments/);
     expect(moments).toMatch(/MomentsCheckout/);
@@ -77,7 +77,7 @@ describe("email-only sign-in screen", () => {
     expect(moments).toContain("My new joy moments");
     expect(moments).toContain("siteTitleMetadata");
     expect(moments).not.toContain("My new joy moments — GoodDayNight");
-    expect(moments).toContain("Every good moment weaved adds to the rich tapestry of life");
+    expect(moments).toContain("Every gratitude journal entry adds to the rich tapestry of life");
     expect(moments).not.toContain("Your good moments are waiting.");
     expect(verify).toMatch(/destinationForVerifiedEmail/);
     expect(verify).not.toMatch(/mode === "checkout"/);

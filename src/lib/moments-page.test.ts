@@ -10,16 +10,16 @@ describe("moments pack page", () => {
   const privacy = readFileSync(path.resolve("src/lib/privacy.ts"), "utf8");
 
   it("shows the silk pay box and nothing from the old poster stack", () => {
-    expect(page).toContain("Every good moment weaved adds to the rich tapestry of life");
+    expect(page).toContain("Every gratitude journal entry adds to the rich tapestry of life");
     expect(page).toContain("My new joy moments");
     expect(page).toContain("siteTitleMetadata");
     expect(page).not.toContain("My new joy moments — GoodDayNight");
     expect(page).not.toContain("My saved joy moments");
     expect(page.indexOf("moments-page-heading")).toBeLessThan(page.indexOf("moments-glass"));
-    expect(page.indexOf("moments-glass")).toBeLessThan(page.indexOf("Every good moment weaved adds to the rich tapestry of life"));
-    expect(page).toContain("Unlock 25 good moments weaved for");
-    expect(page).toContain("Unlock 25 good moments weaved for $7.99 USD / R130 ZAR.");
-    expect(page).toContain("Unlock 25 good moments weaved for");
+    expect(page.indexOf("moments-glass")).toBeLessThan(page.indexOf("Every gratitude journal entry adds to the rich tapestry of life"));
+    expect(page).toContain("Unlock 25 gratitude journal entries for");
+    expect(page).toContain("Unlock 25 gratitude journal entries for $7.99 USD / R130 ZAR.");
+    expect(page).toContain("Unlock 25 gratitude journal entries for");
     expect(page).toContain("MomentsPrice");
     expect(page).not.toContain("x-vercel-ip-country");
     const price = readFileSync(path.resolve("src/lib/price-display.ts"), "utf8");

@@ -9,7 +9,7 @@ import { siteTitleMetadata } from "@/lib/site-title";
 
 export const metadata: Metadata = {
   ...siteTitleMetadata,
-  description: "Unlock 25 good moments weaved for $7.99 USD / R130 ZAR.",
+  description: "Unlock 25 gratitude journal entries for $7.99 USD / R130 ZAR.",
 };
 
 export const dynamic = "force-dynamic";
@@ -31,8 +31,8 @@ export default async function MomentsPage() {
         <div className="moments-stack">
           <h1 className="moments-page-heading">My new joy moments</h1>
           <section className="moments-glass" aria-labelledby="moments-weave">
-            <h2 id="moments-weave">Every good moment weaved adds to the rich tapestry of life</h2>
-            <p className="moments-offer">Unlock 25 good moments weaved for</p>
+            <h2 id="moments-weave">Every gratitude journal entry adds to the rich tapestry of life</h2>
+            <p className="moments-offer">Unlock 25 gratitude journal entries for</p>
             <MomentsPrice />
           </section>
           <MomentsCheckout />
