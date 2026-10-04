@@ -800,11 +800,11 @@ describe("landing", () => {
     expect(page.indexOf('className="landing-demo"')).toBeLessThan(page.indexOf("closing-heading"));
     expect(page).toMatch(/src="\/landing-demo\.mp4"/);
     expect(page).toMatch(/poster="\/landing-demo-poster\.jpg"/);
-    expect(page).toMatch(/How I weaved my good moment/);
-    expect(page.indexOf("How I weaved my good moment")).toBeLessThan(page.indexOf('className="landing-demo"'));
-    expect(page).toMatch(/aria-label="Demo of weaving a good moment"/);
+    expect(page).toMatch(/How to create your gratitude journal/);
+    expect(page.indexOf("How to create your gratitude journal")).toBeLessThan(page.indexOf('className="landing-demo"'));
+    expect(page).toMatch(/aria-label="Demo of creating a gratitude journal"/);
     expect(page).not.toMatch(/\bcontrols\b/);
-    expect(styles).toMatch(/\.landing-demo[\s\S]*aspect-ratio:\s*720\s*\/\s*1198/);
+    expect(styles).toMatch(/\.landing-demo[\s\S]*aspect-ratio:\s*720\s*\/\s*1398/);
     expect(page).not.toMatch(/CreateStoryButton/);
     expect(page).not.toMatch(/\/api\/auth/);
     expect(page).not.toMatch(/\/api\/payfast/);
