@@ -5,6 +5,8 @@ import path from "node:path";
 import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { emailVaultId } from "./identity";
+import { getJSON } from "./storage";
+import { loadVault } from "./vault";
 import { getEntitlement } from "./entitlement";
 import { MemoryFansTable, useFansTable } from "./fans";
 import {
@@ -235,6 +237,74 @@ describe("payfast checkout and ITN", () => {
     expect(second.status).toBe(200);
     expect((await getEntitlement("amy@example.com"))?.remaining).toBe(25);
     expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089250"]);
+  });
+
+  it("lands a new payment on the email vault without dropping a story or the paid row", async () => {
+    const id = emailVaultId("amy@example.com");
+    const existing = {
+      id,
+      kind: "email" as const,
+      sessionId: "buyer-session",
+      email: "amy@example.com",
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+      captureIds: [],
+      stories: [
+        {
+          id: "st_keep",
+          vaultId: id,
+          day: "2026-09-01",
+          title: "",
+          body: "the paid morning",
+          createdAt: "2026-09-01T08:00:00.000Z",
+          weaveModel: "mock",
+          tts: { status: "stub" as const, note: "browser" },
+          captureIds: [],
+          mock: true,
+        },
+      ],
+      captures: [],
+    };
+    const { putJSON } = await import("./storage");
+    await putJSON(`vaults/${id}/vault.json`, existing);
+
+    const raw = signedItn();
+    const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
+    expect(result).toEqual({ status: 200, body: "OK" });
+    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(25);
+    expect((await getEntitlement("amy@example.com"))?.emailVaultId).toBe(id);
+    expect((await getEntitlement("amy@example.com"))?.paymentIds).toEqual(["1089250"]);
+
+    const saved = await loadVault(id);
+    expect(saved?.email).toBe("amy@example.com");
+    expect(saved?.stories.map((story) => story.body)).toEqual(["the paid morning"]);
+    expect(saved?.updatedAt).toBe("2026-09-01T00:00:00.000Z");
+    const order = await getJSON<{ email?: string; status?: string; pfPaymentId?: string }>(
+      "payfast/orders/pay_test.json",
+    );
+    expect(order).toMatchObject({
+      email: "amy@example.com",
+      status: "complete",
+      pfPaymentId: "1089250",
+    });
+  });
+
+  it("creates the deterministic email vault when the buyer has none yet", async () => {
+    const id = emailVaultId("amy@example.com");
+    const raw = signedItn();
+    const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
+    expect(result).toEqual({ status: 200, body: "OK" });
+    const saved = await loadVault(id);
+    expect(saved?.id).toBe(id);
+    expect(saved?.kind).toBe("email");
+    expect(saved?.email).toBe("amy@example.com");
+    expect(saved?.stories).toEqual([]);
+    expect(saved?.captures).toEqual([]);
+    expect((await getEntitlement("amy@example.com"))?.remaining).toBe(25);
+    const index = await getJSON<{ sessions?: Record<string, unknown> }>("index/sessions.json");
+    expect(index?.sessions?.[""]).toBeUndefined();
+    const order = await getJSON<{ status?: string }>("payfast/orders/pay_test.json");
+    expect(order?.status).toBe("complete");
   });
 
   it("fails closed before fulfilment when the gross is not exactly 130.00", async () => {

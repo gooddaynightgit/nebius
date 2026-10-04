@@ -15,8 +15,8 @@ import {
   listStories,
   markMomentOpened,
   matchingStoryForPhoto,
+  persistVault,
   purgeExpiredSavedMoments,
-  saveVault,
   storyForCapture,
 } from "@/lib/vault";
 import type { CaptureRecord, StoryRecord } from "@/lib/types";
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
           ingestModel: ingest.model,
           ingestStatus: ingest.status,
         };
-        await saveVault(vault);
+        await persistVault(vault);
       }
       const fresh = idx >= 0 ? vault.captures[idx] : { ...photo, ...ingest };
       story = await weaveStory({

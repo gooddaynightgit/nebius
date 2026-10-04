@@ -13,7 +13,7 @@ import {
   put as putBlob,
   type PutBlobResult,
 } from "@vercel/blob";
-import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   blobAccess,
@@ -378,8 +378,17 @@ function guessContentType(key: string): string {
   return "application/octet-stream";
 }
 
+export type ListedObject = {
+  key: string;
+  /** Byte size from list metadata. Absent when the backend did not report one. */
+  size?: number;
+  /** Last write time from list metadata, ISO-8601. */
+  uploadedAt?: string;
+};
+
 export type ListKeysResult = {
   keys: string[];
+  objects: ListedObject[];
   cursor?: string;
 };
 
@@ -415,11 +424,25 @@ async function listBlobKeys(
     limit,
     ...blobAuth(),
   });
-  const keys = listed.blobs
-    .map((blob) => appKeyFromStoredPath(blob.pathname))
-    .filter((key): key is string => Boolean(key));
+  const objects: ListedObject[] = [];
+  for (const blob of listed.blobs) {
+    const key = appKeyFromStoredPath(blob.pathname);
+    if (!key) continue;
+    const uploadedAt =
+      blob.uploadedAt instanceof Date
+        ? blob.uploadedAt.toISOString()
+        : typeof blob.uploadedAt === "string"
+          ? blob.uploadedAt
+          : undefined;
+    objects.push({
+      key,
+      size: typeof blob.size === "number" ? blob.size : undefined,
+      uploadedAt,
+    });
+  }
   return {
-    keys,
+    keys: objects.map((item) => item.key),
+    objects,
     cursor: listed.hasMore && listed.cursor ? listed.cursor : undefined,
   };
 }
@@ -438,11 +461,19 @@ async function listS3Keys(
       MaxKeys: limit,
     }),
   );
-  const keys = (listed.Contents ?? [])
-    .map((item) => (item.Key ? appKeyFromStoredPath(item.Key) : null))
-    .filter((key): key is string => Boolean(key));
+  const objects: ListedObject[] = [];
+  for (const item of listed.Contents ?? []) {
+    const key = item.Key ? appKeyFromStoredPath(item.Key) : null;
+    if (!key) continue;
+    objects.push({
+      key,
+      size: typeof item.Size === "number" ? item.Size : undefined,
+      uploadedAt: item.LastModified ? item.LastModified.toISOString() : undefined,
+    });
+  }
   return {
-    keys,
+    keys: objects.map((item) => item.key),
+    objects,
     cursor: listed.IsTruncated && listed.NextContinuationToken ? listed.NextContinuationToken : undefined,
   };
 }
@@ -466,9 +497,19 @@ async function listLocalKeys(
     start = next === -1 ? keys.length : next;
   }
   const page = keys.slice(start, start + limit);
+  const objects: ListedObject[] = [];
+  for (const key of page) {
+    try {
+      const info = await stat(localPath(key));
+      objects.push({ key, size: info.size, uploadedAt: info.mtime.toISOString() });
+    } catch {
+      objects.push({ key });
+    }
+  }
   const more = start + limit < keys.length;
   return {
     keys: page,
+    objects,
     cursor: more && page.length ? page[page.length - 1] : undefined,
   };
 }

@@ -196,6 +196,46 @@ describe("sweep expired moments across vaults", () => {
       "st_c-today",
     ]);
   });
+
+  it("skips a canonical empty anon vault and still reads one rewritten with an old moment", async () => {
+    const storage = await import("./storage");
+    const { getOrCreateAnonVault, canonicalEmptyAnonVaultBytes } = await import("./vault");
+    const { stat } = await import("node:fs/promises");
+    const { sweepExpiredMoments } = await import("./moment-sweep");
+    const when = new Date("2026-09-26T12:15:00.000Z");
+    const empty = await getOrCreateAnonVault("11111111-1111-1111-1111-111111111111");
+    const emptyKey = `vaults/${empty.id}/vault.json`;
+    const emptySize = (await stat(path.join(dir, emptyKey))).size;
+    expect(emptySize).toBe(canonicalEmptyAnonVaultBytes(empty.id));
+
+    const recent = vault("anon_recent_old_moment", "anon");
+    recent.updatedAt = when.toISOString();
+    recent.stories.push(story(recent.id, "st_old", "2026-09-25", `vaults/${recent.id}/stories/old.mp3`));
+    await storage.putJSON(`vaults/${recent.id}/vault.json`, recent);
+
+    const tinyKey = "vaults/anon_tiny/vault.json";
+    await storage.putBytes(tinyKey, Buffer.from("{}", "utf8"), "application/json");
+
+    const reads: string[] = [];
+    const original = storage.getJSON;
+    const spy = vi.spyOn(storage, "getJSON").mockImplementation((key, options) => {
+      reads.push(key);
+      return original(key, options);
+    });
+    try {
+      const result = await sweepExpiredMoments({ now: when, budgetMs: 60_000 });
+      expect(result.vaultsSkipped).toBe(1);
+      expect(result.vaultsPurged).toBe(1);
+      expect(result.failures).toBe(1);
+      expect(reads).not.toContain(emptyKey);
+      expect(reads).toContain(`vaults/${recent.id}/vault.json`);
+      expect(reads).toContain(tinyKey);
+      expect((await original<VaultRecord>(`vaults/${recent.id}/vault.json`))?.stories).toEqual([]);
+      expect(await original(emptyKey)).toMatchObject({ stories: [], captures: [] });
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });
 
 describe("daily sweep route", () => {
