@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const storyId = new URL(request.url).searchParams.get("t");
   const story = (storyId ? vault.stories.find((item) => item.id === storyId) : null) ?? lastStory(vault);
   if (!story?.tts.audioKey) return json({ error: "No story audio yet" }, 404);
-  const file = await getBytes(story.tts.audioKey);
+  const file = await getBytes(story.tts.audioKey, { cache: true });
   if (!file) return json({ error: "No story audio yet" }, 404);
   return new Response(new Uint8Array(file.body), {
     headers: {

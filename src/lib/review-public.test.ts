@@ -50,6 +50,11 @@ describe("public review display", () => {
     expect(landing.indexOf('className="landing-demo"')).toBeLessThan(landing.indexOf("<KindWords"));
     expect(landing.indexOf("<KindWords")).toBeLessThan(landing.indexOf("closing-heading"));
     expect(landing).toMatch(/limit=\{KIND_WORDS_LIMIT\}/);
+    expect(landing).toMatch(/listPublishedReviews\(KIND_WORDS_LIMIT\)/);
+    expect(landing).toMatch(/export const revalidate = 300/);
+    expect(landing).not.toMatch(/force-dynamic/);
+    expect(review).toMatch(/force-dynamic/);
+    expect(review).toMatch(/listPublishedReviews\(\)/);
     expect(landing).toMatch(/showLink/);
     expect(review.indexOf("<KindWords")).toBeLessThan(review.indexOf("<ReviewForm"));
     expect(KIND_WORDS_HEADING).toBe("Kind reviews");

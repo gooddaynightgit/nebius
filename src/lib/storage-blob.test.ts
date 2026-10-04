@@ -25,7 +25,7 @@ const blobState = vi.hoisted(() => {
   }
 
   function actualUrl(pathname: string): string {
-    return `https://actualstore.private.blob.vercel-storage.com/${pathname}`;
+    return `https://teststore.private.blob.vercel-storage.com/${pathname}`;
   }
 
   return {
@@ -84,7 +84,7 @@ vi.mock("@vercel/blob", () => ({
   }),
 }));
 
-import { get as getBlob } from "@vercel/blob";
+import { BlobNotFoundError, get as getBlob, head as headBlob, list as listBlob } from "@vercel/blob";
 import {
   getBytes,
   getJSON,
@@ -135,8 +135,12 @@ describe("vercel blob round-trip", () => {
     const bytes = Buffer.from([0xff, 0xd8, 0xff, 0x01, 0x02]);
     await putBytes("vaults/anon_session/media/cap.jpg", bytes, "image/jpeg");
     resetBlobUrlCache();
+    vi.mocked(headBlob).mockClear();
+    vi.mocked(listBlob).mockClear();
     const file = await getBytes("vaults/anon_session/media/cap.jpg");
     expect(file).not.toBeNull();
+    expect(headBlob).not.toHaveBeenCalled();
+    expect(listBlob).not.toHaveBeenCalled();
     expect(file?.contentType).toBe("image/jpeg");
     expect(file?.body.equals(bytes)).toBe(true);
   });
@@ -151,6 +155,23 @@ describe("vercel blob round-trip", () => {
 
   it("returns null only when the blob is truly missing", async () => {
     await expect(getJSON("vaults/nobody/vault.json")).resolves.toBeNull();
+    expect(headBlob).not.toHaveBeenCalled();
+    expect(listBlob).not.toHaveBeenCalled();
+
+    vi.mocked(getBlob).mockClear();
+    vi.mocked(getBlob).mockRejectedValueOnce(new BlobNotFoundError());
+    await expect(getJSON("vaults/nobody-else/vault.json")).resolves.toBeNull();
+    expect(headBlob).not.toHaveBeenCalled();
+    expect(listBlob).not.toHaveBeenCalled();
+  });
+
+  it("leaves blob reads uncached unless the caller opts in", async () => {
+    await getJSON("vaults/missing/vault.json");
+    expect(vi.mocked(getBlob).mock.calls[0]?.[1]).toMatchObject({ useCache: false });
+
+    vi.mocked(getBlob).mockClear();
+    await getBytes("vaults/missing/photo.jpg", { cache: true });
+    expect(vi.mocked(getBlob).mock.calls[0]?.[1]).toMatchObject({ useCache: true });
   });
 
   it("probeVercelBlob reports ok after a successful round-trip", async () => {

@@ -9,7 +9,6 @@ import {
   BlobNotFoundError,
   del as deleteBlob,
   get as getBlob,
-  head as headBlob,
   list as listBlob,
   put as putBlob,
   type PutBlobResult,
@@ -142,46 +141,19 @@ function normalizeListedPath(pathname: string): string {
   return pathname.replace(/^\//, "");
 }
 
-async function lookupBlobUrl(pathname: string): Promise<string | null> {
-  const cached = blobUrlByPath.get(pathname);
-  if (cached) return cached;
-  try {
-    const meta = await headBlob(pathname, blobAuth());
-    if (meta?.url) {
-      rememberBlobUrl(pathname, meta.url);
-      return meta.url;
-    }
-  } catch (error) {
-    if (!isBlobMissingError(error)) {
-      logBlob("head", pathname, error);
-      throw error;
-    }
-  }
-  try {
-    const listed = await listBlob({ prefix: pathname, limit: 20, ...blobAuth() });
-    const match = listed.blobs.find(
-      (blob) => normalizeListedPath(blob.pathname) === pathname,
-    );
-    if (match?.url) {
-      rememberBlobUrl(pathname, match.url);
-      return match.url;
-    }
-  } catch (error) {
-    if (!isBlobMissingError(error)) {
-      logBlob("list", pathname, error);
-      throw error;
-    }
-  }
-  return null;
-}
+export type BlobReadOptions = {
+  /** Opt in to Vercel's blob CDN cache. Default reads stay uncached. */
+  cache?: boolean;
+};
 
 async function readBlobResult(
   target: string,
   key: string,
+  cache: boolean,
 ): Promise<StoredBlob | null> {
   const result = await getBlob(target, {
     access: blobAccess(),
-    useCache: false,
+    useCache: cache,
     ...blobAuth(),
   });
   if (!result) return null;
@@ -220,41 +192,25 @@ async function putBlobBytes(
   }
 }
 
-async function getBlobBytes(key: string): Promise<StoredBlob | null> {
+async function getBlobBytes(key: string, cache: boolean): Promise<StoredBlob | null> {
   const pathname = blobPath(key);
   const targets = unique([
     blobUrlByPath.get(pathname),
     blobCdnUrl(pathname),
   ]);
 
-  let lastError: unknown;
   for (const target of targets) {
     try {
-      const file = await readBlobResult(target, key);
+      const file = await readBlobResult(target, key, cache);
       if (file) return file;
     } catch (error) {
       if (isBlobMissingError(error)) continue;
-      lastError = error;
       logBlob("get", pathname, error);
       throw error;
     }
   }
 
-  try {
-    const url = await lookupBlobUrl(pathname);
-    if (url && !targets.includes(url)) {
-      const file = await readBlobResult(url, key);
-      if (file) return file;
-    }
-  } catch (error) {
-    if (!isBlobMissingError(error)) {
-      lastError = error;
-      logBlob("get", pathname, error);
-      throw error;
-    }
-  }
-
-  if (lastError) throw lastError;
+  // An exact-path get that 404s is a miss. Do not head() or list() to recover.
   return null;
 }
 
@@ -286,9 +242,10 @@ export async function putBytes(
 
 export async function getBytes(
   key: string,
+  options?: BlobReadOptions,
 ): Promise<StoredBlob | null> {
   if (hasVercelBlob()) {
-    return getBlobBytes(key);
+    return getBlobBytes(key, options?.cache === true);
   }
   if (hasNebiusObjectStorage()) {
     const { client, bucket } = s3();
@@ -380,8 +337,8 @@ export async function putJSON(key: string, value: unknown): Promise<void> {
   await putBytes(key, JSON.stringify(value, null, 2), "application/json");
 }
 
-export async function getJSON<T>(key: string): Promise<T | null> {
-  const file = await getBytes(key);
+export async function getJSON<T>(key: string, options?: BlobReadOptions): Promise<T | null> {
+  const file = await getBytes(key, options);
   if (!file) return null;
   try {
     return JSON.parse(file.body.toString("utf8")) as T;
