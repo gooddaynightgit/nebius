@@ -78,18 +78,18 @@ export default async function HomePage() {
           <span className="card__wash card__wash--sun" aria-hidden="true"></span>
         </section>
 
-        <section className="card card--summary">
-          <p className="card__body">
-            GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
-          </p>
-        </section>
-
         <section className="card card--lavender">
           <p className="card__body">
             Your laugh. Your small win. Your quiet moment. Nobody turned them
             into anything — not even you.
           </p>
           <span className="card__wash card__wash--ten" aria-hidden="true"></span>
+        </section>
+
+        <section className="card card--summary">
+          <p className="card__body">
+            GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
+          </p>
         </section>
 
         <nav className="step-nav" aria-label={STEP_LABEL.start}>
