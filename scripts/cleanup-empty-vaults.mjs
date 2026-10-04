@@ -6,6 +6,11 @@
  *
  *   node scripts/cleanup-empty-vaults.mjs
  *   node scripts/cleanup-empty-vaults.mjs --delete
+ *   node scripts/cleanup-empty-vaults.mjs --prefix=
+ *
+ * --prefix defaults to NEBIUS_S3_PREFIX. When that env var is unset, the script
+ * lists once: blobs under gooddaynight/ keep that prefix; otherwise vaults/ at
+ * the store root selects an empty prefix. An empty prefix is the store root.
  *
  * Vault, session index, and Payfast order reads are uncached.
  */
@@ -32,15 +37,28 @@ export function emailVaultId(email) {
   return `em_${hash}`;
 }
 
+export function normalizePrefix(value) {
+  return String(value ?? "").replace(/\/+$/, "");
+}
+
 export function storePrefix(env = process.env) {
-  return (env.NEBIUS_S3_PREFIX ?? "gooddaynight").replace(/\/+$/, "");
+  return normalizePrefix(env.NEBIUS_S3_PREFIX ?? "gooddaynight");
+}
+
+/** Store pathname for an app key. An empty prefix is the store root, not a leading slash. */
+export function storedPath(prefix, key) {
+  const bare = String(key ?? "").replace(/^\//, "");
+  const root = normalizePrefix(prefix);
+  return root ? `${root}/${bare}` : bare;
 }
 
 export function appKey(pathname, prefix) {
   const normalized = String(pathname ?? "").replace(/^\//, "");
-  const root = `${prefix}/`;
-  if (!normalized.startsWith(root)) return null;
-  const key = normalized.slice(root.length);
+  const root = normalizePrefix(prefix);
+  if (!root) return normalized || null;
+  const head = `${root}/`;
+  if (!normalized.startsWith(head)) return null;
+  const key = normalized.slice(head.length);
   return key || null;
 }
 
@@ -130,9 +148,10 @@ async function readStream(stream) {
 async function listAll(client, prefix, token) {
   const blobs = [];
   let cursor;
+  const listPrefix = storedPath(prefix, "");
   do {
     const page = await client.list({
-      prefix: `${prefix}/`,
+      prefix: listPrefix,
       cursor,
       limit: 1000,
       token,
@@ -297,6 +316,8 @@ export async function runCleanup(options) {
     wouldDelete.push({ ...file, vaultId });
   }
 
+  log(`prefix: ${prefix ? normalizePrefix(prefix) : "(root)"}`);
+  log(`vault.json files: ${vaultFiles.length}`);
   log(`total vaults: ${considered}`);
   log(`would delete: ${wouldDelete.length}`);
   log("kept:");
@@ -355,7 +376,7 @@ export async function runCleanup(options) {
       }
     }
     if (changed) {
-      await client.put(`${prefix}/index/sessions.json`, JSON.stringify(parsed, null, 2), {
+      await client.put(storedPath(prefix, "index/sessions.json"), JSON.stringify(parsed, null, 2), {
         access: "private",
         token,
         addRandomSuffix: false,
@@ -380,14 +401,43 @@ export async function runCleanup(options) {
 
 export function parseArgs(argv) {
   const deleteMode = argv.includes("--delete");
-  const unexpected = argv.filter((arg) => arg !== "--delete");
-  return { deleteMode, unexpected };
+  let prefix;
+  let prefixSet = false;
+  const unexpected = [];
+  for (const arg of argv) {
+    if (arg === "--delete") continue;
+    if (arg.startsWith("--prefix=")) {
+      prefix = arg.slice("--prefix=".length);
+      prefixSet = true;
+      continue;
+    }
+    unexpected.push(arg);
+  }
+  return { deleteMode, prefix: prefixSet ? prefix : undefined, unexpected };
+}
+
+async function listHasBlobs(client, prefix, token) {
+  const page = await client.list({ prefix, limit: 1, token });
+  return (page.blobs ?? []).length > 0;
+}
+
+/**
+ * --prefix wins. Otherwise NEBIUS_S3_PREFIX when that variable is set
+ * (including "" or "/"). When it is unset, use gooddaynight only if that
+ * prefix has blobs; if the store root has vaults/ and gooddaynight/ does not, use root.
+ */
+export async function resolvePrefix({ prefixFlag, env, client, token }) {
+  if (prefixFlag !== undefined) return normalizePrefix(prefixFlag);
+  if (env.NEBIUS_S3_PREFIX !== undefined) return normalizePrefix(env.NEBIUS_S3_PREFIX);
+  if (await listHasBlobs(client, "gooddaynight/", token)) return "gooddaynight";
+  if (await listHasBlobs(client, "vaults/", token)) return "";
+  return "gooddaynight";
 }
 
 export async function main(argv = process.argv.slice(2), env = process.env) {
-  const { deleteMode, unexpected } = parseArgs(argv);
+  const { deleteMode, prefix: prefixFlag, unexpected } = parseArgs(argv);
   if (unexpected.length) {
-    console.error("Usage: node scripts/cleanup-empty-vaults.mjs [--delete]");
+    console.error("Usage: node scripts/cleanup-empty-vaults.mjs [--delete] [--prefix=<value>]");
     return 1;
   }
   const token = env.BLOB_READ_WRITE_TOKEN?.trim();
@@ -396,10 +446,12 @@ export async function main(argv = process.argv.slice(2), env = process.env) {
     return 1;
   }
   const { del, get, list, put } = await import("@vercel/blob");
+  const client = { del, get, list, put };
+  const prefix = await resolvePrefix({ prefixFlag, env, client, token });
   await runCleanup({
-    client: { del, get, list, put },
+    client,
     token,
-    prefix: storePrefix(env),
+    prefix,
     deleteMode,
     now: new Date(),
   });

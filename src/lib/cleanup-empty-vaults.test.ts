@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { emailVaultId as appEmailVaultId } from "./identity";
 import {
+  appKey,
   emailVaultId,
   keepReason,
   main,
   parseArgs,
+  resolvePrefix,
   runCleanup,
+  storedPath,
 } from "../../scripts/cleanup-empty-vaults.mjs";
 
 const NOW = new Date("2026-10-04T00:00:00.000Z");
@@ -15,8 +18,22 @@ const RECENT = "2026-10-03T00:00:00.000Z";
 describe("empty vault cleanup", () => {
   it("matches the app email vault id and stays dry unless --delete is set", () => {
     expect(emailVaultId("Amy@Email.com")).toBe(appEmailVaultId("amy@email.com"));
-    expect(parseArgs([])).toEqual({ deleteMode: false, unexpected: [] });
-    expect(parseArgs(["--delete"])).toEqual({ deleteMode: true, unexpected: [] });
+    expect(parseArgs([])).toEqual({ deleteMode: false, prefix: undefined, unexpected: [] });
+    expect(parseArgs(["--delete"])).toEqual({ deleteMode: true, prefix: undefined, unexpected: [] });
+    expect(parseArgs(["--prefix="])).toEqual({ deleteMode: false, prefix: "", unexpected: [] });
+    expect(parseArgs(["--prefix=/", "--delete"])).toEqual({ deleteMode: true, prefix: "/", unexpected: [] });
+    expect(parseArgs(["--prefix=gooddaynight"])).toEqual({
+      deleteMode: false,
+      prefix: "gooddaynight",
+      unexpected: [],
+    });
+    expect(appKey("vaults/anon_session/vault.json", "")).toBe("vaults/anon_session/vault.json");
+    expect(appKey("gooddaynight/vaults/anon_session/vault.json", "gooddaynight")).toBe(
+      "vaults/anon_session/vault.json",
+    );
+    expect(storedPath("", "index/sessions.json")).toBe("index/sessions.json");
+    expect(storedPath("gooddaynight", "index/sessions.json")).toBe("gooddaynight/index/sessions.json");
+    expect(storedPath("/", "vaults/anon_session/vault.json")).toBe("vaults/anon_session/vault.json");
   });
 
   it("refuses to run without a token", async () => {
@@ -47,6 +64,8 @@ describe("empty vault cleanup", () => {
     expect(client.dels).toEqual([]);
     expect(client.puts).toEqual([]);
     expect(client.gets.every((call) => call.options.useCache === false)).toBe(true);
+    expect(lines).toContain("prefix: gooddaynight");
+    expect(lines).toContain("vault.json files: 11");
     expect(lines).toContain("total vaults: 11");
     expect(lines).toContain("would delete: 1");
     expect(lines).toContain("  captures: 1");
@@ -105,6 +124,54 @@ describe("empty vault cleanup", () => {
     ]);
   });
 
+  it("lists, maps, and rewrites the session index at the store root when prefix is empty", async () => {
+    const files = [
+      rootFile("vaults/anon_empty/vault.json", emptyVault("empty", OLD), OLD),
+      rootFile(
+        "index/sessions.json",
+        JSON.stringify({ sessions: { "session-empty": { vaultId: "anon_empty" } } }),
+        OLD,
+      ),
+    ];
+    const client = memoryClient(files);
+    const lines: string[] = [];
+    const result = await runCleanup({
+      client,
+      token: "vercel_blob_rw_teststore_secret",
+      prefix: "",
+      deleteMode: true,
+      now: NOW,
+      log: (line) => lines.push(line),
+    });
+
+    expect(client.lists).toEqual([""]);
+    expect(lines).toContain("prefix: (root)");
+    expect(lines).toContain("vault.json files: 1");
+    expect(result.deleted).toBe(1);
+    expect(client.puts.map((put) => put.pathname)).toEqual(["index/sessions.json"]);
+    expect(client.dels).toEqual(["https://blob.test/vaults/anon_empty/vault.json"]);
+  });
+
+  it("auto-detects a root store when gooddaynight/ is empty and vaults/ exists", async () => {
+    const root = probeClient([{ pathname: "vaults/anon_a/vault.json" }]);
+    await expect(resolvePrefix({ prefixFlag: undefined, env: {}, client: root, token: "t" })).resolves.toBe("");
+
+    const named = probeClient([{ pathname: "gooddaynight/vaults/anon_a/vault.json" }]);
+    await expect(resolvePrefix({ prefixFlag: undefined, env: {}, client: named, token: "t" })).resolves.toBe(
+      "gooddaynight",
+    );
+
+    const explicit = probeClient([]);
+    await expect(
+      resolvePrefix({ prefixFlag: undefined, env: { NEBIUS_S3_PREFIX: "" }, client: explicit, token: "t" }),
+    ).resolves.toBe("");
+    expect(explicit.prefixes).toEqual([]);
+
+    await expect(
+      resolvePrefix({ prefixFlag: "/", env: { NEBIUS_S3_PREFIX: "gooddaynight" }, client: explicit, token: "t" }),
+    ).resolves.toBe("");
+  });
+
   it("keeps a vault when any delete check is unsure", () => {
     const now = NOW;
     const staleMs = 7 * 24 * 60 * 60 * 1000;
@@ -129,6 +196,10 @@ type StoredFile = { pathname: string; body: string; uploadedAt: string };
 
 function file(key: string, body: string, uploadedAt: string): StoredFile {
   return { pathname: `gooddaynight/${key}`, body, uploadedAt };
+}
+
+function rootFile(key: string, body: string, uploadedAt: string): StoredFile {
+  return { pathname: key, body, uploadedAt };
 }
 
 function emptyVault(sessionId: string, updatedAt: string, extra: Record<string, unknown> = {}): string {
@@ -186,13 +257,18 @@ function memoryClient(files: StoredFile[]) {
   const gets: Array<{ url: string; options: { useCache?: boolean } }> = [];
   const puts: Array<{ pathname: string; body: string }> = [];
   const dels: string[] = [];
+  const lists: string[] = [];
   return {
     gets,
     puts,
     dels,
-    async list() {
+    lists,
+    async list(options?: { prefix?: string }) {
+      const prefix = options?.prefix ?? "";
+      lists.push(prefix);
+      const matched = files.filter((item) => prefix === "" || item.pathname.startsWith(prefix));
       return {
-        blobs: files.map((item) => ({
+        blobs: matched.map((item) => ({
           url: `https://blob.test/${item.pathname}`,
           pathname: item.pathname,
           size: Buffer.byteLength(item.body),
@@ -227,6 +303,21 @@ function memoryClient(files: StoredFile[]) {
       const pathname = url.replace("https://blob.test/", "");
       const index = files.findIndex((item) => item.pathname === pathname);
       if (index >= 0) files.splice(index, 1);
+    },
+  };
+}
+
+function probeClient(blobs: Array<{ pathname: string }>) {
+  const prefixes: string[] = [];
+  return {
+    prefixes,
+    async list(options?: { prefix?: string }) {
+      const prefix = options?.prefix ?? "";
+      prefixes.push(prefix);
+      return {
+        blobs: blobs.filter((item) => prefix === "" || item.pathname.startsWith(prefix)),
+        hasMore: false,
+      };
     },
   };
 }

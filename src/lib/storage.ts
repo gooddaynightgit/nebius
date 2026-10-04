@@ -38,8 +38,15 @@ function prefix(): string {
   return (process.env.NEBIUS_S3_PREFIX ?? "gooddaynight").replace(/\/+$/, "");
 }
 
+/** Store key for an app key. An empty prefix is the store root, not a leading slash. */
+function storedKey(key: string): string {
+  const bare = key.replace(/^\//, "");
+  const root = prefix();
+  return root ? `${root}/${bare}` : bare;
+}
+
 function blobPath(key: string): string {
-  return `${prefix()}/${key.replace(/^\//, "")}`;
+  return storedKey(key);
 }
 
 function normalizeStoreId(storeId: string): string {
@@ -228,7 +235,7 @@ export async function putBytes(
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
-        Key: `${prefix()}/${key}`,
+        Key: storedKey(key),
         Body: body,
         ContentType: contentType,
       }),
@@ -253,7 +260,7 @@ export async function getBytes(
       const res = await client.send(
         new GetObjectCommand({
           Bucket: bucket,
-          Key: `${prefix()}/${key}`,
+          Key: storedKey(key),
         }),
       );
       const bytes = await res.Body?.transformToByteArray();
@@ -291,7 +298,7 @@ export async function deleteBytes(key: string): Promise<void> {
       await client.send(
         new DeleteObjectCommand({
           Bucket: bucket,
-          Key: `${prefix()}/${key}`,
+          Key: storedKey(key),
         }),
       );
     } catch (error) {
@@ -407,9 +414,11 @@ export async function listKeys(options: {
 
 function appKeyFromStoredPath(stored: string): string | null {
   const normalized = normalizeListedPath(stored);
-  const root = `${prefix()}/`;
-  if (!normalized.startsWith(root)) return null;
-  const key = normalized.slice(root.length);
+  const root = prefix();
+  if (!root) return normalized || null;
+  const head = `${root}/`;
+  if (!normalized.startsWith(head)) return null;
+  const key = normalized.slice(head.length);
   return key || null;
 }
 
@@ -456,7 +465,7 @@ async function listS3Keys(
   const listed = await client.send(
     new ListObjectsV2Command({
       Bucket: bucket,
-      Prefix: `${prefix()}/${prefixKey}`,
+      Prefix: storedKey(prefixKey),
       ContinuationToken: cursor,
       MaxKeys: limit,
     }),
