@@ -2942,7 +2942,7 @@ body:has(.story-opening) .step-forward:has(.step-forward-arrow:disabled) .step-f
   width: min(100%, 300px);
   max-width: 300px;
   height: auto;
-  aspect-ratio: 720 / 1198;
+  aspect-ratio: 720 / 1398;
   margin: 0 auto;
   border-radius: 1.35rem;
   background: var(--navy);

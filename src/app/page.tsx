@@ -110,7 +110,7 @@ export default async function HomePage() {
 
         <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
           <h2 id="landing-demo-heading" className="landing-demo__heading">
-            How I weaved my good moment
+            How to create your gratitude journal
           </h2>
           <video
             className="landing-demo"
@@ -122,8 +122,8 @@ export default async function HomePage() {
             poster="/landing-demo-poster.jpg"
             src="/landing-demo.mp4"
             width={720}
-            height={1198}
-            aria-label="Demo of weaving a good moment"
+            height={1398}
+            aria-label="Demo of creating a gratitude journal"
           />
         </section>
 
