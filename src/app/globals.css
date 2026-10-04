@@ -11,6 +11,12 @@
   --sans: "Inter", "Segoe UI", "Helvetica Neue", sans-serif;
   --space: 1rem;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Matches .feedback-ribbon height, including the safe area the pill already offsets by. */
+  --review-ticker-height: calc(2.75rem + env(safe-area-inset-bottom));
+  /* .step-float controls are min-height 44px; measured pill height at 380px is 44px. */
+  --step-float-height: 44px;
+  /* Pill bottom offset (ticker + 0.5rem + menu + 0.45rem) + pill height + 24px. */
+  --step-float-clearance: calc(var(--review-ticker-height) + 0.5rem + 48px + 0.45rem + var(--step-float-height) + 24px);
 }
 
 *,
@@ -47,7 +53,7 @@ body:has(.step-pin):has(.share-pin) {
 }
 
 body:has(.step-float) {
-  padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 4.5rem + 1.15rem);
+  padding-bottom: var(--step-float-clearance);
 }
 
 body:has(.step-float):has(.share-pin) {
@@ -3159,7 +3165,7 @@ body:has(.story-opening) .step-forward:has(.step-forward-arrow:disabled) .step-f
   }
 
   body:has(.step-float) {
-    padding-bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.45rem + 4.5rem + 1.15rem);
+    padding-bottom: var(--step-float-clearance);
   }
 
   body:has(.step-float):has(.share-pin) {
