@@ -42,7 +42,7 @@ describe("landing copy", () => {
     ]);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/already gone/);
     expect(LANDING.app.noticing.join(" ")).toMatch(/you’re/);
-    expect(LANDING.app.yours).toBe("My good moment weaved");
+    expect(LANDING.app.yours).toBe("My gratitude journal");
     expect(LANDING.app.brand).toBe("GoodDayNight");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
     expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");
@@ -102,7 +102,7 @@ describe("landing copy", () => {
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
     expect(LANDING.app.playbackLead).toBe(
-      "Here's how a good moment reads once it's weaved.",
+      "Here's how a good moment reads in your gratitude journal.",
     );
     expect(LANDING.moment.playbackTitle).toBe("Create your story");
     expect(LANDING.moment.playbackExample).toBe(
@@ -125,7 +125,7 @@ describe("landing copy", () => {
     expect(LANDING.footer.about).toBe("About the maker");
     expect(LANDING.about.title).toBe("About the maker — GoodDayNight");
     expect(LANDING.about.body).toBe(
-      "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, woven into this beautiful tapestry of life. I built GoodDayNight for myself. I honestly want this for you.",
+      "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, kept in this gratitude journal. I built GoodDayNight for myself. I honestly want this for you.",
     );
     expect(LANDING.about.signature).toBe("— Jasmine Hassam, maker of GoodDayNight");
     expect(WHISPER_MAX).toBe(80);

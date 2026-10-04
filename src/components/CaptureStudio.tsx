@@ -1026,9 +1026,9 @@ export default function CaptureStudio() {
           ) : null}
 
           {reviewView.showWeave ? (
-            <section className="card card--aqua card--compact" aria-label="Weave my good moment">
+            <section className="card card--aqua card--compact" aria-label="Write in my journal">
               <button className="visually-hidden" type="submit" disabled={busy} aria-hidden="true" tabIndex={-1}>
-                {busy ? "Weaving your good moment…" : "Weave my good moment"}
+                {busy ? "Writing your journal…" : "Write in my journal"}
               </button>
               {turnError ? (
                 <p className="error" role="alert">

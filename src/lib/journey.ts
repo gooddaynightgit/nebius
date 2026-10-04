@@ -1,15 +1,15 @@
 import { getJoyById } from "./landing";
 
 /** Caption under a finished story, and the last dot on the bar. */
-export const JOURNEY_FINISHED_CAPTION = "My good moment weaved";
+export const JOURNEY_FINISHED_CAPTION = "My gratitude journal";
 
 export const JOURNEY_STEPS = [
-  { label: "Weave your good moment" },
+  { label: "Start my gratitude journal" },
   { label: "Pick your joy" },
   { label: "My new joy moments" },
   { label: "Capture it" },
   { label: "What is the good in this moment?" },
-  { label: "Weave my good moment" },
+  { label: "Write in my journal" },
   { label: JOURNEY_FINISHED_CAPTION },
 ] as const;
 

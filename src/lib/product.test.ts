@@ -800,9 +800,9 @@ describe("landing", () => {
     expect(page.indexOf('className="landing-demo"')).toBeLessThan(page.indexOf("closing-heading"));
     expect(page).toMatch(/src="\/landing-demo\.mp4"/);
     expect(page).toMatch(/poster="\/landing-demo-poster\.jpg"/);
-    expect(page).toMatch(/How I weaved my good moment/);
-    expect(page.indexOf("How I weaved my good moment")).toBeLessThan(page.indexOf('className="landing-demo"'));
-    expect(page).toMatch(/aria-label="Demo of weaving a good moment"/);
+    expect(page).toMatch(/How I started my gratitude journal/);
+    expect(page.indexOf("How I started my gratitude journal")).toBeLessThan(page.indexOf('className="landing-demo"'));
+    expect(page).toMatch(/aria-label="Demo of starting a gratitude journal"/);
     expect(page).not.toMatch(/\bcontrols\b/);
     expect(styles).toMatch(/\.landing-demo[\s\S]*aspect-ratio:\s*720\s*\/\s*1198/);
     expect(page).not.toMatch(/CreateStoryButton/);
@@ -1002,7 +1002,7 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).not.toMatch(/What joy is it\?/);
     expect(joy).toMatch(/legend=\{null\}/);
-    expect(joy).toMatch(/playbackTitle="Example: My good moment weaved"/);
+    expect(joy).toMatch(/playbackTitle="Example: My gratitude journal"/);
     expect(joy).toMatch(/playbackLead=\{LANDING\.app\.playbackLead\}/);
     expect(joy).toMatch(/playbackVariant="weaved"/);
     expect(joy).not.toMatch(/playbackEyebrow/);
@@ -1122,8 +1122,8 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/card card--aqua card--compact/);
     expect(src).toMatch(/className="visually-hidden" type="submit"/);
     expect(src).not.toMatch(/step-pin/);
-    expect(src).toMatch(/Weave my good moment/);
-    expect(src).toMatch(/Weaving your good moment…/);
+    expect(src).toMatch(/Write in my journal/);
+    expect(src).toMatch(/Writing your journal…/);
     expect(src).not.toMatch(/Turn my moment/);
     expect(src).not.toMatch(/Turning your moment/);
     expect(src).toMatch(/A gentle nudge: type the good in this moment first\./);

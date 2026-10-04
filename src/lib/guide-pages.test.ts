@@ -59,7 +59,7 @@ const pages: Array<{ path: string; headline: string; Page: () => ReactElement; m
 
 function weaveControls(html: string): string[] {
   return [...html.matchAll(/<(a|button)\b([^>]*)>([\s\S]*?)<\/\1>/gi)]
-    .filter((match) => match[3].includes("Weave your good moment"))
+    .filter((match) => match[3].includes("Start my gratitude journal"))
     .map((match) => match[2]);
 }
 
@@ -69,7 +69,7 @@ describe("seven guide pages", () => {
     expect(WEAVE_HREF).toBe("/app/joy");
     expect(landing).toContain('href="/app/joy"');
     expect(landing).toContain("STEP_LABEL.start");
-    expect(STEP_LABEL.start).toBe("Weave your good moment");
+    expect(STEP_LABEL.start).toBe("Start my gratitude journal");
   });
 
   it("uses Jasmine’s woven chocolate story, photo, and product closing line", () => {

@@ -210,7 +210,7 @@ export default function JoyStudio() {
             joys={joys}
             legend={null}
             resetSignal={resetSignal}
-            playbackTitle="Example: My good moment weaved"
+            playbackTitle="Example: My gratitude journal"
             playbackLead={LANDING.app.playbackLead}
             playbackVariant="weaved"
             promptWhenEmpty
