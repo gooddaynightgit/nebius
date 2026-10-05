@@ -40,6 +40,33 @@ const HOME_FAQ = [
   },
 ] as const;
 
+/** Structured data so search engines and LLMs can read what GoodDayNight is. */
+const HOME_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://gooddaynight.com/#app",
+      name: "GoodDayNight",
+      url: "https://gooddaynight.com/",
+      description: HOME_DESCRIPTION,
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "Web",
+      keywords:
+        "gratitude journal, gratitude journal app, daily gratitude, bedtime stories for adults, mindfulness journal, self-care journal",
+      email: "hello@gooddaynight.com",
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: HOME_FAQ.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    },
+  ],
+};
+
 export const metadata: Metadata = {
   ...siteTitleMetadata,
   title: HOME_TITLE,
@@ -63,6 +90,10 @@ export default async function HomePage() {
   const reviews = await listPublishedReviews(KIND_WORDS_LIMIT);
   return (
     <div className="page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSON_LD).replace(/</g, "\\u003c") }}
+      />
       <header className="site-header">
         <Link className="badge" href="/">
           GoodDayNight

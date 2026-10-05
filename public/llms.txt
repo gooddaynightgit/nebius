@@ -1,0 +1,25 @@
+# GoodDayNight
+
+> GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
+
+A daily gratitude journal and bedtime stories for adults in one ritual. During the day you save as many good moments as you like, as a text or a photo. Each moment becomes its own short bedtime story that you listen to that night, then it's gone. Tomorrow you look again.
+
+## Who it's for
+- Adults who want a daily gratitude journal habit without the blank page
+- People looking for a simple mindfulness, self-care or reflection journal
+- Adults who want a calming bedtime story to wind down with
+
+## Why it works
+In a well-known study (Seligman et al., 2005, American Psychologist), people who wrote down three good things each night for a week felt happier for up to six months afterwards. GoodDayNight builds on that habit.
+
+## Pages
+- [Home](https://gooddaynight.com/): What GoodDayNight is, a demo and FAQ
+- [Start a gratitude journal](https://gooddaynight.com/app/joy): Pick your joy and save a good moment
+- [How it works](https://gooddaynight.com/how-it-works)
+- [Example story](https://gooddaynight.com/example)
+- [FAQ](https://gooddaynight.com/faq)
+- [Reviews](https://gooddaynight.com/reviews)
+- [About the maker](https://gooddaynight.com/about)
+
+## Contact
+- hello@gooddaynight.com
