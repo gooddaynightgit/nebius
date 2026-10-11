@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import HappyBubble from "@/components/HappyBubble";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   FormEvent,
@@ -1044,9 +1045,7 @@ export default function CaptureStudio() {
           ) : null}
         </form>
 
-        <section className="card card--lime card--compact" aria-labelledby="closing-heading">
-          <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>
-        </section>
+        <HappyBubble text={LANDING.footer.somethingGood} />
         </>
         )}
       </main>
