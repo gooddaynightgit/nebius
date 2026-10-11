@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import HappyBubble from "@/components/HappyBubble";
 import KindWords from "@/components/KindWords";
 import SiteFooter from "@/components/SiteFooter";
 import { STEP_LABEL } from "@/lib/journey";
@@ -188,7 +189,9 @@ export default async function HomePage() {
         </section>
 
         <section className="card card--lime home-close" aria-labelledby="closing-heading">
-          <h2 id="closing-heading">Something good is about to happen!</h2>
+          <h2 id="closing-heading" className="visually-hidden">
+            Something good is about to happen!
+          </h2>
           <Link className="step-next" href="/app/joy">
             <span>Start my gratitude journal</span>
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
@@ -203,6 +206,7 @@ export default async function HomePage() {
             </svg>
           </Link>
         </section>
+        <HappyBubble text="Something good is about to happen!" />
       </main>
 
       <SiteFooter />

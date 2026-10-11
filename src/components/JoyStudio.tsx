@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import HappyBubble from "@/components/HappyBubble";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import JoyPicker from "@/components/JoyPicker";
@@ -241,9 +242,7 @@ export default function JoyStudio() {
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>
 
-        <section className="card card--lime card--compact" aria-labelledby="closing-heading">
-          <h2 id="closing-heading">{LANDING.footer.somethingGood}</h2>
-        </section>
+        <HappyBubble text={LANDING.footer.somethingGood} />
       </main>
 
       <SiteFooter />

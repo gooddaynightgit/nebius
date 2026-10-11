@@ -1,4 +1,5 @@
 import GuideShell from "@/components/GuideShell";
+import HappyBubble from "@/components/HappyBubble";
 import { EXAMPLE_CLOSING, EXAMPLE_NOTE, EXAMPLE_PHOTO, EXAMPLE_SOON, EXAMPLE_STORY, guideMetadata } from "@/lib/guide-pages";
 
 export const metadata = guideMetadata("/example");
@@ -20,9 +21,9 @@ export default function ExamplePage() {
       <section className="card card--cream">
         <p className="card__body">{EXAMPLE_NOTE}</p>
       </section>
-      <section className="card example-good">
-        <p className="card__body">{EXAMPLE_SOON}</p>
-      </section>
+      <div className="example-good-slot">
+        <HappyBubble text={EXAMPLE_SOON} />
+      </div>
     </GuideShell>
   );
 }
