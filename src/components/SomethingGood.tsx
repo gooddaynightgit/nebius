@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   SG_BASICS,
+  SG_BLOCKS,
   SG_BREATH,
   SG_BREATHE_TOGETHER,
   SG_BUTTON,
@@ -30,6 +31,8 @@ const STEPS: Step[] = [
   { kind: "thanks" },
   { kind: "close" },
 ];
+
+const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream"] as const;
 
 function speak(lines: string[], on: boolean) {
   if (!on || typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -76,12 +79,33 @@ export default function SomethingGood() {
 
   if (step.kind === "start") {
     return (
-      <section className="card card--lavender sg-card" aria-labelledby="sg-heading">
-        <h1 id="sg-heading">{SG_HEADLINE}</h1>
-        <button type="button" className="step-next sg-go" onClick={next}>
-          {SG_BUTTON}
-        </button>
-      </section>
+      <>
+        <section className="card card--lavender sg-card sg-hero" aria-labelledby="sg-heading">
+          <h1 id="sg-heading">{SG_HEADLINE}</h1>
+        </section>
+        <ul className="sg-blocks" aria-label="What you can name">
+          {SG_BLOCKS.map((label, i) => (
+            <li key={label} className={`card sg-block ${BLOCK_TONES[i]}`}>
+              <h2>{label}</h2>
+            </li>
+          ))}
+        </ul>
+        <nav className="guide-cta">
+          <button type="button" className="step-next step-pin" onClick={next}>
+            {SG_BUTTON}
+            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 12h13M13 6l6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </nav>
+      </>
     );
   }
 

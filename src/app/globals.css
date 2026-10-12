@@ -4611,3 +4611,34 @@ body:has(.guide-page) {
 @media (prefers-reduced-motion: reduce) {
   .sg-breath { animation: none; }
 }
+
+.sg-page .sg-hero {
+  min-height: 0;
+}
+
+.sg-blocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+.sg-page .sg-block {
+  display: flex;
+  align-items: flex-end;
+  min-height: 7.5rem;
+  margin: 0;
+  padding: 1rem;
+}
+
+.sg-page .sg-block h2 {
+  font-size: 1.2rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.sg-page .step-pin {
+  white-space: normal;
+}

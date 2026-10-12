@@ -6,13 +6,20 @@ export const SG_BUTTON = "Name what you're not grateful for";
 export const SG_DESCRIPTION =
   "Name what you're not grateful for. A gentle voice walks you through a breath, three simple thank-yous, and one hopeful line: something good is about to happen.";
 
+export const SG_BLOCKS = [
+  "A challenge",
+  "A situation",
+  "Something missing",
+  "Something you want to change",
+] as const;
+
 export const SG_WELCOME =
   "Welcome. I'm so glad you're here. This is the place to name what you're not grateful for. And here's the good news: you don't have to carry it alone. I'm here to help you find the good that's waiting inside it.";
 
 export const SG_BREATH = "Let's begin with a deep breath together. Breathe in… and out.";
 
 export const SG_QUESTION =
-  "Right at this moment, tell me: what challenge are you dealing with? Or is there something you'd like to change, or something missing in your life?";
+  "Right at this moment, tell me: what challenge or situation are you dealing with? Or is there something you'd like to change, or something missing in your life?";
 
 export const SG_BASICS = [
   "First, something simple. A cup of tea, or a warm bed tonight. Thank you for that.",
