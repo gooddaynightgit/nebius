@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { accountMenuItems } from "@/lib/account-menu";
+import { accountMenuItems, type AccountMenuItem } from "@/lib/account-menu";
 import { isGuidePath } from "@/lib/guide-pages";
+import { isSgPath, SG_MENU } from "@/lib/something-good";
 import { isPaidPath } from "@/lib/paid-copy";
 
 type AuthState = { signedIn: boolean; email: string | null };
@@ -84,10 +85,13 @@ export default function AccountMenu() {
 
   if (isPaidPath(pathname)) return null;
 
-  const items = accountMenuItems({
-    signedIn: Boolean(auth?.signedIn),
-    email: auth?.email,
-  }).filter((item) => !(isGuidePath(pathname) && item.kind === "link" && item.href === "/about"));
+  // Something Good pages get their own menu.
+  const items: AccountMenuItem[] = isSgPath(pathname)
+    ? SG_MENU
+    : accountMenuItems({
+        signedIn: Boolean(auth?.signedIn),
+        email: auth?.email,
+      }).filter((item) => !(isGuidePath(pathname) && item.kind === "link" && item.href === "/about"));
 
   return (
     <div className="account-menu" ref={rootRef}>

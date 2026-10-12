@@ -58,3 +58,78 @@ export function sgSubject(raw: string): string {
 export function sgThankYou(raw: string): string {
   return `Thank you. Something good is about to happen with ${sgSubject(raw)}.`;
 }
+
+export const SG_HOW_PATH = "/something-good/how-it-works";
+export const SG_FAQ_PATH = "/something-good/faq";
+
+export const isSgPath = (pathname: string | null | undefined) =>
+  pathname === SG_PATH || Boolean(pathname?.startsWith(`${SG_PATH}/`));
+
+/** Menu rows on every Something Good page. */
+export const SG_MENU = [
+  { kind: "link" as const, label: "How it works", href: SG_HOW_PATH },
+  { kind: "link" as const, label: "FAQ", href: SG_FAQ_PATH },
+  { kind: "link" as const, label: "Start Something Good", href: SG_PATH },
+  { kind: "link" as const, label: "GoodDayNight home", href: "/" },
+];
+
+export const SG_HOW_STEPS: { title: string; body: string }[] = [
+  {
+    title: "Choose what to name",
+    body: "A challenge, a situation, something missing, something you want to change, or something else. Pick the one that feels closest.",
+  },
+  {
+    title: "Breathe",
+    body: "One slow guided breath. In for 4 seconds, hold for 2, then a long, slow release. Just let it go.",
+  },
+  {
+    title: "Name what you're not grateful for",
+    body: "Take your time. Consider what it is in your life that you're not grateful for. You don't have to pretend it's fine.",
+  },
+  {
+    title: "Turn it around",
+    body: "Right now, at this moment in time, turn it around. Say or type your perfect result, as if it's already true: \"I am living in my own home.\"",
+  },
+  {
+    title: "Thank you",
+    body: "Your perfect result appears in your own words. Thank you. Something good is about to happen.",
+  },
+];
+
+export const SG_HOW_NOTE =
+  "About two minutes. Use Prev, Stop and Next at the top whenever you need to. Stop only pauses the voice, and you can carry on when you're ready.";
+
+export const SG_FAQ: { q: string; a: string }[] = [
+  {
+    q: "What is Something Good?",
+    a: "A short, gentle voice ritual for the days when it's hard to feel grateful. You name what you're not grateful for, take a slow breath, turn it around into your perfect result, and hear: something good is about to happen.",
+  },
+  {
+    q: "Why start with what I'm not grateful for?",
+    a: "Because forced gratitude can feel like a lie on a hard day. Starting with the honest truth makes the turnaround feel real, not forced.",
+  },
+  {
+    q: "Does it fix my problem?",
+    a: "No, and it never pretends to. It helps you hold the hard part with a little more hope, and see the result you'd like instead.",
+  },
+  {
+    q: "Do I have to speak?",
+    a: "No. You can type your perfect result instead, and you can edit anything the mic heard.",
+  },
+  {
+    q: "Are my words saved?",
+    a: "No. Your words are only used to show your closing card, and aren't stored. If you use the mic, your phone's own speech service turns your voice into text.",
+  },
+  {
+    q: "Why won't it let me finish?",
+    a: "Your perfect result needs a few kind, clear words, like \"I have my own home\". If something needs changing, a gentle note under the box tells you what.",
+  },
+  {
+    q: "What if I'm really struggling?",
+    a: "If you're thinking about harming yourself, please reach out now. In South Africa, call the SADAG Suicide Crisis Helpline on 0800 567 567 (free, 24 hours). Elsewhere, call your local emergency number or find a free helpline at findahelpline.com.",
+  },
+  {
+    q: "Can I use it with Alexa?",
+    a: "Something Good is being built for Alexa+, so you can do the whole ritual by voice. The web version here works on any phone.",
+  },
+];
