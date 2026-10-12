@@ -67,12 +67,12 @@ export const isSgPath = (pathname: string | null | undefined) =>
 
 export const SG_EXAMPLE_PATH = "/something-good/example";
 
-/** On Something Good pages the usual guide links point to the Something Good versions. */
-export const SG_GUIDE_SWAP: Record<string, string> = {
-  "/how-it-works": SG_HOW_PATH,
-  "/example": SG_EXAMPLE_PATH,
-  "/faq": SG_FAQ_PATH,
-};
+/** The whole menu on Something Good pages: only Something Good's own guides. */
+export const SG_MENU = [
+  { kind: "link" as const, label: "How it works", href: SG_HOW_PATH },
+  { kind: "link" as const, label: "Example", href: SG_EXAMPLE_PATH },
+  { kind: "link" as const, label: "FAQ", href: SG_FAQ_PATH },
+];
 
 /** One worked example, start to finish. */
 export const SG_EXAMPLE = {

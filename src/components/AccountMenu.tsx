@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { accountMenuItems, type AccountMenuItem } from "@/lib/account-menu";
 import { isGuidePath } from "@/lib/guide-pages";
-import { isSgPath, SG_GUIDE_SWAP } from "@/lib/something-good";
+import { isSgPath, SG_MENU } from "@/lib/something-good";
 import { isPaidPath } from "@/lib/paid-copy";
 
 type AuthState = { signedIn: boolean; email: string | null };
@@ -85,14 +85,13 @@ export default function AccountMenu() {
 
   if (isPaidPath(pathname)) return null;
 
-  // Same menu everywhere; on Something Good pages the guide links point to the Something Good versions.
-  const onSg = isSgPath(pathname);
-  const items: AccountMenuItem[] = accountMenuItems({
-    signedIn: Boolean(auth?.signedIn),
-    email: auth?.email,
-  })
-    .filter((item) => !(!onSg && isGuidePath(pathname) && item.kind === "link" && item.href === "/about"))
-    .map((item) => (onSg && item.kind === "link" && SG_GUIDE_SWAP[item.href] ? { ...item, href: SG_GUIDE_SWAP[item.href] } : item));
+  // Something Good pages show only Something Good's own guides.
+  const items: AccountMenuItem[] = isSgPath(pathname)
+    ? SG_MENU
+    : accountMenuItems({
+        signedIn: Boolean(auth?.signedIn),
+        email: auth?.email,
+      }).filter((item) => !(isGuidePath(pathname) && item.kind === "link" && item.href === "/about"));
 
   return (
     <div className="account-menu" ref={rootRef}>
