@@ -4502,3 +4502,751 @@ body:has(.guide-page) {
   opacity: 1;
   cursor: default;
 }
+
+/* Something Good (/something-good) */
+.sg-page .sg-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1.55rem;
+}
+
+.sg-page .sg-card h1 {
+  font-size: clamp(2rem, 8vw, 2.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.sg-page .sg-go {
+  margin-left: 0;
+  margin-top: auto;
+  white-space: normal;
+}
+
+.sg-page .step-next:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.sg-line {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  outline: none;
+}
+
+.sg-line--echo {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-weight: 800;
+}
+
+.sg-small,
+.sg-label {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.sg-words {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 2px solid var(--navy);
+  border-radius: 0.9rem;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.05rem;
+  resize: vertical;
+}
+
+.sg-voice {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.9rem;
+  border: 2px solid var(--navy);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.sg-voice[aria-pressed="false"] {
+  opacity: 0.6;
+}
+
+.sg-breath {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: var(--lime);
+  border: 2px solid var(--navy);
+  animation: sg-breathe 8s var(--ease) 1;
+}
+
+.sg-breath--2 {
+  animation-iteration-count: 2;
+}
+
+@keyframes sg-breathe {
+  0%, 100% { transform: scale(0.6); }
+  45%, 55% { transform: scale(1.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-breath { animation: none; }
+}
+
+.sg-page .sg-hero {
+  min-height: 0;
+}
+
+.sg-blocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+.sg-page .sg-block {
+  display: flex;
+  align-items: flex-end;
+  min-height: 7.5rem;
+  margin: 0;
+  padding: 1rem;
+}
+
+.sg-page .sg-block h2 {
+  font-size: 1.2rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.sg-page .step-pin {
+  white-space: normal;
+}
+
+.sg-page .sg-support {
+  min-height: 0;
+  padding: 1.35rem;
+  color: var(--navy);
+  background: var(--lime);
+}
+
+.sg-page .sg-support::before {
+  display: none;
+}
+
+.sg-page .sg-support h2 {
+  font-size: 1.45rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+/* Start sits bottom-left, level with the hamburger, so it never covers the blocks. */
+.sg-page .step-pin {
+  left: max(1rem, env(safe-area-inset-left));
+  right: auto;
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem);
+  translate: none;
+  max-width: calc(100vw - 2rem - 64px - 1rem);
+}
+
+body:has(.sg-page) {
+  padding-bottom: calc(2.75rem + 0.5rem + 3.25rem + 1.5rem + env(safe-area-inset-bottom));
+}
+
+/* Blank room under the last block so it scrolls clear of Start and the menu. */
+.sg-spacer {
+  height: calc(10rem + env(safe-area-inset-bottom));
+}
+
+/* Start lives inside the yellow block, bottom left. */
+.sg-page .sg-support {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+
+.sg-page .sg-start {
+  position: relative;
+  z-index: 1;
+  margin-left: 0;
+}
+
+.sg-spacer {
+  height: calc(6rem + env(safe-area-inset-bottom));
+}
+
+/* The circle follows the breath: grows in 4s, holds, shrinks slowly over 7s. */
+.sg-page .sg-breath {
+  animation: none;
+  transform: scale(0.6);
+  transition: transform 1.2s ease-in-out;
+}
+
+.sg-page .sg-breath--in,
+.sg-page .sg-breath--hold {
+  transform: scale(1.25);
+  transition: transform 4s ease-in-out;
+}
+
+.sg-page .sg-breath--out {
+  transform: scale(0.6);
+  transition: transform 7s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-page .sg-breath,
+  .sg-page .sg-breath--in,
+  .sg-page .sg-breath--hold,
+  .sg-page .sg-breath--out {
+    transition: none;
+  }
+}
+
+/* Something Good voice: the mic */
+.sg-listen {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  margin: 0.5rem 0;
+}
+
+.sg-mic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sg-mic svg {
+  width: 6.5rem;
+  height: 6.5rem;
+  padding: 1.6rem;
+  border: 2px solid var(--navy);
+  border-radius: 50%;
+  background: var(--lime);
+  box-sizing: border-box;
+}
+
+.sg-mic.is-listening svg {
+  animation: sg-listen 1.6s ease-in-out infinite;
+}
+
+@keyframes sg-listen {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 255, 0, 0.7); }
+  50% { box-shadow: 0 0 0 1.1rem rgba(212, 255, 0, 0); }
+}
+
+.sg-heard {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.sg-link {
+  position: relative;
+  z-index: 1;
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-mic.is-listening svg { animation: none; outline: 4px solid var(--navy); }
+}
+
+/* Editable transcript keeps the spoken-words look */
+textarea.sg-heard {
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+/* Stop and Voice sit together at the top of the card */
+.sg-page .sg-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-self: stretch;
+  gap: 0.75rem;
+}
+
+.sg-page .sg-top .sg-voice {
+  align-self: auto;
+}
+
+.sg-page .sg-top .sg-voice:only-child {
+  margin-left: auto;
+}
+
+/* Something Good: five radio choices */
+.sg-page fieldset.sg-blocks {
+  min-width: 0;
+  border: 0;
+}
+
+.sg-page .sg-block {
+  position: relative;
+  cursor: pointer;
+}
+
+.sg-page .sg-block--wide {
+  grid-column: 1 / -1;
+  min-height: 4.75rem;
+  align-items: center;
+}
+
+.sg-page .sg-block input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.sg-page .sg-block__label {
+  position: relative;
+  z-index: 1;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.sg-page .sg-radio {
+  position: absolute;
+  z-index: 1;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid var(--navy);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.sg-page .sg-block--wide .sg-radio {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.sg-page .sg-block.is-chosen {
+  outline: 3px solid var(--navy);
+  outline-offset: -3px;
+}
+
+.sg-page .sg-block.is-chosen .sg-radio::after {
+  content: "";
+  position: absolute;
+  inset: 0.25rem;
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+.sg-page .sg-block:has(input:focus-visible) {
+  outline: 3px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.sg-page .sg-blocks.is-error .sg-radio {
+  border-color: #c62828;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.2);
+}
+
+.sg-page .sg-choose {
+  margin: -0.4rem 0 0.9rem;
+  min-height: 0;
+  color: #c62828;
+  font-weight: 700;
+}
+
+.sg-page .sg-choose:empty {
+  display: none;
+}
+
+/* Prev / Stop / Next on every conversation screen */
+.sg-page nav.sg-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.sg-page .sg-ctl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.85rem;
+  border: 2px solid var(--navy);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.sg-page .sg-ctl:first-child {
+  justify-self: start;
+}
+
+.sg-page .sg-ctl:last-child {
+  justify-self: end;
+}
+
+.sg-page .sg-ctl svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.sg-page .sg-ctl--stop {
+  background: var(--navy);
+  color: var(--lime);
+}
+
+.sg-page .sg-ctl:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* "My perfect result" box */
+.sg-page textarea.sg-perfect {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  min-height: 7.5rem;
+}
+
+.sg-page textarea.sg-perfect::placeholder {
+  color: #6b8090;
+  font-style: italic;
+}
+
+/* The question lines sit together above "Your perfect result" */
+.sg-page .sg-ask {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.sg-page .sg-ask__line {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.35;
+  transition: opacity 0.4s ease;
+}
+
+.sg-page .sg-ask__line.is-ahead {
+  opacity: 0.3;
+}
+
+.sg-page .sg-ask__line.is-current {
+  text-decoration: underline;
+  text-decoration-color: var(--lime);
+  text-decoration-thickness: 0.35em;
+  text-underline-offset: -0.12em;
+  text-decoration-skip-ink: none;
+}
+
+/* Your perfect result: guidance and recording buttons */
+.sg-page .sg-help {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--navy);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.sg-page .sg-help--small {
+  margin-top: -0.4rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.sg-page .sg-rec {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.sg-page .sg-rec__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.95rem;
+  border: 2px solid var(--navy);
+  border-radius: 999px;
+  background: var(--lime);
+  color: var(--navy);
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.sg-page .sg-rec__btn svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.sg-page .sg-rec__btn--stop {
+  background: var(--navy);
+  color: var(--lime);
+}
+
+.sg-page .sg-rec__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.sg-page .sg-rec__btn.is-listening {
+  opacity: 1;
+  animation: sg-listen 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-page .sg-rec__btn.is-listening { animation: none; }
+}
+
+/* Gentle nudges, blocks and crisis support under the perfect-result box */
+.sg-page .sg-nudge {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border: 2px solid var(--navy);
+  border-radius: 0.9rem;
+  background: #fff;
+  color: var(--navy);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.sg-page .sg-nudge.is-block {
+  border-color: #c62828;
+  color: #8e1c1c;
+}
+
+.sg-page .sg-crisis {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid var(--navy);
+  border-radius: 0.9rem;
+  background: #fff;
+  color: var(--navy);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.sg-page .sg-crisis p {
+  margin: 0;
+}
+
+.sg-page .sg-crisis .step-next {
+  justify-self: start;
+  white-space: normal;
+}
+
+.sg-page .sg-count {
+  font-weight: 800;
+}
+
+.sg-page .sg-count.is-over {
+  color: #c62828;
+}
+
+/* Something Good info pages */
+.sg-page .sg-info {
+  display: grid;
+  gap: 1rem;
+  min-height: 0;
+  padding-bottom: 1.55rem;
+  margin-bottom: 0.9rem;
+}
+
+.sg-page .sg-info h1 {
+  font-size: clamp(2rem, 8vw, 2.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.sg-page .sg-steps {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.sg-page .sg-steps li::marker {
+  font-weight: 800;
+}
+
+.sg-page .sg-info h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.sg-page .sg-info p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sg-page .sg-faq {
+  position: relative;
+  z-index: 1;
+}
+
+.sg-page .sg-info__note {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.sg-page .sg-example__perfect {
+  white-space: pre-line;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.sg-page .sg-example__card {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+/* Start sits in the top right corner of the yellow box */
+.sg-page .sg-support {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  column-gap: 0.9rem;
+}
+
+.sg-page .sg-support h2 {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.sg-page .sg-support .sg-start {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+}
+
+/* Spelling suggestion: only applied when they say yes */
+.sg-page .sg-spell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  border: 2px dashed var(--navy);
+  border-radius: 0.9rem;
+  background: #fff;
+  color: var(--navy);
+}
+
+.sg-page .sg-spell p {
+  margin: 0;
+}
+
+.sg-page .sg-spell__label {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.sg-page .sg-spell__text {
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.sg-page .sg-spell__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sg-page .sg-rec__btn--plain {
+  background: transparent;
+}
+
+/* Sign-in inside the Something Good card */
+.sg-page .sg-signin {
+  position: relative;
+  z-index: 1;
+}
+
+.sg-page .sg-signin .moments-buy {
+  margin: 0;
+}
+
+/* Home page: "Name what you're not grateful for" sits just above "Start my gratitude journal" */
+.step-pin.step-pin--sg {
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.6rem);
+  background: var(--lime);
+  color: var(--navy);
+  border-color: var(--navy);
+}
+
+.step-pin.step-pin--sg:hover {
+  background: #e4ff4a;
+  color: var(--navy);
+}

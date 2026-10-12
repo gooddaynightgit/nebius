@@ -11,6 +11,10 @@ const HOW_IT_WORKS = { kind: "link" as const, label: "How it works", href: "/how
 const EXAMPLE = { kind: "link" as const, label: "Example", href: "/example" };
 const FAQ = { kind: "link" as const, label: "FAQ", href: "/faq" };
 const GUIDE_LINKS = [HOW_IT_WORKS, EXAMPLE, FAQ];
+/** Both ways in, on every menu. */
+const START_SG = { kind: "link" as const, label: "Start: Name what you're not grateful for", href: "/something-good" };
+const START_JOURNAL = { kind: "link" as const, label: "Start my gratitude journal", href: "/app/joy" };
+const STARTS = [START_SG, START_JOURNAL];
 
 /** Menu rows for the floating bubble. Saved moments are not part of this list. */
 export function accountMenuItems(input: {
@@ -18,10 +22,11 @@ export function accountMenuItems(input: {
   email?: string | null;
 }): AccountMenuItem[] {
   if (!input.signedIn) {
-    return [{ kind: "link", label: "Sign in", href: SIGN_IN_HREF }, REVIEW, ABOUT, ...GUIDE_LINKS];
+    return [...STARTS, { kind: "link", label: "Sign in", href: SIGN_IN_HREF }, REVIEW, ABOUT, ...GUIDE_LINKS];
   }
   return [
     { kind: "email", email: input.email?.trim() || "" },
+    ...STARTS,
     { kind: "link", label: "My new joy moments", href: "/moments" },
     { kind: "logout", label: "Log out" },
     REVIEW,
