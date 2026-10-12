@@ -4642,3 +4642,20 @@ body:has(.guide-page) {
 .sg-page .step-pin {
   white-space: normal;
 }
+
+.sg-page .sg-support {
+  min-height: 0;
+  padding: 1.35rem;
+  color: var(--navy);
+  background: var(--lime);
+}
+
+.sg-page .sg-support::before {
+  display: none;
+}
+
+.sg-page .sg-support h2 {
+  font-size: 1.45rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}

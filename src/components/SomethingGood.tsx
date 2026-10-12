@@ -10,6 +10,7 @@ import {
   SG_CLOSE,
   SG_HEADLINE,
   SG_QUESTION,
+  SG_SUPPORT,
   SG_WELCOME,
   sgThankYou,
 } from "@/lib/something-good";
@@ -90,6 +91,9 @@ export default function SomethingGood() {
             </li>
           ))}
         </ul>
+        <section className="card sg-support">
+          <h2>{SG_SUPPORT}</h2>
+        </section>
         <nav className="guide-cta">
           <button type="button" className="step-next step-pin" onClick={next}>
             {SG_BUTTON}
