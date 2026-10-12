@@ -93,10 +93,7 @@ export default function SomethingGood() {
         </ul>
         <section className="card sg-support">
           <h2>{SG_SUPPORT}</h2>
-        </section>
-        <div className="sg-spacer" aria-hidden="true" />
-        <nav className="guide-cta">
-          <button type="button" className="step-next step-pin" onClick={next}>
+          <button type="button" className="step-next sg-start" onClick={next}>
             {SG_BUTTON}
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -109,7 +106,8 @@ export default function SomethingGood() {
               />
             </svg>
           </button>
-        </nav>
+        </section>
+        <div className="sg-spacer" aria-hidden="true" />
       </>
     );
   }

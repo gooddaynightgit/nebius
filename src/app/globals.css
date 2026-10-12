@@ -4677,3 +4677,21 @@ body:has(.sg-page) {
 .sg-spacer {
   height: calc(10rem + env(safe-area-inset-bottom));
 }
+
+/* Start lives inside the yellow block, bottom left. */
+.sg-page .sg-support {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+
+.sg-page .sg-start {
+  position: relative;
+  z-index: 1;
+  margin-left: 0;
+}
+
+.sg-spacer {
+  height: calc(6rem + env(safe-area-inset-bottom));
+}
