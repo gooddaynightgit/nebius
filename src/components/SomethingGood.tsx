@@ -6,7 +6,7 @@ import { SG_BUTTON, SG_CHOOSE_FIRST, SG_HEADLINE, SG_OPTIONS, SG_SUPPORT, type S
 import { collapseRepeats, mergeSpeech } from "@/lib/speech-merge";
 import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib/something-good-mcp";
 
-type Mode = "start" | "loading" | "playing" | "listen" | "confirm" | "done" | "error";
+type Mode = "start" | "loading" | "playing" | "listen" | "done" | "error";
 
 /** Example lines shown in the empty "My perfect result" box. */
 const PERFECT_PLACEHOLDER = "I am living in my own home…\nI have the money to…\nI am happy & grateful I have…";
@@ -269,10 +269,8 @@ export default function SomethingGood() {
       if (index > 0) void playFrom(stage, index - 1);
       else if (stage === "closing") {
         cancelSpeech();
-        setMode("confirm");
+        setMode("listen");
       } else void playFrom("opening", 0);
-    } else if (mode === "confirm") {
-      void playFrom("opening", openingRef.current.length - 1);
     } else if (mode === "done") {
       void playFrom("closing", closingRef.current.length - 1);
     }
@@ -294,17 +292,12 @@ export default function SomethingGood() {
       setMode("done");
       return;
     }
-    if (mode === "listen") {
-      stopListening();
-      setMode("confirm");
-    } else if (mode === "confirm") {
-      void finish();
-    }
+    if (mode === "listen") void finish();
   };
 
-  const canPrev = mode === "playing" || mode === "listen" || mode === "confirm" || mode === "done";
+  const canPrev = mode === "playing" || mode === "listen" || mode === "done";
   const canNext =
-    mode === "playing" || speaking || (mode === "listen" && Boolean(words.trim())) || (mode === "confirm" && Boolean(words.trim()));
+    mode === "playing" || speaking || (mode === "listen" && Boolean(words.trim()));
 
   const restart = () => {
     stopListening();
@@ -416,6 +409,8 @@ export default function SomethingGood() {
             {openingRef.current[openingRef.current.length - 1]?.text ?? question}
           </h2>
 
+          <p className="sg-help">Please type in your perfect result below, or tap the mic to say it.</p>
+
           <textarea
             id="sg-words"
             aria-label={question || "Your perfect result"}
@@ -426,14 +421,15 @@ export default function SomethingGood() {
             placeholder={PERFECT_PLACEHOLDER}
             readOnly={listening}
           />
+          <p className="sg-help sg-help--small">Feel free to edit the text above.</p>
 
           {canListen && (
-            <div className="sg-listen">
+            <div className="sg-rec">
               <button
                 type="button"
-                className={`sg-mic${listening ? " is-listening" : ""}`}
+                className={`sg-rec__btn${listening ? " is-listening" : ""}`}
                 onClick={toggleListen}
-                aria-pressed={listening}
+                disabled={listening}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -445,43 +441,19 @@ export default function SomethingGood() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>{listening ? "Listening… tap when you've finished" : words ? "Tap to add more" : "Tap and tell me"}</span>
+                {listening ? "Recording…" : "Start voice recording"}
+              </button>
+              <button type="button" className="sg-rec__btn sg-rec__btn--stop" onClick={stopListening} disabled={!listening}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+                </svg>
+                Stop recording
               </button>
             </div>
           )}
 
-          <button
-            type="button"
-            className="step-next sg-go"
-            onClick={() => {
-              stopListening();
-              setMode("confirm");
-            }}
-            disabled={!words.trim()}
-          >
-            End your conversation
-          </button>
-          <p className="sg-small">Your words are not saved.</p>
-        </>
-      )}
-
-      {mode === "confirm" && (
-        <>
-          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-            Is this what you told me?
-          </h2>
-          <textarea
-            id="sg-confirm"
-            aria-label="What you told me"
-            className="sg-words sg-heard"
-            placeholder={PERFECT_PLACEHOLDER}
-            rows={Math.min(7, Math.max(2, Math.ceil(words.length / 26)))}
-            value={words}
-            onChange={(e) => setWords(e.target.value)}
-          />
-          <p className="sg-small">Not quite what you said? Tap the words and fix them gently.</p>
-          <button type="button" className="step-next sg-go" onClick={finish} disabled={!words.trim()}>
-            Shall we continue
+          <button type="button" className="step-next sg-go" onClick={() => void finish()} disabled={!words.trim()}>
+            Finish
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M5 12h13M13 6l6 6-6 6"
@@ -493,16 +465,7 @@ export default function SomethingGood() {
               />
             </svg>
           </button>
-          <button
-            type="button"
-            className="sg-link"
-            onClick={() => {
-              setWords("");
-              setMode("listen");
-            }}
-          >
-            Say it again
-          </button>
+          <p className="sg-small">Your words are not saved.</p>
         </>
       )}
 
