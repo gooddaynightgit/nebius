@@ -4,12 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import HappyBubble from "@/components/HappyBubble";
 import { SG_BUTTON, SG_CHOOSE_FIRST, SG_HEADLINE, SG_OPTIONS, SG_SUPPORT, type SgFocus } from "@/lib/something-good";
 import { collapseRepeats, mergeSpeech } from "@/lib/speech-merge";
-import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib/something-good-mcp";
+import {
+  sgCheck,
+  sgCountry,
+  sgFinish,
+  sgStart,
+  type SgCheck,
+  type SgPhase,
+  type SgRate,
+  type SgStep,
+} from "@/lib/something-good-mcp";
 
 type Mode = "start" | "loading" | "playing" | "listen" | "done" | "error";
 
 /** Example lines shown in the empty "My perfect result" box. */
 const PERFECT_PLACEHOLDER = "I am living in my own home…\nI have the money to…\nI am happy & grateful I have…";
+
+/** Stop recording after this much quiet. */
+const SILENCE_MS = 7000;
 
 const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream", "card--lavender"] as const;
 const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
@@ -51,6 +63,8 @@ export default function SomethingGood() {
   const [listening, setListening] = useState(false);
   const [canListen, setCanListen] = useState(false);
   const [error, setError] = useState("");
+  const [check, setCheck] = useState<(SgCheck & { text: string }) | null>(null);
+  const countryRef = useRef<string | undefined>(undefined);
   const voiceRef = useRef(true);
   const openingRef = useRef<SgStep[]>([]);
   const closingRef = useRef<SgStep[]>([]);
@@ -64,6 +78,7 @@ export default function SomethingGood() {
 
   useEffect(() => {
     setCanListen(Boolean(recognizerCtor()));
+    countryRef.current = sgCountry();
     return () => {
       runRef.current += 1;
       if (hasVoice()) window.speechSynthesis.cancel();
@@ -76,6 +91,29 @@ export default function SomethingGood() {
   useEffect(() => {
     if (mode !== "start") headingRef.current?.focus();
   }, [mode]);
+
+  // Check the perfect result against the shared rules once they pause typing or speaking.
+  useEffect(() => {
+    if (mode !== "listen" || listening) return;
+    const text = words.trim();
+    if (!text) {
+      setCheck(null);
+      return;
+    }
+    let live = true;
+    const t = window.setTimeout(() => {
+      sgCheck(text, countryRef.current)
+        .then((r) => live && setCheck({ ...r, text }))
+        .catch(() => live && setCheck({ status: "ok", ok: true, message: "", maxChars: 300, text }));
+    }, 500);
+    return () => {
+      live = false;
+      window.clearTimeout(t);
+    };
+  }, [words, mode, listening]);
+
+  const checked = check && check.text === words.trim() ? check : null;
+  const canFinish = Boolean(words.trim()) && !listening && Boolean(checked?.ok);
 
   const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
@@ -174,7 +212,7 @@ export default function SomethingGood() {
     const run = ++runRef.current;
     setMode("loading");
     try {
-      const session = await sgFinish(words.trim() || "what you named");
+      const session = await sgFinish(words.trim() || "what you named", countryRef.current);
       if (runRef.current !== run) return;
       closingRef.current = session.steps;
       void playFrom("closing", 0);
@@ -188,6 +226,12 @@ export default function SomethingGood() {
     wantListenRef.current = false;
     if (silenceRef.current) window.clearTimeout(silenceRef.current);
     recRef.current?.stop();
+  };
+
+  /** Each word heard restarts the 7-second quiet timer. */
+  const armSilence = () => {
+    if (silenceRef.current) window.clearTimeout(silenceRef.current);
+    silenceRef.current = window.setTimeout(stopListening, SILENCE_MS);
   };
 
   const startRecognizer = () => {
@@ -208,6 +252,7 @@ export default function SomethingGood() {
       const kept = collapseRepeats(mergeSpeech(sessionRef.current, heard));
       sessionRef.current = kept;
       setWords(kept);
+      armSilence();
     };
     rec.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
@@ -242,7 +287,8 @@ export default function SomethingGood() {
     sessionRef.current = baseRef.current;
     wantListenRef.current = true;
     setListening(true);
-    // No automatic stop: pauses are fine. It listens until they tap the mic again.
+    // Pauses are fine; 7 seconds of quiet (or Stop recording) ends it.
+    armSilence();
     startRecognizer();
   };
 
@@ -292,12 +338,12 @@ export default function SomethingGood() {
       setMode("done");
       return;
     }
-    if (mode === "listen") void finish();
+    if (mode === "listen" && canFinish) void finish();
   };
 
   const canPrev = mode === "playing" || mode === "listen" || mode === "done";
   const canNext =
-    mode === "playing" || speaking || (mode === "listen" && Boolean(words.trim()));
+    mode === "playing" || speaking || (mode === "listen" && canFinish);
 
   const restart = () => {
     stopListening();
@@ -421,7 +467,32 @@ export default function SomethingGood() {
             placeholder={PERFECT_PLACEHOLDER}
             readOnly={listening}
           />
-          <p className="sg-help sg-help--small">Feel free to edit the text above.</p>
+          <p className="sg-help sg-help--small">
+            Feel free to edit the text above.
+            {words.trim().length > 240 && (
+              <span className={`sg-count${words.trim().length > 300 ? " is-over" : ""}`}> {words.trim().length} / 300</span>
+            )}
+          </p>
+
+          {checked && checked.status !== "ok" && checked.status !== "crisis" && (
+            <p className={`sg-nudge${checked.status === "block" ? " is-block" : ""}`} role="status">
+              {checked.message}
+            </p>
+          )}
+
+          {checked?.status === "crisis" && (
+            <div className="sg-crisis" role="alert">
+              <p>{checked.message}</p>
+              {checked.support?.phone ? (
+                <a className="step-next sg-go" href={`tel:${checked.support.phone.replace(/\s/g, "")}`}>
+                  Call {checked.support.name}: {checked.support.phone}
+                </a>
+              ) : null}
+              <a className="sg-link" href={checked.support?.url ?? "https://findahelpline.com"} target="_blank" rel="noopener">
+                Find a free helpline in your country
+              </a>
+            </div>
+          )}
 
           {canListen && (
             <div className="sg-rec">
@@ -452,7 +523,7 @@ export default function SomethingGood() {
             </div>
           )}
 
-          <button type="button" className="step-next sg-go" onClick={() => void finish()} disabled={!words.trim()}>
+          <button type="button" className="step-next sg-go" onClick={() => void finish()} disabled={!canFinish}>
             Finish
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path

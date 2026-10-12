@@ -56,4 +56,39 @@ async function callTool(name: string, args: Record<string, unknown> = {}): Promi
 }
 
 export const sgStart = (focus?: string) => callTool("start_something_good", focus ? { focus } : {});
-export const sgFinish = (named: string) => callTool("finish_something_good", { named });
+export const sgFinish = (named: string, country?: string) =>
+  callTool("finish_something_good", { named, ...(country ? { country } : {}) });
+
+export type SgCheck = {
+  status: "ok" | "nudge" | "block" | "crisis";
+  ok: boolean;
+  message: string;
+  maxChars: number;
+  support?: { name: string; phone: string; note: string; emergency: string; url: string };
+};
+
+/** Check the perfect result against the shared rules (same rules Alexa uses). */
+export async function sgCheck(text: string, country?: string): Promise<SgCheck> {
+  await ensureInitialized();
+  const result = await rpc("tools/call", { name: "check_perfect_result", arguments: { text, ...(country ? { country } : {}) } });
+  return result.structuredContent as SgCheck;
+}
+
+/** Best guess at the person's country from their phone settings; nothing is asked or stored. */
+export function sgCountry(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+    if (tz === "Africa/Johannesburg") return "ZA";
+    if (tz === "Europe/London") return "GB";
+    if (tz === "Europe/Dublin") return "IE";
+    if (tz.startsWith("Australia/")) return "AU";
+    if (tz === "Pacific/Auckland" || tz === "Pacific/Chatham") return "NZ";
+    if (/^America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax|St_Johns|Regina|Moncton|Whitehorse|Yellowknife|Iqaluit)/.test(tz)) return "CA";
+    if (/^(America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Detroit|Boise|Indiana|Kentucky)|Pacific\/Honolulu)/.test(tz)) return "US";
+  } catch {
+    /* fall through to language */
+  }
+  const region = navigator.language?.split("-")[1];
+  return region ? region.toUpperCase() : undefined;
+}
