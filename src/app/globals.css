@@ -4797,3 +4797,21 @@ textarea.sg-heard {
   font-size: 1.15rem;
   line-height: 1.4;
 }
+
+/* Stop and Voice sit together at the top of the card */
+.sg-page .sg-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-self: stretch;
+  gap: 0.75rem;
+}
+
+.sg-page .sg-top .sg-voice {
+  align-self: auto;
+}
+
+.sg-page .sg-top .sg-voice:only-child {
+  margin-left: auto;
+}

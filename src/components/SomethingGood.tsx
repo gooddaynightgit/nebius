@@ -6,7 +6,7 @@ import { SG_BLOCKS, SG_BUTTON, SG_HEADLINE, SG_SUPPORT } from "@/lib/something-g
 import { cleanSpeech } from "@/lib/speech-merge";
 import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib/something-good-mcp";
 
-type Mode = "start" | "loading" | "playing" | "listen" | "done" | "error";
+type Mode = "start" | "loading" | "playing" | "listen" | "confirm" | "done" | "error";
 
 const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream"] as const;
 const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
@@ -235,6 +235,7 @@ export default function SomethingGood() {
   };
 
   const restart = () => {
+    stopListening();
     runRef.current += 1;
     if (hasVoice()) window.speechSynthesis.cancel();
     setMode("start");
@@ -277,9 +278,16 @@ export default function SomethingGood() {
 
   return (
     <section className="card card--lavender sg-card" aria-live="polite">
-      <button type="button" className="sg-voice" onClick={toggleVoice} aria-pressed={voice}>
-        {voice ? "Voice on" : "Voice off"}
-      </button>
+      <div className="sg-top">
+        {mode !== "done" && (
+          <button type="button" className="sg-voice" onClick={restart}>
+            Stop
+          </button>
+        )}
+        <button type="button" className="sg-voice" onClick={toggleVoice} aria-pressed={voice}>
+          {voice ? "Voice on" : "Voice off"}
+        </button>
+      </div>
 
       {mode === "loading" && (
         <h2 ref={headingRef} tabIndex={-1} className="sg-line">
@@ -325,21 +333,7 @@ export default function SomethingGood() {
             </div>
           )}
 
-          {words && !typing && !listening && (
-            <>
-              <label className="sg-label" htmlFor="sg-heard">
-                Tap the words to fix anything
-              </label>
-              <textarea
-                id="sg-heard"
-                className="sg-words sg-heard"
-                rows={Math.min(6, Math.max(2, Math.ceil(words.length / 28)))}
-                value={words}
-                onChange={(e) => setWords(e.target.value)}
-              />
-            </>
-          )}
-          {words && !typing && listening && <p className="sg-heard">“{words}”</p>}
+          {words && !typing && <p className="sg-heard">“{words}”</p>}
 
           {(typing || !canListen) && (
             <>
@@ -357,7 +351,15 @@ export default function SomethingGood() {
             </>
           )}
 
-          <button type="button" className="step-next sg-go" onClick={finish} disabled={listening || !words.trim()}>
+          <button
+            type="button"
+            className="step-next sg-go"
+            onClick={() => {
+              stopListening();
+              setMode("confirm");
+            }}
+            disabled={!words.trim()}
+          >
             End your conversation
           </button>
 
@@ -367,6 +369,46 @@ export default function SomethingGood() {
             </button>
           )}
           <p className="sg-small">Your words are not saved.</p>
+        </>
+      )}
+
+      {mode === "confirm" && (
+        <>
+          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
+            Is this what you told me?
+          </h2>
+          <textarea
+            id="sg-confirm"
+            aria-label="What you told me"
+            className="sg-words sg-heard"
+            rows={Math.min(7, Math.max(2, Math.ceil(words.length / 26)))}
+            value={words}
+            onChange={(e) => setWords(e.target.value)}
+          />
+          <p className="sg-small">Not quite what you said? Tap the words and fix them gently.</p>
+          <button type="button" className="step-next sg-go" onClick={finish} disabled={!words.trim()}>
+            Shall we continue
+            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 12h13M13 6l6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="sg-link"
+            onClick={() => {
+              setWords("");
+              setMode("listen");
+            }}
+          >
+            Say it again
+          </button>
         </>
       )}
 
