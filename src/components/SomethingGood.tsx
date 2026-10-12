@@ -115,7 +115,8 @@ export default function SomethingGood() {
     for (let i = Math.max(0, from); i < steps.length; i += 1) {
       if (runRef.current !== run) return;
       const step = steps[i];
-      setMode(step.group === "ask" ? "listen" : "playing");
+      const last = which === "opening" && i === steps.length - 1;
+      setMode(last ? "listen" : "playing");
       setIndex(i);
       setLine(step.text);
       setPhase(step.phase ?? null);
@@ -196,32 +197,37 @@ export default function SomethingGood() {
     if (!Ctor) return;
     const rec = new Ctor();
     rec.lang = navigator.language || "en-US";
-    rec.interimResults = true;
-    rec.continuous = true;
-    const base = baseRef.current;
+    // One sentence per turn, final words only: the most reliable mode on phones.
+    // When the phone ends the turn at a pause, we start the next turn and add to what's kept.
+    rec.interimResults = false;
+    rec.continuous = false;
     rec.onresult = (e) => {
-      // Final pieces are merged (Android repeats earlier words inside later results);
-      // the piece still being heard is shown but not kept until it's final.
-      let finals = "";
-      let interim = "";
+      let heard = "";
       for (let i = 0; i < e.results.length; i += 1) {
-        const r = e.results[i];
-        if (r.isFinal) finals = mergeSpeech(finals, r[0].transcript);
-        else interim = r[0].transcript;
+        if (e.results[i].isFinal) heard = mergeSpeech(heard, e.results[i][0].transcript);
       }
-      const kept = collapseRepeats(mergeSpeech(base, finals));
+      if (!heard.trim()) return;
+      const kept = collapseRepeats(mergeSpeech(sessionRef.current, heard));
       sessionRef.current = kept;
-      setWords(interim ? collapseRepeats(mergeSpeech(kept, interim)) : kept);
+      setWords(kept);
       armSilence();
     };
     rec.onerror = (e) => {
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") setCanListen(false);
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        wantListenRef.current = false;
+        setCanListen(false);
+      }
     };
     rec.onend = () => {
-      // One listening session per tap: no automatic restarts (they caused the on/off clicks).
-      wantListenRef.current = false;
+      if (wantListenRef.current) {
+        try {
+          startRecognizer();
+          return;
+        } catch {
+          wantListenRef.current = false;
+        }
+      }
       if (silenceRef.current) window.clearTimeout(silenceRef.current);
-      setWords(sessionRef.current || base);
       setListening(false);
     };
     recRef.current = rec;
@@ -408,32 +414,9 @@ export default function SomethingGood() {
 
       {mode === "listen" && (
         <>
-          {(() => {
-            const askLines = openingRef.current
-              .map((st, i) => ({ ...st, i }))
-              .filter((st) => st.group === "ask");
-            const lead = askLines.slice(0, -1);
-            const heading = askLines[askLines.length - 1]?.text ?? question;
-            return (
-              <>
-                <div className="sg-ask">
-                  {lead.map((st) => (
-                    <p
-                      key={st.i}
-                      className={`sg-ask__line${speaking && stage === "opening" && index === st.i ? " is-current" : ""}${
-                        speaking && stage === "opening" && index < st.i ? " is-ahead" : ""
-                      }`}
-                    >
-                      {st.text}
-                    </p>
-                  ))}
-                </div>
-                <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-                  {heading}
-                </h2>
-              </>
-            );
-          })()}
+          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
+            {openingRef.current[openingRef.current.length - 1]?.text ?? question}
+          </h2>
 
           <textarea
             id="sg-words"
