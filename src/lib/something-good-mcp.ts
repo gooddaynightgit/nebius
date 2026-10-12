@@ -5,7 +5,7 @@ const PROTOCOL = "2025-11-25";
 
 export type SgRate = "medium" | "slow" | "x-slow";
 export type SgPhase = "in" | "hold" | "out";
-export type SgStep = { text: string; rate: SgRate; pauseMs: number; phase?: SgPhase };
+export type SgStep = { text: string; rate: SgRate; pauseMs: number; phase?: SgPhase; group?: "ask" };
 export type SgSession = { steps: SgStep[]; text: string; ssml: string };
 
 let nextId = 1;

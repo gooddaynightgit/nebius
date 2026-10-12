@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import HappyBubble from "@/components/HappyBubble";
 import { SG_BUTTON, SG_CHOOSE_FIRST, SG_HEADLINE, SG_OPTIONS, SG_SUPPORT, type SgFocus } from "@/lib/something-good";
-import { cleanSpeech } from "@/lib/speech-merge";
+import { collapseRepeats, mergeSpeech } from "@/lib/speech-merge";
 import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib/something-good-mcp";
 
 type Mode = "start" | "loading" | "playing" | "listen" | "confirm" | "done" | "error";
@@ -14,7 +14,7 @@ const PERFECT_PLACEHOLDER = "I am living in my own homeâ€¦\nI have the money toâ
 const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream", "card--lavender"] as const;
 const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
 /** Quiet this long after speaking means they've finished. */
-const SILENCE_MS = 4000;
+const SILENCE_MS = 6000;
 /** How long to wait for the first words before giving up. */
 const FIRST_WORDS_MS = 15000;
 
@@ -51,6 +51,7 @@ export default function SomethingGood() {
   const [stage, setStage] = useState<"opening" | "closing">("opening");
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
   const [canListen, setCanListen] = useState(false);
   const [error, setError] = useState("");
@@ -110,10 +111,11 @@ export default function SomethingGood() {
     if (hasVoice()) window.speechSynthesis.cancel();
     setStage(which);
     setPaused(false);
-    setMode("playing");
+    setSpeaking(true);
     for (let i = Math.max(0, from); i < steps.length; i += 1) {
       if (runRef.current !== run) return;
       const step = steps[i];
+      setMode(step.group === "ask" ? "listen" : "playing");
       setIndex(i);
       setLine(step.text);
       setPhase(step.phase ?? null);
@@ -122,6 +124,7 @@ export default function SomethingGood() {
       await wait(step.pauseMs);
     }
     if (runRef.current !== run) return;
+    setSpeaking(false);
     setPhase(null);
     if (which === "opening") {
       setQuestion(steps[steps.length - 1]?.text ?? "");
@@ -197,30 +200,28 @@ export default function SomethingGood() {
     rec.continuous = true;
     const base = baseRef.current;
     rec.onresult = (e) => {
-      const parts: string[] = [];
-      for (let i = 0; i < e.results.length; i += 1) parts.push(e.results[i][0].transcript);
-      const heard = cleanSpeech(parts, base);
-      sessionRef.current = heard;
-      setWords(heard);
+      // Final pieces are merged (Android repeats earlier words inside later results);
+      // the piece still being heard is shown but not kept until it's final.
+      let finals = "";
+      let interim = "";
+      for (let i = 0; i < e.results.length; i += 1) {
+        const r = e.results[i];
+        if (r.isFinal) finals = mergeSpeech(finals, r[0].transcript);
+        else interim = r[0].transcript;
+      }
+      const kept = collapseRepeats(mergeSpeech(base, finals));
+      sessionRef.current = kept;
+      setWords(interim ? collapseRepeats(mergeSpeech(kept, interim)) : kept);
       armSilence();
     };
     rec.onerror = (e) => {
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-        wantListenRef.current = false;
-        setCanListen(false);
-      }
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") setCanListen(false);
     };
     rec.onend = () => {
-      // Phones end recognition on their own after a pause; carry on until silence or a tap.
-      baseRef.current = sessionRef.current || baseRef.current;
-      if (wantListenRef.current) {
-        try {
-          startRecognizer();
-          return;
-        } catch {
-          wantListenRef.current = false;
-        }
-      }
+      // One listening session per tap: no automatic restarts (they caused the on/off clicks).
+      wantListenRef.current = false;
+      if (silenceRef.current) window.clearTimeout(silenceRef.current);
+      setWords(sessionRef.current || base);
       setListening(false);
     };
     recRef.current = rec;
@@ -233,7 +234,7 @@ export default function SomethingGood() {
       return;
     }
     if (!recognizerCtor()) return;
-    if (hasVoice()) window.speechSynthesis.cancel();
+    cancelSpeech();
     baseRef.current = words.trim();
     sessionRef.current = baseRef.current;
     wantListenRef.current = true;
@@ -247,6 +248,7 @@ export default function SomethingGood() {
   /** Stop her voice only: stay on this line; Prev or Next carries on from here. */
   const stopVoice = () => {
     runRef.current += 1;
+    setSpeaking(false);
     if (hasVoice()) window.speechSynthesis.cancel();
     if (mode === "playing") {
       setPhase(null);
@@ -254,38 +256,44 @@ export default function SomethingGood() {
     }
   };
 
+  const cancelSpeech = () => {
+    runRef.current += 1;
+    setSpeaking(false);
+    if (hasVoice()) window.speechSynthesis.cancel();
+  };
+
   const goPrev = () => {
-    if (mode === "playing") {
+    stopListening();
+    if (mode === "playing" || (mode === "listen" && stage === "opening")) {
       if (index > 0) void playFrom(stage, index - 1);
       else if (stage === "closing") {
-        runRef.current += 1;
-        if (hasVoice()) window.speechSynthesis.cancel();
+        cancelSpeech();
         setMode("confirm");
       } else void playFrom("opening", 0);
-    } else if (mode === "listen") {
-      stopListening();
-      void playFrom("opening", openingRef.current.length - 1);
     } else if (mode === "confirm") {
-      setMode("listen");
+      void playFrom("opening", openingRef.current.length - 1);
     } else if (mode === "done") {
       void playFrom("closing", closingRef.current.length - 1);
     }
   };
 
   const goNext = () => {
-    if (mode === "playing") {
-      const steps = stage === "opening" ? openingRef.current : closingRef.current;
-      if (index < steps.length - 1) void playFrom(stage, index + 1);
-      else {
-        runRef.current += 1;
-        if (hasVoice()) window.speechSynthesis.cancel();
-        setPhase(null);
-        if (stage === "opening") {
-          setQuestion(steps[steps.length - 1]?.text ?? "");
-          setMode("listen");
-        } else setMode("done");
+    const steps = stage === "opening" ? openingRef.current : closingRef.current;
+    if (speaking || mode === "playing") {
+      if (index < steps.length - 1) {
+        void playFrom(stage, index + 1);
+        return;
       }
-    } else if (mode === "listen") {
+      cancelSpeech();
+      setPhase(null);
+      if (stage === "opening") {
+        setMode("listen");
+        return;
+      }
+      setMode("done");
+      return;
+    }
+    if (mode === "listen") {
       stopListening();
       setMode("confirm");
     } else if (mode === "confirm") {
@@ -295,7 +303,7 @@ export default function SomethingGood() {
 
   const canPrev = mode === "playing" || mode === "listen" || mode === "confirm" || mode === "done";
   const canNext =
-    mode === "playing" || (mode === "listen" && Boolean(words.trim())) || (mode === "confirm" && Boolean(words.trim()));
+    mode === "playing" || speaking || (mode === "listen" && Boolean(words.trim())) || (mode === "confirm" && Boolean(words.trim()));
 
   const restart = () => {
     stopListening();
@@ -400,13 +408,36 @@ export default function SomethingGood() {
 
       {mode === "listen" && (
         <>
-          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-            {question}
-          </h2>
+          {(() => {
+            const askLines = openingRef.current
+              .map((st, i) => ({ ...st, i }))
+              .filter((st) => st.group === "ask");
+            const lead = askLines.slice(0, -1);
+            const heading = askLines[askLines.length - 1]?.text ?? question;
+            return (
+              <>
+                <div className="sg-ask">
+                  {lead.map((st) => (
+                    <p
+                      key={st.i}
+                      className={`sg-ask__line${speaking && stage === "opening" && index === st.i ? " is-current" : ""}${
+                        speaking && stage === "opening" && index < st.i ? " is-ahead" : ""
+                      }`}
+                    >
+                      {st.text}
+                    </p>
+                  ))}
+                </div>
+                <h2 ref={headingRef} tabIndex={-1} className="sg-line">
+                  {heading}
+                </h2>
+              </>
+            );
+          })()}
 
           <textarea
             id="sg-words"
-            aria-label={question || "My perfect result"}
+            aria-label={question || "Your perfect result"}
             className="sg-words sg-perfect"
             rows={4}
             value={words}

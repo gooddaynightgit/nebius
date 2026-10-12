@@ -4960,3 +4960,31 @@ textarea.sg-heard {
   color: #6b8090;
   font-style: italic;
 }
+
+/* The question lines sit together above "Your perfect result" */
+.sg-page .sg-ask {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.sg-page .sg-ask__line {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.35;
+  transition: opacity 0.4s ease;
+}
+
+.sg-page .sg-ask__line.is-ahead {
+  opacity: 0.3;
+}
+
+.sg-page .sg-ask__line.is-current {
+  text-decoration: underline;
+  text-decoration-color: var(--lime);
+  text-decoration-thickness: 0.35em;
+  text-underline-offset: -0.12em;
+  text-decoration-skip-ink: none;
+}
