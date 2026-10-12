@@ -47,6 +47,7 @@ export default function SomethingGood() {
   const [chooseError, setChooseError] = useState(false);
   const [stage, setStage] = useState<"opening" | "closing">("opening");
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [listening, setListening] = useState(false);
   const [canListen, setCanListen] = useState(false);
   const [typing, setTyping] = useState(false);
@@ -106,6 +107,7 @@ export default function SomethingGood() {
     const run = ++runRef.current;
     if (hasVoice()) window.speechSynthesis.cancel();
     setStage(which);
+    setPaused(false);
     setMode("playing");
     for (let i = Math.max(0, from); i < steps.length; i += 1) {
       if (runRef.current !== run) return;
@@ -245,6 +247,16 @@ export default function SomethingGood() {
     startRecognizer();
   };
 
+  /** Stop her voice only: stay on this line; Prev or Next carries on from here. */
+  const stopVoice = () => {
+    runRef.current += 1;
+    if (hasVoice()) window.speechSynthesis.cancel();
+    if (mode === "playing") {
+      setPhase(null);
+      setPaused(true);
+    }
+  };
+
   const goPrev = () => {
     if (mode === "playing") {
       if (index > 0) void playFrom(stage, index - 1);
@@ -359,7 +371,7 @@ export default function SomethingGood() {
           </svg>
           Prev
         </button>
-        <button type="button" className="sg-ctl sg-ctl--stop" onClick={restart}>
+        <button type="button" className="sg-ctl sg-ctl--stop" onClick={stopVoice}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
           </svg>
@@ -385,6 +397,7 @@ export default function SomethingGood() {
           <h2 ref={headingRef} tabIndex={-1} className="sg-line">
             {line}
           </h2>
+          {paused && <p className="sg-small">Paused. Tap Next to carry on, or Prev to go back.</p>}
         </>
       )}
 
