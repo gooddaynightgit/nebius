@@ -46,5 +46,5 @@ async function callTool(name: string, args: Record<string, unknown> = {}): Promi
   return result.structuredContent as SgSession;
 }
 
-export const sgStart = () => callTool("start_something_good");
+export const sgStart = (focus?: string) => callTool("start_something_good", focus ? { focus } : {});
 export const sgFinish = (named: string) => callTool("finish_something_good", { named });

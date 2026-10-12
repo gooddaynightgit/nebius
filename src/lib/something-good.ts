@@ -5,14 +5,20 @@ export const SG_HEADLINE = "Name what you're not grateful for";
 export const SG_BUTTON = "Start";
 export const SG_SUPPORT = "Support to lead you to something good.";
 export const SG_DESCRIPTION =
-  "Name what you're not grateful for. A gentle voice walks you through a breath, three simple thank-yous, and one hopeful line: something good is about to happen.";
+  "Name what you're not grateful for. A gentle voice guides one slow breath, then says your own words back with one hopeful line: something good is about to happen.";
 
-export const SG_BLOCKS = [
-  "A challenge",
-  "A situation",
-  "Something missing",
-  "Something you want to change",
-] as const;
+export type SgFocus = "challenge" | "situation" | "missing" | "change" | "else";
+
+/** The five choices on the start screen; `focus` shapes the question the server asks. */
+export const SG_OPTIONS: { focus: SgFocus; label: string }[] = [
+  { focus: "challenge", label: "A challenge" },
+  { focus: "situation", label: "A situation" },
+  { focus: "missing", label: "Something missing" },
+  { focus: "change", label: "Something you want to change" },
+  { focus: "else", label: "Something else" },
+];
+
+export const SG_CHOOSE_FIRST = "Please choose the one that feels closest, then tap Start.";
 
 export const SG_WELCOME =
   "Welcome. I'm so glad you're here. This is the place to name what you're not grateful for. And here's the good news: you don't have to carry it alone. I'm here to help you find the good that's waiting inside it.";

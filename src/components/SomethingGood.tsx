@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import HappyBubble from "@/components/HappyBubble";
-import { SG_BLOCKS, SG_BUTTON, SG_HEADLINE, SG_SUPPORT } from "@/lib/something-good";
+import { SG_BUTTON, SG_CHOOSE_FIRST, SG_HEADLINE, SG_OPTIONS, SG_SUPPORT, type SgFocus } from "@/lib/something-good";
 import { cleanSpeech } from "@/lib/speech-merge";
 import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib/something-good-mcp";
 
 type Mode = "start" | "loading" | "playing" | "listen" | "confirm" | "done" | "error";
 
-const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream"] as const;
+const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream", "card--lavender"] as const;
 const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
 /** Quiet this long after speaking means they've finished. */
 const SILENCE_MS = 4000;
@@ -43,12 +43,17 @@ export default function SomethingGood() {
   const [phase, setPhase] = useState<SgPhase | null>(null);
   const [question, setQuestion] = useState("");
   const [words, setWords] = useState("");
-  const [voice, setVoice] = useState(true);
+  const [choice, setChoice] = useState<SgFocus | null>(null);
+  const [chooseError, setChooseError] = useState(false);
+  const [stage, setStage] = useState<"opening" | "closing">("opening");
+  const [index, setIndex] = useState(0);
   const [listening, setListening] = useState(false);
   const [canListen, setCanListen] = useState(false);
   const [typing, setTyping] = useState(false);
   const [error, setError] = useState("");
-  const voiceRef = useRef(voice);
+  const voiceRef = useRef(true);
+  const openingRef = useRef<SgStep[]>([]);
+  const closingRef = useRef<SgStep[]>([]);
   const runRef = useRef(0);
   const recRef = useRef<Recognizer | null>(null);
   const wantListenRef = useRef(false);
@@ -56,8 +61,6 @@ export default function SomethingGood() {
   const baseRef = useRef("");
   const sessionRef = useRef("");
   const headingRef = useRef<HTMLHeadingElement>(null);
-
-  voiceRef.current = voice;
 
   useEffect(() => {
     setCanListen(Boolean(recognizerCtor()));
@@ -97,17 +100,31 @@ export default function SomethingGood() {
       window.speechSynthesis.speak(u);
     });
 
-  /** Play the server's steps: each line at its own pace, then its silence. */
-  const play = async (steps: SgStep[], run: number) => {
-    for (const step of steps) {
-      if (runRef.current !== run) return false;
+  /** Play from step `from` onward: each line at its own pace, then its silence. */
+  const playFrom = async (which: "opening" | "closing", from: number) => {
+    const steps = which === "opening" ? openingRef.current : closingRef.current;
+    const run = ++runRef.current;
+    if (hasVoice()) window.speechSynthesis.cancel();
+    setStage(which);
+    setMode("playing");
+    for (let i = Math.max(0, from); i < steps.length; i += 1) {
+      if (runRef.current !== run) return;
+      const step = steps[i];
+      setIndex(i);
       setLine(step.text);
       setPhase(step.phase ?? null);
       await say(step.text, step.rate, run);
-      if (runRef.current !== run) return false;
+      if (runRef.current !== run) return;
       await wait(step.pauseMs);
     }
-    return runRef.current === run;
+    if (runRef.current !== run) return;
+    setPhase(null);
+    if (which === "opening") {
+      setQuestion(steps[steps.length - 1]?.text ?? "");
+      setMode("listen");
+    } else {
+      setMode("done");
+    }
   };
 
   const fail = (e: unknown) => {
@@ -116,6 +133,10 @@ export default function SomethingGood() {
   };
 
   const begin = async () => {
+    if (!choice) {
+      setChooseError(true);
+      return;
+    }
     // Unlock speech inside the tap itself; some phones block speech that starts after a network wait.
     if (voiceRef.current && hasVoice()) {
       window.speechSynthesis.cancel();
@@ -128,13 +149,10 @@ export default function SomethingGood() {
     setTyping(false);
     setMode("loading");
     try {
-      const session = await sgStart();
+      const session = await sgStart(choice);
       if (runRef.current !== run) return;
-      setMode("playing");
-      if (!(await play(session.steps, run))) return;
-      setQuestion(session.steps[session.steps.length - 1]?.text ?? "");
-      setPhase(null);
-      setMode("listen");
+      openingRef.current = session.steps;
+      void playFrom("opening", 0);
     } catch (e) {
       fail(e);
     }
@@ -147,10 +165,8 @@ export default function SomethingGood() {
     try {
       const session = await sgFinish(words.trim() || "what you named");
       if (runRef.current !== run) return;
-      setMode("playing");
-      if (!(await play(session.steps, run))) return;
-      setPhase(null);
-      setMode("done");
+      closingRef.current = session.steps;
+      void playFrom("closing", 0);
     } catch (e) {
       fail(e);
     }
@@ -229,10 +245,48 @@ export default function SomethingGood() {
     startRecognizer();
   };
 
-  const toggleVoice = () => {
-    if (voice && hasVoice()) window.speechSynthesis.cancel();
-    setVoice((v) => !v);
+  const goPrev = () => {
+    if (mode === "playing") {
+      if (index > 0) void playFrom(stage, index - 1);
+      else if (stage === "closing") {
+        runRef.current += 1;
+        if (hasVoice()) window.speechSynthesis.cancel();
+        setMode("confirm");
+      } else void playFrom("opening", 0);
+    } else if (mode === "listen") {
+      stopListening();
+      void playFrom("opening", openingRef.current.length - 1);
+    } else if (mode === "confirm") {
+      setMode("listen");
+    } else if (mode === "done") {
+      void playFrom("closing", closingRef.current.length - 1);
+    }
   };
+
+  const goNext = () => {
+    if (mode === "playing") {
+      const steps = stage === "opening" ? openingRef.current : closingRef.current;
+      if (index < steps.length - 1) void playFrom(stage, index + 1);
+      else {
+        runRef.current += 1;
+        if (hasVoice()) window.speechSynthesis.cancel();
+        setPhase(null);
+        if (stage === "opening") {
+          setQuestion(steps[steps.length - 1]?.text ?? "");
+          setMode("listen");
+        } else setMode("done");
+      }
+    } else if (mode === "listen") {
+      stopListening();
+      setMode("confirm");
+    } else if (mode === "confirm") {
+      void finish();
+    }
+  };
+
+  const canPrev = mode === "playing" || mode === "listen" || mode === "confirm" || mode === "done";
+  const canNext =
+    mode === "playing" || (mode === "listen" && Boolean(words.trim())) || (mode === "confirm" && Boolean(words.trim()));
 
   const restart = () => {
     stopListening();
@@ -247,13 +301,33 @@ export default function SomethingGood() {
         <section className="card card--lavender sg-card sg-hero" aria-labelledby="sg-heading">
           <h1 id="sg-heading">{SG_HEADLINE}</h1>
         </section>
-        <ul className="sg-blocks" aria-label="What you can name">
-          {SG_BLOCKS.map((label, i) => (
-            <li key={label} className={`card sg-block ${BLOCK_TONES[i]}`}>
-              <h2>{label}</h2>
-            </li>
+        <fieldset className={`sg-blocks${chooseError ? " is-error" : ""}`} aria-describedby="sg-choose">
+          <legend className="visually-hidden">What would you like to name?</legend>
+          {SG_OPTIONS.map((opt, i) => (
+            <label
+              key={opt.focus}
+              className={`card sg-block ${BLOCK_TONES[i]}${opt.focus === "else" ? " sg-block--wide" : ""}${
+                choice === opt.focus ? " is-chosen" : ""
+              }`}
+            >
+              <input
+                type="radio"
+                name="sg-focus"
+                value={opt.focus}
+                checked={choice === opt.focus}
+                onChange={() => {
+                  setChoice(opt.focus);
+                  setChooseError(false);
+                }}
+              />
+              <span className="sg-radio" aria-hidden="true" />
+              <span className="sg-block__label">{opt.label}</span>
+            </label>
           ))}
-        </ul>
+        </fieldset>
+        <p id="sg-choose" className={`sg-choose${chooseError ? " is-shown" : ""}`} role="alert">
+          {chooseError ? SG_CHOOSE_FIRST : ""}
+        </p>
         <section className="card sg-support">
           <h2>{SG_SUPPORT}</h2>
           <button type="button" className="step-next sg-start" onClick={begin}>
@@ -278,16 +352,26 @@ export default function SomethingGood() {
 
   return (
     <section className="card card--lavender sg-card" aria-live="polite">
-      <div className="sg-top">
-        {mode !== "done" && (
-          <button type="button" className="sg-voice" onClick={restart}>
-            Stop
-          </button>
-        )}
-        <button type="button" className="sg-voice" onClick={toggleVoice} aria-pressed={voice}>
-          {voice ? "Voice on" : "Voice off"}
+      <nav className="sg-top" aria-label="Conversation controls">
+        <button type="button" className="sg-ctl" onClick={goPrev} disabled={!canPrev} aria-label="Previous">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Prev
         </button>
-      </div>
+        <button type="button" className="sg-ctl sg-ctl--stop" onClick={restart}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+          </svg>
+          Stop
+        </button>
+        <button type="button" className="sg-ctl" onClick={goNext} disabled={!canNext} aria-label="Next">
+          Next
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </nav>
 
       {mode === "loading" && (
         <h2 ref={headingRef} tabIndex={-1} className="sg-line">

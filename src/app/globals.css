@@ -4815,3 +4815,136 @@ textarea.sg-heard {
 .sg-page .sg-top .sg-voice:only-child {
   margin-left: auto;
 }
+
+/* Something Good: five radio choices */
+.sg-page fieldset.sg-blocks {
+  min-width: 0;
+  border: 0;
+}
+
+.sg-page .sg-block {
+  position: relative;
+  cursor: pointer;
+}
+
+.sg-page .sg-block--wide {
+  grid-column: 1 / -1;
+  min-height: 4.75rem;
+  align-items: center;
+}
+
+.sg-page .sg-block input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.sg-page .sg-block__label {
+  position: relative;
+  z-index: 1;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.sg-page .sg-radio {
+  position: absolute;
+  z-index: 1;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid var(--navy);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.sg-page .sg-block--wide .sg-radio {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.sg-page .sg-block.is-chosen {
+  outline: 3px solid var(--navy);
+  outline-offset: -3px;
+}
+
+.sg-page .sg-block.is-chosen .sg-radio::after {
+  content: "";
+  position: absolute;
+  inset: 0.25rem;
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+.sg-page .sg-block:has(input:focus-visible) {
+  outline: 3px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.sg-page .sg-blocks.is-error .sg-radio {
+  border-color: #c62828;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.2);
+}
+
+.sg-page .sg-choose {
+  margin: -0.4rem 0 0.9rem;
+  min-height: 0;
+  color: #c62828;
+  font-weight: 700;
+}
+
+.sg-page .sg-choose:empty {
+  display: none;
+}
+
+/* Prev / Stop / Next on every conversation screen */
+.sg-page nav.sg-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.sg-page .sg-ctl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.85rem;
+  border: 2px solid var(--navy);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.sg-page .sg-ctl:first-child {
+  justify-self: start;
+}
+
+.sg-page .sg-ctl:last-child {
+  justify-self: end;
+}
+
+.sg-page .sg-ctl svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.sg-page .sg-ctl--stop {
+  background: var(--navy);
+  color: var(--lime);
+}
+
+.sg-page .sg-ctl:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
