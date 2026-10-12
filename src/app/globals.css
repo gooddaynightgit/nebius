@@ -4659,3 +4659,16 @@ body:has(.guide-page) {
   line-height: 1.15;
   letter-spacing: -0.03em;
 }
+
+/* Start sits bottom-left, level with the hamburger, so it never covers the blocks. */
+.sg-page .step-pin {
+  left: max(1rem, env(safe-area-inset-left));
+  right: auto;
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem);
+  translate: none;
+  max-width: calc(100vw - 2rem - 64px - 1rem);
+}
+
+body:has(.sg-page) {
+  padding-bottom: calc(2.75rem + 0.5rem + 3.25rem + 1.5rem + env(safe-area-inset-bottom));
+}
