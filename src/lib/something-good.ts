@@ -3,7 +3,7 @@
 export const SG_PATH = "/something-good";
 export const SG_HEADLINE = "Name what you're not grateful for";
 export const SG_BUTTON = "Start";
-export const SG_SUPPORT = "Support to help you create what you want.";
+export const SG_SUPPORT = "Support to lead you to something good.";
 export const SG_DESCRIPTION =
   "Name what you're not grateful for. A gentle voice walks you through a breath, three simple thank-yous, and one hopeful line: something good is about to happen.";
 
