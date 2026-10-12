@@ -4948,3 +4948,15 @@ textarea.sg-heard {
   opacity: 0.35;
   cursor: default;
 }
+
+/* "My perfect result" box */
+.sg-page textarea.sg-perfect {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  min-height: 7.5rem;
+}
+
+.sg-page textarea.sg-perfect::placeholder {
+  color: #6b8090;
+  font-style: italic;
+}

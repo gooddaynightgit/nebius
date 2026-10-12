@@ -8,6 +8,9 @@ import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib
 
 type Mode = "start" | "loading" | "playing" | "listen" | "confirm" | "done" | "error";
 
+/** Example lines shown in the empty "My perfect result" box. */
+const PERFECT_PLACEHOLDER = "I am living in my own home…\nI have the money to…\nI am happy & grateful I have…";
+
 const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream", "card--lavender"] as const;
 const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
 /** Quiet this long after speaking means they've finished. */
@@ -50,7 +53,6 @@ export default function SomethingGood() {
   const [paused, setPaused] = useState(false);
   const [listening, setListening] = useState(false);
   const [canListen, setCanListen] = useState(false);
-  const [typing, setTyping] = useState(false);
   const [error, setError] = useState("");
   const voiceRef = useRef(true);
   const openingRef = useRef<SgStep[]>([]);
@@ -148,7 +150,6 @@ export default function SomethingGood() {
     }
     const run = ++runRef.current;
     setWords("");
-    setTyping(false);
     setMode("loading");
     try {
       const session = await sgStart(choice);
@@ -207,7 +208,6 @@ export default function SomethingGood() {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
         wantListenRef.current = false;
         setCanListen(false);
-        setTyping(true);
       }
     };
     rec.onend = () => {
@@ -232,10 +232,7 @@ export default function SomethingGood() {
       stopListening();
       return;
     }
-    if (!recognizerCtor()) {
-      setTyping(true);
-      return;
-    }
+    if (!recognizerCtor()) return;
     if (hasVoice()) window.speechSynthesis.cancel();
     baseRef.current = words.trim();
     sessionRef.current = baseRef.current;
@@ -407,7 +404,18 @@ export default function SomethingGood() {
             {question}
           </h2>
 
-          {canListen && !typing && (
+          <textarea
+            id="sg-words"
+            aria-label={question || "My perfect result"}
+            className="sg-words sg-perfect"
+            rows={4}
+            value={words}
+            onChange={(e) => setWords(e.target.value)}
+            placeholder={PERFECT_PLACEHOLDER}
+            readOnly={listening}
+          />
+
+          {canListen && (
             <div className="sg-listen">
               <button
                 type="button"
@@ -430,24 +438,6 @@ export default function SomethingGood() {
             </div>
           )}
 
-          {words && !typing && <p className="sg-heard">“{words}”</p>}
-
-          {(typing || !canListen) && (
-            <>
-              <label className="sg-label" htmlFor="sg-words">
-                In your own words
-              </label>
-              <textarea
-                id="sg-words"
-                className="sg-words"
-                rows={3}
-                value={words}
-                onChange={(e) => setWords(e.target.value)}
-                placeholder="My money worries"
-              />
-            </>
-          )}
-
           <button
             type="button"
             className="step-next sg-go"
@@ -459,12 +449,6 @@ export default function SomethingGood() {
           >
             End your conversation
           </button>
-
-          {canListen && (
-            <button type="button" className="sg-link" onClick={() => setTyping((t) => !t)}>
-              {typing ? "Speak instead" : "Prefer to type?"}
-            </button>
-          )}
           <p className="sg-small">Your words are not saved.</p>
         </>
       )}
@@ -478,6 +462,7 @@ export default function SomethingGood() {
             id="sg-confirm"
             aria-label="What you told me"
             className="sg-words sg-heard"
+            placeholder={PERFECT_PLACEHOLDER}
             rows={Math.min(7, Math.max(2, Math.ceil(words.length / 26)))}
             value={words}
             onChange={(e) => setWords(e.target.value)}
