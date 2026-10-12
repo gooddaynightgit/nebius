@@ -4695,3 +4695,30 @@ body:has(.sg-page) {
 .sg-spacer {
   height: calc(6rem + env(safe-area-inset-bottom));
 }
+
+/* The circle follows the breath: grows in 4s, holds, shrinks slowly over 7s. */
+.sg-page .sg-breath {
+  animation: none;
+  transform: scale(0.6);
+  transition: transform 1.2s ease-in-out;
+}
+
+.sg-page .sg-breath--in,
+.sg-page .sg-breath--hold {
+  transform: scale(1.25);
+  transition: transform 4s ease-in-out;
+}
+
+.sg-page .sg-breath--out {
+  transform: scale(0.6);
+  transition: transform 7s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-page .sg-breath,
+  .sg-page .sg-breath--in,
+  .sg-page .sg-breath--hold,
+  .sg-page .sg-breath--out {
+    transition: none;
+  }
+}

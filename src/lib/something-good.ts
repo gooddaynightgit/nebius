@@ -17,7 +17,17 @@ export const SG_BLOCKS = [
 export const SG_WELCOME =
   "Welcome. I'm so glad you're here. This is the place to name what you're not grateful for. And here's the good news: you don't have to carry it alone. I'm here to help you find the good that's waiting inside it.";
 
-export const SG_BREATH = "Let's begin with a deep breath together. Breathe in… and out.";
+/** One guided breath: Alexa guides, it never claims to breathe with you. */
+export const SG_BREATH_FIRST = "Let's start with one slow, deep breath.";
+export const SG_BREATH_TWO = "Let's take two more slow breaths.";
+export const SG_BREATH_IN = "Breathe in slowly…";
+export const SG_BREATH_HOLD = "Hold it gently…";
+export const SG_BREATH_RELEASE = "Slowly release…";
+export const SG_BREATH_LET_GO = "just let it go.";
+export const SG_TAKE_TIME = "Take your time. There's no rush.";
+
+/** Seconds: in 4, hold 2, out 7 (the long out-breath is the letting go). */
+export const SG_BREATH_MS = { in: 4000, hold: 2000, out: 7000 } as const;
 
 export const SG_QUESTION =
   "Right at this moment, tell me: what challenge or situation are you dealing with? Or is there something you'd like to change, or something missing in your life?";
@@ -28,7 +38,6 @@ export const SG_BASICS = [
   "And one more. A meal, clean water, being alive today. Thank you for that.",
 ] as const;
 
-export const SG_BREATHE_TOGETHER = "Let's breathe together. Breathe in… and out.";
 
 export const SG_CLOSE = "It's going to be alright. All is well. Something good is about to happen.";
 

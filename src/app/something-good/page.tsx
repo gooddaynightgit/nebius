@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import HappyBubble from "@/components/HappyBubble";
 import SomethingGood from "@/components/SomethingGood";
 import { SG_DESCRIPTION, SG_HEADLINE, SG_PATH } from "@/lib/something-good";
 
@@ -24,7 +23,6 @@ export default function SomethingGoodPage() {
       </header>
       <main id="main">
         <SomethingGood />
-        <HappyBubble text="Something good is about to happen!" />
       </main>
     </div>
   );
