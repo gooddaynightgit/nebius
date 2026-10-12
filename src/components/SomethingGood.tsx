@@ -18,7 +18,6 @@ import {
   SG_QUESTION,
   SG_SUPPORT,
   SG_TAKE_TIME,
-  SG_WELCOME,
   sgThankYou,
 } from "@/lib/something-good";
 
@@ -34,7 +33,6 @@ type Phase = "intro" | "in" | "hold" | "out" | "done";
 
 const STEPS: Step[] = [
   { kind: "start" },
-  { kind: "say", text: SG_WELCOME },
   { kind: "breath", intro: SG_BREATH_FIRST, reps: 1 },
   { kind: "ask" },
   ...SG_BASICS.map((text) => ({ kind: "say" as const, text })),
