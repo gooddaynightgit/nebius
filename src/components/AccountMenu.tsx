@@ -6,6 +6,10 @@ import { useEffect, useId, useRef, useState } from "react";
 import { accountMenuItems, type AccountMenuItem } from "@/lib/account-menu";
 import { isGuidePath } from "@/lib/guide-pages";
 import { isSgPath, SG_GUIDE_SWAP } from "@/lib/something-good";
+
+const SG_CONTEXT_KEY = "sg-context";
+/** Pages both products share: they keep whichever menu the person arrived with. */
+const SHARED_PAGES = new Set(["/about", "/review", "/signin"]);
 import { isPaidPath } from "@/lib/paid-copy";
 
 type AuthState = { signedIn: boolean; email: string | null };
@@ -27,6 +31,18 @@ function MenuIcon() {
 export default function AccountMenu() {
   const panelId = useId();
   const pathname = usePathname();
+  // Remember that they came from Something Good, so shared pages (about, review, sign in)
+  // keep Something Good's How it works, Example and FAQ in the menu.
+  const [sgContext, setSgContext] = useState(false);
+  useEffect(() => {
+    try {
+      if (isSgPath(pathname)) sessionStorage.setItem(SG_CONTEXT_KEY, "1");
+      else if (!SHARED_PAGES.has(pathname ?? "")) sessionStorage.removeItem(SG_CONTEXT_KEY);
+      setSgContext(sessionStorage.getItem(SG_CONTEXT_KEY) === "1");
+    } catch {
+      setSgContext(isSgPath(pathname));
+    }
+  }, [pathname]);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -87,7 +103,7 @@ export default function AccountMenu() {
 
   // Same menu everywhere (sign in, review, about the maker...). On Something Good pages,
   // How it works, Example and FAQ open the Something Good versions.
-  const onSg = isSgPath(pathname);
+  const onSg = isSgPath(pathname) || (sgContext && SHARED_PAGES.has(pathname ?? ""));
   const items: AccountMenuItem[] = accountMenuItems({
     signedIn: Boolean(auth?.signedIn),
     email: auth?.email,
