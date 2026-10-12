@@ -5237,3 +5237,16 @@ textarea.sg-heard {
 .sg-page .sg-signin .moments-buy {
   margin: 0;
 }
+
+/* Home page: "Name what you're not grateful for" sits just above "Start my gratitude journal" */
+.step-pin.step-pin--sg {
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.6rem);
+  background: var(--lime);
+  color: var(--navy);
+  border-color: var(--navy);
+}
+
+.step-pin.step-pin--sg:hover {
+  background: #e4ff4a;
+  color: var(--navy);
+}

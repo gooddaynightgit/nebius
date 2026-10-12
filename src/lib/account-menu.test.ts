@@ -20,6 +20,8 @@ function read(rel: string): string {
 describe("account menu items", () => {
   it("offers sign in, a review, and about when signed out", () => {
     expect(accountMenuItems({ signedIn: false })).toEqual([
+      { kind: "link", label: "Start: Name what you're not grateful for", href: "/something-good" },
+      { kind: "link", label: "Start my gratitude journal", href: "/app/joy" },
       { kind: "link", label: "Sign in", href: "/signin" },
       { kind: "link", label: "Leave a review", href: "/review" },
       { kind: "link", label: "About the maker", href: "/about" },
@@ -32,6 +34,8 @@ describe("account menu items", () => {
   it("shows the email, moments, log out, a review, and about when signed in", () => {
     expect(accountMenuItems({ signedIn: true, email: "amy@email.com" })).toEqual([
       { kind: "email", email: "amy@email.com" },
+      { kind: "link", label: "Start: Name what you're not grateful for", href: "/something-good" },
+      { kind: "link", label: "Start my gratitude journal", href: "/app/joy" },
       { kind: "link", label: "My new joy moments", href: "/moments" },
       { kind: "logout", label: "Log out" },
       { kind: "link", label: "Leave a review", href: "/review" },
