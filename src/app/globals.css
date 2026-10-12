@@ -4722,3 +4722,70 @@ body:has(.sg-page) {
     transition: none;
   }
 }
+
+/* Something Good voice: the mic */
+.sg-listen {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  margin: 0.5rem 0;
+}
+
+.sg-mic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sg-mic svg {
+  width: 6.5rem;
+  height: 6.5rem;
+  padding: 1.6rem;
+  border: 2px solid var(--navy);
+  border-radius: 50%;
+  background: var(--lime);
+  box-sizing: border-box;
+}
+
+.sg-mic.is-listening svg {
+  animation: sg-listen 1.6s ease-in-out infinite;
+}
+
+@keyframes sg-listen {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 255, 0, 0.7); }
+  50% { box-shadow: 0 0 0 1.1rem rgba(212, 255, 0, 0); }
+}
+
+.sg-heard {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.sg-link {
+  position: relative;
+  z-index: 1;
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-mic.is-listening svg { animation: none; outline: 4px solid var(--navy); }
+}

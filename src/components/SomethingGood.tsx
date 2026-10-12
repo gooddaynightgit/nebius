@@ -2,77 +2,78 @@
 
 import { useEffect, useRef, useState } from "react";
 import HappyBubble from "@/components/HappyBubble";
-import {
-  SG_BASICS,
-  SG_BLOCKS,
-  SG_BREATH_FIRST,
-  SG_BREATH_HOLD,
-  SG_BREATH_IN,
-  SG_BREATH_LET_GO,
-  SG_BREATH_MS,
-  SG_BREATH_RELEASE,
-  SG_BREATH_TWO,
-  SG_BUTTON,
-  SG_CLOSE,
-  SG_HEADLINE,
-  SG_QUESTION,
-  SG_SUPPORT,
-  SG_TAKE_TIME,
-  sgThankYou,
-} from "@/lib/something-good";
+import { SG_BLOCKS, SG_BUTTON, SG_HEADLINE, SG_SUPPORT } from "@/lib/something-good";
+import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib/something-good-mcp";
 
-type Step =
-  | { kind: "start" }
-  | { kind: "say"; text: string }
-  | { kind: "breath"; intro: string; reps: number }
-  | { kind: "ask" }
-  | { kind: "thanks" }
-  | { kind: "close" };
-
-type Phase = "intro" | "in" | "hold" | "out" | "done";
-
-const STEPS: Step[] = [
-  { kind: "start" },
-  { kind: "breath", intro: SG_BREATH_FIRST, reps: 1 },
-  { kind: "ask" },
-  ...SG_BASICS.map((text) => ({ kind: "say" as const, text })),
-  { kind: "breath", intro: SG_BREATH_TWO, reps: 2 },
-  { kind: "thanks" },
-  { kind: "close" },
-];
+type Mode = "start" | "loading" | "playing" | "listen" | "done" | "error";
 
 const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream"] as const;
+const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
 
-const NORMAL_RATE = 0.85;
-const SLOW_RATE = 0.7;
-const VERY_SLOW_RATE = 0.5;
+// Minimal Web Speech API types (not in every TS DOM lib).
+type RecResult = { 0: { transcript: string }; isFinal: boolean };
+type RecEvent = { resultIndex: number; results: ArrayLike<RecResult> };
+type Recognizer = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((e: RecEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((e: { error: string }) => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type RecognizerCtor = new () => Recognizer;
 
 const hasVoice = () => typeof window !== "undefined" && "speechSynthesis" in window;
+function recognizerCtor(): RecognizerCtor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: RecognizerCtor; webkitSpeechRecognition?: RecognizerCtor };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
 
 export default function SomethingGood() {
-  const [index, setIndex] = useState(0);
+  const [mode, setMode] = useState<Mode>("start");
+  const [line, setLine] = useState("");
+  const [phase, setPhase] = useState<SgPhase | null>(null);
+  const [question, setQuestion] = useState("");
   const [words, setWords] = useState("");
   const [voice, setVoice] = useState(true);
-  const [phase, setPhase] = useState<Phase>("intro");
-  const [breathLine, setBreathLine] = useState("");
-  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [listening, setListening] = useState(false);
+  const [canListen, setCanListen] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [error, setError] = useState("");
   const voiceRef = useRef(voice);
   const runRef = useRef(0);
-  const step = STEPS[index];
-  const thankYou = sgThankYou(words);
+  const recRef = useRef<Recognizer | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   voiceRef.current = voice;
 
-  /** Speak one line and resolve when it has been said (or would have been, with voice off). */
-  const say = (text: string, rate: number, run: number) =>
+  useEffect(() => {
+    setCanListen(Boolean(recognizerCtor()));
+    return () => {
+      runRef.current += 1;
+      if (hasVoice()) window.speechSynthesis.cancel();
+      recRef.current?.stop();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "start") headingRef.current?.focus();
+  }, [mode]);
+
+  const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+
+  const say = (text: string, rate: SgRate, run: number) =>
     new Promise<void>((resolve) => {
       if (runRef.current !== run) return resolve();
       if (!voiceRef.current || !hasVoice()) {
-        window.setTimeout(resolve, 900);
+        window.setTimeout(resolve, Math.max(1200, text.length * 55));
         return;
       }
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = rate;
+      const u = new SpeechSynthesisUtterance(text.replace(/…/g, "..."));
+      u.rate = RATE[rate] ?? 0.75;
       let done = false;
       const finish = () => {
         if (done) return;
@@ -81,91 +82,114 @@ export default function SomethingGood() {
       };
       u.onend = finish;
       u.onerror = finish;
-      // Some browsers never fire onend; never let the walk-through stall.
-      window.setTimeout(finish, Math.max(2500, (text.length * 110) / rate));
+      window.setTimeout(finish, Math.max(2500, (text.length * 110) / u.rate));
       window.speechSynthesis.speak(u);
     });
 
-  const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
-
-  /** Wait until at least `ms` has passed since `since`. */
-  const fill = (since: number, ms: number) => wait(Math.max(0, ms - (performance.now() - since)));
-
-  const speakAll = async (lines: string[], run: number) => {
-    for (const line of lines) {
-      if (runRef.current !== run) return;
-      await say(line, NORMAL_RATE, run);
-      await wait(500);
+  /** Play the server's steps: each line at its own pace, then its silence. */
+  const play = async (steps: SgStep[], run: number) => {
+    for (const step of steps) {
+      if (runRef.current !== run) return false;
+      setLine(step.text);
+      setPhase(step.phase ?? null);
+      await say(step.text, step.rate, run);
+      if (runRef.current !== run) return false;
+      await wait(step.pauseMs);
     }
+    return runRef.current === run;
   };
 
-  const breathe = async (intro: string, reps: number, run: number) => {
-    const live = () => runRef.current === run;
-    setPhase("intro");
-    setBreathLine(intro);
-    await say(intro, SLOW_RATE, run);
-    await wait(1200);
-    for (let i = 0; i < reps && live(); i += 1) {
-      let since = performance.now();
-      setPhase("in");
-      setBreathLine(SG_BREATH_IN);
-      await say(SG_BREATH_IN, SLOW_RATE, run);
-      await fill(since, SG_BREATH_MS.in);
-      if (!live()) return;
-
-      since = performance.now();
-      setPhase("hold");
-      setBreathLine(SG_BREATH_HOLD);
-      await say(SG_BREATH_HOLD, SLOW_RATE, run);
-      await fill(since, SG_BREATH_MS.hold);
-      if (!live()) return;
-
-      since = performance.now();
-      setPhase("out");
-      setBreathLine(`${SG_BREATH_RELEASE} ${SG_BREATH_LET_GO}`);
-      await say(SG_BREATH_RELEASE, VERY_SLOW_RATE, run);
-      await wait(1500);
-      await say(SG_BREATH_LET_GO, VERY_SLOW_RATE, run);
-      await fill(since, SG_BREATH_MS.out);
-      if (!live()) return;
-      await wait(1000);
-    }
-    if (live()) setPhase("done");
+  const fail = (e: unknown) => {
+    setError(e instanceof Error ? e.message : "Something went wrong");
+    setMode("error");
   };
 
-  useEffect(() => {
-    runRef.current += 1;
-    const run = runRef.current;
-    if (hasVoice()) window.speechSynthesis.cancel();
-
-    if (step.kind === "say") void speakAll([step.text], run);
-    if (step.kind === "breath") void breathe(step.intro, step.reps, run);
-    if (step.kind === "ask") void speakAll([SG_TAKE_TIME, SG_QUESTION], run);
-    if (step.kind === "thanks") void speakAll([thankYou, "Say it with me.", thankYou], run);
-    if (step.kind === "close") void speakAll([SG_CLOSE], run);
-    if (index > 0) headingRef.current?.focus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
-
-  useEffect(
-    () => () => {
-      runRef.current += 1;
-      if (hasVoice()) window.speechSynthesis.cancel();
-    },
-    [],
-  );
-
-  const next = () => setIndex((i) => Math.min(i + 1, STEPS.length - 1));
-  const restart = () => {
+  const begin = async () => {
+    // Unlock speech inside the tap itself; some phones block speech that starts after a network wait.
+    if (voiceRef.current && hasVoice()) {
+      window.speechSynthesis.cancel();
+      const unlock = new SpeechSynthesisUtterance(" ");
+      unlock.volume = 0;
+      window.speechSynthesis.speak(unlock);
+    }
+    const run = ++runRef.current;
     setWords("");
-    setIndex(0);
+    setTyping(false);
+    setMode("loading");
+    try {
+      const session = await sgStart();
+      if (runRef.current !== run) return;
+      setMode("playing");
+      if (!(await play(session.steps, run))) return;
+      setQuestion(session.steps[session.steps.length - 1]?.text ?? "");
+      setPhase(null);
+      setMode("listen");
+    } catch (e) {
+      fail(e);
+    }
   };
+
+  const finish = async () => {
+    recRef.current?.stop();
+    const run = ++runRef.current;
+    setMode("loading");
+    try {
+      const session = await sgFinish(words.trim() || "what you named");
+      if (runRef.current !== run) return;
+      setMode("playing");
+      if (!(await play(session.steps, run))) return;
+      setPhase(null);
+      setMode("done");
+    } catch (e) {
+      fail(e);
+    }
+  };
+
+  const toggleListen = () => {
+    if (listening) {
+      recRef.current?.stop();
+      return;
+    }
+    const Ctor = recognizerCtor();
+    if (!Ctor) {
+      setTyping(true);
+      return;
+    }
+    if (hasVoice()) window.speechSynthesis.cancel();
+    const rec = new Ctor();
+    rec.lang = navigator.language || "en-US";
+    rec.interimResults = true;
+    rec.continuous = false;
+    const before = words.trim();
+    rec.onresult = (e) => {
+      let heard = "";
+      for (let i = 0; i < e.results.length; i += 1) heard += e.results[i][0].transcript;
+      setWords([before, heard.trim()].filter(Boolean).join(" "));
+    };
+    rec.onerror = (e) => {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        setCanListen(false);
+        setTyping(true);
+      }
+    };
+    rec.onend = () => setListening(false);
+    recRef.current = rec;
+    setListening(true);
+    rec.start();
+  };
+
   const toggleVoice = () => {
     if (voice && hasVoice()) window.speechSynthesis.cancel();
     setVoice((v) => !v);
   };
 
-  if (step.kind === "start") {
+  const restart = () => {
+    runRef.current += 1;
+    if (hasVoice()) window.speechSynthesis.cancel();
+    setMode("start");
+  };
+
+  if (mode === "start") {
     return (
       <>
         <section className="card card--lavender sg-card sg-hero" aria-labelledby="sg-heading">
@@ -180,7 +204,7 @@ export default function SomethingGood() {
         </ul>
         <section className="card sg-support">
           <h2>{SG_SUPPORT}</h2>
-          <button type="button" className="step-next sg-start" onClick={next}>
+          <button type="button" className="step-next sg-start" onClick={begin}>
             {SG_BUTTON}
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -200,79 +224,108 @@ export default function SomethingGood() {
     );
   }
 
-  const continueLabel = step.kind === "ask" ? "That's it" : "Continue";
-  const breathing = step.kind === "breath" && phase !== "done";
-
   return (
     <section className="card card--lavender sg-card" aria-live="polite">
       <button type="button" className="sg-voice" onClick={toggleVoice} aria-pressed={voice}>
         {voice ? "Voice on" : "Voice off"}
       </button>
 
-      {step.kind === "breath" && (
-        <>
-          <div className={`sg-breath sg-breath--${phase}`} aria-hidden="true" />
-          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-            {phase === "done" ? SG_TAKE_TIME : breathLine}
-          </h2>
-        </>
-      )}
-
-      {step.kind === "say" && (
+      {mode === "loading" && (
         <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-          {step.text}
+          One moment…
         </h2>
       )}
 
-      {step.kind === "ask" && (
+      {mode === "playing" && (
         <>
-          <p className="sg-small">{SG_TAKE_TIME}</p>
+          <div className={`sg-breath sg-breath--${phase ?? "rest"}`} aria-hidden="true" />
           <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-            {SG_QUESTION}
+            {line}
           </h2>
-          <label className="sg-label" htmlFor="sg-words">
-            In your own words
-          </label>
-          <textarea
-            id="sg-words"
-            className="sg-words"
-            rows={3}
-            value={words}
-            onChange={(e) => setWords(e.target.value)}
-            placeholder="My money worries"
-          />
         </>
       )}
 
-      {step.kind === "thanks" && (
+      {mode === "listen" && (
         <>
           <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-            {thankYou}
+            {question}
           </h2>
-          <p className="sg-small">Say it with me.</p>
-          <p className="sg-line sg-line--echo">{thankYou}</p>
+
+          {canListen && !typing && (
+            <div className="sg-listen">
+              <button
+                type="button"
+                className={`sg-mic${listening ? " is-listening" : ""}`}
+                onClick={toggleListen}
+                aria-pressed={listening}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a7 7 0 0 0 14 0M12 19v3"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>{listening ? "Listening… tap when done" : words ? "Tap to add more" : "Tap and tell me"}</span>
+              </button>
+            </div>
+          )}
+
+          {words && !typing && <p className="sg-heard">“{words}”</p>}
+
+          {(typing || !canListen) && (
+            <>
+              <label className="sg-label" htmlFor="sg-words">
+                In your own words
+              </label>
+              <textarea
+                id="sg-words"
+                className="sg-words"
+                rows={3}
+                value={words}
+                onChange={(e) => setWords(e.target.value)}
+                placeholder="My money worries"
+              />
+            </>
+          )}
+
+          <button type="button" className="step-next sg-go" onClick={finish} disabled={listening || !words.trim()}>
+            That&apos;s it
+          </button>
+
+          {canListen && (
+            <button type="button" className="sg-link" onClick={() => setTyping((t) => !t)}>
+              {typing ? "Speak instead" : "Prefer to type?"}
+            </button>
+          )}
+          <p className="sg-small">We don&apos;t save your words.</p>
         </>
       )}
 
-      {step.kind === "close" && (
-        <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-          {SG_CLOSE}
-        </h2>
+      {mode === "done" && (
+        <>
+          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
+            {line}
+          </h2>
+          <button type="button" className="step-next step-soft sg-go" onClick={restart}>
+            Start again
+          </button>
+        </>
       )}
 
-      {step.kind === "close" ? (
-        <button type="button" className="step-next step-soft sg-go" onClick={restart}>
-          Start again
-        </button>
-      ) : breathing ? null : (
-        <button
-          type="button"
-          className="step-next sg-go"
-          onClick={next}
-          disabled={step.kind === "ask" && !words.trim()}
-        >
-          {continueLabel}
-        </button>
+      {mode === "error" && (
+        <>
+          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
+            Something Good couldn&apos;t connect just now.
+          </h2>
+          <p className="sg-small">{error}</p>
+          <button type="button" className="step-next sg-go" onClick={begin}>
+            Try again
+          </button>
+        </>
       )}
     </section>
   );
