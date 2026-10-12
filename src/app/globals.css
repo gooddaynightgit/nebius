@@ -4789,3 +4789,11 @@ body:has(.sg-page) {
 @media (prefers-reduced-motion: reduce) {
   .sg-mic.is-listening svg { animation: none; outline: 4px solid var(--navy); }
 }
+
+/* Editable transcript keeps the spoken-words look */
+textarea.sg-heard {
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.4;
+}

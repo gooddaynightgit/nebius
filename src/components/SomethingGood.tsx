@@ -325,7 +325,21 @@ export default function SomethingGood() {
             </div>
           )}
 
-          {words && !typing && <p className="sg-heard">“{words}”</p>}
+          {words && !typing && !listening && (
+            <>
+              <label className="sg-label" htmlFor="sg-heard">
+                Tap the words to fix anything
+              </label>
+              <textarea
+                id="sg-heard"
+                className="sg-words sg-heard"
+                rows={Math.min(6, Math.max(2, Math.ceil(words.length / 28)))}
+                value={words}
+                onChange={(e) => setWords(e.target.value)}
+              />
+            </>
+          )}
+          {words && !typing && listening && <p className="sg-heard">“{words}”</p>}
 
           {(typing || !canListen) && (
             <>
@@ -344,7 +358,7 @@ export default function SomethingGood() {
           )}
 
           <button type="button" className="step-next sg-go" onClick={finish} disabled={listening || !words.trim()}>
-            That&apos;s it
+            End your conversation
           </button>
 
           {canListen && (
@@ -352,7 +366,7 @@ export default function SomethingGood() {
               {typing ? "Speak instead" : "Prefer to type?"}
             </button>
           )}
-          <p className="sg-small">We don&apos;t save your words.</p>
+          <p className="sg-small">Your words are not saved.</p>
         </>
       )}
 
