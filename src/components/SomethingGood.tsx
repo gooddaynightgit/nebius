@@ -13,10 +13,6 @@ const PERFECT_PLACEHOLDER = "I am living in my own home…\nI have the money to�
 
 const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream", "card--lavender"] as const;
 const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
-/** Quiet this long after speaking means they've finished. */
-const SILENCE_MS = 6000;
-/** How long to wait for the first words before giving up. */
-const FIRST_WORDS_MS = 15000;
 
 // Minimal Web Speech API types (not in every TS DOM lib).
 type RecResult = { 0: { transcript: string }; isFinal: boolean };
@@ -186,12 +182,6 @@ export default function SomethingGood() {
     recRef.current?.stop();
   };
 
-  /** After someone has spoken, a few seconds of quiet means they've finished. */
-  const armSilence = () => {
-    if (silenceRef.current) window.clearTimeout(silenceRef.current);
-    silenceRef.current = window.setTimeout(stopListening, SILENCE_MS);
-  };
-
   const startRecognizer = () => {
     const Ctor = recognizerCtor();
     if (!Ctor) return;
@@ -210,7 +200,6 @@ export default function SomethingGood() {
       const kept = collapseRepeats(mergeSpeech(sessionRef.current, heard));
       sessionRef.current = kept;
       setWords(kept);
-      armSilence();
     };
     rec.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
@@ -245,9 +234,7 @@ export default function SomethingGood() {
     sessionRef.current = baseRef.current;
     wantListenRef.current = true;
     setListening(true);
-    // Give them time to begin; the silence timer only shortens once they've spoken.
-    if (silenceRef.current) window.clearTimeout(silenceRef.current);
-    silenceRef.current = window.setTimeout(stopListening, FIRST_WORDS_MS);
+    // No automatic stop: pauses are fine. It listens until they tap the mic again.
     startRecognizer();
   };
 
@@ -447,7 +434,7 @@ export default function SomethingGood() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>{listening ? "Listening… take your time" : words ? "Tap to add more" : "Tap and tell me"}</span>
+                <span>{listening ? "Listening… tap when you've finished" : words ? "Tap to add more" : "Tap and tell me"}</span>
               </button>
             </div>
           )}
