@@ -65,13 +65,22 @@ export const SG_FAQ_PATH = "/something-good/faq";
 export const isSgPath = (pathname: string | null | undefined) =>
   pathname === SG_PATH || Boolean(pathname?.startsWith(`${SG_PATH}/`));
 
-/** Menu rows on every Something Good page. */
-export const SG_MENU = [
-  { kind: "link" as const, label: "How it works", href: SG_HOW_PATH },
-  { kind: "link" as const, label: "FAQ", href: SG_FAQ_PATH },
-  { kind: "link" as const, label: "Start Something Good", href: SG_PATH },
-  { kind: "link" as const, label: "GoodDayNight home", href: "/" },
-];
+export const SG_EXAMPLE_PATH = "/something-good/example";
+
+/** On Something Good pages the usual guide links point to the Something Good versions. */
+export const SG_GUIDE_SWAP: Record<string, string> = {
+  "/how-it-works": SG_HOW_PATH,
+  "/example": SG_EXAMPLE_PATH,
+  "/faq": SG_FAQ_PATH,
+};
+
+/** One worked example, start to finish. */
+export const SG_EXAMPLE = {
+  chose: "A situation",
+  notGrateful: "Renting a tiny flat I can't really afford, and never feeling settled.",
+  perfect: "I am living in my own home.\nI have the money to pay for it with ease.\nI am happy & grateful I have a garden.",
+  card: "Thank you. I am living in my own home. I have the money to pay for it with ease. I am happy & grateful I have a garden. Something good is about to happen.",
+};
 
 export const SG_HOW_STEPS: { title: string; body: string }[] = [
   {
