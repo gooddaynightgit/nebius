@@ -25,7 +25,8 @@ function emailOk(raw: string): boolean {
   return email.length > 3 && email.length < 254 && EMAIL_RE.test(email);
 }
 
-export default function SignInForm() {
+/** `onVerified` lets another page (Something Good) carry on in place instead of redirecting. */
+export default function SignInForm({ onVerified }: { onVerified?: () => void } = {}) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [note, setNote] = useState<string | null>(null);
@@ -84,6 +85,10 @@ export default function SignInForm() {
       const attempt = authAttempt(data, res.ok, VERIFY_FAIL);
       if (!attempt.accepted) {
         setNote(attempt.note);
+        return;
+      }
+      if (onVerified) {
+        onVerified();
         return;
       }
       window.location.assign(followVerifiedLogin(data.next));

@@ -92,3 +92,12 @@ export function sgCountry(): string | undefined {
   const region = navigator.language?.split("-")[1];
   return region ? region.toUpperCase() : undefined;
 }
+
+export type SgSpelling = { corrected: string; changed: boolean; fixes: { from: string; to: string }[] };
+
+/** Spelling suggestions from the Something Good server. Never applied without the person's yes. */
+export async function sgSpell(text: string): Promise<SgSpelling> {
+  await ensureInitialized();
+  const result = await rpc("tools/call", { name: "suggest_spelling", arguments: { text } });
+  return result.structuredContent as SgSpelling;
+}

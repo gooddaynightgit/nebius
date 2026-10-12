@@ -5227,3 +5227,13 @@ textarea.sg-heard {
 .sg-page .sg-rec__btn--plain {
   background: transparent;
 }
+
+/* Sign-in inside the Something Good card */
+.sg-page .sg-signin {
+  position: relative;
+  z-index: 1;
+}
+
+.sg-page .sg-signin .moments-buy {
+  margin: 0;
+}

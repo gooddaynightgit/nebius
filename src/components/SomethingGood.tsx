@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import HappyBubble from "@/components/HappyBubble";
+import SignInForm from "@/components/SignInForm";
 import { SG_BUTTON, SG_CHOOSE_FIRST, SG_HEADLINE, SG_OPTIONS, SG_SUPPORT, type SgFocus } from "@/lib/something-good";
 import { collapseRepeats, mergeSpeech } from "@/lib/speech-merge";
 import {
   sgCheck,
   sgCountry,
+  sgSpell,
   sgFinish,
   sgStart,
   type SgCheck,
@@ -15,7 +17,7 @@ import {
   type SgStep,
 } from "@/lib/something-good-mcp";
 
-type Mode = "start" | "loading" | "playing" | "listen" | "done" | "error";
+type Mode = "start" | "loading" | "playing" | "signin" | "listen" | "done" | "error";
 
 /** Example lines shown in the empty "My perfect result" box. */
 const PERFECT_PLACEHOLDER = "I am living in my own home…\nI have the money to…\nI am happy & grateful I have…";
@@ -66,6 +68,8 @@ export default function SomethingGood() {
   const [check, setCheck] = useState<(SgCheck & { text: string }) | null>(null);
   const [spell, setSpell] = useState<{ text: string; corrected: string } | null>(null);
   const keptRef = useRef<Set<string>>(new Set());
+  /** One play is spent per ritual, after the welcome and before the breath. */
+  const spentRef = useRef(false);
   const countryRef = useRef<string | undefined>(undefined);
   const voiceRef = useRef(true);
   const openingRef = useRef<SgStep[]>([]);
@@ -124,13 +128,8 @@ export default function SomethingGood() {
     }
     let live = true;
     const t = window.setTimeout(() => {
-      fetch("/api/spellfix", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((r: { corrected?: string; changed?: boolean } | null) => {
+      sgSpell(text)
+        .then((r) => {
           if (!live) return;
           const corrected = r?.corrected?.trim();
           setSpell(r?.changed && corrected && corrected !== text ? { text, corrected } : null);
@@ -171,6 +170,44 @@ export default function SomethingGood() {
       window.speechSynthesis.speak(u);
     });
 
+  /**
+   * After the welcome: signed in with plays left -> spend one and carry on.
+   * Not signed in -> email code sign-in. No plays left -> the purchase page.
+   */
+  const gate = async (): Promise<boolean> => {
+    if (spentRef.current) return true;
+    try {
+      const res = await fetch("/api/something-good/spend", { method: "POST", credentials: "same-origin" });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; signIn?: boolean; buy?: boolean; href?: string; error?: string };
+      if (data.ok) {
+        spentRef.current = true;
+        return true;
+      }
+      if (data.signIn) {
+        runRef.current += 1;
+        setSpeaking(false);
+        setPhase(null);
+        setMode("signin");
+        return false;
+      }
+      if (data.buy) {
+        window.location.assign(data.href ?? "/moments");
+        return false;
+      }
+      throw new Error(data.error ?? "We couldn't check your plays right now.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "We couldn't check your plays right now.");
+      setMode("error");
+      return false;
+    }
+  };
+
+  /** Back from sign-in: spend the play and carry on with the breath. */
+  const afterSignIn = async () => {
+    setMode("loading");
+    if (await gate()) void playFrom("opening", 1);
+  };
+
   /** Play from step `from` onward: each line at its own pace, then its silence. */
   const playFrom = async (which: "opening" | "closing", from: number) => {
     const steps = which === "opening" ? openingRef.current : closingRef.current;
@@ -198,6 +235,10 @@ export default function SomethingGood() {
       }
       if (runRef.current !== run) return;
       await wait(step.pauseMs);
+      if (which === "opening" && i === 0 && !spentRef.current) {
+        if (!(await gate())) return;
+        if (runRef.current !== run) return;
+      }
     }
     if (runRef.current !== run) return;
     setSpeaking(false);
@@ -358,6 +399,13 @@ export default function SomethingGood() {
   const goNext = () => {
     const steps = stage === "opening" ? openingRef.current : closingRef.current;
     if (speaking || mode === "playing") {
+      if (stage === "opening" && index === 0 && !spentRef.current) {
+        cancelSpeech();
+        void (async () => {
+          if (await gate()) void playFrom("opening", 1);
+        })();
+        return;
+      }
       if (index < steps.length - 1) {
         void playFrom(stage, index + 1);
         return;
@@ -379,6 +427,7 @@ export default function SomethingGood() {
     mode === "playing" || speaking || (mode === "listen" && canFinish);
 
   const restart = () => {
+    spentRef.current = false;
     stopListening();
     runRef.current += 1;
     if (hasVoice()) window.speechSynthesis.cancel();
@@ -479,6 +528,18 @@ export default function SomethingGood() {
             {line}
           </h2>
           {paused && <p className="sg-small">Paused. Tap Next to carry on, or Prev to go back.</p>}
+        </>
+      )}
+
+      {mode === "signin" && (
+        <>
+          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
+            Sign in to carry on
+          </h2>
+          <p className="sg-help">Enter your email and we&apos;ll send you a 6-digit code. No password needed.</p>
+          <div className="sg-signin">
+            <SignInForm onVerified={() => void afterSignIn()} />
+          </div>
         </>
       )}
 
