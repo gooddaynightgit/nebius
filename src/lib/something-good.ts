@@ -127,7 +127,7 @@ export const SG_FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Are my words saved?",
-    a: "No. Your words are only used to show your closing card, and aren't stored. If you use the mic, your phone's own speech service turns your voice into text.",
+    a: "No. Your words aren't stored. They're only used to check spelling and kindness, and to show your closing card. If you use the mic, your phone's own speech service turns your voice into text.",
   },
   {
     q: "Why won't it let me finish?",
@@ -142,3 +142,52 @@ export const SG_FAQ: { q: string; a: string }[] = [
     a: "Something Good is being built for Alexa+, so you can do the whole ritual by voice. The web version here works on any phone.",
   },
 ];
+
+const SITE = "https://gooddaynight.com";
+
+/** Structured data (schema.org) so search engines and AI assistants understand Something Good. */
+export function sgAppJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Something Good",
+    alternateName: SG_HEADLINE,
+    url: `${SITE}${SG_PATH}`,
+    description: SG_DESCRIPTION,
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "Any (web browser); Alexa+",
+    inLanguage: "en",
+    publisher: { "@type": "Organization", name: "GoodDayNight", url: SITE },
+  };
+}
+
+export function sgFaqJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: SG_FAQ.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+}
+
+export function sgHowToJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: "How Something Good works",
+    description: SG_HOW_NOTE,
+    totalTime: "PT2M",
+    step: SG_HOW_STEPS.map((step, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: step.title,
+      text: step.body,
+    })),
+  };
+}
+
+/** Safe to drop into a <script type="application/ld+json">. */
+export const jsonLdHtml = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c");

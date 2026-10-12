@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SomethingGood from "@/components/SomethingGood";
-import { SG_DESCRIPTION, SG_HEADLINE, SG_PATH } from "@/lib/something-good";
+import { SG_DESCRIPTION, SG_HEADLINE, SG_PATH, sgAppJsonLd, jsonLdHtml } from "@/lib/something-good";
 
 const TITLE = `Something Good · ${SG_HEADLINE}`;
 
@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 export default function SomethingGoodPage() {
   return (
     <div className="page guide-page sg-page">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(sgAppJsonLd()) }} />
       <header className="site-header">
         <Link className="badge" href="/">
           GoodDayNight
