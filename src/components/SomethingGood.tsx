@@ -116,7 +116,15 @@ export default function SomethingGood() {
       setIndex(i);
       setLine(step.text);
       setPhase(step.phase ?? null);
-      await say(step.text, step.rate, run);
+      if (step.speak?.length) {
+        for (let p = 0; p < step.speak.length; p += 1) {
+          if (runRef.current !== run) return;
+          await say(step.speak[p], step.rate, run);
+          if (p < step.speak.length - 1) await wait(step.speakPauseMs ?? 1500);
+        }
+      } else {
+        await say(step.text, step.rate, run);
+      }
       if (runRef.current !== run) return;
       await wait(step.pauseMs);
     }
@@ -360,7 +368,10 @@ export default function SomethingGood() {
     );
   }
 
+  const lastScreen = mode === "done" || (mode === "playing" && stage === "closing");
+
   return (
+    <>
     <section className="card card--lavender sg-card" aria-live="polite">
       <nav className="sg-top" aria-label="Conversation controls">
         <button type="button" className="sg-ctl" onClick={goPrev} disabled={!canPrev} aria-label="Previous">
@@ -518,5 +529,7 @@ export default function SomethingGood() {
         </>
       )}
     </section>
+    {lastScreen && <HappyBubble text="Something good is about to happen!" />}
+    </>
   );
 }
