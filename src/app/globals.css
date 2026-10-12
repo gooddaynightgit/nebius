@@ -4672,3 +4672,8 @@ body:has(.guide-page) {
 body:has(.sg-page) {
   padding-bottom: calc(2.75rem + 0.5rem + 3.25rem + 1.5rem + env(safe-area-inset-bottom));
 }
+
+/* Blank room under the last block so it scrolls clear of Start and the menu. */
+.sg-spacer {
+  height: calc(10rem + env(safe-area-inset-bottom));
+}

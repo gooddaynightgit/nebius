@@ -94,6 +94,7 @@ export default function SomethingGood() {
         <section className="card sg-support">
           <h2>{SG_SUPPORT}</h2>
         </section>
+        <div className="sg-spacer" aria-hidden="true" />
         <nav className="guide-cta">
           <button type="button" className="step-next step-pin" onClick={next}>
             {SG_BUTTON}
