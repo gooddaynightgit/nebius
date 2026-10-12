@@ -5187,3 +5187,43 @@ textarea.sg-heard {
   justify-self: end;
   align-self: start;
 }
+
+/* Spelling suggestion: only applied when they say yes */
+.sg-page .sg-spell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  border: 2px dashed var(--navy);
+  border-radius: 0.9rem;
+  background: #fff;
+  color: var(--navy);
+}
+
+.sg-page .sg-spell p {
+  margin: 0;
+}
+
+.sg-page .sg-spell__label {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.sg-page .sg-spell__text {
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.sg-page .sg-spell__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sg-page .sg-rec__btn--plain {
+  background: transparent;
+}

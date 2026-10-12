@@ -64,6 +64,8 @@ export default function SomethingGood() {
   const [canListen, setCanListen] = useState(false);
   const [error, setError] = useState("");
   const [check, setCheck] = useState<(SgCheck & { text: string }) | null>(null);
+  const [spell, setSpell] = useState<{ text: string; corrected: string } | null>(null);
+  const keptRef = useRef<Set<string>>(new Set());
   const countryRef = useRef<string | undefined>(undefined);
   const voiceRef = useRef(true);
   const openingRef = useRef<SgStep[]>([]);
@@ -111,6 +113,37 @@ export default function SomethingGood() {
       window.clearTimeout(t);
     };
   }, [words, mode, listening]);
+
+  // Offer a spelling fix once they pause; nothing changes unless they say yes.
+  useEffect(() => {
+    if (mode !== "listen" || listening) return;
+    const text = words.trim();
+    if (text.length < 8 || keptRef.current.has(text)) {
+      setSpell(null);
+      return;
+    }
+    let live = true;
+    const t = window.setTimeout(() => {
+      fetch("/api/spellfix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((r: { corrected?: string; changed?: boolean } | null) => {
+          if (!live) return;
+          const corrected = r?.corrected?.trim();
+          setSpell(r?.changed && corrected && corrected !== text ? { text, corrected } : null);
+        })
+        .catch(() => live && setSpell(null));
+    }, 1200);
+    return () => {
+      live = false;
+      window.clearTimeout(t);
+    };
+  }, [words, mode, listening]);
+
+  const spelling = spell && spell.text === words.trim() ? spell : null;
 
   const checked = check && check.text === words.trim() ? check : null;
   const canFinish = Boolean(words.trim()) && !listening && Boolean(checked?.ok);
@@ -473,6 +506,35 @@ export default function SomethingGood() {
               <span className={`sg-count${words.trim().length > 300 ? " is-over" : ""}`}> {words.trim().length} / 300</span>
             )}
           </p>
+
+          {spelling && checked?.status !== "crisis" && (
+            <div className="sg-spell" role="status">
+              <p className="sg-spell__label">Did you mean:</p>
+              <p className="sg-spell__text">{spelling.corrected}</p>
+              <div className="sg-spell__actions">
+                <button
+                  type="button"
+                  className="sg-rec__btn"
+                  onClick={() => {
+                    setWords(spelling.corrected);
+                    setSpell(null);
+                  }}
+                >
+                  Yes, fix it
+                </button>
+                <button
+                  type="button"
+                  className="sg-rec__btn sg-rec__btn--plain"
+                  onClick={() => {
+                    keptRef.current.add(spelling.text);
+                    setSpell(null);
+                  }}
+                >
+                  Keep mine
+                </button>
+              </div>
+            </div>
+          )}
 
           {checked && checked.status !== "ok" && checked.status !== "crisis" && (
             <p className={`sg-nudge${checked.status === "block" ? " is-block" : ""}`} role="status">
