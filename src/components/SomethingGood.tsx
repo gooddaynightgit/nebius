@@ -3,12 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import HappyBubble from "@/components/HappyBubble";
 import { SG_BLOCKS, SG_BUTTON, SG_HEADLINE, SG_SUPPORT } from "@/lib/something-good";
+import { cleanSpeech } from "@/lib/speech-merge";
 import { sgFinish, sgStart, type SgPhase, type SgRate, type SgStep } from "@/lib/something-good-mcp";
 
 type Mode = "start" | "loading" | "playing" | "listen" | "done" | "error";
 
 const BLOCK_TONES = ["card--mint", "card--peach", "card--cyan", "card--cream"] as const;
 const RATE: Record<SgRate, number> = { medium: 0.9, slow: 0.75, "x-slow": 0.5 };
+/** Quiet this long after speaking means they've finished. */
+const SILENCE_MS = 4000;
+/** How long to wait for the first words before giving up. */
+const FIRST_WORDS_MS = 15000;
 
 // Minimal Web Speech API types (not in every TS DOM lib).
 type RecResult = { 0: { transcript: string }; isFinal: boolean };
@@ -46,6 +51,10 @@ export default function SomethingGood() {
   const voiceRef = useRef(voice);
   const runRef = useRef(0);
   const recRef = useRef<Recognizer | null>(null);
+  const wantListenRef = useRef(false);
+  const silenceRef = useRef<number | null>(null);
+  const baseRef = useRef("");
+  const sessionRef = useRef("");
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   voiceRef.current = voice;
@@ -55,6 +64,8 @@ export default function SomethingGood() {
     return () => {
       runRef.current += 1;
       if (hasVoice()) window.speechSynthesis.cancel();
+      wantListenRef.current = false;
+      if (silenceRef.current) window.clearTimeout(silenceRef.current);
       recRef.current?.stop();
     };
   }, []);
@@ -130,7 +141,7 @@ export default function SomethingGood() {
   };
 
   const finish = async () => {
-    recRef.current?.stop();
+    stopListening();
     const run = ++runRef.current;
     setMode("loading");
     try {
@@ -145,37 +156,77 @@ export default function SomethingGood() {
     }
   };
 
-  const toggleListen = () => {
-    if (listening) {
-      recRef.current?.stop();
-      return;
-    }
+  /** Stop listening for good (tap, silence, or moving on). */
+  const stopListening = () => {
+    wantListenRef.current = false;
+    if (silenceRef.current) window.clearTimeout(silenceRef.current);
+    recRef.current?.stop();
+  };
+
+  /** After someone has spoken, a few seconds of quiet means they've finished. */
+  const armSilence = () => {
+    if (silenceRef.current) window.clearTimeout(silenceRef.current);
+    silenceRef.current = window.setTimeout(stopListening, SILENCE_MS);
+  };
+
+  const startRecognizer = () => {
     const Ctor = recognizerCtor();
-    if (!Ctor) {
-      setTyping(true);
-      return;
-    }
-    if (hasVoice()) window.speechSynthesis.cancel();
+    if (!Ctor) return;
     const rec = new Ctor();
     rec.lang = navigator.language || "en-US";
     rec.interimResults = true;
-    rec.continuous = false;
-    const before = words.trim();
+    rec.continuous = true;
+    const base = baseRef.current;
     rec.onresult = (e) => {
-      let heard = "";
-      for (let i = 0; i < e.results.length; i += 1) heard += e.results[i][0].transcript;
-      setWords([before, heard.trim()].filter(Boolean).join(" "));
+      const parts: string[] = [];
+      for (let i = 0; i < e.results.length; i += 1) parts.push(e.results[i][0].transcript);
+      const heard = cleanSpeech(parts, base);
+      sessionRef.current = heard;
+      setWords(heard);
+      armSilence();
     };
     rec.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        wantListenRef.current = false;
         setCanListen(false);
         setTyping(true);
       }
     };
-    rec.onend = () => setListening(false);
+    rec.onend = () => {
+      // Phones end recognition on their own after a pause; carry on until silence or a tap.
+      baseRef.current = sessionRef.current || baseRef.current;
+      if (wantListenRef.current) {
+        try {
+          startRecognizer();
+          return;
+        } catch {
+          wantListenRef.current = false;
+        }
+      }
+      setListening(false);
+    };
     recRef.current = rec;
-    setListening(true);
     rec.start();
+  };
+
+  const toggleListen = () => {
+    if (listening) {
+      stopListening();
+      return;
+    }
+    if (!recognizerCtor()) {
+      setTyping(true);
+      return;
+    }
+    if (hasVoice()) window.speechSynthesis.cancel();
+    baseRef.current = words.trim();
+    sessionRef.current = baseRef.current;
+    wantListenRef.current = true;
+    setListening(true);
+    // Give them time to begin; the silence timer only shortens once they've spoken.
+    if (silenceRef.current) window.clearTimeout(silenceRef.current);
+    silenceRef.current = window.setTimeout(stopListening, FIRST_WORDS_MS);
+    startRecognizer();
   };
 
   const toggleVoice = () => {
@@ -269,7 +320,7 @@ export default function SomethingGood() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>{listening ? "Listening… tap when done" : words ? "Tap to add more" : "Tap and tell me"}</span>
+                <span>{listening ? "Listening… take your time" : words ? "Tap to add more" : "Tap and tell me"}</span>
               </button>
             </div>
           )}
