@@ -118,12 +118,6 @@ export default async function HomePage() {
           <span className="card__wash card__wash--ten" aria-hidden="true"></span>
         </section>
 
-        <section className="card card--summary">
-          <p className="card__body">
-            GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
-          </p>
-        </section>
-
         <nav className="card card--ctas" aria-label={STEP_LABEL.start}>
           <Link className="shape-cta shape-cta--circle" href="/app/joy">
             <span className="shape-cta__core">
@@ -158,6 +152,12 @@ export default async function HomePage() {
             </span>
           </Link>
         </nav>
+
+        <section className="card card--summary">
+          <p className="card__body">
+            GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
+          </p>
+        </section>
 
         <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
           <h2 id="landing-demo-heading" className="landing-demo__heading">
