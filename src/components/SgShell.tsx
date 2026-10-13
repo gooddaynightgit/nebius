@@ -14,7 +14,7 @@ export default function SgShell({ children }: { children: ReactNode }) {
       <main id="main">
         {children}
         <section className="card sg-support">
-          <h2>Support to lead you to something good.</h2>
+          <h2>Ready to turn it around?</h2>
           <Link className="step-next sg-start" href={SG_PATH}>
             Start
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
