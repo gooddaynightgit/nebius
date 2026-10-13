@@ -122,39 +122,42 @@ export default async function HomePage() {
           <p className="card__body">
             GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
           </p>
-          <nav className="home-ctas" aria-label={STEP_LABEL.start}>
-            <Link className="step-next home-cta" href="/app/joy">
-              {STEP_LABEL.start}
-              <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M5 12h13M13 6l6 6-6 6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
-            <p className="home-ctas__or">OR</p>
-            <Link className="step-next home-cta home-cta--sg" href="/something-good">
-              <span className="step-pin__stack">
-                <span className="step-pin__kicker">Name what you&apos;re not grateful for, then</span>
-                <span>Turn it around</span>
-              </span>
-              <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M5 12h13M13 6l6 6-6 6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
-          </nav>
         </section>
+
+        <nav className="card card--ctas" aria-label={STEP_LABEL.start}>
+          <Link className="shape-cta shape-cta--circle" href="/app/joy">
+            <span className="shape-cta__core">
+              <span className="shape-cta__main">{STEP_LABEL.start}</span>
+              <svg className="shape-cta__arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h13M13 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </Link>
+          <p className="card--ctas__or">OR</p>
+          <Link className="shape-cta shape-cta--square" href="/something-good">
+            <span className="shape-cta__core">
+              <span className="shape-cta__kicker">Name what you&apos;re not grateful for, then</span>
+              <span className="shape-cta__main">Turn it around</span>
+              <svg className="shape-cta__arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h13M13 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </Link>
+        </nav>
 
         <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
           <h2 id="landing-demo-heading" className="landing-demo__heading">
