@@ -126,7 +126,10 @@ export default async function HomePage() {
 
         <nav className="step-nav" aria-label={STEP_LABEL.start}>
           <Link className="step-next step-pin step-pin--sg" href="/something-good">
-            Name what you&apos;re not grateful for
+            <span className="step-pin__stack">
+              <span className="step-pin__kicker">Name what you&apos;re not grateful for, then</span>
+              <span>Turn it around</span>
+            </span>
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M5 12h13M13 6l6 6-6 6"
