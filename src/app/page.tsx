@@ -122,39 +122,39 @@ export default async function HomePage() {
           <p className="card__body">
             GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
           </p>
+          <nav className="home-ctas" aria-label={STEP_LABEL.start}>
+            <Link className="step-next home-cta" href="/app/joy">
+              {STEP_LABEL.start}
+              <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h13M13 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+            <p className="home-ctas__or">OR</p>
+            <Link className="step-next home-cta home-cta--sg" href="/something-good">
+              <span className="step-pin__stack">
+                <span className="step-pin__kicker">Name what you&apos;re not grateful for, then</span>
+                <span>Turn it around</span>
+              </span>
+              <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h13M13 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+          </nav>
         </section>
-
-        <nav className="step-nav" aria-label={STEP_LABEL.start}>
-          <Link className="step-next step-pin step-pin--sg" href="/something-good">
-            <span className="step-pin__stack">
-              <span className="step-pin__kicker">Name what you&apos;re not grateful for, then</span>
-              <span>Turn it around</span>
-            </span>
-            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M5 12h13M13 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-          <Link className="step-next step-pin" href="/app/joy">
-            {STEP_LABEL.start}
-            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M5 12h13M13 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-        </nav>
 
         <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
           <h2 id="landing-demo-heading" className="landing-demo__heading">

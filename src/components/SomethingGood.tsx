@@ -53,6 +53,8 @@ function recognizerCtor(): RecognizerCtor | null {
 export default function SomethingGood() {
   const [mode, setMode] = useState<Mode>("start");
   const [line, setLine] = useState("");
+  /** Parts of the current line said with excitement; shown in italics. */
+  const [excited, setExcited] = useState<string[]>([]);
   const [phase, setPhase] = useState<SgPhase | null>(null);
   const [question, setQuestion] = useState("");
   const [words, setWords] = useState("");
@@ -149,7 +151,7 @@ export default function SomethingGood() {
 
   const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
-  const say = (text: string, rate: SgRate, run: number) =>
+  const say = (text: string, rate: SgRate, run: number, lift = false) =>
     new Promise<void>((resolve) => {
       if (runRef.current !== run) return resolve();
       if (!voiceRef.current || !hasVoice()) {
@@ -158,6 +160,7 @@ export default function SomethingGood() {
       }
       const u = new SpeechSynthesisUtterance(text.replace(/…/g, "..."));
       u.rate = RATE[rate] ?? 0.75;
+      if (lift) u.pitch = 1.2;
       let done = false;
       const finish = () => {
         if (done) return;
@@ -223,11 +226,12 @@ export default function SomethingGood() {
       setMode(last ? "listen" : "playing");
       setIndex(i);
       setLine(step.text);
+      setExcited(step.excited ?? []);
       setPhase(step.phase ?? null);
       if (step.speak?.length) {
         for (let p = 0; p < step.speak.length; p += 1) {
           if (runRef.current !== run) return;
-          await say(step.speak[p], step.rate, run);
+          await say(step.speak[p], step.rate, run, Boolean(step.excited?.includes(step.speak[p])));
           if (p < step.speak.length - 1) await wait(step.speakPauseMs ?? 1500);
         }
       } else {
@@ -525,7 +529,11 @@ export default function SomethingGood() {
         <>
           <div className={`sg-breath sg-breath--${phase ?? "rest"}`} aria-hidden="true" />
           <h2 ref={headingRef} tabIndex={-1} className="sg-line">
-            {line}
+            {line.split("\n").map((part, i) => (
+              <span key={i} className={`sg-line__part${excited.includes(part) ? " sg-line__part--excited" : ""}`}>
+                {part}
+              </span>
+            ))}
           </h2>
           {paused && <p className="sg-small">Paused. Tap Next to carry on, or Prev to go back.</p>}
         </>
