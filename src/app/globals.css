@@ -5238,17 +5238,46 @@ textarea.sg-heard {
   margin: 0;
 }
 
-/* Home page: "Name what you're not grateful for" sits just above "Start my gratitude journal" */
-.step-pin.step-pin--sg {
-  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem + 48px + 0.55rem + 3.25rem + 0.6rem);
+/* Home page: both start buttons sit inside the summary card, with a big OR between them */
+.card.card--summary:has(.home-ctas) {
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.home-ctas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.home-cta.step-next {
+  margin: 0;
+  max-width: 100%;
+}
+
+.home-ctas__or {
+  margin: 0;
+  color: var(--navy);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.home-cta.home-cta--sg {
+  padding-top: 0.5rem;
+  padding-bottom: 0.55rem;
   background: var(--lime);
   color: var(--navy);
   border-color: var(--navy);
+  white-space: normal;
 }
 
-.step-pin.step-pin--sg {
-  padding-top: 0.5rem;
-  padding-bottom: 0.55rem;
+.home-cta.home-cta--sg:hover {
+  background: #e4ff4a;
+  color: var(--navy);
 }
 
 .step-pin__stack {
@@ -5266,7 +5295,3 @@ textarea.sg-heard {
   margin-bottom: 0.1rem;
 }
 
-.step-pin.step-pin--sg:hover {
-  background: #e4ff4a;
-  color: var(--navy);
-}
