@@ -4536,6 +4536,18 @@ body:has(.guide-page) {
   outline: none;
 }
 
+.sg-line__part {
+  display: block;
+}
+
+.sg-line__part + .sg-line__part {
+  margin-top: 0.45em;
+}
+
+.sg-line__part--excited {
+  font-style: italic;
+}
+
 .sg-line--echo {
   position: relative;
   z-index: 1;

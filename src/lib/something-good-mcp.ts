@@ -14,6 +14,8 @@ export type SgStep = {
   /** Say only these parts aloud; the card still shows `text`. */
   speak?: string[];
   speakPauseMs?: number;
+  /** Parts said with excitement and shown in italics. */
+  excited?: string[];
 };
 export type SgSession = { steps: SgStep[]; text: string; ssml: string };
 
