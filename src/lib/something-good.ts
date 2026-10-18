@@ -38,6 +38,19 @@ export const SG_BREATH_MS = { in: 4000, hold: 2000, out: 7000 } as const;
 export const SG_QUESTION =
   "Right at this moment, tell me: what challenge or situation are you dealing with? Or is there something you'd like to change, or something missing in your life?";
 
+/** Tap one to begin the perfect result; they finish the sentence in their own words. */
+export const SG_STARTERS = [
+  "I am so happy that",
+  "I have",
+  "I am feeling",
+  "I feel relief knowing",
+  "I feel a sense of accomplishment",
+  "It's awesome that",
+] as const;
+
+export const SG_CONFIRM_YES = "Yes, that's it";
+export const SG_CONFIRM_CHANGE = "Let me change it";
+
 export const SG_BASICS = [
   "First, something simple. A cup of tea, or a warm bed tonight. Thank you for that.",
   "Now a person. Someone who smiled at you, or called. Thank you for them.",
@@ -100,6 +113,10 @@ export const SG_HOW_STEPS: { title: string; body: string }[] = [
     body: "Right now, at this moment in time, turn it around. Say or type your perfect result, as if it's already true: \"I am living in my own home.\"",
   },
   {
+    title: "Make sure it's right",
+    body: "Something Good gently turns it positive and clear, keeping your words, then checks with you: \"Just to clarify: you are fully paid up. Is that right?\"",
+  },
+  {
     title: "Thank you",
     body: "Your perfect result appears in your own words. Thank you. Something good is about to happen.",
   },
@@ -127,11 +144,11 @@ export const SG_FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Are my words saved?",
-    a: "No. Your words aren't stored. They're only used to check spelling and kindness, and to show your closing card. If you use the mic, your phone's own speech service turns your voice into text.",
+    a: "No. Your words aren't stored. They're only used to check spelling and kindness, to turn them positive with Amazon Nova on Amazon Bedrock, and to show your closing card. If you use the mic, your phone's own speech service turns your voice into text.",
   },
   {
     q: "Why won't it let me finish?",
-    a: "Your perfect result needs a few kind, clear words, like \"I have my own home\". If something needs changing, a gentle note under the box tells you what.",
+    a: "Your perfect result needs a few kind, clear, positive words that make a whole sentence, like \"I have my own home\". If something needs changing, a gentle note under the box tells you what. You can tap a starter like \"I have…\" and finish it in your own words.",
   },
   {
     q: "What if I'm really struggling?",

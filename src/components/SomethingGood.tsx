@@ -3,7 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import HappyBubble from "@/components/HappyBubble";
 import SignInForm from "@/components/SignInForm";
-import { SG_BUTTON, SG_CHOOSE_FIRST, SG_HEADLINE, SG_OPTIONS, SG_SUPPORT, type SgFocus } from "@/lib/something-good";
+import {
+  SG_BUTTON,
+  SG_CHOOSE_FIRST,
+  SG_CONFIRM_CHANGE,
+  SG_CONFIRM_YES,
+  SG_HEADLINE,
+  SG_OPTIONS,
+  SG_STARTERS,
+  SG_SUPPORT,
+  type SgFocus,
+} from "@/lib/something-good";
 import { collapseRepeats, mergeSpeech } from "@/lib/speech-merge";
 import {
   sgCheck,
@@ -11,13 +21,14 @@ import {
   sgSpell,
   sgFinish,
   sgStart,
+  sgTurnAround,
   type SgCheck,
   type SgPhase,
   type SgRate,
   type SgStep,
 } from "@/lib/something-good-mcp";
 
-type Mode = "start" | "loading" | "playing" | "signin" | "listen" | "done" | "error";
+type Mode = "start" | "loading" | "playing" | "signin" | "listen" | "confirm" | "done" | "error";
 
 /** Example lines shown in the empty "My perfect result" box. */
 const PERFECT_PLACEHOLDER = "I am living in my own home…\nI have the money to…\nI am happy & grateful I have…";
@@ -69,6 +80,11 @@ export default function SomethingGood() {
   const [error, setError] = useState("");
   const [check, setCheck] = useState<(SgCheck & { text: string }) | null>(null);
   const [spell, setSpell] = useState<{ text: string; corrected: string } | null>(null);
+  /** The positive version to confirm: { result, confirm }, for the words it was made from. */
+  const [turn, setTurn] = useState<{ text: string; result: string; confirm: string } | null>(null);
+  /** What the turn-around said about these exact words (a block or crisis), shown until they edit. */
+  const [turnIssue, setTurnIssue] = useState<(SgCheck & { text: string }) | null>(null);
+  const wordsRef = useRef<HTMLTextAreaElement>(null);
   const keptRef = useRef<Set<string>>(new Set());
   /** One play is spent per ritual, after the welcome and before the breath. */
   const spentRef = useRef(false);
@@ -147,7 +163,10 @@ export default function SomethingGood() {
   const spelling = spell && spell.text === words.trim() ? spell : null;
 
   const checked = check && check.text === words.trim() ? check : null;
-  const canFinish = Boolean(words.trim()) && !listening && Boolean(checked?.ok);
+  const turned = turnIssue && turnIssue.text === words.trim() ? turnIssue : null;
+  /** The note under the box: what the turn-around said, else the live check. */
+  const issue = turned ?? checked;
+  const canFinish = Boolean(words.trim()) && !listening && Boolean(checked?.ok) && !turned;
 
   const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
@@ -285,12 +304,61 @@ export default function SomethingGood() {
     }
   };
 
-  const finish = async () => {
+  /**
+   * Finish tapped: every rule runs, Amazon Nova turns it positive and clear, then we check with them.
+   * A block or crisis goes back to the box with its message; nothing reaches the closing card unconfirmed.
+   */
+  const review = async () => {
+    stopListening();
+    const text = words.trim();
+    if (!text) return;
+    const run = ++runRef.current;
+    setMode("loading");
+    try {
+      const r = await sgTurnAround(text, countryRef.current);
+      if (runRef.current !== run) return;
+      if (r.status === "confirm" && r.result && r.confirm) {
+        setTurn({ text, result: r.result, confirm: r.confirm });
+        setMode("confirm");
+        setSpeaking(true);
+        await say(r.confirm, "slow", run);
+        if (runRef.current === run) setSpeaking(false);
+        return;
+      }
+      setTurnIssue({ status: r.status === "crisis" ? "crisis" : "block", ok: false, message: r.message, maxChars: 300, support: r.support, text });
+      setMode("listen");
+    } catch (e) {
+      fail(e);
+    }
+  };
+
+  /** "Let me change it": back to the box with their own words, ready to edit. */
+  const changeIt = () => {
+    cancelSpeech();
+    setTurn(null);
+    setMode("listen");
+    window.setTimeout(() => wordsRef.current?.focus(), 0);
+  };
+
+  /** Tap a starter: it begins the box (or a new line), and they finish the sentence. */
+  const addStarter = (starter: string) => {
+    const current = words.replace(/\s+$/, "");
+    const next = current ? `${current}\n${starter} ` : `${starter} `;
+    setWords(next);
+    window.setTimeout(() => {
+      const el = wordsRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(next.length, next.length);
+    }, 0);
+  };
+
+  const finish = async (named: string) => {
     stopListening();
     const run = ++runRef.current;
     setMode("loading");
     try {
-      const session = await sgFinish(words.trim() || "what you named", countryRef.current);
+      const session = await sgFinish(named, countryRef.current);
       if (runRef.current !== run) return;
       closingRef.current = session.steps;
       void playFrom("closing", 0);
@@ -395,6 +463,8 @@ export default function SomethingGood() {
         cancelSpeech();
         setMode("listen");
       } else void playFrom("opening", 0);
+    } else if (mode === "confirm") {
+      changeIt();
     } else if (mode === "done") {
       void playFrom("closing", closingRef.current.length - 1);
     }
@@ -402,7 +472,7 @@ export default function SomethingGood() {
 
   const goNext = () => {
     const steps = stage === "opening" ? openingRef.current : closingRef.current;
-    if (speaking || mode === "playing") {
+    if (mode !== "confirm" && (speaking || mode === "playing")) {
       if (stage === "opening" && index === 0 && !spentRef.current) {
         cancelSpeech();
         void (async () => {
@@ -423,12 +493,13 @@ export default function SomethingGood() {
       setMode("done");
       return;
     }
-    if (mode === "listen" && canFinish) void finish();
+    if (mode === "listen" && canFinish) void review();
+    if (mode === "confirm" && turn) void finish(turn.result);
   };
 
-  const canPrev = mode === "playing" || mode === "listen" || mode === "done";
+  const canPrev = mode === "playing" || mode === "listen" || mode === "confirm" || mode === "done";
   const canNext =
-    mode === "playing" || speaking || (mode === "listen" && canFinish);
+    (mode === "playing" || speaking || (mode === "listen" && canFinish) || mode === "confirm") && !(mode === "confirm" && !turn);
 
   const restart = () => {
     spentRef.current = false;
@@ -559,7 +630,16 @@ export default function SomethingGood() {
 
           <p className="sg-help">Please type in your perfect result below, or tap the mic to say it.</p>
 
+          <div className="sg-starters" role="group" aria-label="Ways to begin">
+            {SG_STARTERS.map((starter) => (
+              <button key={starter} type="button" className="sg-starter" onClick={() => addStarter(starter)} disabled={listening}>
+                {starter}…
+              </button>
+            ))}
+          </div>
+
           <textarea
+            ref={wordsRef}
             id="sg-words"
             aria-label={question || "Your perfect result"}
             className="sg-words sg-perfect"
@@ -576,7 +656,7 @@ export default function SomethingGood() {
             )}
           </p>
 
-          {spelling && checked?.status !== "crisis" && (
+          {spelling && issue?.status !== "crisis" && (
             <div className="sg-spell" role="status">
               <p className="sg-spell__label">Did you mean:</p>
               <p className="sg-spell__text">{spelling.corrected}</p>
@@ -605,21 +685,21 @@ export default function SomethingGood() {
             </div>
           )}
 
-          {checked && checked.status !== "ok" && checked.status !== "crisis" && (
-            <p className={`sg-nudge${checked.status === "block" ? " is-block" : ""}`} role="status">
-              {checked.message}
+          {issue && issue.status !== "ok" && issue.status !== "crisis" && (
+            <p className={`sg-nudge${issue.status === "block" ? " is-block" : ""}`} role="status">
+              {issue.message}
             </p>
           )}
 
-          {checked?.status === "crisis" && (
+          {issue?.status === "crisis" && (
             <div className="sg-crisis" role="alert">
-              <p>{checked.message}</p>
-              {checked.support?.phone ? (
-                <a className="step-next sg-go" href={`tel:${checked.support.phone.replace(/\s/g, "")}`}>
-                  Call {checked.support.name}: {checked.support.phone}
+              <p>{issue.message}</p>
+              {issue.support?.phone ? (
+                <a className="step-next sg-go" href={`tel:${issue.support.phone.replace(/\s/g, "")}`}>
+                  Call {issue.support.name}: {issue.support.phone}
                 </a>
               ) : null}
-              <a className="sg-link" href={checked.support?.url ?? "https://findahelpline.com"} target="_blank" rel="noopener">
+              <a className="sg-link" href={issue.support?.url ?? "https://findahelpline.com"} target="_blank" rel="noopener">
                 Find a free helpline in your country
               </a>
             </div>
@@ -654,7 +734,7 @@ export default function SomethingGood() {
             </div>
           )}
 
-          <button type="button" className="step-next sg-go" onClick={() => void finish()} disabled={!canFinish}>
+          <button type="button" className="step-next sg-go" onClick={() => void review()} disabled={!canFinish}>
             Finish
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -668,6 +748,32 @@ export default function SomethingGood() {
             </svg>
           </button>
           <p className="sg-small">Your words are not saved.</p>
+        </>
+      )}
+
+      {mode === "confirm" && turn && (
+        <>
+          <h2 ref={headingRef} tabIndex={-1} className="sg-line">
+            {turn.confirm}
+          </h2>
+          <div className="sg-confirm">
+            <button type="button" className="step-next sg-go" onClick={() => void finish(turn.result)}>
+              {SG_CONFIRM_YES}
+              <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h13M13 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button type="button" className="step-next step-soft sg-go" onClick={changeIt}>
+              {SG_CONFIRM_CHANGE}
+            </button>
+          </div>
         </>
       )}
 

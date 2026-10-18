@@ -5066,6 +5066,46 @@ textarea.sg-heard {
   .sg-page .sg-rec__btn.is-listening { animation: none; }
 }
 
+/* Starters above the perfect-result box: tap one, then finish the sentence */
+.sg-page .sg-starters {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sg-page .sg-starter {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.85rem;
+  border: 2px solid var(--navy);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.sg-page .sg-starter:hover,
+.sg-page .sg-starter:focus-visible {
+  background: var(--lime);
+}
+
+.sg-page .sg-starter:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Confirm screen: "Just to clarify: you … Is that right?" */
+.sg-page .sg-confirm {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.75rem;
+}
+
 /* Gentle nudges, blocks and crisis support under the perfect-result box */
 .sg-page .sg-nudge {
   position: relative;

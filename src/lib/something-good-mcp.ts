@@ -1,6 +1,7 @@
 /** Talks to the Something Good MCP server (github.com/gooddaynightgit/Alexagood) over Streamable HTTP. */
 
-export const SG_MCP_URL = process.env.NEXT_PUBLIC_SG_MCP_URL ?? "https://alexagood.vercel.app/mcp";
+/** The server runs on AWS Lambda (us-east-1), with Amazon Nova on Bedrock for the positive turn-around. */
+export const SG_MCP_URL = "https://f5e5ck6oyxwydwxj2zfasqf2d40lxxwk.lambda-url.us-east-1.on.aws/mcp";
 const PROTOCOL = "2025-11-25";
 
 export type SgRate = "medium" | "slow" | "x-slow";
@@ -102,4 +103,27 @@ export async function sgSpell(text: string): Promise<SgSpelling> {
   await ensureInitialized();
   const result = await rpc("tools/call", { name: "suggest_spelling", arguments: { text } });
   return result.structuredContent as SgSpelling;
+}
+
+export type SgTurn = {
+  status: "confirm" | "block" | "crisis";
+  ok: boolean;
+  message: string;
+  /** For confirm: their perfect result, positive and clear, in the first person. */
+  result?: string;
+  changed?: boolean;
+  /** For confirm: "Just to clarify: you are fully paid up. Is that right?" */
+  confirm?: string;
+  support?: SgCheck["support"];
+};
+
+/** Every rule, then Amazon Nova turns it positive and clear; returns the question to confirm it. */
+export async function sgTurnAround(text: string, country?: string): Promise<SgTurn> {
+  await ensureInitialized();
+  const result = await rpc("tools/call", {
+    name: "turn_around_perfect_result",
+    arguments: { text, ...(country ? { country } : {}) },
+  });
+  if (!result?.structuredContent?.status) throw new Error("Something Good could not check that just now");
+  return result.structuredContent as SgTurn;
 }
