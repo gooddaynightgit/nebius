@@ -117,7 +117,7 @@ describe("payfast signature", () => {
 
 describe("amount to moments", () => {
   it("credits 25 moments at exactly 130.00 ZAR and 0 for any other gross", () => {
-    expect(PACK_AMOUNT).toBe("130.00");
+    expect(PACK_AMOUNT).toBe("5.00");
     expect(PACK_MOMENTS).toBe(25);
     expect(ITEM_NAME).toBe("GoodDayNight — 25 good moments");
     expect(ITEM_DESCRIPTION).toContain("25 good moments");

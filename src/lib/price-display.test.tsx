@@ -29,7 +29,7 @@ describe("unlock card price", () => {
   });
 
   it("does not change the Payfast charge", () => {
-    expect(PACK_AMOUNT).toBe("130.00");
+    expect(PACK_AMOUNT).toBe("5.00");
     expect(PACK_AMOUNT).not.toBe("7.99");
   });
 });

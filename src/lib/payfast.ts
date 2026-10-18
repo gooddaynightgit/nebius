@@ -56,7 +56,8 @@ export const FIELD_ORDER = [
  * exactly that gross adds 25 onto `goodfans.game`. It does not rewrite a
  * balance that is already stored.
  */
-export const PACK_AMOUNT = "130.00";
+/** TEMPORARY test price (Oct 2026): every buyer is charged 5.00 ZAR; the page still shows $7.99 / R130. Restore to "130.00" / 13000. */
+export const PACK_AMOUNT = "5.00";
 /** Payfast custom checkout has no currency field. `amount` and ITN `amount_gross` are ZAR. */
 export const PAYFAST_CURRENCY = "ZAR";
 export const PACK_MOMENTS = 25;
@@ -64,7 +65,7 @@ export const ITEM_NAME = "GoodDayNight — 25 good moments";
 export const ITEM_DESCRIPTION =
   "25 good moments. Each moment: one photo upload → one My good moment story.";
 
-const PACK_CENTS = 13000;
+const PACK_CENTS = 500;
 
 export type PayfastMerchant = {
   merchantId: string;
@@ -257,7 +258,7 @@ export function signaturesMatch(given: string, expected: string): boolean {
   return timingSafeEqual(left, right);
 }
 
-/** Exactly 130.00 ZAR credits 25 moment saves. Any other gross credits 0. */
+/** Exactly PACK_AMOUNT ZAR credits 25 moment saves. Any other gross credits 0. */
 export function momentsForAmount(amount: string | number): number {
   const cents = zarToCents(amount);
   if (cents == null || cents !== PACK_CENTS) return 0;
