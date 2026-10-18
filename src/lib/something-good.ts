@@ -40,13 +40,18 @@ export const SG_QUESTION =
 
 /** Tap one to begin the perfect result; they finish the sentence in their own words. */
 export const SG_STARTERS = [
-  "I am so happy that",
+  "I am",
   "I have",
+  "I am so happy that",
   "I am feeling",
+  "I am looking forward to",
+  "How awesome it will be",
   "I feel relief knowing",
   "I feel a sense of accomplishment",
   "It's awesome that",
 ] as const;
+
+export const SG_STARTERS_TITLE = "Feel free to tap one of us to start your sentence…";
 
 export const SG_CONFIRM_YES = "Yes, that's it";
 export const SG_CONFIRM_CHANGE = "Let me change it";

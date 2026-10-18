@@ -5067,6 +5067,24 @@ textarea.sg-heard {
 }
 
 /* Starters above the perfect-result box: tap one, then finish the sentence */
+.sg-page .sg-starters-box {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem 1rem;
+  border: 2px solid var(--navy);
+  border-radius: 1.1rem;
+  background: var(--lime);
+}
+
+.sg-page .sg-starters-box__title {
+  margin: 0;
+  color: var(--navy);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .sg-page .sg-starters {
   position: relative;
   z-index: 1;
@@ -5090,7 +5108,8 @@ textarea.sg-heard {
 
 .sg-page .sg-starter:hover,
 .sg-page .sg-starter:focus-visible {
-  background: var(--lime);
+  background: var(--navy);
+  color: var(--lime);
 }
 
 .sg-page .sg-starter:disabled {

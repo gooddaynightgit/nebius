@@ -13,6 +13,7 @@ import {
   SG_HEADLINE,
   SG_OPTIONS,
   SG_STARTERS,
+  SG_STARTERS_TITLE,
   SG_SUPPORT,
   type SgFocus,
 } from "@/lib/something-good";
@@ -645,12 +646,17 @@ export default function SomethingGood() {
 
           <p className="sg-help">Please type in your perfect result below, or tap the mic to say it.</p>
 
-          <div className="sg-starters" role="group" aria-label="Ways to begin">
-            {SG_STARTERS.map((starter) => (
-              <button key={starter} type="button" className="sg-starter" onClick={() => addStarter(starter)} disabled={listening}>
-                {starter}…
-              </button>
-            ))}
+          <div className="sg-starters-box" role="group" aria-labelledby="sg-starters-title">
+            <p id="sg-starters-title" className="sg-starters-box__title">
+              {SG_STARTERS_TITLE}
+            </p>
+            <div className="sg-starters">
+              {SG_STARTERS.map((starter) => (
+                <button key={starter} type="button" className="sg-starter" onClick={() => addStarter(starter)} disabled={listening}>
+                  {starter}…
+                </button>
+              ))}
+            </div>
           </div>
 
           <textarea
