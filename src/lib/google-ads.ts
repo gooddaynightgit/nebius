@@ -6,6 +6,20 @@ export const GA4_MEASUREMENT_ID = "G-5NF1TLCWWL";
 export const GOOGLE_ADS_ID_PLACEHOLDER = "AW-XXXXXXXXX";
 export const GOOGLE_ADS_PURCHASE_LABEL_PLACEHOLDER = "XXXXXXXXXXX";
 
+/**
+ * GoodDayNight's Google Ads tag and its "GoodDayNight Payfast purchase" conversion.
+ * Public ids (they appear in every page's source), so they live here; the env vars still win if set.
+ */
+export const GOODDAYNIGHT_ADS_ID = "AW-18149062687";
+export const GOODDAYNIGHT_PURCHASE_LABEL = "yFk2CPjjqpAdEJ_wks5D";
+/** An env value counts only if it's set and isn't a placeholder; otherwise GoodDayNight's own id. */
+const realOr = (raw: string | undefined, fallback: string) => {
+  const v = raw?.trim() ?? "";
+  return v && !/X{4,}/.test(v) ? v : fallback;
+};
+const ADS_ID_ENV = realOr(process.env.NEXT_PUBLIC_GOOGLE_ADS_ID, GOODDAYNIGHT_ADS_ID);
+const LABEL_ENV = realOr(process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL, GOODDAYNIGHT_PURCHASE_LABEL);
+
 const ADS_ID_RE = /^AW-\d{6,20}$/;
 const LABEL_RE = /^[A-Za-z0-9_-]{6,64}$/;
 const CURRENCY_RE = /^[A-Z]{3}$/;
@@ -37,14 +51,14 @@ function clean(raw: string | undefined): string {
 }
 
 /** A real Ads id, or null. The placeholder and anything non-numeric never pass. */
-export function googleAdsId(raw = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID): string | null {
+export function googleAdsId(raw = ADS_ID_ENV): string | null {
   const value = clean(raw);
   if (!value || value === GOOGLE_ADS_ID_PLACEHOLDER) return null;
   return ADS_ID_RE.test(value) ? value : null;
 }
 
 /** The conversion label only. A full `AW-…/label` string is not accepted. */
-export function googleAdsPurchaseLabel(raw = process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL): string | null {
+export function googleAdsPurchaseLabel(raw = LABEL_ENV): string | null {
   const value = clean(raw);
   if (!value || value === GOOGLE_ADS_PURCHASE_LABEL_PLACEHOLDER) return null;
   if (/^X+$/.test(value)) return null;
@@ -53,8 +67,8 @@ export function googleAdsPurchaseLabel(raw = process.env.NEXT_PUBLIC_GOOGLE_ADS_
 
 /** Both env vars must be valid. Otherwise Ads is fully off. */
 export function googleAdsConfig(
-  adsRaw = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
-  labelRaw = process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL,
+  adsRaw = ADS_ID_ENV,
+  labelRaw = LABEL_ENV,
 ): GoogleAdsConfig | null {
   const id = googleAdsId(adsRaw);
   const label = googleAdsPurchaseLabel(labelRaw);
@@ -63,16 +77,16 @@ export function googleAdsConfig(
 }
 
 export function googleAdsPurchaseSendTo(
-  adsRaw = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
-  labelRaw = process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL,
+  adsRaw = ADS_ID_ENV,
+  labelRaw = LABEL_ENV,
 ): string | null {
   return googleAdsConfig(adsRaw, labelRaw)?.sendTo ?? null;
 }
 
 /** GA4 loader plus an Ads config line only when both ids are valid. */
 export function googleTagSnippet(
-  adsRaw = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
-  labelRaw = process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL,
+  adsRaw = ADS_ID_ENV,
+  labelRaw = LABEL_ENV,
 ): { src: string; html: string } {
   const ads = googleAdsConfig(adsRaw, labelRaw);
   const adsConfig = ads ? `\ngtag('config', '${ads.id}');` : "";
