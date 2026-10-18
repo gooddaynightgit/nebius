@@ -4407,6 +4407,39 @@ body:has(.guide-page) {
   white-space: nowrap;
 }
 
+/* Closing card: the same choice as the top, Start OR Turn it around */
+.home-close__or {
+  position: relative;
+  z-index: 1;
+  margin: 0.85rem 0 0;
+  color: var(--navy);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.home-close > .step-next.home-close__turn {
+  margin-top: 0.85rem;
+  white-space: normal;
+  text-align: left;
+  gap: 0.6rem;
+  padding: 0.62rem 0.9rem;
+}
+
+.home-close__turn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.home-close__kicker {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  opacity: 0.9;
+}
+
 /* Happy soap bubble that floats up the page and pops */
 .happy-bubble {
   position: fixed;

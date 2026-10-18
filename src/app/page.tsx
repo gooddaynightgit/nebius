@@ -224,6 +224,23 @@ export default async function HomePage() {
               />
             </svg>
           </Link>
+          <p className="home-close__or">OR</p>
+          <Link className="step-next home-close__turn" href="/something-good">
+            <span className="home-close__turn-text">
+              <span className="home-close__kicker">Name what you&apos;re not grateful for, then</span>
+              <span>Turn it around</span>
+            </span>
+            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 12h13M13 6l6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
         </section>
         <HappyBubble text="Something good is about to happen!" />
       </main>
