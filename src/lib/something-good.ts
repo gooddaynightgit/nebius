@@ -51,6 +51,16 @@ export const SG_STARTERS = [
 export const SG_CONFIRM_YES = "Yes, that's it";
 export const SG_CONFIRM_CHANGE = "Let me change it";
 
+/** Three confirm rounds, then a gentle close without their words (never a version they turned down). */
+export const SG_MAX_CHANGES = 3;
+export const SG_GENTLE_END = {
+  text: "Thank you. Something good is about to happen.",
+  rate: "slow" as const,
+  pauseMs: 0,
+  speak: ["Thank you.", "Something good is about to happen."],
+  speakPauseMs: 2500,
+};
+
 export const SG_BASICS = [
   "First, something simple. A cup of tea, or a warm bed tonight. Thank you for that.",
   "Now a person. Someone who smiled at you, or called. Thank you for them.",

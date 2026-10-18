@@ -8,6 +8,8 @@ import {
   SG_CHOOSE_FIRST,
   SG_CONFIRM_CHANGE,
   SG_CONFIRM_YES,
+  SG_GENTLE_END,
+  SG_MAX_CHANGES,
   SG_HEADLINE,
   SG_OPTIONS,
   SG_STARTERS,
@@ -85,6 +87,8 @@ export default function SomethingGood() {
   /** What the turn-around said about these exact words (a block or crisis), shown until they edit. */
   const [turnIssue, setTurnIssue] = useState<(SgCheck & { text: string }) | null>(null);
   const wordsRef = useRef<HTMLTextAreaElement>(null);
+  /** Confirm rounds answered "Let me change it" this ritual; the third one ends gently. */
+  const changesRef = useRef(0);
   const keptRef = useRef<Set<string>>(new Set());
   /** One play is spent per ritual, after the welcome and before the breath. */
   const spentRef = useRef(false);
@@ -293,6 +297,7 @@ export default function SomethingGood() {
     }
     const run = ++runRef.current;
     setWords("");
+    changesRef.current = 0;
     setMode("loading");
     try {
       const session = await sgStart(choice);
@@ -332,10 +337,19 @@ export default function SomethingGood() {
     }
   };
 
-  /** "Let me change it": back to the box with their own words, ready to edit. */
+  /**
+   * "Let me change it": back to the box with their own words, ready to edit.
+   * After three rounds it ends gently instead, never showing a version they turned down.
+   */
   const changeIt = () => {
     cancelSpeech();
     setTurn(null);
+    changesRef.current += 1;
+    if (changesRef.current >= SG_MAX_CHANGES) {
+      closingRef.current = [{ ...SG_GENTLE_END }];
+      void playFrom("closing", 0);
+      return;
+    }
     setMode("listen");
     window.setTimeout(() => wordsRef.current?.focus(), 0);
   };
@@ -503,6 +517,7 @@ export default function SomethingGood() {
 
   const restart = () => {
     spentRef.current = false;
+    changesRef.current = 0;
     stopListening();
     runRef.current += 1;
     if (hasVoice()) window.speechSynthesis.cancel();
