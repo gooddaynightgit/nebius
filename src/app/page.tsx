@@ -3,6 +3,7 @@ import Link from "next/link";
 import HappyBubble from "@/components/HappyBubble";
 import KindWords from "@/components/KindWords";
 import SiteFooter from "@/components/SiteFooter";
+import StickyStart from "@/components/StickyStart";
 import { STEP_LABEL } from "@/lib/journey";
 import { KIND_WORDS_LIMIT } from "@/lib/review-copy";
 import { listPublishedReviews } from "@/lib/review";
@@ -110,15 +111,14 @@ export default async function HomePage() {
           <span className="card__wash card__wash--sun" aria-hidden="true"></span>
         </section>
 
-        <section className="card card--lavender">
+        <section className="card card--lavender home-lead">
           <p className="card__body">
             Your laugh. Your small win. Your quiet moment. Nobody turned them
             into anything — not even you.
           </p>
-          <span className="card__wash card__wash--ten" aria-hidden="true"></span>
         </section>
 
-        <nav className="card card--ctas" aria-label={STEP_LABEL.start}>
+        <nav id="home-ctas" className="card card--ctas" aria-label={STEP_LABEL.start}>
           <Link className="shape-cta shape-cta--circle" href="/app/joy">
             <span className="shape-cta__core">
               <span className="shape-cta__main">{STEP_LABEL.start}</span>
@@ -207,7 +207,7 @@ export default async function HomePage() {
           <span className="card__wash card__wash--plus" aria-hidden="true"></span>
         </section>
 
-        <section className="card card--lime home-close" aria-labelledby="closing-heading">
+        <section id="home-close" className="card card--lime home-close" aria-labelledby="closing-heading">
           <h2 id="closing-heading" className="visually-hidden">
             Something good is about to happen!
           </h2>
@@ -227,6 +227,7 @@ export default async function HomePage() {
         </section>
         <HappyBubble text="Something good is about to happen!" />
       </main>
+      <StickyStart />
 
       <SiteFooter />
     </div>

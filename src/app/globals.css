@@ -5402,3 +5402,74 @@ textarea.sg-heard {
   margin-bottom: 0.1rem;
 }
 
+
+/* Home: the second card holds one short paragraph, so no tall empty space before the buttons */
+.card.home-lead {
+  min-height: 0;
+  padding-bottom: 1.55rem;
+}
+
+/* Home: both ways in, pinned above the review strip while the real buttons are off screen */
+.home-sticky {
+  position: fixed;
+  z-index: 44;
+  left: max(0.7rem, env(safe-area-inset-left));
+  right: calc(max(0.7rem, env(safe-area-inset-right)) + 48px + 0.6rem);
+  bottom: calc(2.75rem + env(safe-area-inset-bottom) + 0.5rem);
+  display: flex;
+  gap: 0.5rem;
+  max-width: 34rem;
+  opacity: 0;
+  transform: translateY(0.75rem);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.home-sticky.is-shown {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.home-sticky__btn {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 3.1rem;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid var(--navy);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(16, 36, 51, 0.22);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+}
+
+.home-sticky__btn--start {
+  background: var(--navy);
+  color: var(--lime);
+}
+
+.home-sticky__btn--turn {
+  background: var(--lime);
+  color: var(--navy);
+}
+
+.home-sticky__arrow {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The review strip stops being pinned here, so the bar sits at the very bottom. */
+  .home-sticky {
+    bottom: calc(env(safe-area-inset-bottom) + 0.7rem);
+    transition: none;
+    transform: none;
+  }
+}
