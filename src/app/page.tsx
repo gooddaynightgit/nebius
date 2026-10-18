@@ -3,7 +3,7 @@ import Link from "next/link";
 import HappyBubble from "@/components/HappyBubble";
 import KindWords from "@/components/KindWords";
 import SiteFooter from "@/components/SiteFooter";
-import StickyStart from "@/components/StickyStart";
+import ScrollHint from "@/components/ScrollHint";
 import { STEP_LABEL } from "@/lib/journey";
 import { KIND_WORDS_LIMIT } from "@/lib/review-copy";
 import { listPublishedReviews } from "@/lib/review";
@@ -227,7 +227,7 @@ export default async function HomePage() {
         </section>
         <HappyBubble text="Something good is about to happen!" />
       </main>
-      <StickyStart />
+      <ScrollHint target="home-ctas" />
 
       <SiteFooter />
     </div>
