@@ -18,6 +18,7 @@ import {
   type SgFocus,
 } from "@/lib/something-good";
 import { collapseRepeats, mergeSpeech } from "@/lib/speech-merge";
+import { toFirstPersonStory } from "@/lib/first-person";
 import {
   sgCheck,
   sgCountry,
@@ -324,7 +325,8 @@ export default function SomethingGood() {
       const r = await sgTurnAround(text, countryRef.current);
       if (runRef.current !== run) return;
       if (r.status === "confirm" && r.result && r.confirm) {
-        setTurn({ text, result: r.result, confirm: r.confirm });
+        // The perfect result always reads in the first person ("paid up by you" -> "paid up by me").
+        setTurn({ text, result: toFirstPersonStory(r.result), confirm: r.confirm });
         setMode("confirm");
         setSpeaking(true);
         await say(r.confirm, "slow", run);

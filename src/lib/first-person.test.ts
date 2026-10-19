@@ -70,3 +70,13 @@ describe("first person stories", () => {
     }
   });
 });
+
+describe("Something Good perfect result", () => {
+  it("turns a leftover 'by you' into 'by me'", () => {
+    expect(
+      toFirstPersonStory(
+        "I have a big beautiful smile with all my teeth fixed at the dainfern dentist, paid up by you via absa eft.",
+      ),
+    ).toBe("I have a big beautiful smile with all my teeth fixed at the dainfern dentist, paid up by me via absa eft.");
+  });
+});
