@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleAdsPurchase } from "@/components/GoogleAdsPurchase";
+import { OpenAIAdsPurchase } from "@/components/OpenAIAdsPurchase";
 import { googleAdsConfig, purchaseFromClient, type VerifiedPurchase } from "@/lib/google-ads";
 import {
   PAID_APP_HREF,
@@ -22,6 +23,7 @@ export function PaidSuccess({ purchase = null }: { purchase?: VerifiedPurchase |
   return (
     <section className="card card--mint paid-card" aria-labelledby="paid-heading">
       {track && purchase ? <GoogleAdsPurchase purchase={purchase} /> : null}
+      {purchase ? <OpenAIAdsPurchase purchase={purchase} /> : null}
       <h1 id="paid-heading">{PAID_SUCCESS_HEADING}</h1>
       <p className="card__body">{PAID_SUCCESS_LINE}</p>
       <Link className="paid-open" href={PAID_APP_HREF}>
@@ -67,7 +69,7 @@ export function PaidConfirming({ orderRef, handoff }: { orderRef: string; handof
         if (body.status === "complete") {
           stopped = true;
           const purchase = purchaseFromClient(body.purchase);
-          if (purchase && googleAdsConfig()) setConfirmed(purchase);
+          if (purchase) setConfirmed(purchase);
           refresh.current();
           return;
         }
@@ -113,6 +115,7 @@ export function PaidConfirming({ orderRef, handoff }: { orderRef: string; handof
   return (
     <section className="card card--mint paid-card" aria-labelledby="paid-confirming">
       {track && confirmed ? <GoogleAdsPurchase purchase={confirmed} /> : null}
+      {confirmed ? <OpenAIAdsPurchase purchase={confirmed} /> : null}
       <h1 id="paid-confirming" className="paid-confirming" role="status">
         {PAID_CONFIRMING_LABEL}
       </h1>
