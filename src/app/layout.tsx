@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     siteName: "GoodDayNight",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SITE_TITLE,
     description:
       "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",

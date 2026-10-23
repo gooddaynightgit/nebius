@@ -1,4 +1,4 @@
-import { PRICE_USD_AMOUNT, PRICE_USD_UNIT_LEAD, PRICE_USD_UNIT_REST } from "@/lib/price-display";
+import { PRICE_USD_AMOUNT, PRICE_USD_UNIT_LEAD } from "@/lib/price-display";
 
 /** One unlock-card price for every visitor. */
 export default function MomentsPrice() {
@@ -7,8 +7,6 @@ export default function MomentsPrice() {
       <span className="moments-price-hero__amount">{PRICE_USD_AMOUNT}</span>
       <span className="moments-price-hero__unit">
         {PRICE_USD_UNIT_LEAD}
-        <br />
-        {PRICE_USD_UNIT_REST}
       </span>
     </p>
   );

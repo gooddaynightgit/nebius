@@ -5,11 +5,12 @@ import MomentsCheckout from "@/components/MomentsCheckout";
 import MomentsPrice from "@/components/MomentsPrice";
 import SiteFooter from "@/components/SiteFooter";
 import { isPersonalPhotoSession } from "@/lib/session";
-import { siteTitleMetadata } from "@/lib/site-title";
+import { NOINDEX, siteTitleMetadata } from "@/lib/site-title";
 
 export const metadata: Metadata = {
   ...siteTitleMetadata,
-  description: "Unlock 25 gratitude journal entries for $7.99 USD / R130 ZAR.",
+  robots: NOINDEX,
+  description: "Unlock 25 gratitude journal entries for $7.99 USD.",
 };
 
 export const dynamic = "force-dynamic";

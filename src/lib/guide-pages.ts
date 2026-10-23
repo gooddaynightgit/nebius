@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { KEEPSAKE_CLOSING_LINES } from "./affirmation";
 import { FEEDBACK_LINES } from "./feedback";
-import { SITE_TITLE } from "./site-title";
+import { pageMetadata } from "./site-title";
 
 /** Same destination as the landing “Start my gratitude journal” button. */
 export const WEAVE_HREF = "/app/joy";
 
 export const GUIDE_FORBIDDEN = /sleep|bedtime|voice|r16|about the maker/i;
 
-export const PRICE_MARKERS = ["$7.99", "R130"] as const;
+export const PRICE_MARKERS = ["$7.99"] as const;
 
 /** Jasmine’s woven chocolate story from the landing demo, with its keepsake close. */
 export const EXAMPLE_STORY =
@@ -25,6 +25,7 @@ export function guideReviewLines() {
 export const GUIDE_PAGES = [
   {
     path: "/how-it-works",
+    name: "How it works",
     headline: "Pick a moment. We write it.",
     description:
       "3 steps only. You choose the kind of good moment, capture it, and keep a short gratitude journal entry. No blank page. No 52-week program.",
@@ -32,12 +33,14 @@ export const GUIDE_PAGES = [
   },
   {
     path: "/example",
+    name: "Example",
     headline: "This is what a kept moment reads like.",
     description: "One kept moment, written down. This is not a gratitude list. It is one thing that happened.",
     price: false,
   },
   {
     path: "/no-blank-page",
+    name: "No blank page",
     headline: "You never start from an empty page.",
     description:
       "People quit journals because they don’t know what to write. Here you pick a good moment first. The writing comes after the pick. That is the whole product.",
@@ -45,6 +48,7 @@ export const GUIDE_PAGES = [
   },
   {
     path: "/not-a-list",
+    name: "Not a list",
     headline: "Not “I’m grateful for my family.”",
     description:
       "Forced lists feel fake and then people feel guilty. GoodDayNight keeps one specific thing: the coffee, the wave, the walk home. One moment. Not three generic lines.",
@@ -52,21 +56,24 @@ export const GUIDE_PAGES = [
   },
   {
     path: "/reviews",
+    name: "Reviews",
     headline: "They bought before we asked.",
     description: "Anyone can take a photo — GoodDayNight makes you notice what it was.",
     price: false,
   },
   {
     path: "/pack",
-    headline: "25 moments. $7.99 / R130.",
+    name: "Pack",
+    headline: "25 moments. $7.99 USD.",
     description:
       "One pack. 25 gratitude journal entries. You see how it reads first. You pay when you capture, if you have not already. No subscription on this pack.",
     price: true,
   },
   {
     path: "/faq",
+    name: "FAQ",
     headline: "The day vanished into my phone.",
-    description: "You don’t start with a blank page. You pick. We write it with you. 25 gratitude journal entries. $7.99 / R130.",
+    description: "Questions about GoodDayNight, the gratitude journal for adults: what to write, how many moments you can save, and what 25 entries for $7.99 USD gets you.",
     price: true,
   },
 ] as const;
@@ -82,19 +89,7 @@ export function isGuidePath(pathname: string | null): boolean {
 export function guideMetadata(path: GuidePath): Metadata {
   const page = GUIDE_PAGES.find((item) => item.path === path);
   if (!page) throw new Error(`Unknown guide page ${path}`);
-  return {
-    title: SITE_TITLE,
-    description: page.description,
-    openGraph: {
-      title: SITE_TITLE,
-      description: page.description,
-      url: `https://gooddaynight.com${page.path}`,
-    },
-    twitter: {
-      title: SITE_TITLE,
-      description: page.description,
-    },
-  };
+  return pageMetadata({ name: page.name, description: page.description, path: page.path });
 }
 
 export const HOW_IT_WORKS_BODY = `3 steps only.
@@ -124,14 +119,14 @@ export const FAQ = [
   },
   {
     q: "Gratitude lists feel fake.",
-    a: "This is not three generic items. It is one thing that happened.",
+    a: "Write down one specific good thing that happened, like the coffee or the walk home. Specific moments are what make the Three Good Things habit work.",
   },
   {
     q: "I quit journals in a week.",
-    a: "This is not a 52-week program. One moment. Then another if you want.",
+    a: "No program to keep up with. Save as many good moments as you like, whenever you like. Each one becomes its own story.",
   },
   {
     q: "What do I get and when do I pay?",
-    a: "25 gratitude journal entries. $7.99 / R130. You pay at Capture if you have not bought.",
+    a: "25 gratitude journal entries for $7.99 USD. You pay at Capture if you have not bought.",
   },
 ] as const;

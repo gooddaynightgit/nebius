@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { LANDING } from "@/lib/landing";
-import { siteTitleMetadata } from "@/lib/site-title";
+import { pageMetadata } from "@/lib/site-title";
 
-export const metadata: Metadata = {
-  ...siteTitleMetadata,
-  description: LANDING.about.signature,
-};
+export const metadata: Metadata = pageMetadata({
+  name: "About",
+  description:
+    "GoodDayNight is made by Jasmine Hassam, a software engineer who built a gratitude journal for adults that turns good moments into bedtime stories.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (
@@ -35,7 +37,8 @@ export default function AboutPage() {
         </header>
 
         <main id="main">
-          <section className="card card--lavender" aria-label="About the maker">
+          <section className="card card--lavender" aria-labelledby="about-heading">
+            <h1 id="about-heading">About GoodDayNight’s maker, Jasmine Hassam</h1>
             <p className="card__body">{LANDING.about.body}</p>
             <p className="about-sign">{LANDING.about.signature}</p>
           </section>

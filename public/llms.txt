@@ -10,7 +10,7 @@ A daily gratitude journal and bedtime stories for adults in one ritual. During t
 - Adults who want a calming bedtime story to wind down with
 
 ## Why it works
-In a well-known study (Seligman et al., 2005, American Psychologist), people who wrote down three good things each night for a week felt happier for up to six months afterwards. GoodDayNight builds on that habit.
+In a well-known study (Seligman, Steen, Park & Peterson, 2005, "Positive psychology progress: Empirical validation of interventions," American Psychologist, 60(5), 410–421; the "Three Good Things" exercise), people who wrote down three good things each night for a week felt happier for up to six months afterwards. GoodDayNight builds on that habit.
 
 ## Pages
 - [Home](https://gooddaynight.com/): What GoodDayNight is, a demo and FAQ

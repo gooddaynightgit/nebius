@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { metadata as momentsMeta } from "@/app/moments/page";
 import { metadata as paidMeta } from "@/app/paid/page";
 import { GUIDE_PAGES, guideMetadata } from "./guide-pages";
-import { SITE_TITLE } from "./site-title";
+import { pageTitle, SITE_TITLE } from "./site-title";
 
 function read(rel: string) {
   return readFileSync(path.resolve(rel), "utf8");
@@ -19,10 +19,10 @@ function sourceFiles(dir: string): string[] {
 }
 
 describe("site title", () => {
-  it("is the exact weave-one-good-moment title, with an em dash", () => {
-    expect(SITE_TITLE).toBe("GoodDayNight — Weave one good moment from today");
+  it("is the homepage title, with an em dash", () => {
+    expect(SITE_TITLE).toBe("GoodDayNight — Gratitude Journal & Bedtime Stories");
     expect(SITE_TITLE).toContain("\u2014");
-    expect(SITE_TITLE).not.toMatch(/Hear your story|sleep|bedtime|voice/i);
+    expect(SITE_TITLE).not.toMatch(/Weave one good moment/i);
   });
 
   it("sets the layout title, og:title, and twitter:title", () => {
@@ -31,12 +31,14 @@ describe("site title", () => {
     expect(layout).not.toContain("Hear your story");
   });
 
-  it("uses that title on every guide page", () => {
+  it("gives every guide page its own \"<Page> — GoodDayNight\" title and canonical", () => {
     for (const page of GUIDE_PAGES) {
       const meta = guideMetadata(page.path);
-      expect(meta.title).toBe(SITE_TITLE);
-      expect(meta.openGraph && "title" in meta.openGraph ? meta.openGraph.title : null).toBe(SITE_TITLE);
-      expect(meta.twitter && "title" in meta.twitter ? meta.twitter.title : null).toBe(SITE_TITLE);
+      const title = pageTitle(page.name);
+      expect(meta.title).toBe(title);
+      expect(meta.openGraph && "title" in meta.openGraph ? meta.openGraph.title : null).toBe(title);
+      expect(meta.twitter && "title" in meta.twitter ? meta.twitter.title : null).toBe(title);
+      expect(meta.alternates?.canonical).toBe(`https://gooddaynight.com${page.path}`);
       expect(meta.description).toBe(page.description);
     }
   });
@@ -57,7 +59,7 @@ describe("site title", () => {
     for (const file of pages) {
       const src = readFileSync(file, "utf8");
       const rel = path.relative(path.resolve("."), file);
-      expect(src, rel).toMatch(/siteTitleMetadata|guideMetadata\(/);
+      expect(src, rel).toMatch(/siteTitleMetadata|guideMetadata\(|pageMetadata\(/);
       expect(src, rel).not.toMatch(/title:\s*["'`]/);
       expect(src, rel).not.toContain("document.title");
     }

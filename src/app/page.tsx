@@ -57,6 +57,35 @@ const HOME_JSON_LD = {
       keywords:
         "gratitude journal, gratitude journal app, daily gratitude, bedtime stories for adults, mindfulness journal, self-care journal",
       email: "hello@gooddaynight.com",
+      inLanguage: "en-US",
+      publisher: { "@id": "https://gooddaynight.com/#org" },
+      audience: { "@type": "PeopleAudience", suggestedMinAge: 18 },
+      offers: {
+        "@type": "Offer",
+        name: "25 gratitude journal entries",
+        price: "7.99",
+        priceCurrency: "USD",
+        url: "https://gooddaynight.com/pack",
+      },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://gooddaynight.com/#org",
+      name: "GoodDayNight",
+      url: "https://gooddaynight.com/",
+      logo: "https://gooddaynight.com/logo.svg",
+      email: "hello@gooddaynight.com",
+      description:
+        "GoodDayNight is a gratitude journal app for adults that turns good moments into bedtime stories. It is not affiliated with Good Day Good Night of Tucson.",
+      founder: { "@type": "Person", name: "Jasmine Hassam", url: "https://gooddaynight.com/about" },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://gooddaynight.com/#website",
+      name: "GoodDayNight",
+      url: "https://gooddaynight.com/",
+      inLanguage: "en-US",
+      publisher: { "@id": "https://gooddaynight.com/#org" },
     },
     {
       "@type": "FAQPage",
@@ -73,6 +102,7 @@ export const metadata: Metadata = {
   ...siteTitleMetadata,
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
+  alternates: { canonical: "https://gooddaynight.com/" },
   openGraph: {
     type: "website",
     url: "https://gooddaynight.com/",
@@ -82,7 +112,7 @@ export const metadata: Metadata = {
     siteName: "GoodDayNight",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
   },
@@ -191,7 +221,7 @@ export default async function HomePage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Seligman, Steen, Park &amp; Peterson (2005), &quot;Positive psychology progress: Empirical validation of interventions,&quot; American Psychologist.
+            Seligman, Steen, Park &amp; Peterson (2005), &quot;Positive psychology progress: Empirical validation of interventions,&quot; American Psychologist, 60(5), 410–421. The &quot;Three Good Things&quot; exercise.
           </a>
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>

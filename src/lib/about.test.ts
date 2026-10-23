@@ -23,7 +23,8 @@ describe("about the maker", () => {
   it("keeps Jasmine Hassam’s page copy exact", () => {
     const page = read("src/app/about/page.tsx");
     expect(LANDING.about.title).toBe("About the maker — GoodDayNight");
-    expect(page).toContain("siteTitleMetadata");
+    expect(page).toContain("pageMetadata(");
+    expect(page).toContain("About GoodDayNight’s maker, Jasmine Hassam");
     expect(page).not.toContain("LANDING.about.title");
     expect(page).toContain("LANDING.about.body");
     expect(page).toContain("LANDING.about.signature");
@@ -33,7 +34,7 @@ describe("about the maker", () => {
     expect(page).toContain('alt="GoodDayNight"');
     expect(page).toContain('className="about-logo"');
     expect(page).toContain('className="card card--lavender"');
-    expect(page).not.toContain("<h1");
+    expect(page.match(/<h1/g)).toHaveLength(1);
     expect(page).not.toContain("about-bg__shade");
     expect(page).not.toContain("card__wash");
   });
