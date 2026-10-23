@@ -84,7 +84,7 @@ describe("seven guide pages", () => {
     expect(html).toContain(EXAMPLE_STORY);
     expect(html).toContain(EXAMPLE_CLOSING.replaceAll("'", "&#x27;"));
     expect(EXAMPLE_NOTE).toBe("This is not a gratitude list. It is one thing that happened.");
-    expect(EXAMPLE_SOON).toBe("Something good is about to happen.");
+    expect(EXAMPLE_SOON).toBe("Something good is happening.");
     expect(html).toContain(EXAMPLE_NOTE);
     expect(html).toContain(EXAMPLE_SOON);
     expect(html.indexOf("card--cream")).toBeLessThan(html.indexOf("example-good"));

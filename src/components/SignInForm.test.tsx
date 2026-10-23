@@ -51,7 +51,7 @@ describe("sign-in code sent", () => {
 
   it("shows the glowing sent line only after a successful send", async () => {
     expect(REQUEST_SENT).toBe(
-      "Your OTP is on its way! Kindly check your email (or spam folder, just in case) to complete your verification — something good is about to happen.",
+      "Your OTP is on its way! Kindly check your email (or spam folder, just in case) to complete your verification — something good is happening.",
     );
     vi.stubGlobal(
       "fetch",

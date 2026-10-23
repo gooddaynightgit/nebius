@@ -34,7 +34,7 @@ export default function SgExamplePage() {
       <section className="card card--lavender sg-info" aria-labelledby="sg-example-card">
         <h2 id="sg-example-card" className="sg-info__note">Her last card</h2>
         <p className="sg-example__card">{SG_EXAMPLE.card}</p>
-        <p className="sg-info__note">Alexa says only: &ldquo;Thank you.&rdquo; &hellip; &ldquo;Something good is about to happen.&rdquo;</p>
+        <p className="sg-info__note">Alexa says only: &ldquo;Thank you.&rdquo; &hellip; &ldquo;Something good is happening.&rdquo;</p>
       </section>
     </SgShell>
   );

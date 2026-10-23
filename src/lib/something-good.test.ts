@@ -8,7 +8,7 @@ describe("something good", () => {
   });
 
   it("speaks their words back, turning my into your", () => {
-    expect(sgThankYou("My money worries.")).toBe("Thank you. Something good is about to happen with your money worries.");
+    expect(sgThankYou("My money worries.")).toBe("Thank you. Something good is happening with your money worries.");
     expect(sgSubject("  the job hunt ")).toBe("the job hunt");
     expect(sgSubject("")).toBe("what you named");
   });

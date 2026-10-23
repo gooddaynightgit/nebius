@@ -118,7 +118,7 @@ describe("landing copy", () => {
       "You can change the picture if the day gets kinder.",
     );
     expect(LANDING.footer.oneMoment).toBe("One moment. One story.");
-    expect(LANDING.footer.somethingGood).toBe("Something good is about to happen!");
+    expect(LANDING.footer.somethingGood).toBe("Something good is happening!");
     expect(LANDING.footer.site).toBe("gooddaynight.com");
     expect(LANDING.footer.lookingForward).toBe("Looking forward to hearing from you:");
     expect(LANDING.footer.hello).toBe("hello@gooddaynight.com");

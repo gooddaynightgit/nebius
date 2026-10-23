@@ -5,7 +5,7 @@ export const SG_HEADLINE = "Name what you're not grateful for";
 export const SG_BUTTON = "Start";
 export const SG_SUPPORT = "Ready to turn it around?";
 export const SG_DESCRIPTION =
-  "Name what you're not grateful for. A gentle voice guides one slow breath, then says your own words back with one hopeful line: something good is about to happen.";
+  "Name what you're not grateful for. A gentle voice guides one slow breath, then says your own words back with one hopeful line: something good is happening.";
 
 export type SgFocus = "challenge" | "situation" | "missing" | "change" | "else";
 
@@ -59,10 +59,10 @@ export const SG_CONFIRM_CHANGE = "Let me change it";
 /** Three confirm rounds, then a gentle close without their words (never a version they turned down). */
 export const SG_MAX_CHANGES = 3;
 export const SG_GENTLE_END = {
-  text: "Thank you. Something good is about to happen.",
+  text: "Thank you. Something good is happening.",
   rate: "slow" as const,
   pauseMs: 0,
-  speak: ["Thank you.", "Something good is about to happen."],
+  speak: ["Thank you.", "Something good is happening."],
   speakPauseMs: 2500,
 };
 
@@ -73,7 +73,7 @@ export const SG_BASICS = [
 ] as const;
 
 
-export const SG_CLOSE = "It's going to be alright. All is well. Something good is about to happen.";
+export const SG_CLOSE = "It's going to be alright. All is well. Something good is happening.";
 
 /** Turn what the person typed into the words after "with". Never claims it is solved. */
 export function sgSubject(raw: string): string {
@@ -84,7 +84,7 @@ export function sgSubject(raw: string): string {
 }
 
 export function sgThankYou(raw: string): string {
-  return `Thank you. Something good is about to happen with ${sgSubject(raw)}.`;
+  return `Thank you. Something good is happening with ${sgSubject(raw)}.`;
 }
 
 export const SG_HOW_PATH = "/something-good/how-it-works";
@@ -107,7 +107,7 @@ export const SG_EXAMPLE = {
   chose: "A situation",
   notGrateful: "Renting a tiny flat I can't really afford, and never feeling settled.",
   perfect: "I am living in my own home.\nI have the money to pay for it with ease.\nI am happy & grateful I have a garden.",
-  card: "Thank you. I am living in my own home. I have the money to pay for it with ease. I am happy & grateful I have a garden. Something good is about to happen.",
+  card: "Thank you. I am living in my own home. I have the money to pay for it with ease. I am happy & grateful I have a garden. Something good is happening.",
 };
 
 export const SG_HOW_STEPS: { title: string; body: string }[] = [
@@ -133,7 +133,7 @@ export const SG_HOW_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Thank you",
-    body: "Your perfect result appears in your own words. Thank you. Something good is about to happen.",
+    body: "Your perfect result appears in your own words. Thank you. Something good is happening.",
   },
 ];
 
@@ -143,7 +143,7 @@ export const SG_HOW_NOTE =
 export const SG_FAQ: { q: string; a: string }[] = [
   {
     q: "What is Something Good?",
-    a: "A short, gentle voice ritual for the days when it's hard to feel grateful. You name what you're not grateful for, take a slow breath, turn it around into your perfect result, and hear: something good is about to happen.",
+    a: "A short, gentle voice ritual for the days when it's hard to feel grateful. You name what you're not grateful for, take a slow breath, turn it around into your perfect result, and hear: something good is happening.",
   },
   {
     q: "Why start with what I'm not grateful for?",

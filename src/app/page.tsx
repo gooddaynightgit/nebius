@@ -209,7 +209,7 @@ export default async function HomePage() {
 
         <section id="home-close" className="card card--lime home-close" aria-labelledby="closing-heading">
           <h2 id="closing-heading" className="visually-hidden">
-            Something good is about to happen!
+            Something good is happening!
           </h2>
           <Link className="step-next" href="/app/joy">
             <span>Start my gratitude journal</span>
@@ -242,7 +242,7 @@ export default async function HomePage() {
             </svg>
           </Link>
         </section>
-        <HappyBubble text="Something good is about to happen!" />
+        <HappyBubble text="Something good is happening!" />
       </main>
       <ScrollHint target="home-ctas" />
 

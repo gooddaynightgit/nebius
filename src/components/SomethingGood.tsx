@@ -577,7 +577,7 @@ export default function SomethingGood() {
           </button>
         </section>
         <div className="sg-spacer" aria-hidden="true" />
-        <HappyBubble text="Something good is about to happen!" />
+        <HappyBubble text="Something good is happening!" />
       </>
     );
   }
@@ -823,7 +823,7 @@ export default function SomethingGood() {
         </>
       )}
     </section>
-    {lastScreen && <HappyBubble text="Something good is about to happen!" />}
+    {lastScreen && <HappyBubble text="Something good is happening!" />}
     </>
   );
 }

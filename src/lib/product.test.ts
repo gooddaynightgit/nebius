@@ -840,7 +840,7 @@ describe("landing", () => {
     expect(copy).toContain('alreadyPickedLink: "See your Created story"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
     expect(copy).toContain("One moment. One story.");
-    expect(copy).toContain("Something good is about to happen!");
+    expect(copy).toContain("Something good is happening!");
     expect(copy).toContain("gooddaynight.com");
     for (const title of [
       "Morning sunlight",

@@ -41,7 +41,7 @@ describe("moments pack page", () => {
     expect(page).not.toContain("another writing chore");
     expect(page).not.toContain("moods, streaks, or charts");
     expect(page).not.toContain("a performance for anyone else");
-    expect(page).not.toContain("Something good is about to happen!");
+    expect(page).not.toContain("Something good is happening!");
     expect(page).not.toContain("5.00");
     expect(page).not.toContain("16.00");
     expect(page).not.toMatch(/R5(?!0)/);

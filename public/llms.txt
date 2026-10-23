@@ -24,7 +24,7 @@ In a well-known study (Seligman et al., 2005, American Psychologist), people who
 ## Something Good
 > Name what you're not grateful for. Something Good is a two-minute guided voice ritual by GoodDayNight for the days when it's hard to feel grateful.
 
-You choose what to name (a challenge, a situation, something missing, something you want to change, or something else), take one slow guided breath, then turn it around: you say or type your perfect result as if it's already true. It ends with "Thank you. Something good is about to happen." It works by voice in any phone browser, and is being built for Alexa+. It never pretends a problem is solved, and offers local crisis helplines if someone is struggling.
+You choose what to name (a challenge, a situation, something missing, something you want to change, or something else), take one slow guided breath, then turn it around: you say or type your perfect result as if it's already true. It ends with "Thank you. Something good is happening." It works by voice in any phone browser, and is being built for Alexa+. It never pretends a problem is solved, and offers local crisis helplines if someone is struggling.
 
 Who it's for:
 - Adults who find gratitude journals or affirmations feel forced on hard days

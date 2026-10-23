@@ -110,7 +110,7 @@ export const LANDING = {
   footer: {
     changePicture: "You can change the picture if the day gets kinder.",
     oneMoment: "One moment. One story.",
-    somethingGood: "Something good is about to happen!",
+    somethingGood: "Something good is happening!",
     site: "gooddaynight.com",
     lookingForward: "Looking forward to hearing from you:",
     hello: "hello@gooddaynight.com",
