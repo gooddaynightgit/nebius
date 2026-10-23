@@ -53,7 +53,7 @@ const pages: Array<{ path: string; headline: string; Page: () => ReactElement; m
   { path: "/no-blank-page", headline: "You never start from an empty page.", Page: NoBlankPage, meta: blankMeta },
   { path: "/not-a-list", headline: NOT_A_LIST_HEADLINE, Page: NotAListPage, meta: listMeta },
   { path: "/reviews", headline: "They bought before we asked.", Page: ReviewsPage, meta: reviewsMeta },
-  { path: "/pack", headline: "25 moments. $7.99 USD.", Page: PackPage, meta: packMeta },
+  { path: "/pack", headline: "25 moments. $7.99 / R130.", Page: PackPage, meta: packMeta },
   { path: "/faq", headline: FAQ[0].q, Page: FaqPage, meta: faqMeta },
 ];
 

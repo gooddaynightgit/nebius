@@ -8,7 +8,7 @@ export const WEAVE_HREF = "/app/joy";
 
 export const GUIDE_FORBIDDEN = /sleep|bedtime|voice|r16|about the maker/i;
 
-export const PRICE_MARKERS = ["$7.99"] as const;
+export const PRICE_MARKERS = ["$7.99", "R130"] as const;
 
 /** Jasmine’s woven chocolate story from the landing demo, with its keepsake close. */
 export const EXAMPLE_STORY =
@@ -64,7 +64,7 @@ export const GUIDE_PAGES = [
   {
     path: "/pack",
     name: "Pack",
-    headline: "25 moments. $7.99 USD.",
+    headline: "25 moments. $7.99 / R130.",
     description:
       "One pack. 25 gratitude journal entries. You see how it reads first. You pay when you capture, if you have not already. No subscription on this pack.",
     price: true,
@@ -73,7 +73,7 @@ export const GUIDE_PAGES = [
     path: "/faq",
     name: "FAQ",
     headline: "The day vanished into my phone.",
-    description: "Questions about GoodDayNight, the gratitude journal for adults: what to write, how many moments you can save, and what 25 entries for $7.99 USD gets you.",
+    description: "Questions about GoodDayNight, the gratitude journal for adults: what to write, how many moments you can save, and what 25 entries for $7.99 / R130 gets you.",
     price: true,
   },
 ] as const;
@@ -127,6 +127,6 @@ export const FAQ = [
   },
   {
     q: "What do I get and when do I pay?",
-    a: "25 gratitude journal entries for $7.99 USD. You pay at Capture if you have not bought.",
+    a: "25 gratitude journal entries. $7.99 / R130. You pay at Capture if you have not bought.",
   },
 ] as const;

@@ -10,7 +10,7 @@ import { NOINDEX, siteTitleMetadata } from "@/lib/site-title";
 export const metadata: Metadata = {
   ...siteTitleMetadata,
   robots: NOINDEX,
-  description: "Unlock 25 gratitude journal entries for $7.99 USD.",
+  description: "Unlock 25 gratitude journal entries for $7.99 USD / R130 ZAR.",
 };
 
 export const dynamic = "force-dynamic";
