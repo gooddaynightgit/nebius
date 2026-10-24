@@ -4,6 +4,6 @@ export const alt = ogAlt;
 export const size = ogSize;
 export const contentType = "image/png";
 
-export default function TwitterImage() {
+export default async function TwitterImage() {
   return renderOgCard();
 }

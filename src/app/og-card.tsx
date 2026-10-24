@@ -1,4 +1,8 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
+
+const font = (f: string) => readFile(join(process.cwd(), "src/app/fonts", f));
 
 export const ogAlt = "GoodDayNight — Gratitude Journal & Bedtime Stories";
 export const ogSize = { width: 1200, height: 630 };
@@ -8,7 +12,8 @@ export const ogSize = { width: 1200, height: 630 };
  * All content sits in a centred ~560px-wide safe area so LinkedIn, X,
  * WhatsApp, Facebook and iMessage crops (incl. 1:1 centre crops) keep it whole.
  */
-export function renderOgCard() {
+export async function renderOgCard() {
+  const [bold, semibold] = await Promise.all([font("Inter-Bold.ttf"), font("Inter-SemiBold.ttf")]);
   return new ImageResponse(
     (
       <div
@@ -20,7 +25,7 @@ export function renderOgCard() {
           justifyContent: "center",
           background: "#D4FF00",
           color: "#111111",
-          fontFamily: "sans-serif",
+          fontFamily: "Inter",
         }}
       >
         <div
@@ -32,16 +37,23 @@ export function renderOgCard() {
             textAlign: "center",
           }}
         >
-          <div style={{ display: "flex", fontSize: 40, fontWeight: 800, marginBottom: 28 }}>GoodDayNight</div>
-          <div style={{ display: "flex", fontSize: 46, fontWeight: 800, lineHeight: 1.12, textAlign: "center", justifyContent: "center" }}>
+          <div style={{ display: "flex", fontSize: 40, fontWeight: 700, marginBottom: 28 }}>GoodDayNight</div>
+          <div style={{ display: "flex", fontSize: 46, fontWeight: 700, lineHeight: 1.12, textAlign: "center", justifyContent: "center" }}>
             Your good moments, read back as a bedtime story tonight.
           </div>
-          <div style={{ display: "flex", fontSize: 22, fontWeight: 600, marginTop: 28, textAlign: "center", justifyContent: "center" }}>
-            A gratitude journal for adults · gooddaynight.com
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: 22, fontWeight: 600, marginTop: 28, lineHeight: 1.35 }}>
+            <div style={{ display: "flex" }}>A gratitude journal for adults</div>
+            <div style={{ display: "flex" }}>gooddaynight.com</div>
           </div>
         </div>
       </div>
     ),
-    ogSize,
+    {
+      ...ogSize,
+      fonts: [
+        { name: "Inter", data: bold, weight: 700, style: "normal" },
+        { name: "Inter", data: semibold, weight: 600, style: "normal" },
+      ],
+    },
   );
 }
