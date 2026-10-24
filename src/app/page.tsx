@@ -1,102 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import HappyBubble from "@/components/HappyBubble";
-import KindWords from "@/components/KindWords";
-import SiteFooter from "@/components/SiteFooter";
-import ScrollHint from "@/components/ScrollHint";
-import { STEP_LABEL } from "@/lib/journey";
-import { KIND_WORDS_LIMIT } from "@/lib/review-copy";
-import { listPublishedReviews } from "@/lib/review";
+import {
+  FEEL_GOOD_HREF,
+  FEEL_GOOD_LABEL,
+  GOOD_NEWS_HREF,
+  GOOD_NEWS_LABEL,
+  HOME_DESCRIPTION,
+  jsonLdHtml,
+  siteJsonLd,
+} from "@/lib/home-doors";
 import { siteTitleMetadata } from "@/lib/site-title";
 
-export const revalidate = 300;
-
-const HOME_TITLE = "GoodDayNight — Find the joy in your day, or turn the day around";
-const HOME_DESCRIPTION =
-  "Find the joy in your day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.";
-
-const HOME_FAQ = [
-  {
-    q: "What is GoodDayNight?",
-    a: "GoodDayNight helps adults find the joy in their day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
-  },
-  {
-    q: "How does it work?",
-    a: "Pick your joy, then capture it with a text or photo. GoodDayNight checks it understood your moment, and tonight it becomes a story of your good day. On a harder day, open Something Good: name what's bugging you, take one slow breath, and turn it around.",
-  },
-  {
-    q: "Can I save more than one moment a day?",
-    a: "Yes. Save as many good moments as you like. Each one becomes its own story.",
-  },
-  {
-    q: "What happens to my moments after tonight?",
-    a: "Tonight's story, then it's gone. Tomorrow you look again.",
-  },
-  {
-    q: "Does gratitude journaling really work?",
-    a: "In a well-known study, people who wrote down three good things each night for a week felt happier for up to six months afterwards.",
-  },
-  {
-    q: "Is my photo private?",
-    a: "Your photos are used only to write your story and are deleted after tonight. We never share or sell them.",
-  },
-] as const;
-
-/** Structured data so search engines and LLMs can read what GoodDayNight is. */
-const HOME_JSON_LD = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebApplication",
-      "@id": "https://gooddaynight.com/#app",
-      name: "GoodDayNight",
-      url: "https://gooddaynight.com/",
-      description: HOME_DESCRIPTION,
-      applicationCategory: "LifestyleApplication",
-      operatingSystem: "Web",
-      keywords:
-        "find joy, joy app, live in the moment, less scrolling, turn your day around, positive mindset, gratitude, mindfulness",
-      email: "hello@gooddaynight.com",
-      inLanguage: "en-US",
-      publisher: { "@id": "https://gooddaynight.com/#org" },
-      audience: { "@type": "PeopleAudience", suggestedMinAge: 18 },
-      offers: {
-        "@type": "Offer",
-        name: "25 good-day stories",
-        price: "7.99",
-        priceCurrency: "USD",
-        url: "https://gooddaynight.com/pack",
-      },
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://gooddaynight.com/#org",
-      name: "GoodDayNight",
-      url: "https://gooddaynight.com/",
-      logo: "https://gooddaynight.com/logo.svg",
-      email: "hello@gooddaynight.com",
-      description:
-        "GoodDayNight is an app for adults to find the joy in their day, or turn the day around, and end with a story of their good day. It is not affiliated with Good Day Good Night of Tucson.",
-      founder: { "@type": "Person", name: "Jasmine Hassam", url: "https://gooddaynight.com/about" },
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://gooddaynight.com/#website",
-      name: "GoodDayNight",
-      url: "https://gooddaynight.com/",
-      inLanguage: "en-US",
-      publisher: { "@id": "https://gooddaynight.com/#org" },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: HOME_FAQ.map((item) => ({
-        "@type": "Question",
-        name: item.q,
-        acceptedAnswer: { "@type": "Answer", text: item.a },
-      })),
-    },
-  ],
-};
+const HOME_TITLE = "GoodDayNight — How to feel good";
 
 export const metadata: Metadata = {
   ...siteTitleMetadata,
@@ -118,14 +34,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function HomePage() {
-  const reviews = await listPublishedReviews(KIND_WORDS_LIMIT);
+function Arrow() {
   return (
-    <div className="page">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSON_LD).replace(/</g, "\\u003c") }}
+    <svg className="shape-cta__arrow" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M5 12h13M13 6l6 6-6 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+/** Home: the brand circle, the brand square, and the bubble. Nothing else. */
+export default function HomePage() {
+  return (
+    <div className="page home-doors-page">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(siteJsonLd(false))} />
       <header className="site-header">
         <Link className="badge" href="/">
           GoodDayNight
@@ -133,150 +61,23 @@ export default async function HomePage() {
       </header>
 
       <main id="main">
-        <section className="card card--mint" aria-labelledby="hero-heading">
-          <h1 id="hero-heading">
-            You scrolled past a hundred good moments today. None of them were yours.
-          </h1>
-          <span className="card__mark" aria-hidden="true"></span>
-          <span className="card__wash card__wash--sun" aria-hidden="true"></span>
-        </section>
-
-        <section className="card card--lavender home-lead">
-          <p className="card__body">
-            Your laugh. Your small win. Your quiet moment. Nobody turned them
-            into anything — not even you.
-          </p>
-        </section>
-
-        <nav id="home-ctas" className="card card--ctas" aria-label={STEP_LABEL.start}>
-          <Link className="shape-cta shape-cta--circle" href="/app/joy">
+        <h1 className="visually-hidden">GoodDayNight — how to feel good</h1>
+        <nav className="home-doors" aria-label="GoodDayNight">
+          <Link className="shape-cta shape-cta--circle" href={FEEL_GOOD_HREF}>
             <span className="shape-cta__core">
-              <span className="shape-cta__main">{STEP_LABEL.start}</span>
-              <svg className="shape-cta__arrow" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M5 12h13M13 6l6 6-6 6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <span className="shape-cta__main">{FEEL_GOOD_LABEL}</span>
+              <Arrow />
             </span>
           </Link>
-          <p className="card--ctas__or">OR</p>
-          <Link className="shape-cta shape-cta--square" href="/something-good">
+          <Link className="shape-cta shape-cta--square" href={GOOD_NEWS_HREF}>
             <span className="shape-cta__core">
-              <span className="shape-cta__kicker">Name what you&apos;re not grateful for, then</span>
-              <span className="shape-cta__main">Turn it around</span>
-              <svg className="shape-cta__arrow" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M5 12h13M13 6l6 6-6 6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <span className="shape-cta__main">{GOOD_NEWS_LABEL}</span>
+              <Arrow />
             </span>
           </Link>
         </nav>
-
-        <section className="card card--summary">
-          <p className="card__body">
-            Find the joy in your day, or turn the day around. There are two ways in. Pick your joy, or name what&apos;s bugging you and say your perfect result. Either way, you end with a story of your good day.
-          </p>
-        </section>
-
-        <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
-          <h2 id="landing-demo-heading" className="landing-demo__heading">
-            How to find the joy in your day
-          </h2>
-          <video
-            className="landing-demo"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster="/landing-demo-poster.jpg"
-            src="/landing-demo.mp4"
-            width={720}
-            height={1398}
-            aria-label="Demo of finding the joy in your day"
-          />
-        </section>
-
-        <KindWords reviews={reviews} limit={KIND_WORDS_LIMIT} showLink showFeedback />
-
-        <section className="card card--cream home-study" aria-labelledby="study-heading">
-          <h2 id="study-heading">Letting the habit of looking rewire how I feel</h2>
-          <p className="card__body" style={{ marginTop: "0.85rem" }}>
-            In a well-known study, people who wrote down three good things each night for one week felt happier, and the effect lasted up to six months. GoodDayNight builds on that same simple habit: notice what went well today, save it, and hear it back as a story of your good day.
-          </p>
-          <a
-            className="private-note paid-open"
-            href="https://doi.org/10.1037/0003-066X.60.5.410"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Seligman, Steen, Park &amp; Peterson (2005), &quot;Positive psychology progress: Empirical validation of interventions,&quot; American Psychologist, 60(5), 410–421. The &quot;Three Good Things&quot; exercise.
-          </a>
-          <span className="card__wash card__wash--note" aria-hidden="true"></span>
-        </section>
-
-        <section className="card card--peach home-questions" aria-labelledby="questions-heading">
-          <h2 id="questions-heading">Questions</h2>
-          {HOME_FAQ.map((item) => (
-            <div key={item.q}>
-              <h3>{item.q}</h3>
-              <p className="card__body">{item.a}</p>
-            </div>
-          ))}
-          <span className="card__wash card__wash--plus" aria-hidden="true"></span>
-        </section>
-
-        <section id="home-close" className="card card--lime home-close" aria-labelledby="closing-heading">
-          <h2 id="closing-heading" className="visually-hidden">
-            Something good is happening!
-          </h2>
-          <Link className="step-next" href="/app/joy">
-            <span>Start my gratitude journal</span>
-            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M5 12h13M13 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-          <p className="home-close__or">OR</p>
-          <Link className="step-next home-close__turn" href="/something-good">
-            <span className="home-close__turn-text">
-              <span className="home-close__kicker">Name what you&apos;re not grateful for, then</span>
-              <span>Turn it around</span>
-            </span>
-            <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M5 12h13M13 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-        </section>
         <HappyBubble text="Something good is happening!" />
       </main>
-      <ScrollHint target="home-ctas" />
-
-      <SiteFooter />
     </div>
   );
 }

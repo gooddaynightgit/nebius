@@ -63,7 +63,8 @@ describe("site title", () => {
       expect(src, rel).not.toMatch(/title:\s*["'`]/);
       expect(src, rel).not.toContain("document.title");
     }
-    expect(read("src/app/page.tsx")).toContain("You scrolled past a hundred good moments today.");
+    expect(read("src/lib/home-doors.ts")).toContain("You scrolled past a hundred good moments today.");
+    expect(read("src/app/how-to-feel-good/page.tsx")).toContain("FEEL_GOOD_HEADLINE");
     expect(read("src/app/signin/page.tsx")).toContain("Your moment.");
     expect(read("src/app/signin/page.tsx")).not.toContain("Your moment — GoodDayNight");
     const titled = sourceFiles(path.resolve("src")).filter((file) => /document\.title\s*=/.test(readFileSync(file, "utf8")));

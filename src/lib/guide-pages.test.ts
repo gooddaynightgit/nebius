@@ -65,10 +65,10 @@ function weaveControls(html: string): string[] {
 
 describe("seven guide pages", () => {
   it("weaves into the same joy step as the landing button", () => {
-    const landing = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
+    const landing = readFileSync(path.resolve("src/app/how-to-feel-good/page.tsx"), "utf8");
     expect(WEAVE_HREF).toBe("/app/joy");
-    expect(landing).toContain('href="/app/joy"');
-    expect(landing).toContain("STEP_LABEL.start");
+    expect(landing).toContain("href={WEAVE_HREF}");
+    expect(landing).toContain("Start my gratitude journal");
     expect(STEP_LABEL.start).toBe("Start my gratitude journal");
   });
 

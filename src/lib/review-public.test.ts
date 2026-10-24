@@ -44,10 +44,10 @@ describe("public review display", () => {
     expect(newest.at(-1)?.id).toBe("review_2");
   });
 
-  it("places Kind reviews under the landing demo and above the review form", () => {
-    const landing = readFileSync(path.resolve("src/app/page.tsx"), "utf8");
+  it("places Kind reviews on Good news, after the study, and above the review form", () => {
+    const landing = readFileSync(path.resolve("src/app/good-news/page.tsx"), "utf8");
     const review = readFileSync(path.resolve("src/app/review/page.tsx"), "utf8");
-    expect(landing.indexOf('className="landing-demo"')).toBeLessThan(landing.indexOf("<KindWords"));
+    expect(landing.indexOf("study-heading")).toBeLessThan(landing.indexOf("<KindWords"));
     expect(landing.indexOf("<KindWords")).toBeLessThan(landing.indexOf("closing-heading"));
     expect(landing).toMatch(/limit=\{KIND_WORDS_LIMIT\}/);
     expect(landing).toMatch(/listPublishedReviews\(KIND_WORDS_LIMIT\)/);

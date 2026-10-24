@@ -27,7 +27,7 @@ function FeedbackGroup({ hidden = false }: { hidden?: boolean }) {
 
 export default function FeedbackRibbon() {
   const pathname = usePathname();
-  if (isGuidePath(pathname) || isPaidPath(pathname) || isSgPath(pathname)) return null;
+  if (pathname === "/" || isGuidePath(pathname) || isPaidPath(pathname) || isSgPath(pathname)) return null;
   return (
     <aside className="feedback-ribbon" aria-label="Feedback">
       <div className="feedback-ribbon__track">
