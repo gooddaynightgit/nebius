@@ -13,7 +13,7 @@ const FAQ = { kind: "link" as const, label: "FAQ", href: "/faq" };
 const GUIDE_LINKS = [HOW_IT_WORKS, EXAMPLE, FAQ];
 /** Both ways in, on every menu. */
 const START_SG = { kind: "link" as const, label: "Start: Name what you're not feeling good about", href: "/something-good" };
-const START_JOURNAL = { kind: "link" as const, label: "Start my gratitude journal", href: "/app/joy" };
+const START_JOURNAL = { kind: "link" as const, label: "Start my feel good moment", href: "/app/joy" };
 const STARTS = [START_SG, START_JOURNAL];
 
 /** Menu rows for the floating bubble. Saved moments are not part of this list. */
@@ -27,7 +27,7 @@ export function accountMenuItems(input: {
   return [
     { kind: "email", email: input.email?.trim() || "" },
     ...STARTS,
-    { kind: "link", label: "My new joy moments", href: "/moments" },
+    { kind: "link", label: "My new good feeling moments", href: "/moments" },
     { kind: "logout", label: "Log out" },
     REVIEW,
     ABOUT,

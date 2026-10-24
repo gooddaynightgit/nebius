@@ -23,13 +23,13 @@ export const LANDING = {
       "One frame is enough.",
     ],
     photoPs:
-      "ps: a screenshot of three things you're grateful for — handwritten ones especially welcome — your joy, already multiplying.",
+      "ps: a screenshot of three things you're grateful for — handwritten ones especially welcome — your good feeling, already multiplying.",
     whisperLabel: "A whisper next to the photo. 80 characters.",
     whisperExamples: "the light on the kettle / he wrote back / I made it home",
     joyLegend: "(pick one)",
     playbackTitle: "Create your story",
     playbackExample:
-      "Example of tonight’s tone — not your story yet. Create your story from this photo.",
+      "Example of the tone, right now — not your story yet. Create your story from this photo.",
   },
   app: {
     heading: "Today.",
@@ -57,8 +57,8 @@ export const LANDING = {
     ],
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
-    yours: "My gratitude journal",
-    playbackLead: "Here's how a good moment reads in your gratitude journal.",
+    yours: "My feel good moment",
+    playbackLead: "Here's how it reads.",
     brand: "GoodDayNight",
     captionLabel: "What is the good in this moment?",
     sparkWait: "Let me see your good moment capture",
@@ -67,13 +67,13 @@ export const LANDING = {
     captionHelp: "Write what the picture cannot say: a name, a step count, “he wrote back.”",
     captionExamples: "a name / a step count / he wrote back",
     captionDropped: "That line couldn’t be saved. The photo still is.",
-    blocked: "Tonight isn’t a story we can create. This picture isn’t one we can tell. Keep the night gentle.",
+    blocked: "Right now isn’t a story we can create. This picture isn’t one we can tell. Keep it gentle.",
     playMoment: "Play this good moment",
     pause: "Pause",
     keep: "Share",
-    keepLabel: "Share tonight’s story with the photo",
+    keepLabel: "Share right now’s story with the photo",
     keepBusy: "Sharing…",
-    keepFailed: "Couldn’t keep tonight’s story. Try again.",
+    keepFailed: "Couldn’t keep right now’s story. Try again.",
     save: "Save today’s moment",
     replace: "Replace today’s photo",
     takePhoto: "Take your photo",
@@ -84,27 +84,27 @@ export const LANDING = {
     reachLive: "Couldn't reach GoodDayNight — check your connection and try again.",
     unexpected: "Couldn't read GoodDayNight's reply. Refresh and try again.",
     tryAgain: "Try again",
-    joyNeed: "Pick the kind of quiet joy first.",
-    joyNudge: "Gently nudging you to pick a joy for Unlock/Capture goodness to happen.",
-    joyQuestion: "What joy is it?",
+    joyNeed: "Pick the kind of good feeling first.",
+    joyNudge: "Gently nudging you to pick a good feeling for Capture it goodness to happen.",
+    joyQuestion: "What good feeling is it?",
     joyPickHint: "(pick one to Create your story)",
     alreadyPickedLink: "See your Created story",
     alreadyPickedEmpty: "Nothing saved yet. Pick a new one.",
-    nextJoy: "Pick the quiet joy",
+    nextJoy: "Pick the good feeling",
     photoNeed: "Add one photo from today.",
     photoNudge: "Could you please be so kind to upload a photo taken today or simply take one",
     witnessQuiet: "The witness didn’t look. The caption is still yours.",
     tooLarge: "That photo is too large — try again after we shrink it",
     tooLargeKeep: "Keep photos under 4.5 MB.",
     heicAsk: "That photo format isn't supported here. Save it as JPEG or PNG and try again.",
-    yoursMissing: "Save today's photo and pick a joy first.",
+    yoursMissing: "Save today's photo and pick a good feeling first.",
     keepingMoment: "Keeping your moment…",
     savedOnPhone: "Saved on this phone — open Create your story from here",
     resaveFailed: "We couldn't send today's photo again. Go back and save it from this phone.",
   },
   about: {
     title: "About the maker — GoodDayNight",
-    body: "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, kept in this gratitude journal. I built GoodDayNight for myself. I honestly want this for you.",
+    body: "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure good feeling, kept in this feel good moment. I built GoodDayNight for myself. I honestly want this for you.",
     signature: "— Jasmine Hassam, maker of GoodDayNight",
   },
   footer: {
@@ -133,7 +133,7 @@ export const JOY_TYPES: JoyType[] = [
     id: "a-small-hello",
     title: "A hello",
     tagline: "Someone was reached. A wave, a laugh, a blue bubble.",
-    body: "A roaring laugh with a coworker. A huge wave to your neighbor across the street. A text to a friend that says *you crossed my mind and it made me grin.* Each one floods you with oxytocin — the chemistry of pure belonging — and the whole world lights up like it's in on the joy with you.",
+    body: "A roaring laugh with a coworker. A huge wave to your neighbor across the street. A text to a friend that says *you crossed my mind and it made me grin.* Each one floods you with oxytocin — the chemistry of pure belonging — and the whole world lights up like it's in on the good feeling with you.",
     capture:
       "a photo of the two of you mid-laugh, their name on your screen, your hand still raised in that wave.",
     playbackTemplate:
@@ -152,7 +152,7 @@ export const JOY_TYPES: JoyType[] = [
     id: "a-little-movement",
     title: "A little movement",
     tagline: "Your body remembered it was yours. A walk. A stretch. The long way home.",
-    body: "Ten minutes and your whole chemistry changes. A walk brisk enough to feel your heart sing. A stretch long and luxurious, spine waking, shoulders opening. Endorphins flood through you — your body's own joy, made by you, for you, on demand. You are powerful and it feels incredible.",
+    body: "Ten minutes and your whole chemistry changes. A walk brisk enough to feel your heart sing. A stretch long and luxurious, spine waking, shoulders opening. Endorphins flood through you — your body's own good feeling, made by you, for you, on demand. You are powerful and it feels incredible.",
     capture:
       "a photo of your shoes on the pavement, your arms reaching wide to the sky, the path stretching out ahead of you.",
     playbackTemplate:
@@ -172,10 +172,10 @@ export const JOY_TYPES: JoyType[] = [
     id: "just-this",
     title: "Just this",
     tagline: "You don't have to name the category. The photo already knows.",
-    body: "Some joys refuse categories — and they're often the best ones. The unexpected. The unrepeatable. The moment you almost didn't capture. It counts. It always counts. Whatever it was, it found you today, and you were wise enough to keep it.",
+    body: "Some good feelings refuse categories — and they're often the best ones. The unexpected. The unrepeatable. The moment you almost didn't capture. It counts. It always counts. Whatever it was, it found you today, and you were wise enough to keep it.",
     capture: "exactly as it happened. No explanation required.",
     playbackTemplate:
-      '"Today held something that doesn\'t fit in any box — and it was mine. I noticed it. I kept it. Some moments are too alive for categories, and tonight, this one is mine to relive, word by word."',
+      '"Today held something that doesn\'t fit in any box — and it was mine. I noticed it. I kept it. Some moments are too alive for categories."',
   },
   {
     id: "a-sound-you-stopped-for",
@@ -189,11 +189,11 @@ export const JOY_TYPES: JoyType[] = [
   {
     id: "someone-elses-good-moment",
     title: "Someone else's good moment",
-    tagline: "Their joy crossed your day, and you kept a little of it.",
+    tagline: "Their good feeling crossed your day, and you kept a little of it.",
     body: "A friend mid-laugh. A stranger's small win. A hello that belonged to someone else and still warmed you. You noticed their good, and a little of it became yours.",
     capture: "a photo of their smile, their name on the screen, the moment you were glad to witness.",
     playbackTemplate:
-      '"Today, someone else\'s good moment found me. I noticed it. I kept a little of that warmth, and tonight it is mine to hold."',
+      '"Today, someone else\'s good moment found me. I noticed it. I kept a little of that warmth."',
   },
   {
     id: "no-name-for-it",
@@ -202,7 +202,7 @@ export const JOY_TYPES: JoyType[] = [
     body: "Some moments refuse a name. Rain on the glass. A weird lovely ordinary thing. You don't have to classify it. Noticing it was enough.",
     capture: "exactly as it happened. No category required.",
     playbackTemplate:
-      '"Today held something with no name — and I kept it anyway. I noticed it. Tonight it is still mine."',
+      '"Today held something with no name — and I kept it anyway. I noticed it."',
   },
 ];
 

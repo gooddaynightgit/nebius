@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   }
 
   const joy = getJoyById(joyId);
-  if (!joy) return badRequest("Pick the kind of quiet joy first.");
+  if (!joy) return badRequest("Pick the kind of good feeling first.");
   if (!(file instanceof File) || file.size <= 0) {
     return json({ verdict: "NEED_PHOTO" });
   }

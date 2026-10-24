@@ -155,11 +155,11 @@ export default function YoursStory() {
     if (open.status === 404) {
       return {
         status: data.code === "missing" ? "missing" : "expired",
-        message: data.error || "Tonight's story lived for one night.",
+        message: data.error || "Your story lived for today.",
       };
     }
     if (!open.ok || !data.story) {
-      throw new Error(data.error || "Could not open tonight's story.");
+      throw new Error(data.error || "Could not open your story.");
     }
     return {
       status: "ready",
@@ -250,7 +250,7 @@ export default function YoursStory() {
         }
         apply({
           status: "expired",
-          message: data.error || "Tonight's story lived for one night.",
+          message: data.error || "Your story lived for today.",
         });
         return;
       }
@@ -407,7 +407,7 @@ export default function YoursStory() {
               {state.status === "expired"
                 ? "That night has passed."
                 : state.status === "blocked"
-                  ? "Can’t create your story tonight."
+                  ? "Can’t create your story right now."
                   : state.status === "error"
                     ? "Couldn’t keep this moment."
                     : "Not yet."}
@@ -436,7 +436,7 @@ export default function YoursStory() {
               <img
                 className="keep-card-view"
                 src={keepCardPhotoSrc(readyPhotoId, state.story.id)}
-                alt="Tonight’s moment"
+                alt="Right now’s moment"
               />
             ) : null}
             {state.story.title ? <p className="weaved-label">{displayStoryText(state.story.title)}</p> : null}
@@ -481,8 +481,8 @@ export default function YoursStory() {
               ) : null}
             </div>
             {earlierList.length ? (
-              <nav id="earlier-stories" className="earlier-stories" aria-label="My saved joy moments">
-                <h2>My saved joy moments</h2>
+              <nav id="earlier-stories" className="earlier-stories" aria-label="My saved good feeling moments">
+                <h2>My saved good feeling moments</h2>
                 <ul>
                   {earlierList.map((item) => (
                     <li key={item.id}>

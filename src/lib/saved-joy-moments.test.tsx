@@ -16,7 +16,7 @@ import {
 describe("saved joy moments", () => {
   it("reuses the former See your Created story href and is not a catalog joy", () => {
     expect(SAVED_JOY_MOMENTS_HREF).toBe("/app/yours");
-    expect(SAVED_JOY_MOMENTS_LABEL).toBe("Your saved joy moments");
+    expect(SAVED_JOY_MOMENTS_LABEL).toBe("Your saved good feeling moments");
     expect(isSavedJoyMomentsId(SAVED_JOY_MOMENTS_ID)).toBe(true);
     expect(isSavedJoyMomentsId("morning-sunlight")).toBe(false);
     expect(getJoyById(SAVED_JOY_MOMENTS_ID)).toBeUndefined();

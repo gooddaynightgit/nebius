@@ -3,7 +3,7 @@ export const SAVED_JOY_MOMENTS_HREF = "/app/yours";
 
 export const SAVED_JOY_MOMENTS_ID = "saved-joy-moments";
 
-export const SAVED_JOY_MOMENTS_LABEL = "Your saved joy moments";
+export const SAVED_JOY_MOMENTS_LABEL = "Your saved good feeling moments";
 
 /** This choice only navigates. It is not a catalog joy and must not be stored or woven. */
 export function isSavedJoyMomentsId(id: string | null | undefined): boolean {

@@ -514,11 +514,11 @@ export default function CaptureStudio() {
       return current.momentId === momentId && current.generation === generation;
     };
     if (looksLikeMemeName(next.name)) {
-      setCaptureError("Tonight is for your own moment, not a meme.");
+      setCaptureError("Right now is for your own moment, not a meme.");
       return;
     }
     if (looksLikeBorrowedName(next.name)) {
-      setCaptureError("Tonight is for your own moment — not someone else's picture.");
+      setCaptureError("Right now is for your own moment — not someone else's picture.");
       return;
     }
     if (isHorrificFilename(next.name)) {

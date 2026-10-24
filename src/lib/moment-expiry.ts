@@ -1,7 +1,7 @@
 import { dayFromUnixMsWithOffset, isValidDayStamp, isValidTzOffset, localDay } from "./day";
 
 /** Shown on the result-screen Share button. The moment lasts through this local minute. */
-export const SAVED_MOMENT_EXPIRES_NOTE = "disappears tonight 23:59";
+export const SAVED_MOMENT_EXPIRES_NOTE = "disappears at 23:59";
 
 export function shareMomentButtonLabel(action: string): string {
   return `${action} · ${SAVED_MOMENT_EXPIRES_NOTE}`;

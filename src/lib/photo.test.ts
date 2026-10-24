@@ -54,7 +54,7 @@ describe("photo save rules copy", () => {
     ]);
     expect(PHOTO_DATE_MESSAGES.today).toBe("Wonderful, your photo was taken today.");
     expect(PHOTO_DATE_MESSAGES.old).toBe(
-      "This photo looks older than today. Tonight only holds today's moment.",
+      "This photo looks older than today. Right now only holds today's moment.",
     );
     expect(JSON.stringify(PHOTO_DATE_MESSAGES)).not.toMatch(/couldn't confirm/i);
     expect(JSON.stringify(PHOTO_SAVE_RULES)).not.toMatch(/\bstock\b|\bold photos\b/i);

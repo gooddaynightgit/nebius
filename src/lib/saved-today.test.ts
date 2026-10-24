@@ -38,7 +38,7 @@ function photo(id: string, mediaKey?: string): CaptureRecord {
 
 describe("today's saved moments", () => {
   it("names the dropdown and the empty line in warm words", () => {
-    expect(SAVED_TODAY_LABEL).toBe("My saved moments \u2013 disappears at 23:59 tonight");
+    expect(SAVED_TODAY_LABEL).toBe("My saved moments \u2013 disappears at 23:59");
     expect(SAVED_TODAY_EMPTY).toBe("No saved moments yet today.");
     expect(SAVED_TODAY_EMPTY).not.toMatch(/gone|expired|error|fail/i);
   });

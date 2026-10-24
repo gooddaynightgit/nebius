@@ -67,7 +67,7 @@ export const SG_GENTLE_END = {
 };
 
 export const SG_BASICS = [
-  "First, something simple. A cup of tea, or a warm bed tonight. Thank you for that.",
+  "First, something simple. A cup of tea, or a warm bed. Thank you for that.",
   "Now a person. Someone who smiled at you, or called. Thank you for them.",
   "And one more. A meal, clean water, being alive today. Thank you for that.",
 ] as const;

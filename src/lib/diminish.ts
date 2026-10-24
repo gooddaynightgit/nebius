@@ -149,6 +149,9 @@ function shiftPhrase(text: string, word: string, phrase: string): string {
 }
 
 const SWAPS: Array<{ pattern: RegExp; replacement: string }> = [
+  { pattern: /\btonight's\b/gi, replacement: "today's" },
+  { pattern: /\btonight’s\b/gi, replacement: "today’s" },
+  { pattern: /\btonight\b/gi, replacement: "right now" },
   { pattern: /\bquiet rebellions\b/gi, replacement: "tender joys" },
   { pattern: /\bquiet rebellion\b/gi, replacement: "tender joy" },
   { pattern: /\brebellions\b/gi, replacement: "blessings" },

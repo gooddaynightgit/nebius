@@ -96,7 +96,7 @@ export default async function GoodNewsPage() {
             Something good is happening!
           </h2>
           <Link className="step-next" href={WEAVE_HREF}>
-            <span>Start my gratitude journal</span>
+            <span>Start my feel good moment</span>
             <Arrow />
           </Link>
           <p className="home-close__or">OR</p>
