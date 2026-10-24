@@ -96,6 +96,27 @@ export function siteJsonLd(withFaq: boolean) {
   ];
   if (withFaq) {
     graph.push({
+      "@type": "WebPage",
+      "@id": "https://gooddaynight.com/good-news#page",
+      url: "https://gooddaynight.com/good-news",
+      name: "Good news about gratitude — GoodDayNight",
+      headline: FEEL_GOOD_HEADLINE,
+      description: HOME_DESCRIPTION,
+      inLanguage: "en-US",
+      isPartOf: { "@id": "https://gooddaynight.com/#website" },
+      about: { "@id": "https://gooddaynight.com/#app" },
+      author: { "@type": "Person", name: "Jasmine Hassam", url: "https://gooddaynight.com/about" },
+      citation: {
+        "@type": "ScholarlyArticle",
+        name: "Positive psychology progress: Empirical validation of interventions",
+        author: ["Martin E. P. Seligman", "Tracy A. Steen", "Nansook Park", "Christopher Peterson"],
+        datePublished: "2005",
+        isPartOf: { "@type": "Periodical", name: "American Psychologist" },
+        pagination: "410-421",
+        sameAs: "https://doi.org/10.1037/0003-066X.60.5.410",
+      },
+    });
+    graph.push({
       "@type": "FAQPage",
       mainEntity: GOOD_NEWS_FAQ.map((item) => ({
         "@type": "Question",
