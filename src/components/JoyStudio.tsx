@@ -26,6 +26,7 @@ import {
 
 export const FEEL_GOOD_VISUAL = "Feel good visual";
 export const FEEL_GOOD_VOICE = "Feel good voice";
+export const FLIP_IT = "Not feeling it? Flip it";
 
 type SavedMoment = { id: string; day: string; createdAt: string };
 
@@ -45,7 +46,6 @@ export default function JoyStudio() {
   const [needsJoyPick, setNeedsJoyPick] = useState(true);
   const [joyMissed, setJoyMissed] = useState(false);
   const [visualOpen, setVisualOpen] = useState(false);
-  const [voiceOpen, setVoiceOpen] = useState(false);
   useEffect(() => {
     if (joyMissed) setVisualOpen(true);
   }, [joyMissed]);
@@ -263,23 +263,14 @@ export default function JoyStudio() {
 
         <section className="card card--lavender card--moment" aria-labelledby="voice-heading">
           <h2 id="voice-heading" className="step-heading step-heading--navy feel-good-toggle__heading">
-            <button
-              type="button"
-              className="feel-good-toggle"
-              aria-expanded={voiceOpen}
-              aria-controls="feel-good-voice"
-              onClick={() => setVoiceOpen((open) => !open)}
-            >
+            <span className="feel-good-toggle feel-good-toggle--static">
               <span>{FEEL_GOOD_VOICE}</span>
               <span className="feel-good-toggle__hint">Say it out loud</span>
-            </button>
+            </span>
           </h2>
-          <div id="feel-good-voice" className="feel-good-voice" hidden={!voiceOpen}>
-            <Link className="step-next home-close__turn" href="/something-good">
-              <span className="home-close__turn-text">
-                <span className="home-close__kicker">Name what you&apos;re not grateful for, then</span>
-                <span>Turn it around</span>
-              </span>
+          <div className="feel-good-voice">
+            <Link className="step-next feel-good-flip" href="/something-good">
+              <span>{FLIP_IT}</span>
               <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M5 12h13M13 6l6 6-6 6"

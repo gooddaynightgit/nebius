@@ -5579,6 +5579,19 @@ textarea.sg-heard {
   margin-top: 1rem;
 }
 
+.feel-good-toggle--static {
+  cursor: default;
+  padding-right: 0;
+}
+
+.feel-good-toggle--static::after {
+  content: none;
+}
+
+#feel-good-visual[hidden] {
+  display: none;
+}
+
 .feel-good-voice {
   display: flex;
   justify-content: center;
