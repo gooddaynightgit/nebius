@@ -11,7 +11,7 @@ import { withClientClock, useLocalDay } from "@/lib/client-day";
 import { readJson } from "@/lib/client-fetch";
 import { readChosenJoy, writeChosenJoy } from "@/lib/chosen-joy";
 import { localDay } from "@/lib/day";
-import { journeyNextLabel, restoredJoyId } from "@/lib/journey";
+import { restoredJoyId } from "@/lib/journey";
 import { useRegisterStepForward } from "@/components/step-forward";
 import { LANDING, accordionJoys, getJoyById, type JoyType } from "@/lib/landing";
 import { latestMoments, momentListLabel } from "@/lib/latest-moments";
@@ -185,13 +185,7 @@ export default function JoyStudio() {
     window.location.assign(uploadPhotoDestination(signedIn, game));
   }
 
-  useRegisterStepForward({
-    label: journeyNextLabel(2) ?? "Unlock/Capture",
-    enabled: true,
-    run: () => {
-      void uploadPhoto();
-    },
-  });
+  useRegisterStepForward(null);
 
   return (
     <div className="page">
@@ -257,6 +251,23 @@ export default function JoyStudio() {
               </ul>
             </nav>
           ) : null}
+            {selectedJoy ? (
+              <div className="feel-good-capture">
+                <button type="button" className="step-next" onClick={() => void uploadPhoto()}>
+                  <span>Capture it</span>
+                  <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M5 12h13M13 6l6 6-6 6"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ) : null}
           </div>
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
         </section>
@@ -265,7 +276,6 @@ export default function JoyStudio() {
           <h2 id="voice-heading" className="step-heading step-heading--navy feel-good-toggle__heading">
             <span className="feel-good-toggle feel-good-toggle--static">
               <span>{FEEL_GOOD_VOICE}</span>
-              <span className="feel-good-toggle__hint">Say it out loud</span>
             </span>
           </h2>
           <div className="feel-good-voice">

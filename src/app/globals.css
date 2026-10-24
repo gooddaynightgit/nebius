@@ -5597,3 +5597,9 @@ textarea.sg-heard {
   justify-content: center;
   margin-top: 1rem;
 }
+
+.feel-good-capture {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
