@@ -8,7 +8,6 @@ import {
   FEEL_GOOD_LABEL,
   FEEL_GOOD_LEAD,
   GOOD_NEWS_FAQ,
-  HOME_DESCRIPTION,
   jsonLdHtml,
   siteJsonLd,
 } from "@/lib/home-doors";
@@ -66,15 +65,11 @@ export default async function GoodNewsPage() {
 
       <main id="main">
         <section className="card card--mint" aria-labelledby="good-news-heading">
-          <h1 id="good-news-heading">Good news: gratitude really does make you feel good.</h1>
-          <p className="card__body">{HOME_DESCRIPTION}</p>
+          <h1 id="good-news-heading">{FEEL_GOOD_HEADLINE}</h1>
         </section>
 
-        <section className="card card--lavender home-lead" aria-labelledby="scrolled-heading">
-          <h2 id="scrolled-heading">{FEEL_GOOD_HEADLINE}</h2>
-          <p className="card__body" style={{ marginTop: "0.85rem" }}>
-            {FEEL_GOOD_LEAD}
-          </p>
+        <section className="card card--lavender home-lead">
+          <p className="card__body">{FEEL_GOOD_LEAD}</p>
         </section>
 
         <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
