@@ -99,7 +99,7 @@ export function siteJsonLd(withFaq: boolean) {
       "@type": "WebPage",
       "@id": "https://gooddaynight.com/good-news#page",
       url: "https://gooddaynight.com/good-news",
-      name: "Good news about gratitude — GoodDayNight",
+      name: "Good news — GoodDayNight",
       headline: FEEL_GOOD_HEADLINE,
       description: HOME_DESCRIPTION,
       inLanguage: "en-US",

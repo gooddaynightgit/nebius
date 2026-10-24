@@ -16,9 +16,9 @@ import { siteTitleMetadata } from "@/lib/site-title";
 
 export const revalidate = 300;
 
-const TITLE = "Good news about gratitude — GoodDayNight";
+const TITLE = "Good news — GoodDayNight";
 const DESCRIPTION =
-  "Good news: gratitude really does make you feel good. The Three Good Things study, kind words from people using GoodDayNight, and answers to common questions.";
+  "You scrolled past a hundred good moments today. None of them were yours. The Three Good Things study, kind words from people using GoodDayNight, and answers to common questions.";
 
 export const metadata: Metadata = {
   ...siteTitleMetadata,
