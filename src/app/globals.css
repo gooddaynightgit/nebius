@@ -5532,3 +5532,55 @@ textarea.sg-heard {
   justify-content: center;
   padding: 1rem 0 2rem;
 }
+
+/* Pick your joy page: two accordions, Feel good visual (joys) and Feel good voice (Something Good) */
+.feel-good-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  padding-right: 1.9rem;
+}
+
+.feel-good-toggle::after {
+  content: "";
+  position: absolute;
+  right: 0.2rem;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.feel-good-toggle[aria-expanded="true"]::after {
+  transform: translateY(-20%) rotate(-135deg);
+}
+
+.feel-good-toggle__hint {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity: 0.85;
+}
+
+#feel-good-visual {
+  margin-top: 1rem;
+}
+
+.feel-good-voice {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}

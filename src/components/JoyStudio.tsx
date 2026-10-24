@@ -24,6 +24,9 @@ import {
   openSavedJoyMoments,
 } from "@/lib/saved-joy-moments";
 
+export const FEEL_GOOD_VISUAL = "Feel good visual";
+export const FEEL_GOOD_VOICE = "Feel good voice";
+
 type SavedMoment = { id: string; day: string; createdAt: string };
 
 function savedDay(story: { day?: string; createdAt: string }): string {
@@ -41,6 +44,11 @@ export default function JoyStudio() {
   const [savedMoments, setSavedMoments] = useState<SavedMoment[]>([]);
   const [needsJoyPick, setNeedsJoyPick] = useState(true);
   const [joyMissed, setJoyMissed] = useState(false);
+  const [visualOpen, setVisualOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  useEffect(() => {
+    if (joyMissed) setVisualOpen(true);
+  }, [joyMissed]);
   const reportJoyEmpty = useCallback((empty: boolean) => {
     setNeedsJoyPick(empty);
     if (!empty) setJoyMissed(false);
@@ -195,9 +203,19 @@ export default function JoyStudio() {
 
       <main id="main">
         <section id="joy-pick" className="card card--cream card--moment" aria-labelledby="joy-heading">
-          <h2 id="joy-heading" className="step-heading step-heading--navy">
-            Pick your joy
+          <h2 id="joy-heading" className="step-heading step-heading--navy feel-good-toggle__heading">
+            <button
+              type="button"
+              className="feel-good-toggle"
+              aria-expanded={visualOpen}
+              aria-controls="feel-good-visual"
+              onClick={() => setVisualOpen((open) => !open)}
+            >
+              <span>{FEEL_GOOD_VISUAL}</span>
+              <span className="feel-good-toggle__hint">Upload or capture a photo</span>
+            </button>
           </h2>
+          <div id="feel-good-visual" hidden={!visualOpen}>
           {joyMissed && needsJoyPick && !selectedJoy ? (
             <p className="step-nudge step-nudge--block step-nudge--alert" id="joy-need" role="status">
               {LANDING.app.joyNudge}
@@ -239,7 +257,41 @@ export default function JoyStudio() {
               </ul>
             </nav>
           ) : null}
+          </div>
           <span className="card__wash card__wash--note" aria-hidden="true"></span>
+        </section>
+
+        <section className="card card--lavender card--moment" aria-labelledby="voice-heading">
+          <h2 id="voice-heading" className="step-heading step-heading--navy feel-good-toggle__heading">
+            <button
+              type="button"
+              className="feel-good-toggle"
+              aria-expanded={voiceOpen}
+              aria-controls="feel-good-voice"
+              onClick={() => setVoiceOpen((open) => !open)}
+            >
+              <span>{FEEL_GOOD_VOICE}</span>
+              <span className="feel-good-toggle__hint">Say it out loud</span>
+            </button>
+          </h2>
+          <div id="feel-good-voice" className="feel-good-voice" hidden={!voiceOpen}>
+            <Link className="step-next home-close__turn" href="/something-good">
+              <span className="home-close__turn-text">
+                <span className="home-close__kicker">Name what you&apos;re not grateful for, then</span>
+                <span>Turn it around</span>
+              </span>
+              <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h13M13 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+          </div>
         </section>
 
         <HappyBubble text={LANDING.footer.somethingGood} />
