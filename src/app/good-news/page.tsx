@@ -3,7 +3,15 @@ import Link from "next/link";
 import KindWords from "@/components/KindWords";
 import SiteFooter from "@/components/SiteFooter";
 import { WEAVE_HREF } from "@/lib/guide-pages";
-import { GOOD_NEWS_FAQ, HOME_DESCRIPTION, jsonLdHtml, siteJsonLd } from "@/lib/home-doors";
+import {
+  FEEL_GOOD_HEADLINE,
+  FEEL_GOOD_LABEL,
+  FEEL_GOOD_LEAD,
+  GOOD_NEWS_FAQ,
+  HOME_DESCRIPTION,
+  jsonLdHtml,
+  siteJsonLd,
+} from "@/lib/home-doors";
 import { KIND_WORDS_LIMIT } from "@/lib/review-copy";
 import { listPublishedReviews } from "@/lib/review";
 import { siteTitleMetadata } from "@/lib/site-title";
@@ -44,7 +52,7 @@ function Arrow() {
   );
 }
 
-/** Behind the square: everything search engines and AI assistants read — study, reviews, FAQ. */
+/** Behind the square: all the words: why, demo, study, reviews, FAQ. */
 export default async function GoodNewsPage() {
   const reviews = await listPublishedReviews(KIND_WORDS_LIMIT);
   return (
@@ -60,6 +68,32 @@ export default async function GoodNewsPage() {
         <section className="card card--mint" aria-labelledby="good-news-heading">
           <h1 id="good-news-heading">Good news: gratitude really does make you feel good.</h1>
           <p className="card__body">{HOME_DESCRIPTION}</p>
+        </section>
+
+        <section className="card card--lavender home-lead" aria-labelledby="scrolled-heading">
+          <h2 id="scrolled-heading">{FEEL_GOOD_HEADLINE}</h2>
+          <p className="card__body" style={{ marginTop: "0.85rem" }}>
+            {FEEL_GOOD_LEAD}
+          </p>
+        </section>
+
+        <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
+          <h2 id="landing-demo-heading" className="landing-demo__heading">
+            {FEEL_GOOD_LABEL}
+          </h2>
+          <video
+            className="landing-demo"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/landing-demo-poster.jpg"
+            src="/landing-demo.mp4"
+            width={720}
+            height={1398}
+            aria-label="Demo of how to feel good with GoodDayNight"
+          />
         </section>
 
         <section className="card card--cream home-study" aria-labelledby="study-heading">
