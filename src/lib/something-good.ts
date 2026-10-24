@@ -1,9 +1,9 @@
 /** Something Good: the same words the Alexa skill speaks, shared with the web version. */
 
 export const SG_PATH = "/something-good";
-export const SG_HEADLINE = "Name what you're not grateful for";
+export const SG_HEADLINE = "Name what you're not feeling good about";
 export const SG_BUTTON = "Start";
-export const SG_SUPPORT = "Ready to turn it around?";
+export const SG_SUPPORT = "Ready to flip it?";
 export const SG_DESCRIPTION =
   "Name what you're not grateful for. A gentle voice guides one slow breath, then says your own words back with one hopeful line: something good is happening.";
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { SG_PATH } from "@/lib/something-good";
+import { SG_PATH, SG_SUPPORT } from "@/lib/something-good";
 
 /** Shell for the Something Good info pages: badge, content, one way back to the ritual. */
 export default function SgShell({ children }: { children: ReactNode }) {
@@ -14,7 +14,7 @@ export default function SgShell({ children }: { children: ReactNode }) {
       <main id="main">
         {children}
         <section className="card sg-support">
-          <h2>Ready to turn it around?</h2>
+          <h2>{SG_SUPPORT}</h2>
           <Link className="step-next sg-start" href={SG_PATH}>
             Start
             <svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">
