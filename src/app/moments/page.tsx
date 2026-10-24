@@ -10,7 +10,7 @@ import { NOINDEX, siteTitleMetadata } from "@/lib/site-title";
 export const metadata: Metadata = {
   ...siteTitleMetadata,
   robots: NOINDEX,
-  description: "Unlock 25 good-day stories for $7.99 USD / R130 ZAR.",
+  description: "Unlock 25 good moments for $7.99 USD / R130 ZAR.",
 };
 
 export const dynamic = "force-dynamic";
@@ -32,8 +32,8 @@ export default async function MomentsPage() {
         <div className="moments-stack">
           <h1 className="moments-page-heading">My new good feeling moments</h1>
           <section className="moments-glass" aria-labelledby="moments-weave">
-            <h2 id="moments-weave">Every good-day story adds to the rich tapestry of life</h2>
-            <p className="moments-offer">Unlock 25 good-day stories for</p>
+            <h2 id="moments-weave">Every good moment adds to the rich tapestry of life</h2>
+            <p className="moments-offer">Unlock 25 good moments for</p>
             <MomentsPrice />
           </section>
           <MomentsCheckout />
