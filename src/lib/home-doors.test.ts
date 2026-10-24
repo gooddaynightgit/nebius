@@ -15,7 +15,7 @@ describe("home doors", () => {
     for (const gone of ["KindWords", "ScrollHint", "landing-demo", "SiteFooter", "hero-heading"]) {
       expect(home, gone).not.toContain(gone);
     }
-    expect(FEEL_GOOD_HREF).toBe("/how-to-feel-good");
+    expect(FEEL_GOOD_HREF).toBe("/app/joy");
     expect(GOOD_NEWS_HREF).toBe("/good-news");
   });
 
@@ -26,7 +26,7 @@ describe("home doors", () => {
 
   it("lists both doors in the sitemap and hides the ticker on home", () => {
     const sitemap = read("public/sitemap.xml");
-    expect(sitemap).toContain("https://gooddaynight.com/how-to-feel-good");
+    expect(sitemap).not.toContain("https://gooddaynight.com/how-to-feel-good");
     expect(sitemap).toContain("https://gooddaynight.com/good-news");
     expect(read("src/components/FeedbackRibbon.tsx")).toContain('pathname === "/"');
   });

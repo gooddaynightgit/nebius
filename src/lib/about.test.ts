@@ -98,7 +98,6 @@ describe("about the maker", () => {
     expect(read("src/app/about/page.tsx")).not.toContain("useRegisterStepForward");
     expect(read("src/app/review/page.tsx")).not.toContain("useRegisterStepForward");
     for (const file of [
-      "src/app/how-to-feel-good/page.tsx",
       "src/app/good-news/page.tsx",
       "src/app/about/page.tsx",
       "src/app/signin/page.tsx",
