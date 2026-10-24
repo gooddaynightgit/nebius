@@ -19,7 +19,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: SITE_TITLE,
   description:
-    "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+    "Find the joy in your day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
   metadataBase: new URL("https://gooddaynight.com"),
   icons: {
     icon: [
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     url: "https://gooddaynight.com/",
     title: SITE_TITLE,
     description:
-      "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+      "Find the joy in your day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
     locale: "en_US",
     siteName: "GoodDayNight",
   },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description:
-      "GoodDayNight turns what you texted, photographed, or voice-noted during the day into a bedtime story read back to you.",
+      "Find the joy in your day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
   },
 };
 

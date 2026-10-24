@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/site-title";
 export const metadata: Metadata = pageMetadata({
   name: "Terms",
   description:
-    "The simple terms for using GoodDayNight, the gratitude journal for adults: who it is for, what a pack includes, and how to reach us.",
+    "The simple terms for using GoodDayNight, the app for finding the joy in your day: who it is for, what a pack includes, and how to reach us.",
   path: "/terms",
 });
 
@@ -13,7 +13,7 @@ export default function TermsPage() {
   return (
     <LegalShell id="terms-heading" title="Terms" updated="October 24, 2026">
       <h2>Who it’s for</h2>
-      <p className="card__body">GoodDayNight is a gratitude journal for adults 18 and over.</p>
+      <p className="card__body">GoodDayNight is an app for adults 18 and over to find the joy in their day, or turn the day around.</p>
       <h2>Your moments</h2>
       <p className="card__body">
         What you save stays yours. You give us permission to use it only to write and read back your story. Your moments
@@ -21,7 +21,7 @@ export default function TermsPage() {
       </p>
       <h2>Packs and payment</h2>
       <p className="card__body">
-        A pack is 25 gratitude journal entries for $7.99 / R130, paid once through Payfast in USD or ZAR. It is not a subscription. If
+        A pack is 25 good-day stories for $7.99 / R130, paid once through Payfast in USD or ZAR. It is not a subscription. If
         something goes wrong with a purchase, email us and we will make it right.
       </p>
       <h2>Using GoodDayNight kindly</h2>

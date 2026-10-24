@@ -20,7 +20,7 @@ function sourceFiles(dir: string): string[] {
 
 describe("site title", () => {
   it("is the homepage title, with an em dash", () => {
-    expect(SITE_TITLE).toBe("GoodDayNight — Gratitude Journal & Bedtime Stories");
+    expect(SITE_TITLE).toBe("GoodDayNight — Find the joy in your day, or turn the day around");
     expect(SITE_TITLE).toContain("\u2014");
     expect(SITE_TITLE).not.toMatch(/Weave one good moment/i);
   });
