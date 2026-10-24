@@ -28,6 +28,9 @@ export default function SiteFooter({
           {LANDING.footer.about}
         </Link>
       </p>
+      <p className="site-footer__legal">
+        <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
+      </p>
       {site ? (
         <p>
           <Link href="/">{LANDING.footer.site}</Link>

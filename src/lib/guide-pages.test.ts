@@ -113,7 +113,8 @@ describe("seven guide pages", () => {
     expect(controls[0]).toContain(`href="${WEAVE_HREF}"`);
     expect(controls[0]).toContain("step-pin");
     expect(html).not.toMatch(GUIDE_FORBIDDEN);
-    expect(String(meta.title)).toBe(SITE_TITLE);
+    expect(String(meta.title)).toMatch(/^.+ — GoodDayNight$/);
+    expect(meta.alternates?.canonical).toBe(`https://gooddaynight.com${route}`);
     expect(String(meta.description).length).toBeGreaterThan(20);
     expect(`${meta.title} ${meta.description}`).not.toMatch(GUIDE_FORBIDDEN);
     const priced = route === "/pack" || route === "/faq";
