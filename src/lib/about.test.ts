@@ -91,7 +91,7 @@ describe("about the maker", () => {
     expect(read("src/components/step-forward.tsx")).toContain('"/app/joy"');
     expect(read("src/components/step-forward.tsx")).not.toContain('"/about"');
     expect(read("src/components/step-forward.tsx")).not.toContain('"/signin"');
-    expect(read("src/components/JoyStudio.tsx")).toContain("journeyNextLabel(2)");
+    expect(read("src/components/JoyStudio.tsx")).toContain("useRegisterStepForward(null)");
     expect(read("src/components/MomentsCheckout.tsx")).toContain("journeyNextLabel(3)");
     expect(read("src/components/YoursStory.tsx")).toContain("journeyNextLabel(6)");
     expect(read("src/app/signin/page.tsx")).not.toContain("useRegisterStepForward");

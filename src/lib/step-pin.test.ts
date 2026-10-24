@@ -17,7 +17,7 @@ describe("pinned step button", () => {
   it("pins one primary advance button on each step page", () => {
     expect(landing).toMatch(/className="step-next step-pin"/);
     expect(landing.match(/step-pin/g)).toHaveLength(1);
-    expect(joy).toMatch(/Unlock\/Capture/);
+    expect(joy).toMatch(/Capture it/);
     expect(joy).not.toMatch(/step-pin/);
     expect(checkout).toMatch(/type="submit"/);
     expect(checkout).toMatch(/>\s*Unlock\s*</);
