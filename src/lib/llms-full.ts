@@ -1,4 +1,4 @@
-import { NO_BLANK_PAGE_BODY, NOT_A_LIST_BODY } from "./guide-pages";
+import { FAQ, HOW_IT_WORKS_BODY, NO_BLANK_PAGE_BODY, NOT_A_LIST_BODY, PACK_BODY } from "./guide-pages";
 import { FEEL_GOOD_HEADLINE, FEEL_GOOD_LEAD, GOOD_NEWS_FAQ, HOME_DESCRIPTION, MAKER_WHY } from "./home-doors";
 import { SG_DESCRIPTION, SG_FAQ, SG_HOW_NOTE, SG_HOW_STEPS } from "./something-good";
 
@@ -35,11 +35,20 @@ Source: ${STUDY_CITATION}. The "Three Good Things" exercise.
 ## Questions
 ${qa(GOOD_NEWS_FAQ)}
 
+## How it works (https://gooddaynight.com/how-it-works)
+${HOW_IT_WORKS_BODY}
+
 ## No blank page (https://gooddaynight.com/no-blank-page)
 ${NO_BLANK_PAGE_BODY}
 
 ## Not a list (https://gooddaynight.com/not-a-list)
 ${NOT_A_LIST_BODY}
+
+## Pack and price (https://gooddaynight.com/pack)
+${PACK_BODY} $7.99 / R130.
+
+## More questions (https://gooddaynight.com/faq)
+${qa(FAQ)}
 
 ## Why the maker built it
 ${MAKER_WHY.join(" ")}
