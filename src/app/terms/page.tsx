@@ -13,7 +13,7 @@ export default function TermsPage() {
   return (
     <LegalShell id="terms-heading" title="Terms" updated="October 24, 2026">
       <h2>Who it’s for</h2>
-      <p className="card__body">GoodDayNight is an app for adults 18 and over to find the joy in their day, or turn the day around.</p>
+      <p className="card__body">GoodDayNight is an app for adults 18 and over to find the joy in their day, or flip your day.</p>
       <h2>Your moments</h2>
       <p className="card__body">
         What you save stays yours. You give us permission to use it only to write and read back your story. Your moments

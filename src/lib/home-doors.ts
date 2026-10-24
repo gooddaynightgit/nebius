@@ -28,7 +28,7 @@ export const GOOD_NEWS_FAQ = [
   },
   {
     q: "How does it work?",
-    a: "Pick your joy, snap a photo from today, and say what was good in it. GoodDayNight reflects it back to you in a few warm words. On a harder day, open Something Good: name what you're not grateful for, take one slow breath, and turn it around.",
+    a: "Pick your joy, snap a photo from today, and say what was good in it. GoodDayNight reflects it back to you in a few warm words. On a harder day, open Something Good: name what you're not feeling good about, take one slow breath, and flip it.",
   },
   {
     q: "Can I save more than one moment a day?",
