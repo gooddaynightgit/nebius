@@ -25,7 +25,7 @@ In a well-known study (Seligman, Steen, Park & Peterson, 2005, "Positive psychol
 
 ## Pages
 - [Home](https://gooddaynight.com/): Two doors: How to feel good, and Good news
-- [Good news](https://gooddaynight.com/good-news): The fullest page. Why it matters, demo, the Three Good Things study, kind reviews and FAQ
+- [Good news](https://gooddaynight.com/good-news): The fullest page. Why it matters, the Three Good Things study, kind reviews and FAQ
 - [How to feel good](https://gooddaynight.com/app/joy): Pick your joy and make your good moment
 - [How it works](https://gooddaynight.com/how-it-works)
 - [Example](https://gooddaynight.com/example)
