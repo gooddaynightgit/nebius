@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_URL = "https://gooddaynight.com";
 
 /** Document, Open Graph, and Twitter title for GoodDayNight pages. */
-export const SITE_TITLE = "GoodDayNight — Gratitude Journal & Bedtime Stories";
+export const SITE_TITLE = "GoodDayNight — Find the joy in your day, or turn the day around";
 
 /** "<Page> — GoodDayNight" */
 export function pageTitle(name: string): string {

@@ -45,7 +45,7 @@ export const LANDING = {
       "A text from someone you miss",
       "Finishing something you kept putting off",
       "The exact second the sky turned gold",
-      "Your kid saying something unintentionally wise",
+      "A friend saying something unexpectedly wise",
       "A meal you actually tasted",
       "Someone laughing at your joke",
       "The walk where your head finally went quiet",

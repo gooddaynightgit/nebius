@@ -11,18 +11,18 @@ import { siteTitleMetadata } from "@/lib/site-title";
 
 export const revalidate = 300;
 
-const HOME_TITLE = "GoodDayNight — Gratitude Journal & Bedtime Stories";
+const HOME_TITLE = "GoodDayNight — Find the joy in your day, or turn the day around";
 const HOME_DESCRIPTION =
-  "GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight. Save a text or photo, then listen.";
+  "Find the joy in your day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.";
 
 const HOME_FAQ = [
   {
     q: "What is GoodDayNight?",
-    a: "GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.",
+    a: "GoodDayNight helps adults find the joy in their day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
   },
   {
     q: "How does it work?",
-    a: "Pick your joy, then capture it with a text or photo. GoodDayNight checks it understood your moment, and tonight it becomes your bedtime story.",
+    a: "Pick your joy, then capture it with a text or photo. GoodDayNight checks it understood your moment, and tonight it becomes a story of your good day. On a harder day, open Something Good: name what's bugging you, take one slow breath, and turn it around.",
   },
   {
     q: "Can I save more than one moment a day?",
@@ -55,14 +55,14 @@ const HOME_JSON_LD = {
       applicationCategory: "LifestyleApplication",
       operatingSystem: "Web",
       keywords:
-        "gratitude journal, gratitude journal app, daily gratitude, bedtime stories for adults, mindfulness journal, self-care journal",
+        "find joy, joy app, live in the moment, less scrolling, turn your day around, positive mindset, gratitude, mindfulness",
       email: "hello@gooddaynight.com",
       inLanguage: "en-US",
       publisher: { "@id": "https://gooddaynight.com/#org" },
       audience: { "@type": "PeopleAudience", suggestedMinAge: 18 },
       offers: {
         "@type": "Offer",
-        name: "25 gratitude journal entries",
+        name: "25 good-day stories",
         price: "7.99",
         priceCurrency: "USD",
         url: "https://gooddaynight.com/pack",
@@ -76,7 +76,7 @@ const HOME_JSON_LD = {
       logo: "https://gooddaynight.com/logo.svg",
       email: "hello@gooddaynight.com",
       description:
-        "GoodDayNight is a gratitude journal app for adults that turns good moments into bedtime stories. It is not affiliated with Good Day Good Night of Tucson.",
+        "GoodDayNight is an app for adults to find the joy in their day, or turn the day around, and end with a story of their good day. It is not affiliated with Good Day Good Night of Tucson.",
       founder: { "@type": "Person", name: "Jasmine Hassam", url: "https://gooddaynight.com/about" },
     },
     {
@@ -185,13 +185,13 @@ export default async function HomePage() {
 
         <section className="card card--summary">
           <p className="card__body">
-            GoodDayNight is a gratitude journal that turns every good moment you save today into its own bedtime story tonight.
+            Find the joy in your day, or turn the day around. There are two ways in. Pick your joy, or name what&apos;s bugging you and say your perfect result. Either way, you end with a story of your good day.
           </p>
         </section>
 
         <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
           <h2 id="landing-demo-heading" className="landing-demo__heading">
-            How to create your gratitude journal
+            How to find the joy in your day
           </h2>
           <video
             className="landing-demo"
@@ -204,7 +204,7 @@ export default async function HomePage() {
             src="/landing-demo.mp4"
             width={720}
             height={1398}
-            aria-label="Demo of creating a gratitude journal"
+            aria-label="Demo of finding the joy in your day"
           />
         </section>
 
@@ -213,7 +213,7 @@ export default async function HomePage() {
         <section className="card card--cream home-study" aria-labelledby="study-heading">
           <h2 id="study-heading">Letting the habit of looking rewire how I feel</h2>
           <p className="card__body" style={{ marginTop: "0.85rem" }}>
-            In a well-known study, people who wrote down three good things each night for one week felt happier, and the effect lasted up to six months. GoodDayNight builds on that same simple habit: notice what went well today, save it, and hear it back as a bedtime story tonight.
+            In a well-known study, people who wrote down three good things each night for one week felt happier, and the effect lasted up to six months. GoodDayNight builds on that same simple habit: notice what went well today, save it, and hear it back as a story of your good day.
           </p>
           <a
             className="private-note paid-open"

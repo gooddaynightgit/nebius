@@ -28,7 +28,7 @@ export const GUIDE_PAGES = [
     name: "How it works",
     headline: "Pick a moment. We write it.",
     description:
-      "3 steps only. You choose the kind of good moment, capture it, and keep a short gratitude journal entry. No blank page. No 52-week program.",
+      "3 steps only. You choose the kind of good moment, capture it, and keep a short story of your good day. No blank page. No 52-week program.",
     price: false,
   },
   {
@@ -66,14 +66,14 @@ export const GUIDE_PAGES = [
     name: "Pack",
     headline: "25 moments. $7.99 / R130.",
     description:
-      "One pack. 25 gratitude journal entries. You see how it reads first. You pay when you capture, if you have not already. No subscription on this pack.",
+      "One pack. 25 good-day stories. You see how it reads first. You pay when you capture, if you have not already. No subscription on this pack.",
     price: true,
   },
   {
     path: "/faq",
     name: "FAQ",
     headline: "The day vanished into my phone.",
-    description: "Questions about GoodDayNight, the gratitude journal for adults: what to write, how many moments you can save, and what 25 entries for $7.99 / R130 gets you.",
+    description: "Questions about GoodDayNight, the app for adults to find the joy in your day or turn the day around: what to write, how many moments you can save, and what 25 entries for $7.99 / R130 gets you.",
     price: true,
   },
 ] as const;
@@ -95,7 +95,7 @@ export function guideMetadata(path: GuidePath): Metadata {
 export const HOW_IT_WORKS_BODY = `3 steps only.
 1. You choose the kind of good moment (a hello, something done slowly, a little movement).
 2. You capture it.
-3. You get a short gratitude journal entry you can keep.
+3. You get a short story of your good day you can keep.
 No blank page. No 52-week program.`;
 
 export const NO_BLANK_PAGE_BODY =
@@ -106,7 +106,7 @@ export const NOT_A_LIST_BODY =
   "Forced lists feel fake and then people feel guilty. GoodDayNight keeps one specific thing: the coffee, the wave, the walk home. One moment. Not three generic lines.";
 
 export const PACK_BODY =
-  "One pack. 25 gratitude journal entries. You see how it reads first. You pay when you capture, if you have not already. No subscription on this pack.";
+  "One pack. 25 good-day stories. You see how it reads first. You pay when you capture, if you have not already. No subscription on this pack.";
 
 export const FAQ = [
   {
@@ -127,6 +127,6 @@ export const FAQ = [
   },
   {
     q: "What do I get and when do I pay?",
-    a: "25 gratitude journal entries. $7.99 / R130. You pay at Capture if you have not bought.",
+    a: "25 good-day stories. $7.99 / R130. You pay at Capture if you have not bought.",
   },
 ] as const;

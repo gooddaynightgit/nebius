@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 
 const font = (f: string) => readFile(join(process.cwd(), "src/app/fonts", f));
 
-export const ogAlt = "GoodDayNight — Gratitude Journal & Bedtime Stories";
+export const ogAlt = "GoodDayNight — Find the joy in your day, or turn the day around";
 export const ogSize = { width: 1200, height: 630 };
 
 /**
@@ -39,10 +39,10 @@ export async function renderOgCard() {
         >
           <div style={{ display: "flex", fontSize: 40, fontWeight: 700, marginBottom: 28 }}>GoodDayNight</div>
           <div style={{ display: "flex", fontSize: 46, fontWeight: 700, lineHeight: 1.12, textAlign: "center", justifyContent: "center" }}>
-            Your good moments, read back as a bedtime story tonight.
+            Find the joy in your day, or turn the day around.
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: 22, fontWeight: 600, marginTop: 28, lineHeight: 1.35 }}>
-            <div style={{ display: "flex" }}>A gratitude journal for adults</div>
+            <div style={{ display: "flex" }}>Two ways in. One story of your good day.</div>
             <div style={{ display: "flex" }}>gooddaynight.com</div>
           </div>
         </div>
