@@ -58,7 +58,7 @@ export const LANDING = {
     photoHelp:
       "A sky. A gift. A hello on the screen. A screenshot of 3 things you're grateful for — handwritten ones especially welcome ...",
     yours: "My feel good moment",
-    playbackLead: "Here's how a good moment reads as your feel good moment.",
+    playbackLead: "Here's how it reads.",
     brand: "GoodDayNight",
     captionLabel: "What is the good in this moment?",
     sparkWait: "Let me see your good moment capture",

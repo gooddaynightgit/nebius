@@ -74,8 +74,8 @@ describe("saved moments expire at local 23:59", () => {
   });
 
   it("labels Share with the local expiry line", () => {
-    expect(SAVED_MOMENT_EXPIRES_NOTE).toBe("disappears tonight 23:59");
-    expect(shareMomentButtonLabel("Share")).toBe("Share · disappears tonight 23:59");
+    expect(SAVED_MOMENT_EXPIRES_NOTE).toBe("disappears at 23:59");
+    expect(shareMomentButtonLabel("Share")).toBe("Share · disappears at 23:59");
   });
 });
 
