@@ -21,7 +21,7 @@ export default function TermsPage() {
       </p>
       <h2>Packs and payment</h2>
       <p className="card__body">
-        A pack is 25 gratitude journal entries for $7.99 USD, paid once through Payfast. It is not a subscription. If
+        A pack is 25 gratitude journal entries for $7.99 / R130, paid once through Payfast in USD or ZAR. It is not a subscription. If
         something goes wrong with a purchase, email us and we will make it right.
       </p>
       <h2>Using GoodDayNight kindly</h2>
