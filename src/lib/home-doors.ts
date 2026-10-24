@@ -1,5 +1,5 @@
 /** The home page is only two doors: the brand circle and the brand square. */
-export const FEEL_GOOD_HREF = "/how-to-feel-good";
+export const FEEL_GOOD_HREF = "/app/joy";
 export const GOOD_NEWS_HREF = "/good-news";
 
 export const FEEL_GOOD_LABEL = "How to feel good";
