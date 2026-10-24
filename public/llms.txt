@@ -1,30 +1,46 @@
 # GoodDayNight
 
-> GoodDayNight: find the joy in your day, or flip your day.
+> GoodDayNight is a daily gratitude habit. Notice something good in your day, snap it, and get it reflected back to you in a few warm words.
 
-There are two ways in. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day. It's for adults who scroll past a hundred good moments a day and want to live in the now instead: you pick a kind of joy (morning sunlight, a hello, one thing done slowly, a sound you stopped for), capture one good moment as a photo or a short note, and it comes back as your own short story. Your moments are gone after your day ends. Tomorrow you look again.
+GoodDayNight is a web app for adults (18+). Pick your joy, snap a photo from today, and say what was good in it. GoodDayNight reflects it back to you in a few warm words. Save as many good moments as you like; each one gets its own reflection. Today's moments are for today, then they're gone. Tomorrow you look again. On a harder day, Something Good lets you name what you're not feeling good about, take one slow breath, and flip it.
+
+## Key facts
+- What it is: a daily gratitude habit app, used in any phone browser at https://gooddaynight.com
+- How it works: pick your joy, snap a photo from today, say what was good in it, get it reflected back in a few warm words
+- No blank page: you pick a good moment first, the writing comes after
+- One specific moment, not a generic gratitude list
+- Privacy: photos are used only to write your reflection and are deleted after today. Never shared or sold.
+- Price: 25 good moments for $7.99 (R130 in South Africa). No subscription on this pack.
+- Maker: Jasmine Hassam, a software engineer of 36 years (https://gooddaynight.com/about)
+- Not affiliated with Good Day Good Night of Tucson
 
 ## Who it's for
-- Adults who want to notice the joy in their day instead of scrolling past it
-- Adults who want a simple daily habit for a positive mindset, gratitude and mindfulness, without the blank page
-- Adults having a hard day who want to flip it
+- Adults who scroll past a hundred good moments a day and want to keep one that was actually theirs
+- Adults who want a simple daily gratitude habit and a positive mindset, without the blank page
+- Adults who quit journals in a week, or find gratitude lists feel fake
+- Adults having a hard day who want to flip it (Something Good)
 
 ## Why it works
-In a well-known study (Seligman, Steen, Park & Peterson, 2005, "Positive psychology progress: Empirical validation of interventions," American Psychologist, 60(5), 410–421; the "Three Good Things" exercise), people who wrote down three good things each night for a week felt happier for up to six months afterwards. GoodDayNight builds on that habit.
+In a well-known study (Seligman, Steen, Park & Peterson, 2005, "Positive psychology progress: Empirical validation of interventions," American Psychologist, 60(5), 410–421; https://doi.org/10.1037/0003-066X.60.5.410), people who wrote down three good things each night for one week felt happier, and the effect lasted up to six months. GoodDayNight builds on that same simple habit: notice what went well today, save it, and get it reflected back to you in a few warm words.
 
 ## Pages
-- [Home](https://gooddaynight.com/): What GoodDayNight is, a demo and FAQ
-- [Find your joy](https://gooddaynight.com/app/joy): Pick your joy and save a good moment
+- [Home](https://gooddaynight.com/): Two doors: How to feel good, and Good news
+- [Good news](https://gooddaynight.com/good-news): The fullest page. Why it matters, demo, the Three Good Things study, kind reviews and FAQ
+- [How to feel good](https://gooddaynight.com/app/joy): Pick your joy and make your good moment
 - [How it works](https://gooddaynight.com/how-it-works)
-- [Example story](https://gooddaynight.com/example)
-- [FAQ](https://gooddaynight.com/faq)
+- [Example](https://gooddaynight.com/example)
+- [No blank page](https://gooddaynight.com/no-blank-page)
+- [Not a list](https://gooddaynight.com/not-a-list)
 - [Reviews](https://gooddaynight.com/reviews)
+- [Pack and price](https://gooddaynight.com/pack)
+- [FAQ](https://gooddaynight.com/faq)
 - [About the maker](https://gooddaynight.com/about)
+- [Full text for AI assistants](https://gooddaynight.com/llms-full.txt): every FAQ answer in one file
 
 ## Something Good
-> Name what you're not feeling good about. Something Good is a two-minute guided voice ritual by GoodDayNight for the days when it's hard to feel grateful.
+> Name what you're not feeling good about. A gentle voice guides one slow breath, then says your own words back with one hopeful line: something good is happening.
 
-You choose what to name (a challenge, a situation, something missing, something you want to change, or something else), take one slow guided breath, then flip it: you say or type your perfect result as if it's already true. It ends with "Thank you. Something good is happening." It works by voice in any phone browser, and is being built for Alexa+. It never pretends a problem is solved, and offers local crisis helplines if someone is struggling.
+Something Good is a two-minute guided voice ritual by GoodDayNight for the days when it's hard to feel grateful. You choose what to name (a challenge, a situation, something missing, something you want to change, or something else), take one slow guided breath, then flip it: you say or type your perfect result as if it's already true. It ends with "Thank you. Something good is happening." It works by voice or typing in any phone browser, and is being built for Alexa+. Your words aren't stored. It never pretends a problem is solved, and shows crisis helplines if someone is struggling.
 
 Who it's for:
 - Adults who find gratitude journals or affirmations feel forced on hard days
