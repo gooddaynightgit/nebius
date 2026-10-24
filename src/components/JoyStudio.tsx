@@ -206,7 +206,6 @@ export default function JoyStudio() {
               onClick={() => setVisualOpen((open) => !open)}
             >
               <span>{FEEL_GOOD_VISUAL}</span>
-              <span className="feel-good-toggle__hint">Upload or capture a photo</span>
             </button>
           </h2>
           <div id="feel-good-visual" hidden={!visualOpen}>

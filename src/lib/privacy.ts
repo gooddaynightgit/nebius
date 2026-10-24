@@ -11,8 +11,8 @@ export const PRIVACY_LINE_PERSONAL =
 export const PRIVACY_LINE_GOOGLE =
   "We use Google Analytics and Google advertising cookies, including a conversion measurement when a payment succeeds.";
 
-/** Line 1, line 2 on the next line, then a blank line, then the personal and Google lines. */
-export const PRIVACY_NOTE = `${PRIVACY_LINE_SIGN_IN}\n${PRIVACY_LINE_TRAINING}\n\n${PRIVACY_LINE_PERSONAL}\n${PRIVACY_LINE_GOOGLE}`;
+/** Line 1, line 2 on the next line, then a blank line, then the personal line. (Cookies are covered on /privacy.) */
+export const PRIVACY_NOTE = `${PRIVACY_LINE_SIGN_IN}\n${PRIVACY_LINE_TRAINING}\n\n${PRIVACY_LINE_PERSONAL}`;
 
 export const PRIVACY_NOTE_SHORT =
-  "Email keeps your moments yours. Your photos and words are never used to train AI. We use Google Analytics and advertising cookies, including a conversion when a payment succeeds.";
+  "Email keeps your moments yours. Your photos and words are never used to train AI.";
