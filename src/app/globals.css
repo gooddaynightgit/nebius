@@ -5501,3 +5501,34 @@ textarea.sg-heard {
     transition: none;
   }
 }
+
+/* Home: only the brand circle and the brand square, stacked and centred, plus the bubble */
+.home-doors {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  padding: 1.5rem 0 3rem;
+}
+
+.home-doors .shape-cta__main {
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+/* How to feel good: Jasmine's why, then one Start button */
+.feel-good-why h2 {
+  margin-bottom: 0.6rem;
+}
+
+.feel-good-why__sign {
+  margin: 0.85rem 0 0;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.feel-good-start {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0 2rem;
+}
