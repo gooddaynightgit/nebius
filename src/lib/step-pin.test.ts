@@ -22,7 +22,7 @@ describe("pinned step button", () => {
     expect(checkout).toMatch(/type="submit"/);
     expect(checkout).toMatch(/>\s*Unlock\s*</);
     expect(checkout).not.toMatch(/step-pin/);
-    expect(capture).toMatch(/Write in my journal/);
+    expect(capture).toMatch(/Make my good moment/);
     expect(capture).not.toMatch(/step-pin/);
     expect(signin).not.toMatch(/step-pin/);
   });

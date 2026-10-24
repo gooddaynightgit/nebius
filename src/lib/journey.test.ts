@@ -59,7 +59,7 @@ describe("journey progress", () => {
       "My new good feeling moments",
       "Capture it",
       "What is the good in this moment?",
-      "Write in my journal",
+      "Make my good moment",
       "My feel good moment",
     ]);
     expect(JOURNEY_FINISHED_CAPTION).toBe("My feel good moment");
@@ -87,7 +87,7 @@ describe("journey progress", () => {
     expect(journeyNextLabel(2)).toBe("Unlock/Capture");
     expect(journeyNextLabel(3)).toBe("Capture it");
     expect(journeyNextLabel(4)).toBe("What is the good in this moment?");
-    expect(journeyNextLabel(5)).toBe("Write in my journal");
+    expect(journeyNextLabel(5)).toBe("Make my good moment");
     expect(journeyNextLabel(6)).toBe(JOURNEY_FINISHED_CAPTION);
     expect(journeyNextLabel(7)).toBeNull();
     expect(journeyNextLabel(8)).toBeNull();

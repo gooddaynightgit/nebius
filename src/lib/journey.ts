@@ -9,7 +9,7 @@ export const JOURNEY_STEPS = [
   { label: "My new good feeling moments" },
   { label: "Capture it" },
   { label: "What is the good in this moment?" },
-  { label: "Write in my journal" },
+  { label: "Make my good moment" },
   { label: JOURNEY_FINISHED_CAPTION },
 ] as const;
 
