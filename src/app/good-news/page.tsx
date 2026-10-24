@@ -102,8 +102,8 @@ export default async function GoodNewsPage() {
           <p className="home-close__or">OR</p>
           <Link className="step-next home-close__turn" href="/something-good">
             <span className="home-close__turn-text">
-              <span className="home-close__kicker">Name what you&apos;re not grateful for, then</span>
-              <span>Turn it around</span>
+              <span className="home-close__kicker">Name what you&apos;re not feeling good about, then</span>
+              <span>Flip it</span>
             </span>
             <Arrow />
           </Link>

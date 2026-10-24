@@ -1,11 +1,11 @@
 /** Something Good: the same words the Alexa skill speaks, shared with the web version. */
 
 export const SG_PATH = "/something-good";
-export const SG_HEADLINE = "Name what you're not grateful for";
+export const SG_HEADLINE = "Name what you're not feeling good about";
 export const SG_BUTTON = "Start";
-export const SG_SUPPORT = "Ready to turn it around?";
+export const SG_SUPPORT = "Ready to flip it?";
 export const SG_DESCRIPTION =
-  "Name what you're not grateful for. A gentle voice guides one slow breath, then says your own words back with one hopeful line: something good is happening.";
+  "Name what you're not feeling good about. A gentle voice guides one slow breath, then says your own words back with one hopeful line: something good is happening.";
 
 export type SgFocus = "challenge" | "situation" | "missing" | "change" | "else";
 
@@ -21,7 +21,7 @@ export const SG_OPTIONS: { focus: SgFocus; label: string }[] = [
 export const SG_CHOOSE_FIRST = "Please choose the one that feels closest, then tap Start.";
 
 export const SG_WELCOME =
-  "Welcome. I'm so glad you're here. This is the place to name what you're not grateful for. And here's the good news: you don't have to carry it alone. I'm here to help you find the good that's waiting inside it.";
+  "Welcome. I'm so glad you're here. This is the place to name what you're not feeling good about. And here's the good news: you don't have to carry it alone. I'm here to help you find the good that's waiting inside it.";
 
 /** One guided breath: Alexa guides, it never claims to breathe with you. */
 export const SG_BREATH_FIRST = "Let's start with one slow, deep breath.";
@@ -120,12 +120,12 @@ export const SG_HOW_STEPS: { title: string; body: string }[] = [
     body: "One slow guided breath. In for 4 seconds, hold for 2, then a long, slow release. Just let it go.",
   },
   {
-    title: "Name what you're not grateful for",
-    body: "Take your time. Consider what it is in your life that you're not grateful for. You don't have to pretend it's fine.",
+    title: "Name what you're not feeling good about",
+    body: "Take your time. Consider what it is in your life that you're not feeling good about. You don't have to pretend it's fine.",
   },
   {
-    title: "Turn it around",
-    body: "Right now, at this moment in time, turn it around. Say or type your perfect result, as if it's already true: \"I am living in my own home.\"",
+    title: "Flip it",
+    body: "Right now, at this moment in time, flip it. Say or type your perfect result, as if it's already true: \"I am living in my own home.\"",
   },
   {
     title: "Make sure it's right",
@@ -143,11 +143,11 @@ export const SG_HOW_NOTE =
 export const SG_FAQ: { q: string; a: string }[] = [
   {
     q: "What is Something Good?",
-    a: "A short, gentle voice ritual for the days when it's hard to feel grateful. You name what you're not grateful for, take a slow breath, turn it around into your perfect result, and hear: something good is happening.",
+    a: "A short, gentle voice ritual for the days when it's hard to feel grateful. You name what you're not feeling good about, take a slow breath, flip it into your perfect result, and hear: something good is happening.",
   },
   {
-    q: "Why start with what I'm not grateful for?",
-    a: "Because forced gratitude can feel like a lie on a hard day. Starting with the honest truth makes the turnaround feel real, not forced.",
+    q: "Why start with what I'm not feeling good about?",
+    a: "Because forced gratitude can feel like a lie on a hard day. Starting with the honest truth makes the flip feel real, not forced.",
   },
   {
     q: "Does it fix my problem?",

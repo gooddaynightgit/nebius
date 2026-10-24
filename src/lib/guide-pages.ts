@@ -73,7 +73,7 @@ export const GUIDE_PAGES = [
     path: "/faq",
     name: "FAQ",
     headline: "The day vanished into my phone.",
-    description: "Questions about GoodDayNight, the app for adults to find the joy in your day or turn the day around: what to write, how many moments you can save, and what 25 entries for $7.99 / R130 gets you.",
+    description: "Questions about GoodDayNight, the app for adults to find the joy in your day or flip your day: what to write, how many moments you can save, and what 25 entries for $7.99 / R130 gets you.",
     price: true,
   },
 ] as const;

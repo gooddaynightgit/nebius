@@ -3,7 +3,7 @@ import SgShell from "@/components/SgShell";
 import { SG_FAQ, SG_FAQ_PATH, sgFaqJsonLd, jsonLdHtml } from "@/lib/something-good";
 
 const TITLE = "Something Good FAQ";
-const DESCRIPTION = "Questions about Something Good: why start with what you're not grateful for, privacy, the mic, and support.";
+const DESCRIPTION = "Questions about Something Good: why start with what you're not feeling good about, privacy, the mic, and support.";
 
 export const metadata: Metadata = {
   title: TITLE,

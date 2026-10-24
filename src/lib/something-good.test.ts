@@ -3,7 +3,7 @@ import { sgSubject, sgThankYou, SG_HEADLINE, SG_BUTTON } from "./something-good"
 
 describe("something good", () => {
   it("keeps the not-grateful-for wording on the headline, Start on the button", () => {
-    expect(SG_HEADLINE).toMatch(/not grateful for/);
+    expect(SG_HEADLINE).toBe("Name what you're not feeling good about");
     expect(SG_BUTTON).toBe("Start");
   });
 

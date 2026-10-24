@@ -12,7 +12,7 @@ const EXAMPLE = { kind: "link" as const, label: "Example", href: "/example" };
 const FAQ = { kind: "link" as const, label: "FAQ", href: "/faq" };
 const GUIDE_LINKS = [HOW_IT_WORKS, EXAMPLE, FAQ];
 /** Both ways in, on every menu. */
-const START_SG = { kind: "link" as const, label: "Start: Name what you're not grateful for", href: "/something-good" };
+const START_SG = { kind: "link" as const, label: "Start: Name what you're not feeling good about", href: "/something-good" };
 const START_JOURNAL = { kind: "link" as const, label: "Start my gratitude journal", href: "/app/joy" };
 const STARTS = [START_SG, START_JOURNAL];
 

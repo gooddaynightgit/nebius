@@ -4,7 +4,7 @@ import { SG_HOW_NOTE, SG_HOW_PATH, SG_HOW_STEPS, sgHowToJsonLd, jsonLdHtml } fro
 
 const TITLE = "How Something Good works";
 const DESCRIPTION =
-  "Name what you're not grateful for, take one slow breath, turn it around into your perfect result, and hear: something good is happening.";
+  "Name what you're not feeling good about, take one slow breath, flip it into your perfect result, and hear: something good is happening.";
 
 export const metadata: Metadata = {
   title: TITLE,

@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 
 const font = (f: string) => readFile(join(process.cwd(), "src/app/fonts", f));
 
-export const ogAlt = "GoodDayNight — Find the joy in your day, or turn the day around";
+export const ogAlt = "GoodDayNight — Find the joy in your day, or flip your day";
 export const ogSize = { width: 1200, height: 630 };
 
 /**
@@ -39,7 +39,7 @@ export async function renderOgCard() {
         >
           <div style={{ display: "flex", fontSize: 48, fontWeight: 900, letterSpacing: -1, marginBottom: 24 }}>GoodDayNight</div>
           <div style={{ display: "flex", fontSize: 58, fontWeight: 900, letterSpacing: -1.5, lineHeight: 1.05, textAlign: "center", justifyContent: "center" }}>
-            Find the joy in your day, or turn the day around.
+            Find the joy in your day, or flip your day.
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: 27, fontWeight: 700, marginTop: 26, lineHeight: 1.35 }}>
             <div style={{ display: "flex" }}>Two ways in. One story of your good day.</div>

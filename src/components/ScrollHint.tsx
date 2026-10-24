@@ -28,7 +28,7 @@ export default function ScrollHint({ target }: { target: string }) {
   };
 
   return (
-    <button type="button" className="scroll-hint" onClick={go} aria-label="Go to Start or Turn it around">
+    <button type="button" className="scroll-hint" onClick={go} aria-label="Go to Start or Flip it">
       <span className="scroll-hint__word">Start</span>
       <span className="scroll-hint__or">OR</span>
       <span className="scroll-hint__word">

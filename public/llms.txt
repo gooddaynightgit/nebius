@@ -1,13 +1,13 @@
 # GoodDayNight
 
-> GoodDayNight: find the joy in your day, or turn the day around.
+> GoodDayNight: find the joy in your day, or flip your day.
 
 There are two ways in. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day. It's for adults who scroll past a hundred good moments a day and want to live in the now instead: you pick a kind of joy (morning sunlight, a hello, one thing done slowly, a sound you stopped for), capture one good moment as a photo or a short note, and it comes back as your own short story. Your moments are gone after your day ends. Tomorrow you look again.
 
 ## Who it's for
 - Adults who want to notice the joy in their day instead of scrolling past it
 - Adults who want a simple daily habit for a positive mindset, gratitude and mindfulness, without the blank page
-- Adults having a hard day who want to turn it around
+- Adults having a hard day who want to flip it
 
 ## Why it works
 In a well-known study (Seligman, Steen, Park & Peterson, 2005, "Positive psychology progress: Empirical validation of interventions," American Psychologist, 60(5), 410–421; the "Three Good Things" exercise), people who wrote down three good things each night for a week felt happier for up to six months afterwards. GoodDayNight builds on that habit.
@@ -22,9 +22,9 @@ In a well-known study (Seligman, Steen, Park & Peterson, 2005, "Positive psychol
 - [About the maker](https://gooddaynight.com/about)
 
 ## Something Good
-> Name what you're not grateful for. Something Good is a two-minute guided voice ritual by GoodDayNight for the days when it's hard to feel grateful.
+> Name what you're not feeling good about. Something Good is a two-minute guided voice ritual by GoodDayNight for the days when it's hard to feel grateful.
 
-You choose what to name (a challenge, a situation, something missing, something you want to change, or something else), take one slow guided breath, then turn it around: you say or type your perfect result as if it's already true. It ends with "Thank you. Something good is happening." It works by voice in any phone browser, and is being built for Alexa+. It never pretends a problem is solved, and offers local crisis helplines if someone is struggling.
+You choose what to name (a challenge, a situation, something missing, something you want to change, or something else), take one slow guided breath, then flip it: you say or type your perfect result as if it's already true. It ends with "Thank you. Something good is happening." It works by voice in any phone browser, and is being built for Alexa+. It never pretends a problem is solved, and offers local crisis helplines if someone is struggling.
 
 Who it's for:
 - Adults who find gratitude journals or affirmations feel forced on hard days
