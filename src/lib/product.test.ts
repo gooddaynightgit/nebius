@@ -1009,7 +1009,8 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/playbackExample/);
     expect(joy).not.toMatch(/Example of tonight/);
     expect(joy).toMatch(/step-heading step-heading--navy/);
-    expect(joy).toMatch(/Pick your joy/);
+    expect(joy).toMatch(/Feel good visual/);
+    expect(joy).toMatch(/Feel good voice/);
     expect(joy).not.toMatch(/already-picked/);
     expect(joy).not.toMatch(/alreadyPicked/);
     expect(joy).not.toMatch(/GradientPhrase/);
@@ -1220,8 +1221,9 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(src).not.toMatch(/Your photo/);
     expect(src).toMatch(/Add a photo/);
-    expect(joy).toMatch(/className="step-heading step-heading--navy"/);
-    expect(joy).toMatch(/Pick your joy/);
+    expect(joy).toMatch(/className="step-heading step-heading--navy feel-good-toggle__heading"/);
+    expect(joy).toMatch(/Feel good visual/);
+    expect(joy).toMatch(/Feel good voice/);
     expect(joy).not.toMatch(/className="pill">Joy/);
     expect(src).not.toMatch(/<span className="pill">Story<\/span>/);
     expect(joy).not.toMatch(/<span className="pill">Story/);
