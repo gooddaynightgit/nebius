@@ -20,7 +20,7 @@ function sourceFiles(dir: string): string[] {
 
 describe("site title", () => {
   it("is the homepage title, with an em dash", () => {
-    expect(SITE_TITLE).toBe("GoodDayNight — Find the joy in your day, or flip your day");
+    expect(SITE_TITLE).toBe("GoodDayNight — Find the good feeling in your day, or flip your day");
     expect(SITE_TITLE).toContain("\u2014");
     expect(SITE_TITLE).not.toMatch(/Weave one good moment/i);
   });
@@ -50,7 +50,7 @@ describe("site title", () => {
     expect(paidMeta.title).toBe(SITE_TITLE);
     expect(paidMeta.openGraph && "title" in paidMeta.openGraph ? paidMeta.openGraph.title : null).toBe(SITE_TITLE);
     expect(paidMeta.twitter && "title" in paidMeta.twitter ? paidMeta.twitter.title : null).toBe(SITE_TITLE);
-    expect(read("src/app/moments/page.tsx")).toContain("My new joy moments");
+    expect(read("src/app/moments/page.tsx")).toContain("My new good feeling moments");
   });
 
   it("sets that title on every page, including sign-in, weave, moments, and paid", () => {

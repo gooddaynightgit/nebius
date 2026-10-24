@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/site-title";
 export const metadata: Metadata = pageMetadata({
   name: "About",
   description:
-    "GoodDayNight is made by Jasmine Hassam, a software engineer who built an app for adults to find the joy in their day, or flip your day.",
+    "GoodDayNight is made by Jasmine Hassam, a software engineer who built an app for adults to find the good feeling in their day, or flip their day.",
   path: "/about",
 });
 

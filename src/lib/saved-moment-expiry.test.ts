@@ -154,11 +154,11 @@ describe("purge expired saved moments from the vault", () => {
     expect(session).toMatch(/purgeExpiredSavedMoments/);
     expect(captures).toMatch(/purgeExpiredSavedMoments/);
     expect(moments).toMatch(/ExpireSavedMoments/);
-    expect(moments).not.toContain("My saved joy moments");
+    expect(moments).not.toContain("earlier-stories");
     expect(story).toMatch(/keptSavedMoments/);
     expect(story).toMatch(/share-pin/);
     expect(story).toMatch(/SAVED_MOMENT_EXPIRES_NOTE/);
-    expect(story).toMatch(/My saved joy moments/);
+    expect(story).toMatch(/earlier-stories/);
     expect(joy).toMatch(/keptSavedMoments/);
     expect(styles).toMatch(/\.btn\.share-pin\s*\{[^}]*position:\s*fixed;/);
     expect(styles).toMatch(/\.btn\.share-pin\s*\{[^}]*z-index:\s*44;/);

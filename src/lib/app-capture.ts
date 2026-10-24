@@ -57,16 +57,16 @@ export function appPhotoRejection(input: {
   dateVerified?: boolean;
 }): string | null {
   if (!isPlausibleClientDay(input.day)) return "Use today's date on your phone.";
-  if (!getJoyById(input.joyId)) return "Pick the kind of quiet joy first.";
+  if (!getJoyById(input.joyId)) return "Pick the kind of good feeling first.";
   if (!input.size) return "Add one photo from today.";
   if (input.size > PHOTO_MAX_BYTES) return "Keep photos under 4.5 MB.";
   if (isVideoMime(input.mime)) return PHOTO_NOT_A_PICTURE;
   if (!isImageMime(input.mime)) return PHOTO_NOT_A_PICTURE;
   if (looksLikeMemeName(input.filename)) {
-    return "Tonight is for your own moment, not a meme.";
+    return "Right now is for your own moment, not a meme.";
   }
   if (looksLikeBorrowedName(input.filename)) {
-    return "Tonight is for your own moment — not someone else's picture.";
+    return "Right now is for your own moment — not someone else's picture.";
   }
   if (input.dateVerified && input.takenDay && input.takenDay !== input.day) {
     return PHOTO_DATE_MESSAGES.old;

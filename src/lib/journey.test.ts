@@ -54,15 +54,15 @@ describe("journey progress", () => {
 
   it("names seven steps and ticks every dot only once the story is weaved", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
-      "Start my gratitude journal",
-      "Pick your joy",
-      "My new joy moments",
+      "Start my feel good moment",
+      "Pick your good feeling",
+      "My new good feeling moments",
       "Capture it",
       "What is the good in this moment?",
       "Write in my journal",
-      "My gratitude journal",
+      "My feel good moment",
     ]);
-    expect(JOURNEY_FINISHED_CAPTION).toBe("My gratitude journal");
+    expect(JOURNEY_FINISHED_CAPTION).toBe("My feel good moment");
     expect(LANDING.app.yours).toBe(JOURNEY_FINISHED_CAPTION);
     expect(JOURNEY_STEPS).toHaveLength(7);
     expect(journeyStep("/app/yours", search(""), "open")).toBe(6);
@@ -83,7 +83,7 @@ describe("journey progress", () => {
   });
 
   it("points at the next step label and stops on the final step", () => {
-    expect(journeyNextLabel(1)).toBe("Pick your joy");
+    expect(journeyNextLabel(1)).toBe("Pick your good feeling");
     expect(journeyNextLabel(2)).toBe("Unlock/Capture");
     expect(journeyNextLabel(3)).toBe("Capture it");
     expect(journeyNextLabel(4)).toBe("What is the good in this moment?");

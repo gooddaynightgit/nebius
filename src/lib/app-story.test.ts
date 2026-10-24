@@ -47,7 +47,7 @@ describe("app story length and BLOCK", () => {
     const keepsake = [
       "I stood with the bitten chocolate banana on white sheets, cold and sweet where I ate it before it melted.",
       "Lovely in the hand, bright on the sheets, wonderful that I named it.",
-      "Fantastic me hunted one good moment today, and the hunting became my happiness, my joy.",
+      "Fantastic me hunted one good moment today, and the hunting became my happiness, my good feeling.",
     ].join(" ");
     expect(countAppStoryWords(keepsake)).toBeGreaterThan(40);
     expect(countAppStoryWords(keepsake)).toBeLessThanOrEqual(APP_STORY_WORD_MAX);
@@ -107,14 +107,14 @@ describe("app story length and BLOCK", () => {
     expect(appStoryProblems(leaked, "")).toContain("leak");
     expect(
       leaksAppStoryInstruction(
-        "Today, I kept pale petals and bark, lovely, bright, and wonderful. Fantastic me hunted one good moment today, and the hunting became my happiness, my joy.",
+        "Today, I kept pale petals and bark, lovely, bright, and wonderful. Fantastic me hunted one good moment today, and the hunting became my happiness, my good feeling.",
       ),
     ).toBe(false);
   });
 
   it("does not treat ordinary caption or whisper words as instruction leak", () => {
     const screenshot =
-      "Today, I kept three handwritten lines and the screenshot caption, lovely and bright and wonderful. Fantastic me hunted one good moment today, and the hunting became my happiness, my joy.";
+      "Today, I kept three handwritten lines and the screenshot caption, lovely and bright and wonderful. Fantastic me hunted one good moment today, and the hunting became my happiness, my good feeling.";
     const steam =
       "I kept a whisper of steam and the kettle. Lovely in the quiet, bright on the metal, wonderful that I stayed. Yes, I hunted one good moment today, and the hunting became my happiness, my joy.";
     expect(leaksAppStoryInstruction(screenshot)).toBe(false);

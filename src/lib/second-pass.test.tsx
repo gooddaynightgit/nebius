@@ -145,7 +145,7 @@ describe("second pass after a finished story", () => {
     expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
     expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
     expect(container.querySelector("#joy-need")).toBeNull();
-    expect(container.textContent).not.toContain("Pick the kind of quiet joy first.");
+    expect(container.textContent).not.toContain("Pick the kind of good feeling first.");
     expect(assigned).toEqual(["/app/yours"]);
 
     writeChosenJoy(day, "just-this");
@@ -160,7 +160,7 @@ describe("second pass after a finished story", () => {
     expect(savedAfter.checked).toBe(false);
     expect(kept.checked).toBe(true);
     expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
-    expect(container.textContent).not.toContain("Pick the kind of quiet joy first.");
+    expect(container.textContent).not.toContain("Pick the kind of good feeling first.");
 
     const nextJoy = container.querySelector('input[value="morning-sunlight"]') as HTMLInputElement;
     await act(async () => {

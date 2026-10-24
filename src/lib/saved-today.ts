@@ -4,7 +4,7 @@ import { clockInTimeZone } from "./latest-moments";
 import { keptSavedMoments } from "./moment-expiry";
 import type { CaptureRecord, StoryRecord } from "./types";
 
-export const SAVED_TODAY_LABEL = "My saved moments \u2013 disappears at 23:59 tonight";
+export const SAVED_TODAY_LABEL = "My saved moments \u2013 disappears at 23:59";
 export const SAVED_TODAY_EMPTY = "No saved moments yet today.";
 export const SAST_TIME_ZONE = "Africa/Johannesburg";
 export const STORY_LEAD_WORDS = 12;

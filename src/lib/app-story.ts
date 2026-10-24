@@ -11,16 +11,16 @@ export const APP_STORY_WORD_HARD_MAX = 85;
 export const APP_STORY_SENTENCE_MAX = 4;
 
 export const WEAVE_BLOCKED =
-  "Tonight isn’t a story we can create. This picture isn’t one we can tell. Keep the night gentle.";
+  "Right now isn’t a story we can create. This picture isn’t one we can tell. Keep it gentle.";
 
 export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;
 
 const EMPTY_REFLECTION =
-  "Today, I kept a small good from the day, lovely, bright, and wonderful. Fantastic me hunted one good moment today, and the hunting became my happiness, my joy.";
+  "Today, I kept a small good from the day, lovely, bright, and wonderful. Fantastic me hunted one good moment today, and the hunting became my happiness, my good feeling.";
 
 const HUNT_CLOSE =
-  "Fantastic me hunted one good moment today, and the hunting became my happiness, my joy.";
+  "Fantastic me hunted one good moment today, and the hunting became my happiness, my good feeling.";
 
 const QUIET_OPEN_RE = /^(today,\s+i\b|yes,\s+i\b|i\b)/i;
 

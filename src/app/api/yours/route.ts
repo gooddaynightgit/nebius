@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const EXPIRED = "Tonight's story lived for one night. Come back with today's photo.";
+const EXPIRED = "Your story lived for today. Come back with today's photo.";
 const MISSING = LANDING.app.yoursMissing;
 
 function storyPhoto(vault: { captures: CaptureRecord[] }, story: StoryRecord): CaptureRecord | null {
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
   const photo = requested ? appPhotoById(vault, requested) : appPhotoForDay(vault, day);
   const joyType = photo?.joyType;
   if (!photo) return json({ error: MISSING, code: "missing" }, 400);
-  if (!joyType) return badRequest("Pick the kind of quiet joy first.");
+  if (!joyType) return badRequest("Pick the kind of good feeling first.");
 
   let story = storyForCapture(vault, photo.id) ?? matchingStoryForPhoto(vault, day, photo);
   if (!story) {

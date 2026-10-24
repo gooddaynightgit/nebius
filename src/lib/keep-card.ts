@@ -160,7 +160,7 @@ function drawCoverPhoto(
 
 export async function loadKeepCardPhoto(src: string): Promise<SizedSource> {
   const res = await fetch(src, { credentials: "same-origin" });
-  if (!res.ok) throw new Error("Could not open tonight’s photo.");
+  if (!res.ok) throw new Error("Could not open your photo.");
   const blob = await res.blob();
   if (typeof createImageBitmap === "function") {
     return createImageBitmap(blob);
@@ -178,7 +178,7 @@ function decodeImageElement(blob: Blob): Promise<HTMLImageElement> {
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Could not open tonight’s photo."));
+      reject(new Error("Could not open your photo."));
     };
     image.src = url;
   });
@@ -193,7 +193,7 @@ export async function composeKeepCardJpeg(input: {
   }
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Could not keep tonight’s story.");
+  if (!ctx) throw new Error("Could not keep your story.");
   ctx.font = `500 ${KEEP_CARD.storyFontSize}px Inter, "Segoe UI", "Helvetica Neue", sans-serif`;
   const lines = wrapKeepCardLines(
     input.story,
@@ -240,7 +240,7 @@ export async function composeKeepCardJpeg(input: {
 function canvasToJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("Could not keep tonight’s story."))),
+      (blob) => (blob ? resolve(blob) : reject(new Error("Could not keep your story."))),
       "image/jpeg",
       quality,
     );

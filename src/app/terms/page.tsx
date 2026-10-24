@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/site-title";
 export const metadata: Metadata = pageMetadata({
   name: "Terms",
   description:
-    "The simple terms for using GoodDayNight, the app for finding the joy in your day: who it is for, what a pack includes, and how to reach us.",
+    "The simple terms for using GoodDayNight, the app for finding the good feeling in your day: who it is for, what a pack includes, and how to reach us.",
   path: "/terms",
 });
 
@@ -13,7 +13,7 @@ export default function TermsPage() {
   return (
     <LegalShell id="terms-heading" title="Terms" updated="October 24, 2026">
       <h2>Who it’s for</h2>
-      <p className="card__body">GoodDayNight is an app for adults 18 and over to find the joy in their day, or flip your day.</p>
+      <p className="card__body">GoodDayNight is an app for adults 18 and over to find the good feeling in their day, or flip their day.</p>
       <h2>Your moments</h2>
       <p className="card__body">
         What you save stays yours. You give us permission to use it only to write and read back your story. Your moments

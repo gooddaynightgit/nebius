@@ -86,7 +86,7 @@ export async function POST(request: Request) {
   if (kind === "text" && !text) return badRequest("Write a moment first.");
   if (kind === "voice" && !transcript && !caption && !text) {
     return badRequest(
-      "Type a line about what you said — we need your words to tell tonight's story.",
+      "Type a line about what you said — we need your words to tell your story right now.",
     );
   }
 
@@ -210,7 +210,7 @@ async function saveAppPhoto(
   if (rejected) {
     return rejected === SAFETY_REFUSAL ? forbidden(rejected) : badRequest(rejected);
   }
-  if (!joy) return badRequest("Pick the kind of quiet joy first.");
+  if (!joy) return badRequest("Pick the kind of good feeling first.");
 
   const imageDataUrl =
     bytes && mediaContentType.startsWith("image/")

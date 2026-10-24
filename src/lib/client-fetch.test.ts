@@ -116,7 +116,7 @@ describe("client fetch", () => {
   });
 
   it("reads JSON errors as their server message, not Failed to fetch", async () => {
-    const bad = jsonResponse({ error: "Pick the kind of quiet joy first." }, { status: 400 });
+    const bad = jsonResponse({ error: "Pick the kind of good feeling first." }, { status: 400 });
     await expect(readJson(bad)).rejects.toThrow(JOY_NEED);
     const ok = jsonResponse({ sessionId: "s1" });
     await expect(readJson<{ sessionId: string }>(ok)).resolves.toEqual({ sessionId: "s1" });

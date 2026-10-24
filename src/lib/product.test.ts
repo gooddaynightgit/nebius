@@ -835,7 +835,7 @@ describe("landing", () => {
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
     expect(copy).toContain('joyLegend: "(pick one)"');
-    expect(copy).toContain('joyQuestion: "What joy is it?"');
+    expect(copy).toContain('joyQuestion: "Pick the kind of good feeling first."');
     expect(copy).toContain('joyPickHint: "(pick one to Create your story)"');
     expect(copy).toContain('alreadyPickedLink: "See your Created story"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
@@ -1002,7 +1002,7 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/LANDING\.app\.joyPickHint/);
     expect(joy).not.toMatch(/What joy is it\?/);
     expect(joy).toMatch(/legend=\{null\}/);
-    expect(joy).toMatch(/playbackTitle="Example: My gratitude journal"/);
+    expect(joy).toMatch(/playbackTitle="Example: My feel good moment"/);
     expect(joy).toMatch(/playbackLead=\{LANDING\.app\.playbackLead\}/);
     expect(joy).toMatch(/playbackVariant="weaved"/);
     expect(joy).not.toMatch(/playbackEyebrow/);
@@ -1043,8 +1043,8 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/id="yours-heading" className="step-heading step-heading--navy"/);
     expect(yours).toMatch(/export function StoryOpeningStatus/);
     expect(yours).toMatch(/id="earlier-stories"/);
-    expect(yours).toMatch(/aria-label="My saved joy moments"/);
-    expect(yours).toMatch(/<h2>My saved joy moments<\/h2>/);
+    expect(yours).toMatch(/aria-label="earlier-stories"/);
+    expect(yours).toMatch(/<h2>earlier-stories<\/h2>/);
     expect(yours).not.toMatch(/Earlier stories/);
     expect(yours).not.toMatch(/your new story/);
     expect(yours).not.toMatch(/story-actions/);

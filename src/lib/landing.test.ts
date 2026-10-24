@@ -42,7 +42,7 @@ describe("landing copy", () => {
     ]);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/already gone/);
     expect(LANDING.app.noticing.join(" ")).toMatch(/you’re/);
-    expect(LANDING.app.yours).toBe("My gratitude journal");
+    expect(LANDING.app.yours).toBe("My feel good moment");
     expect(LANDING.app.brand).toBe("GoodDayNight");
     expect(LANDING.app.captionLabel).toBe("What is the good in this moment?");
     expect(LANDING.app.sparkWait).toBe("Let me see your good moment capture");
@@ -57,12 +57,12 @@ describe("landing copy", () => {
     expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(
-      "Tonight isn’t a story we can create. This picture isn’t one we can tell. Keep the night gentle.",
+      "Right now isn’t a story we can create. This picture isn’t one we can tell. Keep it gentle.",
     );
     expect(LANDING.app.playMoment).toBe("Play this good moment");
     expect(LANDING.app.pause).toBe("Pause");
     expect(LANDING.app.keep).toBe("Share");
-    expect(LANDING.app.keepLabel).toBe("Share tonight’s story with the photo");
+    expect(LANDING.app.keepLabel).toBe("Share right now’s story with the photo");
     expect(LANDING.app.keepBusy).toBe("Sharing…");
     expect(LANDING.app.replace).toBe("Replace today’s photo");
     expect(LANDING.app.reach).toBe(
@@ -77,15 +77,15 @@ describe("landing copy", () => {
     expect(LANDING.app.keepStill).toBe("Keep this still");
     expect(LANDING.app.cancelCamera).toBe("Cancel");
     expect(LANDING.app.tryAgain).toBe("Try again");
-    expect(LANDING.app.joyNeed).toBe("Pick the kind of quiet joy first.");
+    expect(LANDING.app.joyNeed).toBe("Pick the kind of good feeling first.");
     expect(LANDING.app.joyNudge).toBe(
       "Gently nudging you to pick a joy for Unlock/Capture goodness to happen.",
     );
-    expect(LANDING.app.joyQuestion).toBe("What joy is it?");
+    expect(LANDING.app.joyQuestion).toBe("Pick the kind of good feeling first.");
     expect(LANDING.app.joyPickHint).toBe("(pick one to Create your story)");
     expect(LANDING.app.alreadyPickedLink).toBe("See your Created story");
     expect(LANDING.app.alreadyPickedEmpty).toBe("Nothing saved yet. Pick a new one.");
-    expect(LANDING.app.nextJoy).toBe("Pick the quiet joy");
+    expect(LANDING.app.nextJoy).toBe("Pick the good feeling");
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Keep mine/);
     expect(LANDING.app.photoNeed).toBe("Add one photo from today.");
@@ -96,17 +96,17 @@ describe("landing copy", () => {
     expect(LANDING.app.tooLarge).toBe("That photo is too large — try again after we shrink it");
     expect(LANDING.app.tooLargeKeep).toBe("Keep photos under 4.5 MB.");
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);
-    expect(LANDING.app.yoursMissing).toBe("Save today's photo and pick a joy first.");
+    expect(LANDING.app.yoursMissing).toBe("Save today's photo and pick a good feeling first.");
     expect(LANDING.app.keepingMoment).toBe("Keeping your moment…");
     expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open Create your story from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
     expect(LANDING.app.playbackLead).toBe(
-      "Here's how a good moment reads in your gratitude journal.",
+      "My feel good moment",
     );
     expect(LANDING.moment.playbackTitle).toBe("Create your story");
     expect(LANDING.moment.playbackExample).toBe(
-      "Example of tonight’s tone — not your story yet. Create your story from this photo.",
+      "Example of the tone, right now — not your story yet. Create your story from this photo.",
     );
     expect(LANDING.moment.playbackExample).not.toMatch(/YOURS/);
     expect(
@@ -125,7 +125,7 @@ describe("landing copy", () => {
     expect(LANDING.footer.about).toBe("About the maker");
     expect(LANDING.about.title).toBe("About the maker — GoodDayNight");
     expect(LANDING.about.body).toBe(
-      "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure joy, kept in this gratitude journal. I built GoodDayNight for myself. I honestly want this for you.",
+      "I'm a software engineer of 36 years and a lifelong tree-hugger. Social media is entertaining, but it doesn't celebrate me. No judging, no misunderstanding — just pure good feeling, kept in this feel good moment. I built GoodDayNight for myself. I honestly want this for you.",
     );
     expect(LANDING.about.signature).toBe("— Jasmine Hassam, maker of GoodDayNight");
     expect(WHISPER_MAX).toBe(80);
@@ -159,7 +159,7 @@ describe("landing copy", () => {
       '"Today, I made order out of chaos — one beautiful corner at a time. I looked at what I built and felt that deep, golden calm: I did this. My space is brighter. And so am I."',
     );
     expect(JOY_TYPES[5]?.playbackTemplate).toBe(
-      '"Today held something that doesn\'t fit in any box — and it was mine. I noticed it. I kept it. Some moments are too alive for categories, and tonight, this one is mine to relive, word by word."',
+      '"Today held something that doesn\'t fit in any box — and it was mine. I noticed it. I kept it. Some moments are too alive for categories."',
     );
     expect(JOY_TYPES[0]?.tagline).toBe(
       "You stepped into the early gold and let the day find you.",

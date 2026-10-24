@@ -87,12 +87,12 @@ function parseTitleBody(text: string): { title: string; body: string } {
   const titleLine = lines.find((line) => /^title:/i.test(line));
   const title = titleLine
     ? titleLine.replace(/^title:\s*/i, "").trim()
-    : "Tonight's good moments";
+    : "Good moments right now";
   const body = lines
     .filter((line) => line !== titleLine)
     .join("\n")
     .trim();
-  return { title: title || "Tonight's good moments", body: body || text.trim() };
+  return { title: title || "Good moments right now", body: body || text.trim() };
 }
 
 async function continuityThread(

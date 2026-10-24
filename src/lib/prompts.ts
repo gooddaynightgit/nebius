@@ -539,11 +539,11 @@ const BODY_GLOWS = [
 
 function brandClose(address: string, index: number): string {
   const lines = [
-    `${address} hunted one good moment today, and the hunting became my happiness, my joy.`,
+    `${address} hunted one good moment today, and the hunting became my happiness, my good feeling.`,
     `${address} found one good moment today — the finding is what's changing me.`,
     `${address} hunted one good moment today, capturing it, becoming someone who looks.`,
     `${address} found one good moment today — the finding is what's changing me.`,
-    `${address} hunted one good moment today, and the hunting became my happiness, my joy.`,
+    `${address} hunted one good moment today, and the hunting became my happiness, my good feeling.`,
     `${address} hunted one good moment today, capturing it, and becoming someone who looks.`,
   ];
   return lines[index % lines.length];
