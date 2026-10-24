@@ -7,6 +7,7 @@ import JourneyProgress from "@/components/JourneyProgress";
 import { JourneyProvider } from "@/components/journey-gate";
 import { StepForwardProvider } from "@/components/step-forward";
 import { googleTagSnippet } from "@/lib/google-ads";
+import { HOME_DESCRIPTION } from "@/lib/home-doors";
 import { SITE_TITLE } from "@/lib/site-title";
 import "./globals.css";
 
@@ -19,7 +20,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: SITE_TITLE,
   description:
-    "Find the good feeling in your day, or flip your day. Pick your good feeling, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
+    HOME_DESCRIPTION,
   metadataBase: new URL("https://gooddaynight.com"),
   icons: {
     icon: [
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     url: "https://gooddaynight.com/",
     title: SITE_TITLE,
     description:
-      "Find the good feeling in your day, or flip your day. Pick your good feeling, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
+      HOME_DESCRIPTION,
     locale: "en_US",
     siteName: "GoodDayNight",
   },
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description:
-      "Find the good feeling in your day, or flip your day. Pick your good feeling, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
+      HOME_DESCRIPTION,
   },
 };
 

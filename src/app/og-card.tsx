@@ -42,7 +42,7 @@ export async function renderOgCard() {
             Find the good feeling in your day, or flip your day.
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: 27, fontWeight: 700, marginTop: 26, lineHeight: 1.35 }}>
-            <div style={{ display: "flex" }}>Two ways in. One story of your good day.</div>
+            <div style={{ display: "flex" }}>A daily gratitude habit.</div>
             <div style={{ display: "flex" }}>gooddaynight.com</div>
           </div>
         </div>

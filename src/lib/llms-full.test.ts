@@ -10,7 +10,7 @@ describe("LLM citable text", () => {
     expect(text).toContain("You scrolled past a hundred good moments today");
     expect(text).toContain("10.1037/0003-066X.60.5.410");
     for (const item of GOOD_NEWS_FAQ) expect(text).toContain(item.a);
-    expect(text).not.toMatch(/story of your good day|tonight/i);
+    expect(text).not.toMatch(/story of your good day|good-day stor|its own story|tonight/i);
   });
 
   it("keeps llms.txt in the new wording and points at the full text", () => {
