@@ -5,7 +5,6 @@ import SiteFooter from "@/components/SiteFooter";
 import { WEAVE_HREF } from "@/lib/guide-pages";
 import {
   FEEL_GOOD_HEADLINE,
-  FEEL_GOOD_LABEL,
   FEEL_GOOD_LEAD,
   GOOD_NEWS_FAQ,
   jsonLdHtml,
@@ -51,7 +50,7 @@ function Arrow() {
   );
 }
 
-/** Behind the square: all the words: why, demo, study, reviews, FAQ. */
+/** Behind the square: all the words: why, study, reviews, FAQ. */
 export default async function GoodNewsPage() {
   const reviews = await listPublishedReviews(KIND_WORDS_LIMIT);
   return (
@@ -72,24 +71,6 @@ export default async function GoodNewsPage() {
           <p className="card__body">{FEEL_GOOD_LEAD}</p>
         </section>
 
-        <section className="landing-demo-block" aria-labelledby="landing-demo-heading">
-          <h2 id="landing-demo-heading" className="landing-demo__heading">
-            {FEEL_GOOD_LABEL}
-          </h2>
-          <video
-            className="landing-demo"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster="/landing-demo-poster.jpg"
-            src="/landing-demo.mp4"
-            width={720}
-            height={1398}
-            aria-label="Demo of how to feel good with GoodDayNight"
-          />
-        </section>
 
         <section className="card card--cream home-study" aria-labelledby="study-heading">
           <h2 id="study-heading">Letting the habit of looking rewire how I feel</h2>
