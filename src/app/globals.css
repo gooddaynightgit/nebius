@@ -5679,18 +5679,69 @@ textarea.sg-heard {
   text-decoration: none;
 }
 
-/* My feel good moment: Share and back sit see-through so the moment's words show behind them. */
-body:has(.share-pin) .btn.share-pin,
-body:has(.share-pin) .step-float {
+/* Every floating button above the menu is see-through, so the page's words show behind it.
+   Light pages: navy outline and text. Dark pages (My feel good moment, About): lime. */
+.step-float,
+.btn.share-pin,
+.step-pin,
+.btn.step-pin,
+.moments-cta.step-pin {
   background: transparent;
-  border: 2px solid var(--lime);
-  color: var(--lime);
+  border: 2px solid var(--navy);
+  color: var(--navy);
   box-shadow: none;
 }
 
-body:has(.share-pin) .btn.share-pin:hover,
-body:has(.share-pin) .btn.share-pin:focus-visible {
-  background: rgba(212, 255, 0, 0.12);
+.step-float__back,
+.step-float__next {
+  color: var(--navy);
+}
+
+.step-float__next:disabled {
+  color: var(--navy);
+  opacity: 0.4;
+}
+
+.step-float__back:hover,
+.step-float__next:hover:not(:disabled),
+.btn.share-pin:hover,
+.btn.share-pin:focus-visible,
+.step-pin:hover,
+.moments-cta.step-pin:hover {
+  background: rgba(22, 50, 74, 0.08);
+  color: var(--navy);
+}
+
+body:has(#yours) .step-float,
+body:has(#yours) .btn.share-pin,
+body:has(#yours) .step-pin,
+body:has(.about-bg) .step-float,
+body:has(.about-bg) .btn.share-pin,
+body:has(.about-bg) .step-pin {
   border-color: var(--lime);
+  color: var(--lime);
+}
+
+body:has(#yours) .step-float__back,
+body:has(#yours) .step-float__next,
+body:has(.about-bg) .step-float__back,
+body:has(.about-bg) .step-float__next {
+  color: var(--lime);
+}
+
+body:has(#yours) .step-float__next:disabled,
+body:has(.about-bg) .step-float__next:disabled {
+  color: var(--lime);
+}
+
+body:has(#yours) .step-float__back:hover,
+body:has(#yours) .step-float__next:hover:not(:disabled),
+body:has(#yours) .btn.share-pin:hover,
+body:has(#yours) .btn.share-pin:focus-visible,
+body:has(#yours) .step-pin:hover,
+body:has(.about-bg) .step-float__back:hover,
+body:has(.about-bg) .step-float__next:hover:not(:disabled),
+body:has(.about-bg) .step-pin:hover {
+  background: rgba(212, 255, 0, 0.12);
   color: var(--lime);
 }
