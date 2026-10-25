@@ -36,7 +36,7 @@ describe("account menu items", () => {
       { kind: "email", email: "amy@email.com" },
       { kind: "link", label: "Start: Name what you're not feeling good about", href: "/something-good" },
       { kind: "link", label: "Start my feel good moment", href: "/app/joy" },
-      { kind: "link", label: "My new good feeling moments", href: "/moments" },
+      { kind: "link", label: "Buy my good memory glowups", href: "/moments" },
       { kind: "logout", label: "Log out" },
       { kind: "link", label: "Leave a review", href: "/review" },
       { kind: "link", label: "About the maker", href: "/about" },
