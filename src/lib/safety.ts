@@ -33,7 +33,7 @@ export async function inspectImageSafety(input: {
         {
           role: "system",
           content:
-            "You are a narrow safety filter for a private bedtime-journal photo. Block only horrific content: violence, gore, abuse, porn, hate, self-harm. Allow ugly, blurry, messy, ordinary, sad, and hard photos. JSON only.",
+            "You are a narrow safety filter for a private journal photo. Block only horrific content: violence, gore, abuse, porn, hate, self-harm. Allow ugly, blurry, messy, ordinary, sad, and hard photos. JSON only.",
         },
         { role: "user", content: userContent },
       ],

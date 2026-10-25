@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const EXPIRED = "Your story lived for today. Come back with today's photo.";
+const EXPIRED = "Your good moment lived for today. Come back with today's photo.";
 const MISSING = LANDING.app.yoursMissing;
 
 function storyPhoto(vault: { captures: CaptureRecord[] }, story: StoryRecord): CaptureRecord | null {

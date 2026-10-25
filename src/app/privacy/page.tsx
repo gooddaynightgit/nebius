@@ -15,14 +15,14 @@ export default function PrivacyPage() {
       <h2>What we collect</h2>
       <p className="card__body">
         Your email address, so we can send you a sign-in code. The moments you save: the text you write, any photo you
-        add, and the story and audio we make from them. Your device’s date and time zone, so your day ends at your own
+        add, and the good moments and audio we make from them. Your device’s date and time zone, so your day ends at your own
         midnight. If you buy a pack, a record that you paid. Our payment provider, Payfast, handles your card details;
         we never see them. If you leave a review, your words, star rating, and first name.
       </p>
       <h2>How we use it</h2>
       <p className="card__body">
-        Only to run GoodDayNight: to sign you in, write your story, read it back to you, and unlock what you bought. Your
-        text and photo are sent to our AI provider to write your story and are not used for anything else. We use Google
+        Only to run GoodDayNight: to sign you in, write your good moment, read it back to you, and unlock what you bought. Your
+        text and photo are sent to our AI provider to write your good moment and are not used for anything else. We use Google
         Analytics and an OpenAI Ads pixel to understand visits and purchases.
       </p>
       <h2>How long we keep your moments</h2>

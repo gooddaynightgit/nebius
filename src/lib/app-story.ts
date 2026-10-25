@@ -11,7 +11,7 @@ export const APP_STORY_WORD_HARD_MAX = 85;
 export const APP_STORY_SENTENCE_MAX = 4;
 
 export const WEAVE_BLOCKED =
-  "Right now isn’t a story we can create. This picture isn’t one we can tell. Keep it gentle.";
+  "Right now isn’t a good moment we can create. This picture isn’t one we can tell. Keep it gentle.";
 
 export const APP_STORY_WELLNESS_RE =
   /\b(serotonin|circadian|oxytocin|endorphin|endorphins)\b/i;

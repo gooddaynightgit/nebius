@@ -225,7 +225,7 @@ describe("ingest and weave fallbacks", () => {
     expect(APP_REFLECT_SYSTEM).toMatch(/what a life is woven from/);
     expect(APP_REFLECT_SYSTEM).toMatch(/one more golden strand in the tapestry/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Weaving each good moment into something everlasting/);
-    expect(APP_REFLECT_SYSTEM).toMatch(/gently weaved into the story of my days/);
+    expect(APP_REFLECT_SYSTEM).toMatch(/gently weaved into the fabric of my days/);
     expect(APP_REFLECT_SYSTEM).toMatch(/Nothing to post, nothing to prove\./);
     expect(APP_REFLECT_SYSTEM).toMatch(/Moments like these make life luminous\./);
     expect(APP_REFLECT_SYSTEM).toMatch(/the chocolate or the nest/);
@@ -809,7 +809,7 @@ describe("landing", () => {
     expect(page).not.toMatch(/\/api\/auth/);
     expect(page).not.toMatch(/\/api\/payfast/);
     expect(page).not.toMatch(/Gooddaynight does/);
-    expect(copy).toMatch(/Hear your story — free/);
+    expect(copy).toMatch(/Hear your good moment — free/);
     expect(page).not.toMatch(/Signup/);
     expect(page).not.toMatch(/you@email.com/);
     expect(accordion).not.toMatch(/type="email"/);
@@ -836,10 +836,10 @@ describe("landing", () => {
     expect(copy).toContain("Lay the picture here.");
     expect(copy).toContain('joyLegend: "(pick one)"');
     expect(copy).toContain('joyQuestion: "Pick the kind of good feeling first."');
-    expect(copy).toContain('joyPickHint: "(pick one to Create your story)"');
-    expect(copy).toContain('alreadyPickedLink: "See your Created story"');
+    expect(copy).toContain('joyPickHint: "(pick one to Create your good moment)"');
+    expect(copy).toContain('alreadyPickedLink: "See your Created good moment"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
-    expect(copy).toContain("One moment. One story.");
+    expect(copy).toContain("One moment. One reflection.");
     expect(copy).toContain("Something good is happening!");
     expect(copy).toContain("gooddaynight.com");
     for (const title of [
@@ -871,7 +871,7 @@ describe("landing", () => {
     expect(picker).toMatch(/<StoryPlayback/);
     expect(playback).toMatch(/LANDING\.moment\.playbackTitle/);
     expect(playback).not.toMatch(/Story playback/);
-    expect(copy).toContain('playbackTitle: "Create your story"');
+    expect(copy).toContain('playbackTitle: "Create your good moment"');
     expect(playback).toMatch(/className="playback"/);
     expect(playback).toMatch(/playback--weaved/);
     expect(styles).toMatch(/#f0f0ff/);
@@ -1014,7 +1014,7 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/already-picked/);
     expect(joy).not.toMatch(/alreadyPicked/);
     expect(joy).not.toMatch(/GradientPhrase/);
-    expect(joy).not.toMatch(/See your Created story/);
+    expect(joy).not.toMatch(/See your Created good moment/);
     expect(joy).toMatch(/SAVED_JOY_MOMENTS_LABEL/);
     expect(joy).toMatch(/openSavedJoyMoments/);
     expect(joy).toMatch(/chooseStoryJoy/);
@@ -1035,7 +1035,7 @@ describe("app capture client contract", () => {
     expect(src).not.toMatch(/startNewStory/);
     expect(src).toMatch(/card card--cream/);
     expect(src).not.toMatch(/Create your new story/);
-    expect(src).not.toMatch(/See your Created story/);
+    expect(src).not.toMatch(/See your Created good moment/);
     expect(src).not.toMatch(/story-actions/);
     expect(src).not.toMatch(/GradientPhrase/);
     expect(src).not.toMatch(/<GradientWord>/);
@@ -1207,7 +1207,7 @@ describe("app capture client contract", () => {
     expect(photo).not.toMatch(/couldn't confirm/i);
     const readme = readFileSync(path.resolve("README.md"), "utf8");
     expect(readme).toContain(
-      "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own story.",
+      "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own reflection.",
     );
     expect(readme).toContain("Not allowed: memes, someone else’s moment passed off as yours.");
     expect(readme).toMatch(/not shown on `\/app`/);

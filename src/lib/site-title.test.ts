@@ -70,10 +70,10 @@ describe("site title", () => {
     expect(titled).toEqual([]);
   });
 
-  it("keeps Hear your story only on the visible free call to action", () => {
+  it("keeps Hear your good moment only on the visible free call to action", () => {
     const hits = sourceFiles(path.resolve("src"))
       .filter((file) => !file.endsWith(`${path.sep}site-title.test.ts`))
-      .filter((file) => readFileSync(file, "utf8").includes("Hear your story"))
+      .filter((file) => readFileSync(file, "utf8").includes("Hear your good moment"))
       .map((file) => path.relative(path.resolve("."), file));
     expect(hits.sort()).toEqual([
       "src/components/MomentAccordion.tsx",
@@ -81,7 +81,7 @@ describe("site title", () => {
       "src/lib/landing.ts",
       "src/lib/product.test.ts",
     ]);
-    expect(read("src/lib/landing.ts")).toContain('cta: "Hear your story — free"');
+    expect(read("src/lib/landing.ts")).toContain('cta: "Hear your good moment — free"');
     const manifest = JSON.parse(read("public/site.webmanifest")) as {
       name: string;
       short_name: string;

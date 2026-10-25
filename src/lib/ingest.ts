@@ -179,7 +179,7 @@ export async function ingestAppPhoto(input: {
     "Return JSON {\"good\":\"one warm sentence naming what THIS photo actually holds\",\"reframed\":false,\"clear\":true}.",
     "Set clear to false only when the photo has no identifiable subject or scene: a blank surface, a plain wall, a ceiling, only sky, a finger over the lens, blur past recognition, or pitch dark. Set clear to true for an ordinary subject, even a simple cup, a handwritten note, text on a screen, or a dim but visible scene.",
     "If the caption is sad or self-negating, set reframed true and return a silver lining — never celebrate despair.",
-    "Do not quote or copy any story-playback template.",
+    "Do not quote or copy any good-moment playback template.",
   ]
     .filter(Boolean)
     .join("\n");

@@ -54,7 +54,7 @@ describe("capture stash helpers", () => {
     expect(
       isYoursMissingPayload(404, {
         code: "expired",
-        error: "Your story lived for today. Come back with today's photo.",
+        error: "Your good moment lived for today. Come back with today's photo.",
       }),
     ).toBe(false);
     expect(isYoursMissingPayload(403, { code: "blocked", error: LANDING.app.blocked })).toBe(false);

@@ -155,11 +155,11 @@ export default function YoursStory() {
     if (open.status === 404) {
       return {
         status: data.code === "missing" ? "missing" : "expired",
-        message: data.error || "Your story lived for today.",
+        message: data.error || "Your good moment lived for today.",
       };
     }
     if (!open.ok || !data.story) {
-      throw new Error(data.error || "Could not open your story.");
+      throw new Error(data.error || "Could not open your good moment.");
     }
     return {
       status: "ready",
@@ -250,7 +250,7 @@ export default function YoursStory() {
         }
         apply({
           status: "expired",
-          message: data.error || "Your story lived for today.",
+          message: data.error || "Your good moment lived for today.",
         });
         return;
       }
@@ -407,7 +407,7 @@ export default function YoursStory() {
               {state.status === "expired"
                 ? "That night has passed."
                 : state.status === "blocked"
-                  ? "Can’t create your story right now."
+                  ? "Can’t create your good moment right now."
                   : state.status === "error"
                     ? "Couldn’t keep this moment."
                     : "Not yet."}

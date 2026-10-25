@@ -41,15 +41,15 @@ function jpegWithExifDate(date = "2026:09:21 08:00:00"): ArrayBuffer {
 describe("photo save rules copy", () => {
   it("keeps Jasmine’s ten rules exact and drops the soft date note", () => {
     expect(PHOTO_SAVE_RULES).toEqual([
-      "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own story.",
+      "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own reflection.",
       "The photo is required. No photo, no save, no good moment.",
       "When from today — camera roll today, message: Wonderful, your photo was taken today.",
       "Screenshots count: a hello, a gift message, a tracker, a watch face.",
       "A video is not saved. Ask for a picture of the moment instead.",
       "One joy pick is required (sunlight, hello, slow task, movement, clear corner, or just this).",
       "Ugly, blurry, messy, and ordinary photos are allowed.",
-      "Sad or hard photos are allowed. The story stays honest and gentle.",
-      "Horrific photos are not saved and get no story (violence, gore, abuse, porn, hate, self-harm).",
+      "Sad or hard photos are allowed. The reflection stays honest and gentle.",
+      "Horrific photos are not saved and get no reflection (violence, gore, abuse, porn, hate, self-harm).",
       "Not allowed: memes, someone else’s moment passed off as yours.",
     ]);
     expect(PHOTO_DATE_MESSAGES.today).toBe("Wonderful, your photo was taken today.");
