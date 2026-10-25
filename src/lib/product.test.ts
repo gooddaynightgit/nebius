@@ -1125,10 +1125,16 @@ describe("app capture client contract", () => {
     expect(joy).toMatch(/id="joy-pick"/);
     expect(src).toMatch(/id="caption-box" className="card card--lavender card--compact"/);
     expect(src).toMatch(/card card--aqua card--compact/);
-    expect(src).toMatch(/className="visually-hidden" type="submit"/);
+    expect(src).not.toMatch(/className="visually-hidden" type="submit"/);
+    expect(src).toMatch(/const GLOW_LABEL = "Wonderful, make it glow";/);
+    expect(src).toMatch(/const GLOW_BUSY = "Making it glow…";/);
+    expect(src.match(/type="submit"/g) ?? []).toHaveLength(1);
+    expect(src).toMatch(/className=\{glowReady \? "btn glow-button glow-button--ready" : "btn glow-button"\}\s*type="submit"\s*disabled=\{!glowReady\}/);
+    expect(src).toMatch(/const glowReady = reviewView\.showWeave && photoOnScreen && caption\.trim\(\)\.length > 0 && !busy;/);
+    expect(src).toMatch(/\{busy \? GLOW_BUSY : GLOW_LABEL\}/);
     expect(src).not.toMatch(/step-pin/);
     expect(src).toMatch(/Make my good moment/);
-    expect(src).toMatch(/Making your good moment…/);
+    expect(src).not.toMatch(/Making your good moment…/);
     expect(src).not.toMatch(/Turn my moment/);
     expect(src).not.toMatch(/Turning your moment/);
     expect(src).toMatch(/A gentle nudge: type the good in this moment first\./);
@@ -1136,7 +1142,7 @@ describe("app capture client contract", () => {
     expect(src).toMatch(/setCaptionMissed\(true\)/);
     expect(src).toMatch(/if \(!caption\.trim\(\)\) \{[\s\S]*return;\s*\}\s*setCaptionMissed\(false\)/);
     expect(src).toMatch(/if \(!kept\.caption\) return;/);
-    expect(src).toMatch(/disabled=\{busy\}/);
+    expect(src).not.toMatch(/disabled=\{busy\}/);
     expect(src).not.toMatch(/disabled=\{busy \|\| !caption\.trim\(\)\}/);
     expect(src).toMatch(/method: "POST"[\s\S]*\/api\/yours/);
     expect(src).toMatch(/router\.push\(`\/app\/yours\?moment=/);
