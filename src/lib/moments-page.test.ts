@@ -11,9 +11,9 @@ describe("moments pack page", () => {
 
   it("shows the silk pay box and nothing from the old poster stack", () => {
     expect(page).toContain("Every good moment adds to the rich tapestry of life");
-    expect(page).toContain("My new good feeling moments");
+    expect(page).toContain("Buy my good feeling moments");
     expect(page).toContain("siteTitleMetadata");
-    expect(page).not.toContain("My new good feeling moments — GoodDayNight");
+    expect(page).not.toContain("Buy my good feeling moments — GoodDayNight");
     expect(page).not.toContain("earlier-stories");
     expect(page.indexOf("moments-page-heading")).toBeLessThan(page.indexOf("moments-glass"));
     expect(page.indexOf("moments-glass")).toBeLessThan(page.indexOf("Every good moment adds to the rich tapestry of life"));

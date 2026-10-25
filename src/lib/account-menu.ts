@@ -27,7 +27,7 @@ export function accountMenuItems(input: {
   return [
     { kind: "email", email: input.email?.trim() || "" },
     ...STARTS,
-    { kind: "link", label: "Buy my good memory glowups", href: "/moments" },
+    { kind: "link", label: "Buy my good feeling moments", href: "/moments" },
     { kind: "logout", label: "Log out" },
     REVIEW,
     ABOUT,

@@ -6,7 +6,7 @@ export const JOURNEY_FINISHED_CAPTION = "My feel good moment";
 export const JOURNEY_STEPS = [
   { label: "Start my feel good moment" },
   { label: "Pick your good feeling" },
-  { label: "My new good feeling moments" },
+  { label: "Buy my good feeling moments" },
   { label: "Capture it" },
   { label: "What is the good in this moment?" },
   { label: "Make my good moment" },
