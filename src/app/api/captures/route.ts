@@ -1,6 +1,5 @@
 import { appPhotoRejection, captionDisposition } from "@/lib/app-capture";
 import { chooseSpokenLine, proposeSpokenLine } from "@/lib/care";
-import { DAILY_MOMENT_LIMIT_NOTE, isDailyMomentLimitReached } from "@/lib/daily-limit";
 import { chargeNewMoment, restoreNewMoment } from "@/lib/entitlement";
 import { ingestAppPhoto, ingestGood } from "@/lib/ingest";
 import { newId, todayStamp } from "@/lib/identity";
@@ -53,7 +52,6 @@ export async function POST(request: Request) {
   if (String(form.get("source") ?? "") === "app") {
     return saveAppPhoto(sessionId, vault, form);
   }
-  if (isDailyMomentLimitReached(vault.captures)) return dailyLimitReached();
 
   const kind = String(form.get("kind") ?? "") as CaptureKind;
   if (!KINDS.has(kind)) return badRequest("kind must be voice, photo, or text");
@@ -166,9 +164,6 @@ async function saveAppPhoto(
     return forbidden("Capture stays closed until this purchase is confirmed.");
   }
   const replacing = Boolean(existing);
-  if (isDailyMomentLimitReached(vault.captures, { replacingId: existing?.id })) {
-    return dailyLimitReached();
-  }
 
   const hasNewFile = file instanceof File && file.size > 0;
   if (!hasNewFile && !existing) {
@@ -290,10 +285,6 @@ async function saveAppPhoto(
     }
     throw error;
   }
-}
-
-function dailyLimitReached() {
-  return json({ error: DAILY_MOMENT_LIMIT_NOTE, code: "daily-limit" }, 429);
 }
 
 function extensionFor(contentType: string, kind: CaptureKind): string {

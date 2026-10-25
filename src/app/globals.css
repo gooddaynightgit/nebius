@@ -5603,3 +5603,48 @@ textarea.sg-heard {
   justify-content: center;
   margin-top: 1rem;
 }
+
+/* One way forward from the words box: soft grey until photo and words are in, then brand lime. */
+.glow-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 1rem;
+  border: 2px solid #d6dbe1;
+  border-radius: 999px;
+  background: #eef1f4;
+  color: #8a96a3;
+  font-weight: 750;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.glow-button:disabled {
+  opacity: 1;
+}
+
+.glow-button--ready {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+  box-shadow: 0 0 0 4px rgba(212, 255, 0, 0.25), 0 6px 18px rgba(212, 255, 0, 0.35);
+  cursor: pointer;
+}
+
+.glow-button--ready:hover {
+  background: #eaff6a;
+  border-color: #eaff6a;
+}
+
+.glow-button--ready:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+
+.glow-button__icon {
+  width: 1.2em;
+  height: 1.2em;
+  flex: none;
+}

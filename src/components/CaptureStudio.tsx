@@ -93,6 +93,10 @@ async function lookupEntitlement(email: string): Promise<EntitlementLookup> {
   }
 }
 
+
+const GLOW_LABEL = "Wonderful, make it glow";
+const GLOW_BUSY = "Making it glow…";
+
 export default function CaptureStudio() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -182,8 +186,10 @@ export default function CaptureStudio() {
   // A saved capture that is not on screen still looks like an empty Capture step.
   const photoOnScreen = Boolean(photo) || Boolean(previewSrc);
   const awaitingPhoto = captureStep === 4 && !photoOnScreen;
+  // Once the words box is open, the glow button under it is the one way forward.
+  const glowReady = reviewView.showWeave && photoOnScreen && caption.trim().length > 0 && !busy;
   useRegisterStepForward(
-    captureNext
+    captureNext && !reviewView.showQuestion
       ? {
           label: captureNext,
           enabled: awaitingPhoto || (reviewView.showWeave && !busy),
@@ -1014,6 +1020,23 @@ export default function CaptureStudio() {
               <p className="whisper-count">
                 {caption.length}/{WHISPER_MAX}
               </p>
+              <button
+                className={glowReady ? "btn glow-button glow-button--ready" : "btn glow-button"}
+                type="submit"
+                disabled={!glowReady}
+              >
+                <span>{busy ? GLOW_BUSY : GLOW_LABEL}</span>
+                <svg className="glow-button__icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M5 12h13M13 6l6 6-6 6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
             </section>
           ) : null}
 
@@ -1033,9 +1056,6 @@ export default function CaptureStudio() {
 
           {reviewView.showWeave ? (
             <section className="card card--aqua card--compact" aria-label="Make my good moment">
-              <button className="visually-hidden" type="submit" disabled={busy} aria-hidden="true" tabIndex={-1}>
-                {busy ? "Making your good moment…" : "Make my good moment"}
-              </button>
               {turnError ? (
                 <p className="error" role="alert">
                   {turnError}
