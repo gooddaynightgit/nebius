@@ -4,7 +4,16 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SignInForm from "@/components/SignInForm";
-import { REQUEST_SENT, REQUEST_UNAVAILABLE, VERIFY_FAIL } from "@/lib/otp-copy";
+import {
+  REQUEST_SENT,
+  REQUEST_UNAVAILABLE,
+  REQUEST_WAIT,
+  RESEND_COOLDOWN_SECONDS,
+  RESEND_SENT,
+  RESEND_WAIT,
+  SPAM_HINT,
+  VERIFY_FAIL,
+} from "@/lib/otp-copy";
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -108,5 +117,87 @@ describe("sign-in code sent", () => {
     expect(container.textContent).toContain(REQUEST_UNAVAILABLE);
     expect(container.textContent).not.toContain(REQUEST_SENT);
     expect(container.querySelector(".otp-sent")).toBeNull();
+  });
+
+  it("hides spam hint and resend until a code is sent", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ error: REQUEST_UNAVAILABLE }, 503)));
+    await fillAndSend();
+    expect(container.textContent).not.toContain(SPAM_HINT);
+    expect(container.querySelector(".otp-resend")).toBeNull();
+  });
+
+  it("shows spam hint, a counting-down resend, and resends to the same email", async () => {
+    vi.useFakeTimers();
+    try {
+      const fetchMock = vi.fn(async () => jsonResponse({ ok: true, message: REQUEST_SENT }));
+      vi.stubGlobal("fetch", fetchMock);
+      await fillAndSend();
+      expect(container.querySelector(".otp-spam-hint")?.textContent).toBe(SPAM_HINT);
+      expect(SPAM_HINT.toLowerCase()).not.toContain("story");
+      const resend = () => container.querySelector(".otp-resend") as HTMLButtonElement;
+      expect(resend().disabled).toBe(true);
+      expect(resend().textContent).toBe(`Resend code in ${RESEND_COOLDOWN_SECONDS}s`);
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(resend().textContent).toBe(`Resend code in ${RESEND_COOLDOWN_SECONDS - 1}s`);
+      for (let i = 0; i < RESEND_COOLDOWN_SECONDS; i += 1) {
+        await act(async () => {
+          vi.advanceTimersByTime(1000);
+        });
+      }
+      expect(resend().disabled).toBe(false);
+      expect(resend().textContent).toBe("Resend code");
+      await act(async () => {
+        resend().click();
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const calls = fetchMock.mock.calls as unknown as [string, RequestInit][];
+      expect(calls[1][0]).toBe("/api/auth/request");
+      expect(JSON.parse(String(calls[1][1].body))).toEqual({ email: "ada@example.com" });
+      expect(container.querySelector(".otp-sent")?.textContent).toBe(RESEND_SENT);
+      expect(container.querySelector("[aria-live='polite']")?.textContent).toBe(RESEND_SENT);
+      expect(resend().disabled).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shows a friendly line when a resend is rate limited", async () => {
+    vi.useFakeTimers();
+    try {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponse({ ok: true, message: REQUEST_SENT }))
+        .mockResolvedValueOnce(jsonResponse({ ok: true, message: REQUEST_WAIT }));
+      vi.stubGlobal("fetch", fetchMock);
+      await fillAndSend();
+      for (let i = 0; i < RESEND_COOLDOWN_SECONDS; i += 1) {
+        await act(async () => {
+          vi.advanceTimersByTime(1000);
+        });
+      }
+      await act(async () => {
+        (container.querySelector(".otp-resend") as HTMLButtonElement).click();
+      });
+      expect(container.textContent).toContain(RESEND_WAIT);
+      expect(container.querySelector(".otp-sent")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("lets the user switch to a different email", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ ok: true, message: REQUEST_SENT })));
+    await fillAndSend();
+    const email = container.querySelector("#signin-email") as HTMLInputElement;
+    expect(email.readOnly).toBe(true);
+    await act(async () => {
+      (container.querySelector(".otp-other-email") as HTMLButtonElement).click();
+    });
+    expect(email.readOnly).toBe(false);
+    expect(email.value).toBe("");
+    expect(container.querySelector(".moments-code")).not.toBeNull();
+    expect(container.querySelector(".otp-resend")).toBeNull();
   });
 });

@@ -5,7 +5,16 @@ import { authAttempt, type AuthBody } from "@/lib/auth-note";
 import { readResponsePayload } from "@/lib/client-fetch";
 import { followVerifiedLogin } from "@/lib/login-destination";
 import { PRIVACY_NOTE } from "@/lib/privacy";
-import { REQUEST_SENT, VERIFY_FAIL } from "@/lib/otp-copy";
+import {
+  REQUEST_SENT,
+  REQUEST_UNAVAILABLE,
+  REQUEST_WAIT,
+  RESEND_COOLDOWN_SECONDS,
+  RESEND_SENT,
+  RESEND_WAIT,
+  SPAM_HINT,
+  VERIFY_FAIL,
+} from "@/lib/otp-copy";
 import { isSixDigitCode } from "@/lib/verify-code";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -15,7 +24,7 @@ function normalize(raw: string): string {
 }
 
 function noteClass(note: string): string {
-  if (note === REQUEST_SENT) return "moments-status otp-sent";
+  if (note === REQUEST_SENT || note === RESEND_SENT) return "moments-status otp-sent";
   if (note === VERIFY_FAIL) return "moments-status otp-wrong";
   return "moments-status";
 }
@@ -33,16 +42,26 @@ export default function SignInForm({ onVerified }: { onVerified?: () => void } =
   const [busy, setBusy] = useState(false);
   const verifyLock = useRef(false);
   const autoTried = useRef("");
+  /** Email the last code went to. Set only after the server said it was sent. */
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown((left) => Math.max(0, left - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
 
   const normalized = normalize(email);
 
-  async function sendCode() {
+  async function sendCode(resend = false) {
     if (!emailOk(email)) {
       setNote("Enter a valid email.");
       return;
     }
+    if (resend && cooldown > 0) return;
     setBusy(true);
-    setNote("Sending a code…");
+    setNote(resend ? "Sending a new code…" : "Sending a code…");
     try {
       const res = await fetch("/api/auth/request", {
         method: "POST",
@@ -51,14 +70,35 @@ export default function SignInForm({ onVerified }: { onVerified?: () => void } =
         body: JSON.stringify({ email: normalized }),
       });
       const data = await readResponsePayload<AuthBody>(res);
-      setCode("");
-      autoTried.current = "";
-      setNote(authAttempt(data, res.ok, "We couldn’t send a code right now.").note);
+      const attempt = authAttempt(data, res.ok, REQUEST_UNAVAILABLE);
+      const sent = attempt.accepted && attempt.note === REQUEST_SENT;
+      if (sent) {
+        // A fresh code replaces the old one on the server, so clear what was typed.
+        setCode("");
+        autoTried.current = "";
+        setSentTo(normalized);
+        setCooldown(RESEND_COOLDOWN_SECONDS);
+        setNote(resend ? RESEND_SENT : REQUEST_SENT);
+      } else if (attempt.note === REQUEST_WAIT) {
+        setNote(sentTo ? RESEND_WAIT : REQUEST_WAIT);
+      } else {
+        setNote(attempt.note);
+      }
     } catch {
-      setNote("We couldn’t send a code right now.");
+      setNote(REQUEST_UNAVAILABLE);
     } finally {
       setBusy(false);
     }
+  }
+
+  function changeEmail() {
+    setSentTo(null);
+    setCooldown(0);
+    setCode("");
+    setEmail("");
+    setNote(null);
+    autoTried.current = "";
+    window.setTimeout(() => document.getElementById("signin-email")?.focus(), 0);
   }
 
   async function verifyCode() {
@@ -131,14 +171,17 @@ export default function SignInForm({ onVerified }: { onVerified?: () => void } =
         required
         maxLength={253}
         value={email}
+        readOnly={Boolean(sentTo)}
         onChange={(event) => {
           setEmail(event.target.value);
           setNote(null);
         }}
       />
-      <button className="btn moments-code" type="button" disabled={busy} onClick={() => void sendCode()}>
-        Email me a code
-      </button>
+      {sentTo ? null : (
+        <button className="btn moments-code" type="button" disabled={busy} onClick={() => void sendCode()}>
+          Email me a code
+        </button>
+      )}
       <label className="whisper-label" htmlFor="signin-code">
         Code
       </label>
@@ -163,10 +206,31 @@ export default function SignInForm({ onVerified }: { onVerified?: () => void } =
       >
         Verify code
       </button>
-      {note ? (
-        <p className={noteClass(note)} role="status">
-          {note}
-        </p>
+      <div aria-live="polite" aria-atomic="true">
+        {note ? (
+          <p className={noteClass(note)} role="status">
+            {note}
+          </p>
+        ) : null}
+      </div>
+      {sentTo ? (
+        <div className="otp-help">
+          <p className="otp-spam-hint">{SPAM_HINT}</p>
+          <div className="otp-help-actions">
+            <button
+              className="btn-link otp-resend"
+              type="button"
+              disabled={busy || cooldown > 0}
+              aria-disabled={busy || cooldown > 0}
+              onClick={() => void sendCode(true)}
+            >
+              {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+            </button>
+            <button className="btn-link otp-other-email" type="button" onClick={changeEmail}>
+              Use a different email
+            </button>
+          </div>
+        </div>
       ) : null}
       <p className="privacy-note">{PRIVACY_NOTE}</p>
     </form>
