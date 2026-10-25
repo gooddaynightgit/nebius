@@ -18,14 +18,14 @@ describe("moments pack page", () => {
     expect(page.indexOf("moments-page-heading")).toBeLessThan(page.indexOf("moments-glass"));
     expect(page.indexOf("moments-glass")).toBeLessThan(page.indexOf("Every good moment adds to the rich tapestry of life"));
     expect(page).toContain("Unlock 25 good moments for");
-    expect(page).toContain("Unlock 25 good moments for $7.99 USD / R130 ZAR.");
+    expect(page).toContain("Unlock 25 good moments for R130 (about $7.99), shown in your local currency at checkout.");
     expect(page).toContain("Unlock 25 good moments for");
     expect(page).toContain("MomentsPrice");
     expect(page).not.toContain("x-vercel-ip-country");
     const price = readFileSync(path.resolve("src/lib/price-display.ts"), "utf8");
-    expect(price).toContain('PRICE_USD_AMOUNT = "$7.99"');
-    expect(price).toContain('PRICE_USD_UNIT_LEAD = "USD\\u00A0/"');
-    expect(price).toContain('PRICE_USD_UNIT_REST = "R130\\u00A0ZAR"');
+    expect(price).toContain('PRICE_USD_AMOUNT = "R130"');
+    expect(price).toContain('PRICE_USD_UNIT_LEAD = "about\\u00A0$7.99"');
+    expect(price).toContain('PRICE_USD_UNIT_REST = "in\\u00A0your\\u00A0currency at\\u00A0checkout"');
     expect(page).not.toContain("R16");
     expect(page).not.toContain("$0.88");
     expect(page).not.toContain("Unlock 40 good moments");

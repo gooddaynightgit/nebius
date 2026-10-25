@@ -10,7 +10,7 @@ GoodDayNight is a web app for adults (18+). Pick your joy, snap a photo from tod
 - No blank page: you pick a good moment first, the writing comes after
 - One specific moment, not a generic gratitude list
 - Privacy: photos are used only to write your reflection and are deleted after today. Never shared or sold.
-- Price: 25 good moments for $7.99 (R130 in South Africa). No subscription on this pack.
+- Price: 25 good moments for R130 (about $7.99), shown in your local currency at Payfast checkout. No subscription on this pack.
 - Maker: Jasmine Hassam, a software engineer of 36 years (https://gooddaynight.com/about)
 - Not affiliated with Good Day Good Night of Tucson
 

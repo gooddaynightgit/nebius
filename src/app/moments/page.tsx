@@ -10,7 +10,7 @@ import { NOINDEX, siteTitleMetadata } from "@/lib/site-title";
 export const metadata: Metadata = {
   ...siteTitleMetadata,
   robots: NOINDEX,
-  description: "Unlock 25 good moments for $7.99 USD / R130 ZAR.",
+  description: "Unlock 25 good moments for R130 (about $7.99), shown in your local currency at checkout.",
 };
 
 export const dynamic = "force-dynamic";

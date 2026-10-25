@@ -70,8 +70,8 @@ export function siteJsonLd(withFaq: boolean) {
       offers: {
         "@type": "Offer",
         name: "25 good moments",
-        price: "7.99",
-        priceCurrency: "USD",
+        price: "130.00",
+        priceCurrency: "ZAR",
         url: "https://gooddaynight.com/pack",
       },
     },

@@ -64,7 +64,7 @@ describe("email-only sign-in screen", () => {
   it("sends a visitor with no session to sign-in, and keeps payment for a verified email", () => {
     expect(moments).toMatch(/isPersonalPhotoSession/);
     expect(moments).toMatch(/redirect\("\/signin"\)/);
-    expect(moments).toMatch(/\$7\.99 USD \/ R130 ZAR/);
+    expect(moments).toMatch(/R130 \(about \$7\.99\), shown in your local currency at checkout/);
     expect(moments).toMatch(/Unlock 25 good moments for/);
     expect(moments).not.toMatch(/R16|\$0\.88/);
     expect(moments).not.toMatch(/R450|\$28|40 good moments/);

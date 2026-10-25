@@ -18,7 +18,7 @@ export function llmsFullText() {
 Website: https://gooddaynight.com
 Contact: hello@gooddaynight.com
 Audience: adults (18+)
-Price: 25 good moments for $7.99 (R130 in South Africa). No subscription on this pack.
+Price: 25 good moments for R130 (about $7.99), shown in your local currency at Payfast checkout. No subscription on this pack.
 Maker: Jasmine Hassam (https://gooddaynight.com/about)
 Not affiliated with Good Day Good Night of Tucson.
 
