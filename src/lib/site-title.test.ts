@@ -50,7 +50,7 @@ describe("site title", () => {
     expect(paidMeta.title).toBe(SITE_TITLE);
     expect(paidMeta.openGraph && "title" in paidMeta.openGraph ? paidMeta.openGraph.title : null).toBe(SITE_TITLE);
     expect(paidMeta.twitter && "title" in paidMeta.twitter ? paidMeta.twitter.title : null).toBe(SITE_TITLE);
-    expect(read("src/app/moments/page.tsx")).toContain("My new good feeling moments");
+    expect(read("src/app/moments/page.tsx")).toContain("Buy my good feeling moments");
   });
 
   it("sets that title on every page, including sign-in, weave, moments, and paid", () => {

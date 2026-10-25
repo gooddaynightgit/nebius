@@ -56,7 +56,7 @@ describe("journey progress", () => {
     expect(JOURNEY_STEPS.map((step) => step.label)).toEqual([
       "Start my feel good moment",
       "Pick your good feeling",
-      "My new good feeling moments",
+      "Buy my good feeling moments",
       "Capture it",
       "What is the good in this moment?",
       "Make my good moment",

@@ -30,7 +30,7 @@ export default async function MomentsPage() {
       <ExpireSavedMoments />
       <main id="main" className="moments-stage">
         <div className="moments-stack">
-          <h1 className="moments-page-heading">My new good feeling moments</h1>
+          <h1 className="moments-page-heading">Buy my good feeling moments</h1>
           <section className="moments-glass" aria-labelledby="moments-weave">
             <h2 id="moments-weave">Every good moment adds to the rich tapestry of life</h2>
             <p className="moments-offer">Unlock 25 good moments for</p>
