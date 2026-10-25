@@ -39,7 +39,7 @@ describe("empty vault cleanup", () => {
   it("refuses to run without a token", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
-      expect(await main([], {})).toBe(1);
+      expect(await main([], {} as NodeJS.ProcessEnv)).toBe(1);
       expect(error).toHaveBeenCalledWith("BLOB_READ_WRITE_TOKEN is not set.");
     } finally {
       error.mockRestore();

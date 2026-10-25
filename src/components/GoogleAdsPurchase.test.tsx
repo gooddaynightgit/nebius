@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GoogleAdsPurchase } from "@/components/GoogleAdsPurchase";
-import { adsPurchaseStorageKey } from "@/lib/google-ads";
+import { GOODDAYNIGHT_ADS_ID, GOODDAYNIGHT_PURCHASE_LABEL, adsPurchaseStorageKey } from "@/lib/google-ads";
 
 const purchase = { transactionId: "1089250", value: 130, currency: "ZAR" };
 
@@ -51,7 +51,7 @@ describe("Google Ads purchase conversion", () => {
     await renderPurchase();
     expect(gtag).toHaveBeenCalledTimes(1);
     expect(gtag).toHaveBeenCalledWith("event", "conversion", {
-      send_to: "AW-123456789/purchaseLabel1",
+      send_to: `${GOODDAYNIGHT_ADS_ID}/${GOODDAYNIGHT_PURCHASE_LABEL}`,
       value: 130,
       currency: "ZAR",
       transaction_id: "1089250",
@@ -88,17 +88,14 @@ describe("Google Ads purchase conversion", () => {
     expect(gtag).toHaveBeenCalledTimes(1);
   });
 
-  it("does not fire when either Ads env var is missing", async () => {
+  it("falls back to GoodDayNight's own Ads ids when the env vars are missing", async () => {
     delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-    await renderPurchase();
-    expect(gtag).not.toHaveBeenCalled();
-
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-123456789";
     delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
-    await act(async () => {
-      root.render(createElement(GoogleAdsPurchase, { purchase }));
+    await renderPurchase();
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(gtag.mock.calls[0][2]).toMatchObject({
+      send_to: `${GOODDAYNIGHT_ADS_ID}/${GOODDAYNIGHT_PURCHASE_LABEL}`,
     });
-    expect(gtag).not.toHaveBeenCalled();
   });
 
   it("does not fire for a zero amount", async () => {

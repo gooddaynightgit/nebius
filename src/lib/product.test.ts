@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   canPromptEmail,
   canUnlockStory,
@@ -57,6 +57,16 @@ describe("email", () => {
 });
 
 describe("ingest and weave fallbacks", () => {
+  // These cover the offline fallbacks. A real Token Factory key in the shell
+  // would send live model calls (slow, non-deterministic), so hide it here.
+  const savedKey = process.env.NEBIUS_API_KEY;
+  beforeAll(() => {
+    delete process.env.NEBIUS_API_KEY;
+  });
+  afterAll(() => {
+    if (savedKey !== undefined) process.env.NEBIUS_API_KEY = savedKey;
+  });
+
   it("keeps a rich voice transcript instead of a vague sound", () => {
     expect(
       mockGoodMoment({
@@ -786,25 +796,20 @@ describe("landing", () => {
   const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
 
   it("opens Weave your good moment from the landing straight to joy", () => {
-    expect(page).toMatch(/href="\/app\/joy"/);
-    expect(page).toMatch(/STEP_LABEL\.start/);
-    expect(page).toMatch(/className="step-next step-pin"/);
-    expect(page).toMatch(/<svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">/);
-    expect(page).toMatch(/d="M5 12h13M13 6l6 6-6 6"/);
-    expect(page).toMatch(/strokeWidth="2\.2"/);
+    const doors = readFileSync(path.resolve("src/lib/home-doors.ts"), "utf8");
+    const guide = readFileSync(path.resolve("src/components/GuideShell.tsx"), "utf8");
+    const guidePages = readFileSync(path.resolve("src/lib/guide-pages.ts"), "utf8");
+    expect(page).toMatch(/href=\{FEEL_GOOD_HREF\}/);
+    expect(doors).toMatch(/FEEL_GOOD_HREF = "\/app\/joy"/);
+    expect(guidePages).toMatch(/WEAVE_HREF = "\/app\/joy"/);
+    expect(guide).toMatch(/STEP_LABEL\.start/);
+    expect(guide).toMatch(/className="step-next step-pin"/);
+    expect(guide).toMatch(/<svg className="step-next__arrow" viewBox="0 0 24 24" aria-hidden="true">/);
+    expect(guide).toMatch(/d="M5 12h13M13 6l6 6-6 6"/);
+    expect(guide).toMatch(/strokeWidth="2\.2"/);
     expect(styles).toMatch(/\.step-next:has\(\.step-next__arrow\)\s*\{[^}]*gap:\s*0\.4rem/);
     expect(styles).toMatch(/\.step-next:has\(\.step-next__arrow\)\s*\{[^}]*white-space:\s*nowrap/);
     expect(styles).toMatch(/\.step-next__arrow\s*\{[^}]*width:\s*1\.2rem/);
-    expect(readFileSync(path.resolve("src/components/JoyStudio.tsx"), "utf8")).not.toMatch(/step-next__arrow/);
-    expect(page.indexOf("STEP_LABEL.start")).toBeLessThan(page.indexOf('className="landing-demo"'));
-    expect(page.indexOf('className="landing-demo"')).toBeLessThan(page.indexOf("closing-heading"));
-    expect(page).toMatch(/src="\/landing-demo\.mp4"/);
-    expect(page).toMatch(/poster="\/landing-demo-poster\.jpg"/);
-    expect(page).toMatch(/How to find the joy in your day/);
-    expect(page.indexOf("How to find the joy in your day")).toBeLessThan(page.indexOf('className="landing-demo"'));
-    expect(page).toMatch(/aria-label="Demo of finding the joy in your day"/);
-    expect(page).not.toMatch(/\bcontrols\b/);
-    expect(styles).toMatch(/\.landing-demo[\s\S]*aspect-ratio:\s*720\s*\/\s*1398/);
     expect(page).not.toMatch(/CreateStoryButton/);
     expect(page).not.toMatch(/\/api\/auth/);
     expect(page).not.toMatch(/\/api\/payfast/);
@@ -820,22 +825,21 @@ describe("landing", () => {
     expect(copy).toContain(
       "You scrolled past a hundred good moments today. None of them were yours.",
     );
-    expect(page).toContain(
+    expect(readFileSync(path.resolve("src/lib/home-doors.ts"), "utf8")).toContain(
       "You scrolled past a hundred good moments today. None of them were yours.",
     );
     expect(copy).toContain(
       "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you.",
     );
-    expect(page).toContain("STEP_LABEL.start");
-    expect(page).toContain('href="/app/joy"');
+    expect(page).toContain("href={FEEL_GOOD_HREF}");
     expect(page).not.toContain("CreateStoryButton");
     expect(page).not.toContain("Gooddaynight does");
-    expect(page).toContain("habit of looking");
+    expect(readFileSync(path.resolve("src/app/good-news/page.tsx"), "utf8")).toContain("habit of looking");
     expect(copy).not.toContain("habit of looking");
     expect(copy).toContain("One good moment today");
     expect(copy).toContain("Lay the picture here.");
     expect(copy).toContain('joyLegend: "(pick one)"');
-    expect(copy).toContain('joyQuestion: "Pick the kind of good feeling first."');
+    expect(copy).toContain('joyQuestion: "What good feeling is it?"');
     expect(copy).toContain('joyPickHint: "(pick one to Create your good moment)"');
     expect(copy).toContain('alreadyPickedLink: "See your Created good moment"');
     expect(copy).toContain("You can change the picture if the day gets kinder.");
@@ -934,7 +938,7 @@ describe("app capture client contract", () => {
     expect(joy).not.toMatch(/step-back-arrow/);
     expect(joy).not.toMatch(/STEP_LABEL/);
     expect(joy).not.toMatch(/StepControl/);
-    expect(joy).toMatch(/Unlock\/Capture/);
+    expect(joy).toMatch(/Capture it/);
     expect(joy).not.toMatch(/STEP_LABEL\.photo/);
     expect(joy).not.toMatch(/LANDING\.app\.uploadPhoto/);
     expect(joy).toMatch(/uploadPhotoDestination/);
@@ -1043,8 +1047,8 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/id="yours-heading" className="step-heading step-heading--navy"/);
     expect(yours).toMatch(/export function StoryOpeningStatus/);
     expect(yours).toMatch(/id="earlier-stories"/);
-    expect(yours).toMatch(/aria-label="earlier-stories"/);
-    expect(yours).toMatch(/<h2>earlier-stories<\/h2>/);
+    expect(yours).toMatch(/aria-label="My saved good feeling moments"/);
+    expect(yours).toMatch(/<h2>My saved good feeling moments<\/h2>/);
     expect(yours).not.toMatch(/Earlier stories/);
     expect(yours).not.toMatch(/your new story/);
     expect(yours).not.toMatch(/story-actions/);
@@ -1062,7 +1066,7 @@ describe("app capture client contract", () => {
     expect(yours).toMatch(/\/api\/yours/);
     expect(yours).toMatch(/code === "blocked"/);
     expect(yours).toMatch(/LANDING\.app\.blocked/);
-    expect(yours).toMatch(/Can’t create your story tonight/);
+    expect(yours).toMatch(/Can’t create your good moment right now\./);
     expect(yours).toMatch(/LANDING\.app\.yours/);
     expect(yours).not.toMatch(/className="chip"/);
     expect(yours).not.toMatch(/status-row/);

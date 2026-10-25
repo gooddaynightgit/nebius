@@ -336,6 +336,7 @@ describe("payfast checkout and ITN", () => {
       issued: "2026-09-24T04:32:00.000Z",
       created: "2026-09-24T04:32:00.000Z",
       updatedAt: "2026-09-24T04:32:00.000Z",
+      spentMomentIds: [],
     });
     useFansTable(table);
     const raw = signedItn({ amount_gross: "5.00", custom_str1: "amy@example.com" });
@@ -482,7 +483,11 @@ describe("payfast checkout and ITN", () => {
       async consume() {
         return null;
       },
+      async consumeForMoment() {
+        return null;
+      },
       async restore() {},
+      async restoreForMoment() {},
     });
     try {
       const result = await handlePayfastItn(raw, async () => new Response("VALID", { status: 200 }));
@@ -511,6 +516,7 @@ describe("payfast checkout and ITN", () => {
       issued: "2026-09-24T04:32:00.000Z",
       created: "2026-09-24T04:32:00.000Z",
       updatedAt: "2026-09-24T04:32:00.000Z",
+      spentMomentIds: [],
     });
     useFansTable(table);
     const raw = documentedItn({
@@ -547,6 +553,7 @@ describe("payfast checkout and ITN", () => {
       issued: "2026-09-24T04:32:00.000Z",
       created: "2026-09-24T04:32:00.000Z",
       updatedAt: "2026-09-24T04:32:00.000Z",
+      spentMomentIds: [],
     });
     useFansTable(table);
     const raw = documentedItn({

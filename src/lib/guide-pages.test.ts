@@ -47,7 +47,7 @@ vi.mock("next/link", () => ({
   }) => createElement("a", { href, ...rest }, children),
 }));
 
-const pages: Array<{ path: string; headline: string; Page: () => ReactElement; meta: { title?: unknown; description?: unknown } }> = [
+const pages: Array<{ path: string; headline: string; Page: () => ReactElement; meta: { title?: unknown; description?: unknown; alternates?: { canonical?: unknown } | null } }> = [
   { path: "/how-it-works", headline: "Pick a moment. We write it.", Page: HowItWorksPage, meta: howMeta },
   { path: "/example", headline: "This is what a kept moment reads like.", Page: ExamplePage, meta: exampleMeta },
   { path: "/no-blank-page", headline: "You never start from an empty page.", Page: NoBlankPage, meta: blankMeta },

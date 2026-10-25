@@ -79,9 +79,9 @@ describe("landing copy", () => {
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of good feeling first.");
     expect(LANDING.app.joyNudge).toBe(
-      "Gently nudging you to pick a joy for Unlock/Capture goodness to happen.",
+      "Gently nudging you to pick a good feeling for Capture it goodness to happen.",
     );
-    expect(LANDING.app.joyQuestion).toBe("Pick the kind of good feeling first.");
+    expect(LANDING.app.joyQuestion).toBe("What good feeling is it?");
     expect(LANDING.app.joyPickHint).toBe("(pick one to Create your good moment)");
     expect(LANDING.app.alreadyPickedLink).toBe("See your Created good moment");
     expect(LANDING.app.alreadyPickedEmpty).toBe("Nothing saved yet. Pick a new one.");
@@ -101,10 +101,8 @@ describe("landing copy", () => {
     expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open Create your good moment from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
-    expect(LANDING.app.playbackLead).toBe(
-      "My feel good moment",
-    );
-    expect(LANDING.moment.playbackTitle).toBe("Create your story");
+    expect(LANDING.app.playbackLead).toBe("Here's how it reads.");
+    expect(LANDING.moment.playbackTitle).toBe("Create your good moment");
     expect(LANDING.moment.playbackExample).toBe(
       "Example of the tone, right now — not your good moment yet. Create your good moment from this photo.",
     );

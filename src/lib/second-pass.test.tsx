@@ -63,7 +63,7 @@ describe("second pass after a finished story", () => {
     vi.restoreAllMocks();
   });
 
-  it("nudges from the floating pill when no joy is picked", async () => {
+  async function renderJoy() {
     await act(async () => {
       root.render(
         <StepForwardProvider>
@@ -72,80 +72,34 @@ describe("second pass after a finished story", () => {
         </StepForwardProvider>,
       );
     });
-    const forward = container.querySelector(".step-float__next") as HTMLButtonElement;
-    expect(forward.disabled).toBe(false);
-    expect(forward.getAttribute("aria-label")).toBe("Unlock/Capture");
-    expect(container.querySelector("#joy-need")).toBeNull();
-    await act(async () => {
-      forward.click();
-    });
-    expect(assigned).toEqual([]);
-    expect(container.querySelector("#joy-need")?.textContent).toBe(LANDING.app.joyNudge);
-    expect(container.querySelector(".joy-fieldset--unset")).toBeTruthy();
-  });
+  }
 
-  it("returns to pick your joy, accepts a new joy, and opens a credited photo page", async () => {
-    const day = localDay();
-    await act(async () => {
-      root.render(
-        <StepForwardProvider>
-          <JourneyBar step={2} />
-          <JoyStudio />
-        </StepForwardProvider>,
-      );
-    });
-
-    const saved = container.querySelector(
-      `input[value="${SAVED_JOY_MOMENTS_ID}"]`,
-    ) as HTMLInputElement;
-    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
-    expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
+  it("shows no floating pill and no Capture it until a good feeling is picked", async () => {
+    await renderJoy();
+    expect(container.querySelector(".step-float__next")).toBeNull();
+    expect(container.querySelector(".step-pin")).toBeNull();
+    expect(container.querySelector(".feel-good-capture")).toBeNull();
     expect(container.querySelector("#joy-need")).toBeNull();
-    const forwardEarly = container.querySelector(".step-float__next") as HTMLButtonElement;
-    const progressNext = container.querySelector("button.journey__next") as HTMLButtonElement;
-    expect(forwardEarly.disabled).toBe(false);
-    expect(forwardEarly.getAttribute("aria-label")).toBe("Unlock/Capture");
-    expect(forwardEarly.textContent).toContain("Unlock/Capture");
-    expect(progressNext.textContent).toContain("Unlock/Capture");
-    await act(async () => {
-      progressNext.click();
-    });
-    expect(assigned).toEqual([]);
-    const nudge = container.querySelector("#joy-need");
-    expect(nudge?.textContent).toBe(LANDING.app.joyNudge);
-    expect(container.querySelector(".joy-fieldset--unset")).toBeTruthy();
-    expect(container.querySelector(".joy-fieldset--lime")).toBeNull();
-    const firstRadio = container.querySelector(".joy__pick input");
-    expect(nudge && firstRadio && (nudge.compareDocumentPosition(firstRadio) & Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
-    await act(async () => {
-      forwardEarly.click();
-    });
-    expect(assigned).toEqual([]);
-    expect(container.querySelector("#joy-need")?.textContent).toBe(LANDING.app.joyNudge);
     const catalog = container.querySelector('input[value="a-small-hello"]') as HTMLInputElement;
     await act(async () => {
       catalog.click();
     });
     expect(catalog.checked).toBe(true);
-    expect(container.querySelector("#joy-need")).toBeNull();
-    expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
-    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
+    expect(container.querySelector(".feel-good-capture button")?.textContent).toContain("Capture it");
     expect(container.textContent).not.toContain(LANDING.app.joyNudge);
-    const back = container.querySelector(".step-float__back");
-    expect(back?.getAttribute("aria-label")).toBe("Back to start");
-    expect(back?.getAttribute("href")).toBe("/");
-    expect(back?.textContent).not.toContain("Weave your good moment");
-    const main = container.querySelector("main");
-    expect(main?.compareDocumentPosition(back!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(container.querySelector(".step-pin")).toBeNull();
+    expect(assigned).toEqual([]);
+  });
+
+  it("returns to pick your joy, accepts a new joy, and opens a credited photo page", async () => {
+    const day = localDay();
+    await renderJoy();
+
+    const saved = container.querySelector(
+      `input[value="${SAVED_JOY_MOMENTS_ID}"]`,
+    ) as HTMLInputElement;
     await act(async () => {
       saved.click();
     });
-    expect(saved.checked).toBe(true);
-    expect(container.querySelector(".joy-fieldset--unset")).toBeNull();
-    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
-    expect(container.querySelector("#joy-need")).toBeNull();
-    expect(container.textContent).not.toContain("Pick the kind of good feeling first.");
     expect(assigned).toEqual(["/app/yours"]);
 
     writeChosenJoy(day, "just-this");
@@ -153,24 +107,17 @@ describe("second pass after a finished story", () => {
     await act(async () => {
       window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
     });
-    const savedAfter = container.querySelector(
-      `input[value="${SAVED_JOY_MOMENTS_ID}"]`,
-    ) as HTMLInputElement;
     const kept = container.querySelector('input[value="just-this"]') as HTMLInputElement;
-    expect(savedAfter.checked).toBe(false);
     expect(kept.checked).toBe(true);
-    expect(container.querySelector(".joy-fieldset--lime")).toBeTruthy();
-    expect(container.textContent).not.toContain("Pick the kind of good feeling first.");
 
     const nextJoy = container.querySelector('input[value="morning-sunlight"]') as HTMLInputElement;
     await act(async () => {
       nextJoy.click();
     });
-    const forward = container.querySelector(".step-float__next") as HTMLButtonElement;
-    expect(forward.disabled).toBe(false);
-    expect(forward.getAttribute("aria-label")).toBe("Unlock/Capture");
+    const capture = container.querySelector(".feel-good-capture button") as HTMLButtonElement;
+    expect(capture.textContent).toContain("Capture it");
     await act(async () => {
-      forward.click();
+      capture.click();
     });
     expect(assigned).toEqual(["/app"]);
     expect(uploadPhotoDestination(true, 39)).toBe("/app");
@@ -178,11 +125,11 @@ describe("second pass after a finished story", () => {
     expect(uploadPhotoDestination(true, 0)).toBe("/moments");
     expect(photoButtonsEnabled(true, 0)).toBe(false);
 
-    const capture = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
-    expect(capture).toMatch(/releaseCaptureVisit/);
-    expect(capture).toMatch(/photoButtonsEnabled/);
-    expect(capture).toMatch(/const canPickPhoto = captureOpen;/);
-    expect(capture).toMatch(/clearActiveMoment\(\)/);
-    expect(capture).not.toMatch(/hasSavedMoment[\s\S]{0,80}canPickPhoto/);
+    const captureSrc = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
+    expect(captureSrc).toMatch(/releaseCaptureVisit/);
+    expect(captureSrc).toMatch(/photoButtonsEnabled/);
+    expect(captureSrc).toMatch(/const canPickPhoto = captureOpen;/);
+    expect(captureSrc).toMatch(/clearActiveMoment\(\)/);
+    expect(captureSrc).not.toMatch(/hasSavedMoment[\s\S]{0,80}canPickPhoto/);
   });
 });

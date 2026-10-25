@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   GA4_MEASUREMENT_ID,
+  GOODDAYNIGHT_ADS_ID,
+  GOODDAYNIGHT_PURCHASE_LABEL,
   GOOGLE_ADS_ID_PLACEHOLDER,
   GOOGLE_ADS_PURCHASE_LABEL_PLACEHOLDER,
   adsPurchaseStorageKey,
@@ -21,55 +23,40 @@ function read(rel: string) {
 }
 
 describe("google ads stays off until both ids are valid", () => {
-  afterEach(() => {
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
-  });
-
-  it("loads only GA4 when neither env var is set", () => {
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
-    expect(googleAdsConfig()).toBeNull();
-    expect(googleAdsPurchaseSendTo()).toBeNull();
+  it("defaults to GoodDayNight's own Ads tag and purchase conversion", () => {
+    const sendTo = `${GOODDAYNIGHT_ADS_ID}/${GOODDAYNIGHT_PURCHASE_LABEL}`;
+    expect(googleAdsConfig()).toEqual({ id: GOODDAYNIGHT_ADS_ID, sendTo });
+    expect(googleAdsPurchaseSendTo()).toBe(sendTo);
     const tag = googleTagSnippet();
     expect(tag.src).toBe(`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`);
     expect(tag.html).toContain(`gtag('config', '${GA4_MEASUREMENT_ID}');`);
-    expect(tag.html).not.toContain("AW-");
-    expect(tag.src).not.toContain("AW-");
+    expect(tag.html).toContain(`gtag('config', '${GOODDAYNIGHT_ADS_ID}');`);
+    expect(tag.html).not.toContain("conversion");
   });
 
-  it("stays off when only the Ads id is set", () => {
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = ADS_ID;
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
-    expect(googleAdsConfig()).toBeNull();
-    expect(googleAdsPurchaseSendTo()).toBeNull();
-    const tag = googleTagSnippet();
+  it("stays off when only the Ads id is valid", () => {
+    expect(googleAdsConfig(ADS_ID, "")).toBeNull();
+    expect(googleAdsPurchaseSendTo(ADS_ID, "")).toBeNull();
+    const tag = googleTagSnippet(ADS_ID, "");
     expect(tag.html).toContain(`gtag('config', '${GA4_MEASUREMENT_ID}');`);
     expect(tag.html).not.toContain("AW-");
-    expect(tag.src).not.toContain(ADS_ID);
   });
 
-  it("stays off when only the purchase label is set", () => {
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL = LABEL;
-    expect(googleAdsConfig()).toBeNull();
-    expect(googleAdsPurchaseSendTo()).toBeNull();
-    const tag = googleTagSnippet();
+  it("stays off when only the purchase label is valid", () => {
+    expect(googleAdsConfig("", LABEL)).toBeNull();
+    expect(googleAdsPurchaseSendTo("", LABEL)).toBeNull();
+    const tag = googleTagSnippet("", LABEL);
     expect(tag.html).not.toContain("AW-");
     expect(tag.html).toContain(GA4_MEASUREMENT_ID);
   });
 
   it("configures Ads only when both values are valid", () => {
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = `  ${ADS_ID}  `;
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL = `  ${LABEL}  `;
-    expect(googleAdsConfig()).toEqual({
+    expect(googleAdsConfig(`  ${ADS_ID}  `, `  ${LABEL}  `)).toEqual({
       id: ADS_ID,
       sendTo: `${ADS_ID}/${LABEL}`,
     });
-    expect(googleAdsPurchaseSendTo()).toBe(`${ADS_ID}/${LABEL}`);
-    const tag = googleTagSnippet();
-    expect(tag.src).toBe(`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`);
-    expect(tag.html).toContain(`gtag('config', '${GA4_MEASUREMENT_ID}');`);
+    expect(googleAdsPurchaseSendTo(ADS_ID, LABEL)).toBe(`${ADS_ID}/${LABEL}`);
+    const tag = googleTagSnippet(ADS_ID, LABEL);
     expect(tag.html).toContain(`gtag('config', '${ADS_ID}');`);
     expect(tag.html).not.toContain(GOOGLE_ADS_ID_PLACEHOLDER);
     expect(tag.html).not.toContain("conversion");

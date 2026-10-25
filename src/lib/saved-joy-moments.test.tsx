@@ -72,9 +72,9 @@ describe("saved joy moments", () => {
     const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
     const capture = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
 
-    expect(joy).toMatch(/className="step-heading step-heading--navy"/);
+    expect(joy).toMatch(/className="step-heading step-heading--navy[ "]/);
     expect(joy).not.toMatch(/already-picked/);
-    expect(capture).toMatch(/className="step-heading step-heading--navy"/);
+    expect(capture).toMatch(/className="step-heading step-heading--navy[ "]/);
     expect(capture).toMatch(/Capture your good moment/);
     expect(capture).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(styles).toMatch(

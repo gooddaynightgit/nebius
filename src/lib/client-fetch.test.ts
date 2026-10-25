@@ -43,7 +43,7 @@ describe("client fetch", () => {
     );
     expect(PREVIEW_UNREACHABLE).not.toMatch(/Failed to fetch/i);
     expect(PRODUCTION_UNREACHABLE).toMatch(/check your connection/i);
-    expect(JOY_NEED).toMatch(/quiet joy/i);
+    expect(JOY_NEED).toMatch(/good feeling/i);
   });
 
   it("treats HTML and SSO login pages as an auth wall, but not a plain redirect", async () => {
