@@ -27,18 +27,18 @@ function flexVisibleText(html: string): string {
 describe("gradient word spaces", () => {
   it("keeps spaces in the rendered text of both story actions and the joy link", () => {
     const create = renderToStaticMarkup(<GradientPhrase text="Create your new story" word="Create" />);
-    const created = renderToStaticMarkup(<GradientPhrase text="See your Created story" word="Created" />);
+    const created = renderToStaticMarkup(<GradientPhrase text="See your Created good moment" word="Created" />);
     const joy = renderToStaticMarkup(
-      <GradientPhrase text="See your Created story" word="Created" suffix=" →" />,
+      <GradientPhrase text="See your Created good moment" word="Created" suffix=" →" />,
     );
 
     expect(textContent(create)).toBe("Create your new story");
-    expect(textContent(created)).toBe("See your Created story");
-    expect(textContent(joy)).toBe("See your Created story →");
+    expect(textContent(created)).toBe("See your Created good moment");
+    expect(textContent(joy)).toBe("See your Created good moment →");
 
     expect(flexVisibleText(create)).toBe("Create your new story");
-    expect(flexVisibleText(created)).toBe("See your Created story");
-    expect(flexVisibleText(joy)).toBe("See your Created story →");
+    expect(flexVisibleText(created)).toBe("See your Created good moment");
+    expect(flexVisibleText(joy)).toBe("See your Created good moment →");
   });
 
   it("still shows the spaces when the phrase is the only child of a flex button", () => {
@@ -49,12 +49,12 @@ describe("gradient word spaces", () => {
     );
     const link = renderToStaticMarkup(
       <a className="btn btn--lime" href="/app/yours#earlier-stories">
-        <GradientPhrase text="See your Created story" word="Created" />
+        <GradientPhrase text="See your Created good moment" word="Created" />
       </a>,
     );
     expect(textContent(button)).toBe("Create your new story");
-    expect(textContent(link)).toBe("See your Created story");
+    expect(textContent(link)).toBe("See your Created good moment");
     expect(button).toMatch(/^<button[^>]*><span class="inline-label">/);
-    expect(link).toMatch(/^<a[^>]*><span class="inline-label">See your <span class="gradient-word">Created<\/span> story<\/span><\/a>$/);
+    expect(link).toMatch(/^<a[^>]*><span class="inline-label">See your <span class="gradient-word">Created<\/span> good moment<\/span><\/a>$/);
   });
 });

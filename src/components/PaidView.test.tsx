@@ -1,5 +1,6 @@
 /** @vitest-environment happy-dom */
 
+import { GOODDAYNIGHT_ADS_ID, GOODDAYNIGHT_PURCHASE_LABEL } from "@/lib/google-ads";
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -21,6 +22,7 @@ import {
   rememberPayfastOrder,
 } from "@/lib/paid-return";
 
+const SEND_TO = `${GOODDAYNIGHT_ADS_ID}/${GOODDAYNIGHT_PURCHASE_LABEL}`;
 const refresh = vi.hoisted(() => vi.fn());
 const notFound = vi.hoisted(() =>
   vi.fn(() => {
@@ -167,7 +169,7 @@ describe("paid page", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
     });
-    const called = String(fetchMock.mock.calls[0]?.[0]);
+    const called = String((fetchMock.mock.calls as unknown[][])[0]?.[0]);
     expect(called).toContain("/api/payfast/paid?");
     expect(called).toContain("ref=pay_wait");
     expect(called).toContain("handoff=");
@@ -183,37 +185,16 @@ describe("paid page", () => {
     expect(container.innerHTML).not.toContain("/moments");
   });
 
-  it("does not mount or fire a conversion unless both Ads env vars are set", async () => {
+  it("fires one conversion with GoodDayNight's own Ads ids when no env vars are set", async () => {
     const gtag = vi.fn();
     window.gtag = gtag;
     const purchase = { transactionId: "1089250", value: 130, currency: "ZAR" };
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL;
-    await act(async () => {
-      root.render(createElement(PaidSuccess, { purchase }));
-    });
-    expect(gtag).not.toHaveBeenCalled();
-
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-123456789";
-    await act(async () => {
-      root.render(createElement(PaidSuccess, { purchase }));
-    });
-    expect(gtag).not.toHaveBeenCalled();
-
-    delete process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL = "purchaseLabel1";
-    await act(async () => {
-      root.render(createElement(PaidSuccess, { purchase }));
-    });
-    expect(gtag).not.toHaveBeenCalled();
-
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID = "AW-123456789";
     await act(async () => {
       root.render(createElement(PaidSuccess, { purchase }));
     });
     expect(gtag).toHaveBeenCalledTimes(1);
     expect(gtag).toHaveBeenCalledWith("event", "conversion", {
-      send_to: "AW-123456789/purchaseLabel1",
+      send_to: SEND_TO,
       value: 130,
       currency: "ZAR",
       transaction_id: "1089250",
@@ -255,7 +236,7 @@ describe("paid page", () => {
     });
     expect(gtag).toHaveBeenCalledTimes(1);
     expect(gtag).toHaveBeenCalledWith("event", "conversion", {
-      send_to: "AW-123456789/purchaseLabel1",
+      send_to: SEND_TO,
       value: 130,
       currency: "ZAR",
       transaction_id: "1089250",

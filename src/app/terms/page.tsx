@@ -16,7 +16,7 @@ export default function TermsPage() {
       <p className="card__body">GoodDayNight is an app for adults 18 and over to find the good feeling in their day, or flip their day.</p>
       <h2>Your moments</h2>
       <p className="card__body">
-        What you save stays yours. You give us permission to use it only to write and read back your story. Your moments
+        What you save stays yours. You give us permission to use it only to write and read back your good moments. Your moments
         are removed after 23:59 on your own day, so keep anything you want to remember somewhere of your own.
       </p>
       <h2>Packs and payment</h2>
@@ -26,7 +26,7 @@ export default function TermsPage() {
       </p>
       <h2>Using GoodDayNight kindly</h2>
       <p className="card__body">
-        Please save only your own moments and photos you have the right to share. Stories are written with AI, so
+        Please save only your own moments and photos you have the right to share. Good moments are written with AI, so
         they may sometimes get a detail wrong. GoodDayNight is a journaling habit, not medical or mental health advice.
       </p>
       <h2>Changes</h2>

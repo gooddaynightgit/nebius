@@ -28,7 +28,7 @@ describe("app photo save rules", () => {
         size: 1200,
         takenDay: today,
       }),
-    ).toMatch(/quiet joy/i);
+    ).toMatch(/good feeling/i);
     expect(
       appPhotoRejection({
         day: today,

@@ -149,14 +149,14 @@ export const PHOTO_DATE_MESSAGES = {
 
 /** Developer source of truth. Not rendered on /app. Exact wording — do not paraphrase. */
 export const PHOTO_SAVE_RULES = [
-  "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own story.",
+  "Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own reflection.",
   "The photo is required. No photo, no save, no good moment.",
   `When from today — camera roll today, message: ${PHOTO_DATE_MESSAGES.today}`,
   "Screenshots count: a hello, a gift message, a tracker, a watch face.",
   "A video is not saved. Ask for a picture of the moment instead.",
   "One joy pick is required (sunlight, hello, slow task, movement, clear corner, or just this).",
   "Ugly, blurry, messy, and ordinary photos are allowed.",
-  "Sad or hard photos are allowed. The story stays honest and gentle.",
-  "Horrific photos are not saved and get no story (violence, gore, abuse, porn, hate, self-harm).",
+  "Sad or hard photos are allowed. The reflection stays honest and gentle.",
+  "Horrific photos are not saved and get no reflection (violence, gore, abuse, porn, hate, self-harm).",
   "Not allowed: memes, someone else’s moment passed off as yours.",
 ] as const;

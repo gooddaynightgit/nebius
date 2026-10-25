@@ -51,14 +51,14 @@ export async function POST(request: Request) {
     if (vault.captures.length < 1) {
       return forbidden("Save a moment first.");
     }
-    return forbidden("Enter your email to hear your story.");
+    return forbidden("Enter your email to hear your good moment.");
   }
 
   const captures = capturesForDay(vault, day);
   if (!captures.length) return badRequest("No moments for this day yet.");
   if (!weavableLines(captures).length) {
     return badRequest(
-      "Add a line about what you said — a voice without words isn't enough to tell your story.",
+      "Add a line about what you said — a voice without words isn't enough to make your good moment.",
     );
   }
 

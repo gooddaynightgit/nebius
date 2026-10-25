@@ -17,7 +17,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 Internal product rules — not shown on `/app`. Source of truth: `PHOTO_SAVE_RULES` in `src/lib/photo.ts`, enforced on the capture page and for `source=app` (`appPhotoRejection` on `POST /api/captures`). A missing or unverified camera date stays silent and still saves as today. A confirmed camera date older than today is blocked with: *This photo looks older than today. Tonight only holds today's moment.*
 
-1. Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own story.
+1. Several photos can be saved in one calendar day (midnight–23:59, phone’s local time). Each saved moment is its own reflection.
 2. The photo is required. No photo, no save, no good moment.
 3. When from today — camera roll today, message: Wonderful, your photo was taken today.
 4. Screenshots count: a hello, a gift message, a tracker, a watch face.

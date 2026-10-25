@@ -12,7 +12,7 @@ export const PRICE_MARKERS = ["$7.99", "R130"] as const;
 
 /** Jasmine’s woven chocolate story from the landing demo, with its keepsake close. */
 export const EXAMPLE_STORY =
-  "I held the chocolate in my palm, warm from the sun, the first sweetness of the day already half-dreamed. This quiet gift, eaten before the world stirs, becomes a golden thread in the story of my days. A moment like this makes the whole morning luminous. Radiant.";
+  "I held the chocolate in my palm, warm from the sun, the first sweetness of the day already half-dreamed. This quiet gift, eaten before the world stirs, becomes a golden thread in the fabric of my days. A moment like this makes the whole morning luminous. Radiant.";
 export const EXAMPLE_CLOSING = KEEPSAKE_CLOSING_LINES[4];
 export const EXAMPLE_NOTE = "This is not a gratitude list. It is one thing that happened.";
 export const EXAMPLE_SOON = "Something good is happening.";

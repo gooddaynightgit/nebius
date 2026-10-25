@@ -62,7 +62,7 @@ export const PAYFAST_CURRENCY = "ZAR";
 export const PACK_MOMENTS = 25;
 export const ITEM_NAME = "GoodDayNight — 25 good moments";
 export const ITEM_DESCRIPTION =
-  "25 good moments. Each moment: one photo upload → one My good moment story.";
+  "25 good moments. Each moment: one photo upload → one My good moment reflection.";
 
 const PACK_CENTS = 13000;
 

@@ -1,7 +1,7 @@
 {
   "name": "GoodDayNight",
   "short_name": "GoodDayNight",
-  "description": "Find the joy in your day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a story of your good day.",
+  "description": "Find the joy in your day, or turn the day around. Pick your joy, or name what's bugging you and say your perfect result. Either way, you end with a good moment from your day.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

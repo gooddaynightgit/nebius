@@ -8,7 +8,7 @@ function read(file: string): string {
 
 describe("pinned step button", () => {
   const styles = read("src/app/globals.css");
-  const landing = read("src/app/page.tsx");
+  const landing = read("src/components/GuideShell.tsx");
   const joy = read("src/components/JoyStudio.tsx");
   const checkout = read("src/components/MomentsCheckout.tsx");
   const capture = read("src/components/CaptureStudio.tsx");

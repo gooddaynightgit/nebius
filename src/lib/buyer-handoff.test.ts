@@ -39,9 +39,10 @@ describe("buyer handoff", () => {
 
   it("uses /paid and the order ref when a handoff cannot be signed", () => {
     const previous = process.env.OTP_SESSION_SECRET;
-    const nodeEnv = process.env.NODE_ENV;
+    const env = process.env as Record<string, string | undefined>;
+    const nodeEnv = env.NODE_ENV;
     delete process.env.OTP_SESSION_SECRET;
-    process.env.NODE_ENV = "production";
+    env.NODE_ENV = "production";
     try {
       expect(buyerReturnUrl("https://gooddaynight.com", "pay_abc", "amy@email.com", 1_700_000_000)).toBe(
         "https://gooddaynight.com/paid?ref=pay_abc",
@@ -49,8 +50,8 @@ describe("buyer handoff", () => {
     } finally {
       if (previous == null) delete process.env.OTP_SESSION_SECRET;
       else process.env.OTP_SESSION_SECRET = previous;
-      if (nodeEnv == null) delete process.env.NODE_ENV;
-      else process.env.NODE_ENV = nodeEnv;
+      if (nodeEnv == null) delete env.NODE_ENV;
+      else env.NODE_ENV = nodeEnv;
     }
   });
 });

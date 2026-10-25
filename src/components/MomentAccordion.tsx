@@ -162,7 +162,7 @@ function PhotoMoment() {
       {saved ? (
         <p className="notice">
           Saved to your vault.{" "}
-          <Link href="/app">Hear your story — free</Link>
+          <Link href="/app">Hear your good moment — free</Link>
         </p>
       ) : null}
       {error ? (

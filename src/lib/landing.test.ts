@@ -9,7 +9,7 @@ describe("landing copy", () => {
     expect(LANDING.hero.subheadline).toBe(
       "Your laugh. Your small win. Your quiet moment. Nobody turned them into anything — not even you.",
     );
-    expect(LANDING.hero.cta).toBe("Hear your story — free");
+    expect(LANDING.hero.cta).toBe("Hear your good moment — free");
     expect(LANDING.moment.title).toBe("One good moment today");
     expect(LANDING.moment.pictureTitle).toBe("Lay the picture here.");
     expect(LANDING.moment.joyLegend).toBe("(pick one)");
@@ -57,12 +57,12 @@ describe("landing copy", () => {
     expect(JSON.stringify(LANDING.app)).not.toMatch(/It sits beside the photo/);
     expect(JSON.stringify(LANDING.app)).not.toMatch(/one line, 80 characters/);
     expect(LANDING.app.blocked).toBe(
-      "Right now isn’t a story we can create. This picture isn’t one we can tell. Keep it gentle.",
+      "Right now isn’t a good moment we can create. This picture isn’t one we can tell. Keep it gentle.",
     );
     expect(LANDING.app.playMoment).toBe("Play this good moment");
     expect(LANDING.app.pause).toBe("Pause");
     expect(LANDING.app.keep).toBe("Share");
-    expect(LANDING.app.keepLabel).toBe("Share right now’s story with the photo");
+    expect(LANDING.app.keepLabel).toBe("Share right now’s good moment with the photo");
     expect(LANDING.app.keepBusy).toBe("Sharing…");
     expect(LANDING.app.replace).toBe("Replace today’s photo");
     expect(LANDING.app.reach).toBe(
@@ -79,11 +79,11 @@ describe("landing copy", () => {
     expect(LANDING.app.tryAgain).toBe("Try again");
     expect(LANDING.app.joyNeed).toBe("Pick the kind of good feeling first.");
     expect(LANDING.app.joyNudge).toBe(
-      "Gently nudging you to pick a joy for Unlock/Capture goodness to happen.",
+      "Gently nudging you to pick a good feeling for Capture it goodness to happen.",
     );
-    expect(LANDING.app.joyQuestion).toBe("Pick the kind of good feeling first.");
-    expect(LANDING.app.joyPickHint).toBe("(pick one to Create your story)");
-    expect(LANDING.app.alreadyPickedLink).toBe("See your Created story");
+    expect(LANDING.app.joyQuestion).toBe("What good feeling is it?");
+    expect(LANDING.app.joyPickHint).toBe("(pick one to Create your good moment)");
+    expect(LANDING.app.alreadyPickedLink).toBe("See your Created good moment");
     expect(LANDING.app.alreadyPickedEmpty).toBe("Nothing saved yet. Pick a new one.");
     expect(LANDING.app.nextJoy).toBe("Pick the good feeling");
     expect(JSON.stringify(LANDING.app)).not.toMatch(/Switch it/);
@@ -98,15 +98,13 @@ describe("landing copy", () => {
     expect(LANDING.app.heicAsk).toMatch(/JPEG or PNG/i);
     expect(LANDING.app.yoursMissing).toBe("Save today's photo and pick a good feeling first.");
     expect(LANDING.app.keepingMoment).toBe("Keeping your moment…");
-    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open Create your story from here");
+    expect(LANDING.app.savedOnPhone).toBe("Saved on this phone — open Create your good moment from here");
     expect(LANDING.app.resaveFailed).toMatch(/this phone/i);
     expect(LANDING.app.reach).not.toMatch(/Failed to fetch/i);
-    expect(LANDING.app.playbackLead).toBe(
-      "My feel good moment",
-    );
-    expect(LANDING.moment.playbackTitle).toBe("Create your story");
+    expect(LANDING.app.playbackLead).toBe("Here's how it reads.");
+    expect(LANDING.moment.playbackTitle).toBe("Create your good moment");
     expect(LANDING.moment.playbackExample).toBe(
-      "Example of the tone, right now — not your story yet. Create your story from this photo.",
+      "Example of the tone, right now — not your good moment yet. Create your good moment from this photo.",
     );
     expect(LANDING.moment.playbackExample).not.toMatch(/YOURS/);
     expect(
@@ -117,7 +115,7 @@ describe("landing copy", () => {
     expect(LANDING.footer.changePicture).toBe(
       "You can change the picture if the day gets kinder.",
     );
-    expect(LANDING.footer.oneMoment).toBe("One moment. One story.");
+    expect(LANDING.footer.oneMoment).toBe("One moment. One reflection.");
     expect(LANDING.footer.somethingGood).toBe("Something good is happening!");
     expect(LANDING.footer.site).toBe("gooddaynight.com");
     expect(LANDING.footer.lookingForward).toBe("Looking forward to hearing from you:");

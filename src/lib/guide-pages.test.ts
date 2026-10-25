@@ -47,7 +47,7 @@ vi.mock("next/link", () => ({
   }) => createElement("a", { href, ...rest }, children),
 }));
 
-const pages: Array<{ path: string; headline: string; Page: () => ReactElement; meta: { title?: unknown; description?: unknown } }> = [
+const pages: Array<{ path: string; headline: string; Page: () => ReactElement; meta: { title?: unknown; description?: unknown; alternates?: { canonical?: unknown } | null } }> = [
   { path: "/how-it-works", headline: "Pick a moment. We write it.", Page: HowItWorksPage, meta: howMeta },
   { path: "/example", headline: "This is what a kept moment reads like.", Page: ExamplePage, meta: exampleMeta },
   { path: "/no-blank-page", headline: "You never start from an empty page.", Page: NoBlankPage, meta: blankMeta },
@@ -74,7 +74,7 @@ describe("seven guide pages", () => {
 
   it("uses Jasmine’s woven chocolate story, photo, and product closing line", () => {
     expect(EXAMPLE_STORY).toBe(
-      "I held the chocolate in my palm, warm from the sun, the first sweetness of the day already half-dreamed. This quiet gift, eaten before the world stirs, becomes a golden thread in the story of my days. A moment like this makes the whole morning luminous. Radiant.",
+      "I held the chocolate in my palm, warm from the sun, the first sweetness of the day already half-dreamed. This quiet gift, eaten before the world stirs, becomes a golden thread in the fabric of my days. A moment like this makes the whole morning luminous. Radiant.",
     );
     expect(EXAMPLE_STORY).not.toMatch(GUIDE_FORBIDDEN);
     expect(EXAMPLE_CLOSING).toBe(KEEPSAKE_CLOSING_LINES[4]);

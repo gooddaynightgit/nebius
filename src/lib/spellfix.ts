@@ -2,7 +2,7 @@ import { proposeSpokenLine, type SpellProposal } from "./care";
 import { hasTokenFactoryKey } from "./config";
 import { completeWithFallback, nanoModels } from "./nebius";
 
-const SPELL_SYSTEM = `You fix only obvious spelling and small grammar so a private bedtime note can be read aloud.
+const SPELL_SYSTEM = `You fix only obvious spelling and small grammar so a private journal note can be read aloud.
 Return ONLY JSON: {"corrected":"the same sentence, lightly fixed"}
 Rules:
 - Keep their voice, order, and meaning.

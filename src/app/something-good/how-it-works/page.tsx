@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/site-title";
 import SgShell from "@/components/SgShell";
 import { SG_HOW_NOTE, SG_HOW_PATH, SG_HOW_STEPS, sgHowToJsonLd, jsonLdHtml } from "@/lib/something-good";
 
@@ -6,12 +7,7 @@ const TITLE = "How Something Good works";
 const DESCRIPTION =
   "Name what you're not feeling good about, take one slow breath, flip it into your perfect result, and hear: something good is happening.";
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: `https://gooddaynight.com${SG_HOW_PATH}` },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: `https://gooddaynight.com${SG_HOW_PATH}` },
-};
+export const metadata: Metadata = pageMetadata({ name: TITLE, description: DESCRIPTION, path: SG_HOW_PATH });
 
 export default function SgHowItWorksPage() {
   return (

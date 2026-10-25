@@ -193,7 +193,7 @@ export async function composeKeepCardJpeg(input: {
   }
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Could not keep your story.");
+  if (!ctx) throw new Error("Could not keep your good moment.");
   ctx.font = `500 ${KEEP_CARD.storyFontSize}px Inter, "Segoe UI", "Helvetica Neue", sans-serif`;
   const lines = wrapKeepCardLines(
     input.story,
@@ -240,7 +240,7 @@ export async function composeKeepCardJpeg(input: {
 function canvasToJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("Could not keep your story."))),
+      (blob) => (blob ? resolve(blob) : reject(new Error("Could not keep your good moment."))),
       "image/jpeg",
       quality,
     );
@@ -280,7 +280,7 @@ export async function shareOrDownloadKeepCard(input: {
   const file = keepCardFile(input.blob, input.filename);
   if (canShareKeepCard(file)) {
     try {
-      await navigator.share({ files: [file], title: input.title ?? "Create your story" });
+      await navigator.share({ files: [file], title: input.title ?? "Create your good moment" });
       return "shared";
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return "cancelled";

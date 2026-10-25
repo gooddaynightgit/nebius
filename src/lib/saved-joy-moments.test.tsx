@@ -14,7 +14,7 @@ import {
 } from "@/lib/saved-joy-moments";
 
 describe("saved joy moments", () => {
-  it("reuses the former See your Created story href and is not a catalog joy", () => {
+  it("reuses the former See your Created good moment href and is not a catalog joy", () => {
     expect(SAVED_JOY_MOMENTS_HREF).toBe("/app/yours");
     expect(SAVED_JOY_MOMENTS_LABEL).toBe("Your saved good feeling moments");
     expect(isSavedJoyMomentsId(SAVED_JOY_MOMENTS_ID)).toBe(true);
@@ -62,7 +62,7 @@ describe("saved joy moments", () => {
     expect(html).toContain(`name="quiet-joy-app"`);
     expect(html).toContain(`value="${SAVED_JOY_MOMENTS_ID}"`);
     expect(html).toContain("<label");
-    expect(html).not.toContain("See your Created story");
+    expect(html).not.toContain("See your Created good moment");
     expect(html).not.toContain(`playback-${SAVED_JOY_MOMENTS_ID}`);
     expect(chosen).toEqual([]);
   });
@@ -72,9 +72,9 @@ describe("saved joy moments", () => {
     const styles = readFileSync(path.resolve("src/app/globals.css"), "utf8");
     const capture = readFileSync(path.resolve("src/components/CaptureStudio.tsx"), "utf8");
 
-    expect(joy).toMatch(/className="step-heading step-heading--navy"/);
+    expect(joy).toMatch(/className="step-heading step-heading--navy[ "]/);
     expect(joy).not.toMatch(/already-picked/);
-    expect(capture).toMatch(/className="step-heading step-heading--navy"/);
+    expect(capture).toMatch(/className="step-heading step-heading--navy[ "]/);
     expect(capture).toMatch(/Capture your good moment/);
     expect(capture).toMatch(/LANDING\.app\.uploadPhoto/);
     expect(styles).toMatch(

@@ -781,7 +781,7 @@ export default function CaptureStudio() {
       }
       setPhoneNote(latest.todayPhoto ? null : LANDING.app.savedOnPhone);
       const momentId = momentRef.current;
-      if (!momentId) throw new Error("Couldn't turn that moment into a story. Try again.");
+      if (!momentId) throw new Error("Couldn't turn that into a good moment. Try again.");
       const open = await fetch("/api/yours", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -790,14 +790,14 @@ export default function CaptureStudio() {
       });
       const woven = await readJson<{ story?: { id?: string } }>(open);
       if (!woven.story?.id) {
-        throw new Error("Couldn't turn that moment into a story. Try again.");
+        throw new Error("Couldn't turn that into a good moment. Try again.");
       }
       turned = true;
       clearActiveMoment();
       momentRef.current = null;
       router.push(`/app/yours?moment=${encodeURIComponent(momentId)}`);
     } catch (err) {
-      const message = explainClientFetchError(err) || "Couldn't turn that moment into a story. Try again.";
+      const message = explainClientFetchError(err) || "Couldn't turn that into a good moment. Try again.";
       setCaptureError(message);
       setTurnError(message);
     } finally {

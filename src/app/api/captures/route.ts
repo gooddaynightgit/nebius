@@ -86,7 +86,7 @@ export async function POST(request: Request) {
   if (kind === "text" && !text) return badRequest("Write a moment first.");
   if (kind === "voice" && !transcript && !caption && !text) {
     return badRequest(
-      "Type a line about what you said — we need your words to tell your story right now.",
+      "Type a line about what you said — we need your words to make your good moment right now.",
     );
   }
 

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const added = mergeCapturesIntoVault(vault, body.captures, day);
   if (added) await persistVault(vault);
   if (vault.captures.length < 1) {
-    return badRequest("Save at least one moment before unlocking your story.");
+    return badRequest("Save at least one moment before unlocking your good moment.");
   }
   const email = normalizeEmail(body.email ?? "");
   if (!isValidEmail(email)) return badRequest("Enter a valid email.");

@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { pageMetadata } from "@/lib/site-title";
 import SomethingGood from "@/components/SomethingGood";
 import { SG_DESCRIPTION, SG_HEADLINE, SG_PATH, sgAppJsonLd, jsonLdHtml } from "@/lib/something-good";
 
 const TITLE = `Something Good · ${SG_HEADLINE}`;
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: SG_DESCRIPTION,
-  alternates: { canonical: `https://gooddaynight.com${SG_PATH}` },
-  openGraph: { title: TITLE, description: SG_DESCRIPTION, url: `https://gooddaynight.com${SG_PATH}` },
-  twitter: { title: TITLE, description: SG_DESCRIPTION },
-};
+export const metadata: Metadata = pageMetadata({ name: TITLE, description: SG_DESCRIPTION, path: SG_PATH });
 
 export default function SomethingGoodPage() {
   return (
