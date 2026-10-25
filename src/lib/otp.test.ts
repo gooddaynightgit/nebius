@@ -87,3 +87,26 @@ describe("otp codes", () => {
     expect(wrong).toBe(false);
   });
 });
+
+describe("resend supersedes the earlier code", () => {
+  it("only the newest code verifies after a resend", async () => {
+    const { issueOtp: issue, verifyOtp: verify, MemoryOtpTable: Table } = await import("./otp");
+    const table = new Table();
+    const first = await issue("ada@example.com", table, { now: 1000, code: "111111" });
+    const second = await issue("ada@example.com", table, { now: 1030, code: "222222" });
+    expect(first.ok && second.ok).toBe(true);
+    expect(await verify("ada@example.com", "111111", table, 1031)).toBe(false);
+    expect(await verify("ada@example.com", "222222", table, 1032)).toBe(true);
+  });
+
+  it("a rate-limited resend keeps the last code working", async () => {
+    const { issueOtp: issue, verifyOtp: verify, MemoryOtpTable: Table, MAX_ISSUES } = await import("./otp");
+    const table = new Table();
+    for (let i = 0; i < MAX_ISSUES; i += 1) {
+      await issue("ada@example.com", table, { now: 1000 + i * 30, code: `00000${i}` });
+    }
+    const blocked = await issue("ada@example.com", table, { now: 1100, code: "999999" });
+    expect(blocked).toEqual({ ok: false, reason: "rate" });
+    expect(await verify("ada@example.com", `00000${MAX_ISSUES - 1}`, table, 1101)).toBe(true);
+  });
+});

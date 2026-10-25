@@ -5648,3 +5648,33 @@ textarea.sg-heard {
   height: 1.2em;
   flex: none;
 }
+
+/* Sign-in: spam hint, resend and change-email links */
+.otp-help {
+  margin-top: 0.5rem;
+}
+.otp-spam-hint {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 0 0 0.4rem;
+}
+.otp-help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.btn-link {
+  background: none;
+  border: 0;
+  padding: 0.25rem 0;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.btn-link:disabled {
+  opacity: 0.55;
+  cursor: default;
+  text-decoration: none;
+}
