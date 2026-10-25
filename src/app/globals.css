@@ -5678,3 +5678,19 @@ textarea.sg-heard {
   cursor: default;
   text-decoration: none;
 }
+
+/* My feel good moment: Share and back sit see-through so the moment's words show behind them. */
+body:has(.share-pin) .btn.share-pin,
+body:has(.share-pin) .step-float {
+  background: transparent;
+  border: 2px solid var(--lime);
+  color: var(--lime);
+  box-shadow: none;
+}
+
+body:has(.share-pin) .btn.share-pin:hover,
+body:has(.share-pin) .btn.share-pin:focus-visible {
+  background: rgba(212, 255, 0, 0.12);
+  border-color: var(--lime);
+  color: var(--lime);
+}
