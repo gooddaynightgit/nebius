@@ -2302,9 +2302,19 @@ body:has(.step-float) .share-pin {
 }
 
 .site-footer a.step-float__back,
-.site-footer a.step-float__back:hover,
+.site-footer a.step-float__back:hover {
+  color: var(--navy);
+  text-shadow: none;
+  background: transparent;
+}
+
+/* Dark pages keep the lime arrow. */
 .about-page .site-footer a.step-float__back,
-.about-page .site-footer a.step-float__back:hover {
+.about-page .site-footer a.step-float__back:hover,
+body:has(#yours) .site-footer a.step-float__back,
+body:has(#yours) .site-footer a.step-float__back:hover,
+body:has(.about-bg) .site-footer a.step-float__back,
+body:has(.about-bg) .site-footer a.step-float__back:hover {
   color: var(--lime);
   text-shadow: none;
   background: transparent;
