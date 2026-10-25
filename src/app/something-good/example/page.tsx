@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/site-title";
 import SgShell from "@/components/SgShell";
 import { SG_EXAMPLE, SG_EXAMPLE_PATH } from "@/lib/something-good";
 
 const TITLE = "Something Good example";
 const DESCRIPTION = "One Something Good, start to finish: what was named, the perfect result, and the closing card.";
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: `https://gooddaynight.com${SG_EXAMPLE_PATH}` },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: `https://gooddaynight.com${SG_EXAMPLE_PATH}` },
-};
+export const metadata: Metadata = pageMetadata({ name: TITLE, description: DESCRIPTION, path: SG_EXAMPLE_PATH });
 
 export default function SgExamplePage() {
   return (
