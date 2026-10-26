@@ -115,3 +115,17 @@ export async function restoreNewMoment(email: string, momentId: string): Promise
   if (!normalized) return;
   await activeFansTable().restoreForMoment(normalized, momentId, new Date().toISOString());
 }
+
+/**
+ * First verified sign-in: a brand-new email gets one free moment.
+ * An email that already has a row (bought, or used its free one) gets nothing.
+ */
+export async function grantFirstMoment(email: string): Promise<boolean> {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return false;
+  return activeFansTable().grantFirstMoment({
+    order: normalized,
+    emailVaultId: emailVaultId(normalized),
+    now: new Date().toISOString(),
+  });
+}

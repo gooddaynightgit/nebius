@@ -1,3 +1,4 @@
+import { grantFirstMoment } from "@/lib/entitlement";
 import { isValidEmail, normalizeEmail } from "@/lib/identity";
 import { badRequest, json } from "@/lib/http";
 import { VERIFY_FAIL, otpTable, verifyOtp } from "@/lib/otp";
@@ -31,6 +32,8 @@ export async function POST(request: Request) {
   const signed = await setOtpSession(email);
   if (!signed) return json({ error: "Sign-in isn’t available right now." }, 503);
 
+  // A new email gets its first moment free; a failure here just means they pay.
+  await grantFirstMoment(email).catch(() => false);
   const next = await destinationForVerifiedEmail(email);
   return json({ ok: true, next });
 }

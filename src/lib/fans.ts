@@ -12,6 +12,9 @@ import { dynamoDocument } from "./dynamo";
  */
 export const DEFAULT_FANS_TABLE = "goodfans";
 const FORBIDDEN_FANS_TABLE = "sleepcoachfans";
+/** Every new email gets one moment free, so they feel it before they buy. */
+export const FIRST_MOMENT_FREE = 1;
+export const FIRST_MOMENT_SOURCE = "free-first";
 
 export type FanCredit = {
   order: string;
@@ -55,6 +58,11 @@ export interface FansTable {
     momentId: string,
     now: string,
   ): Promise<{ remaining: number; alreadySpent: boolean } | null>;
+  /**
+   * First sign-in gift: create the row with one free moment, only when no row
+   * exists for this email yet. True when the gift was given now.
+   */
+  grantFirstMoment(input: { order: string; emailVaultId: string; now: string }): Promise<boolean>;
   /** Put one moment back when a save fails after a successful consume. */
   restore(order: string, now: string): Promise<void>;
   /** Give the credit back and forget the moment id, once. */
@@ -225,6 +233,31 @@ export class DynamoFansTable implements FansTable {
     }
   }
 
+  async grantFirstMoment(input: { order: string; emailVaultId: string; now: string }): Promise<boolean> {
+    try {
+      await this.doc.send(
+        new UpdateCommand({
+          TableName: this.tableName,
+          Key: { order: input.order },
+          UpdateExpression:
+            "SET game = :one, #source = :source, emailVaultId = :vault, issued = :now, created = :now, updatedAt = :now",
+          ConditionExpression: "attribute_not_exists(#order)",
+          ExpressionAttributeNames: { "#order": "order", "#source": "source" },
+          ExpressionAttributeValues: {
+            ":one": FIRST_MOMENT_FREE,
+            ":source": FIRST_MOMENT_SOURCE,
+            ":vault": input.emailVaultId,
+            ":now": input.now,
+          },
+        }),
+      );
+      return true;
+    } catch (error) {
+      if (isConditional(error)) return false;
+      throw error;
+    }
+  }
+
   async restore(order: string, now: string): Promise<void> {
     try {
       await this.doc.send(
@@ -307,6 +340,24 @@ export class MemoryFansTable implements FansTable {
       if (row.paymentIds.includes(pfPaymentId)) return copyFan(row);
     }
     return null;
+  }
+
+  async grantFirstMoment(input: { order: string; emailVaultId: string; now: string }): Promise<boolean> {
+    if (this.rows.has(input.order)) return false;
+    this.rows.set(input.order, {
+      order: input.order,
+      game: FIRST_MOMENT_FREE,
+      paymentIds: [],
+      emailVaultId: input.emailVaultId,
+      source: FIRST_MOMENT_SOURCE,
+      amountGross: "",
+      pfPaymentId: "",
+      issued: input.now,
+      created: input.now,
+      updatedAt: input.now,
+      spentMomentIds: [],
+    });
+    return true;
   }
 
   async consume(order: string, now: string): Promise<number | null> {
