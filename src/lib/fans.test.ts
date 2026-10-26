@@ -251,3 +251,22 @@ class ScriptedDoc {
     return step;
   }
 }
+
+describe("first moment free", () => {
+  it("gives a new email one moment once, and never tops up an existing row", async () => {
+    const { grantFirstMoment } = await import("./entitlement");
+    const table = new MemoryFansTable();
+    useFansTable(table);
+    expect(await grantFirstMoment("New@Example.com")).toBe(true);
+    expect(table.rows.get("new@example.com")?.game).toBe(1);
+    expect(table.rows.get("new@example.com")?.source).toBe("free-first");
+    const spent = await chargeNewMoment("new@example.com", "mom_free1", false);
+    expect(spent).toEqual({ ok: true, remaining: 0, charged: true });
+    expect(await grantFirstMoment("new@example.com")).toBe(false);
+    expect((await chargeNewMoment("new@example.com", "mom_free2", false)).ok).toBe(false);
+
+    await creditMoments({ email: "buyer@example.com", pfPaymentId: "p1", amountGross: "5.00", moments: 25 });
+    expect(await grantFirstMoment("buyer@example.com")).toBe(false);
+    expect(table.rows.get("buyer@example.com")?.game).toBe(25);
+  });
+});
