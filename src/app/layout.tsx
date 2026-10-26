@@ -63,6 +63,11 @@ export default function RootLayout({
         <Script id="google-tag" strategy="afterInteractive">
           {tag.html}
         </Script>
+        {/* Vercel Web Analytics — counts visitors and page views per page */}
+        <Script id="vercel-analytics-queue" strategy="afterInteractive">
+          {`window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };`}
+        </Script>
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
         {/* OpenAI (ChatGPT) Ads pixel — data source "sales pixel" */}
         <Script id="openai-ads-pixel" strategy="afterInteractive">
           {`!function(w,d,s,u){if(w.oaiq)return;var q=function(){q.q.push(arguments)};q.q=[];w.oaiq=q;var j=d.createElement(s);j.async=1;j.src=u;var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(j,f)}(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");oaiq("init",{pixelId:"YPtayFGEobn3D2fm4MWinB"});`}
