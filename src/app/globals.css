@@ -5802,7 +5802,7 @@ body:has(.step-float) .moments-stage {
   justify-content: flex-start;
 }
 
-body:has(.step-pin) .moments-paypal,
-body:has(.step-float) .moments-paypal {
+body:has(.step-pin) .moments-stack,
+body:has(.step-float) .moments-stack {
   margin-bottom: 4.5rem;
 }

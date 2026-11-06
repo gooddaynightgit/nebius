@@ -36,13 +36,13 @@ export default async function MomentsPage() {
             <h2 id="moments-weave">Every good moment adds to the rich tapestry of life</h2>
             <p className="moments-offer">Unlock 25 good moments for</p>
             <MomentsPrice />
+            <form className="moments-paypal" method="post" action="/api/paypal/checkout">
+              <button className="moments-paypal__button" type="submit">
+                Pay ${PAYPAL_AMOUNT} with <span className="moments-paypal__brand">PayPal</span>
+              </button>
+            </form>
           </section>
           <MomentsCheckout />
-          <form className="moments-paypal" method="post" action="/api/paypal/checkout">
-            <button className="moments-paypal__button" type="submit">
-              Pay ${PAYPAL_AMOUNT} with <span className="moments-paypal__brand">PayPal</span>
-            </button>
-          </form>
         </div>
       </main>
       <SiteFooter className="site-footer--moments" />
