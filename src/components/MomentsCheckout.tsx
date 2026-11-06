@@ -1,17 +1,9 @@
-"use client";
-
-import { journeyNextLabel } from "@/lib/journey";
-import { useRegisterStepForward } from "@/components/step-forward";
-
-/** Purchase only. The verified email is the session, not a field on this page. */
+/**
+ * Buy-page Payfast form. The visible "Pay R130 by card" and PayPal buttons live
+ * in the price card; this hidden form stays as a no-JS fallback target. It no
+ * longer registers the floating "Capture it" step button (removed Nov 2026).
+ */
 export default function MomentsCheckout() {
-  useRegisterStepForward({
-    label: journeyNextLabel(3) ?? "Capture it",
-    enabled: true,
-    run: () => {
-      document.querySelector<HTMLFormElement>("#moments-buy")?.requestSubmit();
-    },
-  });
   return (
     <form id="moments-buy" className="moments-buy" method="post" action="/api/payfast/checkout">
       <button className="visually-hidden" type="submit">
