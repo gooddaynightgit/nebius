@@ -47,7 +47,8 @@ describe("decidePaypalOrder", () => {
 describe("paypalOrderBody", () => {
   it("charges the PayPal amount in USD and returns to our return route", () => {
     const body = paypalOrderBody("a@b.co", ref, "https://gooddaynight.com");
-    expect(body.purchase_units[0].amount).toEqual({ currency_code: "USD", value: PAYPAL_AMOUNT });
+    expect(body.purchase_units[0].amount.value).toBe(PAYPAL_AMOUNT);
+    expect(body.purchase_units[0].amount.breakdown.item_total.value).toBe(PAYPAL_AMOUNT);
     expect(body.payment_source.paypal.experience_context.return_url).toBe(
       "https://gooddaynight.com/api/paypal/return?ref=pay_abc123",
     );

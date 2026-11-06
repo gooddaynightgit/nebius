@@ -71,7 +71,11 @@ export function paypalOrderBody(email: string, ref: string, origin: string) {
         invoice_id: ref,
         custom_id: email,
         description: ITEM_NAME,
-        amount: { currency_code: PAYPAL_CURRENCY, value: PAYPAL_AMOUNT },
+        amount: {
+          currency_code: PAYPAL_CURRENCY,
+          value: PAYPAL_AMOUNT,
+          breakdown: { item_total: { currency_code: PAYPAL_CURRENCY, value: PAYPAL_AMOUNT } },
+        },
         items: [
           {
             name: ITEM_NAME,
