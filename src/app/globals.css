@@ -5796,11 +5796,13 @@ body:has(.about-bg) .step-pin:hover {
 /* Keep the buy card and PayPal button above the floating "Capture it" pin:
    centre the content only in the space above the pin, and leave clear room
    under the PayPal button. */
-body:has(.step-pin) .moments-stage {
+body:has(.step-pin) .moments-stage,
+body:has(.step-float) .moments-stage {
   min-height: calc(100dvh - 7.6rem - 8.5rem);
   justify-content: flex-start;
 }
 
-body:has(.step-pin) .moments-paypal {
+body:has(.step-pin) .moments-paypal,
+body:has(.step-float) .moments-paypal {
   margin-bottom: 4.5rem;
 }
