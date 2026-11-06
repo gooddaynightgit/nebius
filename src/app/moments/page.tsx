@@ -41,6 +41,11 @@ export default async function MomentsPage() {
                 Pay ${PAYPAL_AMOUNT} with <span className="moments-paypal__brand">PayPal</span>
               </button>
             </form>
+            <form className="moments-paypal moments-card-pay" method="post" action="/api/payfast/checkout">
+              <button className="moments-paypal__button moments-card-pay__button" type="submit">
+                Pay R130 by card
+              </button>
+            </form>
           </section>
           <MomentsCheckout />
         </div>
