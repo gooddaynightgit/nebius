@@ -37,12 +37,14 @@ export async function creditMoments(input: {
   pfPaymentId: string;
   amountGross: string;
   moments: number;
+  /** Who confirmed the payment. Defaults to Payfast. */
+  source?: "payfast" | "paypal";
 }): Promise<{ remaining: number; duplicate: boolean }> {
   if (!Number.isInteger(input.moments) || input.moments < 1) {
     throw new Error("Refusing to credit an empty pack.");
   }
   if (!/^[A-Za-z0-9_-]{1,80}$/.test(input.pfPaymentId)) {
-    throw new Error("Invalid Payfast payment id.");
+    throw new Error("Invalid payment id.");
   }
   const email = normalizeEmail(input.email);
   const result = await activeFansTable().credit({
@@ -51,7 +53,7 @@ export async function creditMoments(input: {
     amountGross: input.amountGross,
     moments: input.moments,
     emailVaultId: emailVaultId(email),
-    source: "payfast",
+    source: input.source ?? "payfast",
     now: new Date().toISOString(),
   });
   return { remaining: result.game, duplicate: result.duplicate };

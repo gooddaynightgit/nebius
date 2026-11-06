@@ -37,6 +37,11 @@ export default async function MomentsPage() {
             <MomentsPrice />
           </section>
           <MomentsCheckout />
+          <form className="moments-paypal" method="post" action="/api/paypal/checkout">
+            <button className="moments-paypal__button" type="submit">
+              Pay $7.99 with <span className="moments-paypal__brand">PayPal</span>
+            </button>
+          </form>
         </div>
       </main>
       <SiteFooter className="site-footer--moments" />
