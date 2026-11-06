@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import ExpireSavedMoments from "@/components/ExpireSavedMoments";
 import MomentsCheckout from "@/components/MomentsCheckout";
 import MomentsPrice from "@/components/MomentsPrice";
+import { PAYPAL_AMOUNT } from "@/lib/paypal";
 import SiteFooter from "@/components/SiteFooter";
 import { isPersonalPhotoSession } from "@/lib/session";
 import { NOINDEX, siteTitleMetadata } from "@/lib/site-title";
@@ -39,7 +40,7 @@ export default async function MomentsPage() {
           <MomentsCheckout />
           <form className="moments-paypal" method="post" action="/api/paypal/checkout">
             <button className="moments-paypal__button" type="submit">
-              Pay $7.99 with <span className="moments-paypal__brand">PayPal</span>
+              Pay ${PAYPAL_AMOUNT} with <span className="moments-paypal__brand">PayPal</span>
             </button>
           </form>
         </div>

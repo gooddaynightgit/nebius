@@ -19,7 +19,8 @@ import { ensurePaymentVault } from "./vault";
  * deployment returns to itself rather than to APP_URL.
  * The client secret never leaves the server. Live API unless PAYPAL_ENV=sandbox.
  */
-export const PAYPAL_AMOUNT = "7.99";
+/** TEST CHARGE: put back to "7.99" after the first PayPal test payment. */
+export const PAYPAL_AMOUNT = "1.00";
 export const PAYPAL_CURRENCY = "USD";
 
 const ID_RE = /^[A-Za-z0-9_-]{1,80}$/;

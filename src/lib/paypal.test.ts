@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decidePaypalOrder, paypalOrderBody } from "./paypal";
+import { PAYPAL_AMOUNT, decidePaypalOrder, paypalOrderBody } from "./paypal";
 
 const ref = "pay_abc123";
 
@@ -13,7 +13,7 @@ function order(overrides: Record<string, unknown> = {}) {
         custom_id: "Buyer@Example.com",
         payments: {
           captures: [
-            { id: "3C679366HH908993F", status: "COMPLETED", amount: { currency_code: "USD", value: "7.99" } },
+            { id: "3C679366HH908993F", status: "COMPLETED", amount: { currency_code: "USD", value: PAYPAL_AMOUNT } },
           ],
         },
         ...overrides,
@@ -23,7 +23,7 @@ function order(overrides: Record<string, unknown> = {}) {
 }
 
 describe("decidePaypalOrder", () => {
-  it("accepts a completed 7.99 USD capture for our ref", () => {
+  it("accepts a completed capture for our ref", () => {
     expect(decidePaypalOrder(order(), ref)).toEqual({
       ok: true,
       email: "buyer@example.com",
@@ -45,9 +45,9 @@ describe("decidePaypalOrder", () => {
 });
 
 describe("paypalOrderBody", () => {
-  it("charges 7.99 USD and returns to our return route", () => {
+  it("charges the PayPal amount in USD and returns to our return route", () => {
     const body = paypalOrderBody("a@b.co", ref, "https://gooddaynight.com");
-    expect(body.purchase_units[0].amount).toEqual({ currency_code: "USD", value: "7.99" });
+    expect(body.purchase_units[0].amount).toEqual({ currency_code: "USD", value: PAYPAL_AMOUNT });
     expect(body.payment_source.paypal.experience_context.return_url).toBe(
       "https://gooddaynight.com/api/paypal/return?ref=pay_abc123",
     );
