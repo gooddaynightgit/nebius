@@ -27,6 +27,10 @@ export default function SiteFooter({
         <Link className="site-footer__about" href="/about">
           {LANDING.footer.about}
         </Link>
+        {" · "}
+        <Link className="site-footer__about" href="/best-gratitude-apps">
+          Best gratitude apps
+        </Link>
       </p>
       <p className="site-footer__legal">
         <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
